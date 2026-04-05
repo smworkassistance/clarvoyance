@@ -1,0 +1,2425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Clarvoyance</title>
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEZ0lEQVR4nO3c643TQBiG0QHRB53QCdVtJ9vJVhJ+WYQQ2NgznsvrcyQkJDbe4fOjiXP9crvdbgVCfB29AGhJ0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNlG+jF1BKKT9/fP/0Z97ePzqsZC7mst+X2+12G/XLXzlhj65wAs3luK6XHEdOVM/jjWIu7XQLehtyq2G3Pt4o5tJWl6Afh1s77NbHG8Vc2jv9GrrnUFe6jjSXc5y6Q//88b3bMFc6aeZyntOCvr+WO3uo98ef/W7WXM51StDPruV67BSzPyAyl/M1v4aeaWgz3d2aSx/Nd+hZhjXLOjazrGeWdZyladDbLvTZ0P7172/vH3/9abGe0cyln2aXHHuH9Pb+8cdt/neSnv3cnt83clcyl76a7dB7h3P/gOjVnWvFk2YufTXZoWvuwo4MdpU375hLf9U79AonreZ2R5nLGMN26Jqd4ehJ6L0bmcu/PVtri3UM2aFrF3709j13I3PZ//tarKPrJ1Za7gRHHgj1cuSZjVZWn0vtq6dVO/Teoc3wRvazT/QMa5phDTXHr1lL10+stL5WO3K8nm8IOvM2s6+h9/E3VQ8KZ3rec+Td/NE1nLWOe1ebS8TXGMxwF7vqNWuL2/Q83mcigl71xYGUu/mZVAX96sBmHWzrD6buMetMShk7l1LqZlO9Qx99B1lro56DnT3mleZSSv1smlxy/O9tjyvo/bLxjNfbz6z4/xv6zUlnWOE9FLO81PyqleYyxXfbtXT0lbIekY28x7rKXCKe5XhUc9I+u23NTjf6UuMKc4m75NjsfdHn8eef7Rq1g5/hMUX6XOIuOY54dkJG76YzWHEukZccpcyxG96bZT2zrGPTej2xQZcyz8mbZR2bWdZzxjpir6Hv1X46eo/HB1KzxPNM4lyid+jNq5+iPuv3zipxLpcIupRrfnHhK9LmcpmgNzN9MmMmKXO5XNDesvlcylwuF3Qp5w131Zg3CXO5ZNCl/P4CxO3vR4/xeKzVrT6XSzxtt8cr13op8e6xylwETZTLXnKQSdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETRRBE0XQRBE0UQRNFEETRdBEETRRBE0UQRNF0EQRNFEETZRf4eMhfmNdPYkAAAAASUVORK5CYII=">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Clarvoyance">
+<meta name="theme-color" content="#2a1505">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  /* Base palette — white/off-white */
+  --white:     #ffffff;
+  --off1:      #faf7f0;   /* primary surface */
+  --off2:      #f2ede2;   /* secondary surface */
+  --off3:      #e8e0d0;   /* card/panel */
+  --cream:     #ddd5c0;   /* borders */
+
+  /* Dark text (on light backgrounds) */
+  --dark1:     #1a1208;
+  --dark2:     #2c2010;
+  --dark3:     #5a4830;
+
+  /* Dark accent panel backgrounds */
+  --choc1:     #2a1505;   /* deepest — header dark zone */
+  --choc2:     #3d1e08;   /* quotes bar */
+  --choc3:     #5c3010;   /* ribbon bg */
+
+  /* Light text (on dark backgrounds) */
+  --lt1:       #faf7f0;
+  --lt2:       #e8dcc8;
+  --lt3:       #c8b898;
+
+  /* Accent — changes with mood */
+  --acc:       #8b5e2a;
+  --acc-lt:    #d4a870;
+
+  /* System */
+  --danger:    #8b1a0a;
+  --green:     #2a6040;
+  --shadow:    0 2px 16px rgba(26,18,8,.1);
+  --shadow-lg: 0 8px 40px rgba(26,18,8,.18);
+  --radius:    10px;
+  --trans:     .3s ease;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { height:100%; -webkit-text-size-adjust:100%; }
+body {
+  font-family:'DM Sans',sans-serif;
+  background:var(--off1);
+  color:var(--dark1);
+  font-size:17px;
+  line-height:1.65;
+  min-height:100%;
+  overflow-x:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* ═══════════════════════════════════════════
+   UTILITY
+═══════════════════════════════════════════ */
+.serif    { font-family:'Cormorant Garamond',serif; }
+.hidden   { display:none!important; }
+.lt-txt   { color:var(--lt1); }
+.dk-txt   { color:var(--dark1); }
+.btn-bare { background:none; border:none; cursor:pointer; font-family:inherit; }
+
+/* Small button used everywhere */
+.btn {
+  font-family:'DM Sans',sans-serif;
+  font-size:.72rem; font-weight:700;
+  padding:5px 11px; border-radius:6px;
+  border:1.5px solid var(--cream);
+  background:none; color:var(--dark3);
+  cursor:pointer; white-space:nowrap;
+  transition:all .15s; touch-action:manipulation;
+}
+.btn:hover,.btn:active { background:var(--off3); color:var(--dark1); }
+.btn.primary { background:var(--acc); color:var(--lt1); border-color:var(--acc); }
+.btn.primary:hover { opacity:.85; }
+.btn.danger:hover  { background:#f5e0dc; border-color:#c09090; color:var(--danger); }
+
+/* ═══════════════════════════════════════════
+   SPLASH SCREEN
+═══════════════════════════════════════════ */
+#splash {
+  position:fixed; inset:0; z-index:2000;
+  background:var(--choc1);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px;
+  transition:opacity .7s, transform .7s;
+}
+#splash.hide { opacity:0; transform:scale(1.04); pointer-events:none; }
+#splash .s-icon  { font-size:3rem; line-height:1; }
+#splash .s-name  { font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:700; color:var(--lt1); letter-spacing:-.02em; }
+#splash .s-name em { font-style:italic; color:var(--lt3); }
+#splash .s-rule  { width:40px; height:1.5px; background:rgba(250,247,240,.25); }
+#splash .s-tag   { font-size:.72rem; font-weight:500; color:var(--lt3); letter-spacing:.2em; text-transform:uppercase; }
+
+/* ═══════════════════════════════════════════
+   OVERLAYS (Mood Check + Yesterday Check)
+═══════════════════════════════════════════ */
+.overlay {
+  position:fixed; inset:0; z-index:1800;
+  background:rgba(26,18,8,.55);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px; backdrop-filter:blur(4px);
+}
+.overlay-box {
+  background:var(--white);
+  border-radius:16px;
+  padding:28px 24px;
+  width:100%; max-width:420px;
+  box-shadow:var(--shadow-lg);
+  animation:popIn .22s ease;
+}
+@keyframes popIn { from{opacity:0;transform:scale(.95) translateY(8px)} to{opacity:1;transform:none} }
+
+.ov-emoji  { font-size:2.5rem; text-align:center; margin-bottom:8px; }
+.ov-title  { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:700; color:var(--dark1); text-align:center; margin-bottom:18px; }
+.ov-select {
+  width:100%; padding:10px 13px;
+  border:1.5px solid var(--cream); border-radius:8px;
+  background:var(--off1); font-family:'DM Sans',sans-serif;
+  font-size:1rem; color:var(--dark1); outline:none; margin-bottom:16px;
+  appearance:none; cursor:pointer;
+}
+.ov-verdict {
+  text-align:center; padding:14px;
+  border-radius:10px; margin-bottom:14px;
+  background:var(--off2); border:1.5px solid var(--cream);
+}
+.ov-score  { font-size:2rem; font-weight:700; color:var(--acc); line-height:1; }
+.ov-label  { font-size:1.05rem; font-weight:700; color:var(--dark1); margin-top:4px; }
+.ov-nudge  { font-size:.85rem; color:var(--dark3); margin-top:6px; font-style:italic; }
+.ov-btns   { display:flex; gap:8px; justify-content:flex-end; margin-top:4px; }
+
+/* Yesterday check */
+.yn-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--off3); }
+.yn-name  { font-size:.95rem; font-weight:500; color:var(--dark1); flex:1; }
+.yn-btns  { display:flex; gap:6px; }
+.yn-btn   { font-family:'DM Sans',sans-serif; font-size:.78rem; font-weight:700; padding:5px 14px; border-radius:6px; border:1.5px solid var(--cream); cursor:pointer; transition:all .15s; }
+.yn-btn.yes { background:#e8f5e9; border-color:#90c090; color:#2a6040; }
+.yn-btn.no  { background:#fce8e8; border-color:#e09090; color:#8b1a0a; }
+.yn-btn.active-yes { background:#2a6040; color:#fff; border-color:#2a6040; }
+.yn-btn.active-no  { background:#8b1a0a; color:#fff; border-color:#8b1a0a; }
+
+/* ═══════════════════════════════════════════
+   LEFT EMOTIONAL RIBBON
+═══════════════════════════════════════════ */
+#ribbon-toggle {
+  position:fixed; top:50%; left:0; z-index:800;
+  transform:translateY(-50%);
+  background:var(--choc3); color:var(--lt1);
+  border:none; border-radius:0 8px 8px 0;
+  width:30px; height:54px;
+  font-size:1.1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .2s; touch-action:manipulation;
+  box-shadow:2px 0 10px rgba(0,0,0,.15);
+}
+#ribbon-toggle:hover { background:var(--choc2); }
+
+#ribbon {
+  position:fixed; top:0; left:-200px; z-index:799;
+  width:180px; height:100vh;
+  background:var(--choc1);
+  display:flex; flex-direction:column;
+  padding:60px 0 20px;
+  overflow-y:auto; overflow-x:hidden;
+  transition:left .28s cubic-bezier(.4,0,.2,1);
+  box-shadow:4px 0 30px rgba(0,0,0,.2);
+}
+#ribbon.open { left:0; }
+#ribbon::-webkit-scrollbar { width:3px; }
+#ribbon::-webkit-scrollbar-thumb { background:rgba(255,255,255,.15); border-radius:2px; }
+
+/* Ribbon header */
+#ribbon .rib-hdr {
+  padding:0 14px 12px;
+  font-size:.6rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--lt3);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  margin-bottom:6px; flex-shrink:0;
+}
+
+/* Emotion items in ribbon — bottom to top visual, but DOM top to bottom reversed via CSS */
+.rib-list { display:flex; flex-direction:column-reverse; flex:1; }
+
+.rib-item {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 14px; cursor:pointer;
+  transition:background .15s; touch-action:manipulation;
+  border-left:3px solid transparent;
+}
+.rib-item:hover { background:rgba(255,255,255,.08); }
+.rib-item.active {
+  background:rgba(255,255,255,.12);
+  border-left-color:var(--acc-lt);
+}
+.rib-item .re { font-size:1.1rem; flex-shrink:0; line-height:1; }
+.rib-item .rn { font-size:.64rem; color:var(--lt2); font-weight:500; line-height:1.3; }
+.rib-item.active .rn { color:var(--lt1); }
+
+/* ═══════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════ */
+.hdr {
+  height:58px; display:flex; align-items:center;
+  justify-content:space-between;
+  padding:0 18px; gap:12px;
+  background:var(--white);
+  border-bottom:2px solid var(--cream);
+  position:sticky; top:0; z-index:500;
+}
+.logo-wrap { display:flex; align-items:center; gap:9px; flex-shrink:0; }
+.mood-emoji-hdr { font-size:1.9rem; line-height:1; flex-shrink:0; }
+.logo-txt {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.8rem; font-weight:700;
+  color:var(--dark1); letter-spacing:-.03em; line-height:1;
+}
+.logo-txt em { color:var(--acc); font-style:italic; }
+
+.hdr-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+
+/* Timer */
+.timer {
+  display:flex; align-items:center; gap:5px;
+  background:var(--off2); border:1.5px solid var(--cream);
+  border-radius:8px; padding:5px 10px;
+}
+.timer-disp {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem; font-weight:700;
+  min-width:48px; text-align:center; color:var(--dark1);
+  transition:color .3s;
+}
+.timer-disp.run  { color:var(--green); }
+.timer-disp.done { color:var(--danger); animation:blink .9s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+.t-input {
+  width:34px; border:1.5px solid var(--cream); border-radius:4px;
+  background:var(--white); font-size:.72rem; font-weight:600;
+  text-align:center; padding:3px; color:var(--dark1); outline:none;
+  font-family:'DM Sans',sans-serif;
+}
+.t-input::-webkit-inner-spin-button { -webkit-appearance:none; }
+.t-btn {
+  font-family:'DM Sans',sans-serif; font-size:.68rem; font-weight:700;
+  padding:4px 8px; border-radius:5px; border:1.5px solid var(--cream);
+  background:none; color:var(--dark3); cursor:pointer; white-space:nowrap;
+  transition:all .15s; touch-action:manipulation;
+}
+.t-btn:hover,.t-btn:active { background:var(--off3); color:var(--dark1); }
+.t-btn.go { border-color:var(--green); color:var(--green); }
+.t-btn.go:hover { background:var(--green); color:#fff; }
+
+/* Date/time display */
+.hdr-dt { font-size:.72rem; color:var(--dark3); font-weight:600; line-height:1.5; text-align:right; }
+
+/* Mood score badge */
+.mood-badge {
+  background:var(--acc); color:var(--lt1);
+  border-radius:20px; padding:4px 10px;
+  font-size:.72rem; font-weight:700;
+  cursor:pointer; white-space:nowrap; flex-shrink:0;
+  transition:opacity .2s; touch-action:manipulation;
+}
+.mood-badge:hover { opacity:.85; }
+
+/* ═══════════════════════════════════════════
+   QUOTES BAR (dark background, light text)
+═══════════════════════════════════════════ */
+.quotes-bar {
+  background:var(--choc2);
+  padding:10px 20px;
+  display:flex; align-items:center; gap:12px;
+  min-height:52px; position:relative;
+}
+.quote-text {
+  flex:1; font-family:'Cormorant Garamond',serif;
+  font-size:1.05rem; font-style:italic;
+  line-height:1.5; text-align:center;
+  transition:opacity .5s, color .5s;
+  font-weight:600;
+}
+.quote-add-btn {
+  flex-shrink:0; background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.2);
+  color:var(--lt2); border-radius:6px;
+  padding:4px 10px; font-family:'DM Sans',sans-serif;
+  font-size:.68rem; font-weight:700; cursor:pointer;
+  transition:background .15s; touch-action:manipulation;
+  white-space:nowrap;
+}
+.quote-add-btn:hover { background:rgba(255,255,255,.2); color:var(--lt1); }
+
+/* ═══════════════════════════════════════════
+   RESPONSIBLE BANNER
+═══════════════════════════════════════════ */
+.resp-banner {
+  background:var(--choc1); color:var(--lt2);
+  padding:8px 20px; text-align:center;
+  font-size:.75rem; font-weight:600; letter-spacing:.08em;
+  text-transform:uppercase; border-bottom:2px solid var(--choc3);
+}
+
+/* ═══════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════ */
+.main { padding:16px; max-width:1200px; margin:0 auto; }
+
+/* ═══════════════════════════════════════════
+   GOAL + VISION ROW
+═══════════════════════════════════════════ */
+.goal-row {
+  display:grid; grid-template-columns:1fr 240px;
+  gap:14px; margin-bottom:16px;
+  background:var(--white);
+  border:1.5px solid var(--cream); border-radius:var(--radius);
+  overflow:hidden;
+}
+/* Goal section */
+.goal-section { padding:16px; display:flex; flex-direction:column; gap:8px; }
+.goal-header { display:flex; align-items:center; justify-content:space-between; }
+.goal-label {
+  font-size:.7rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--dark3);
+  display:flex; align-items:center; gap:6px;
+}
+.goal-label .gl-sym { font-size:1.1rem; }
+.goal-ta {
+  flex:1; width:100%; border:none; outline:none; resize:none;
+  background:transparent; font-family:'DM Sans',sans-serif;
+  font-size:1.05rem; font-weight:400; color:var(--dark1);
+  line-height:1.75; min-height:80px; cursor:default;
+}
+.goal-ta::placeholder { color:var(--dark3); font-style:italic; opacity:.5; }
+.goal-ta[readonly] { cursor:default; }
+.goal-ta:not([readonly]) { cursor:text; }
+
+/* Vision thumbnails */
+.vision-section {
+  background:var(--off2); padding:12px;
+  border-left:1.5px solid var(--cream);
+  display:flex; flex-direction:column; gap:8px;
+}
+.vision-lbl {
+  font-size:.65rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--dark3);
+}
+.vision-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:6px; flex:1;
+}
+.vision-thumb {
+  aspect-ratio:4/3; border-radius:6px; overflow:hidden;
+  cursor:pointer; position:relative;
+  background:var(--off3); transition:transform .2s;
+}
+.vision-thumb:hover { transform:scale(1.04); }
+.vision-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.vision-thumb .vt-del {
+  position:absolute; top:3px; right:3px;
+  background:rgba(26,18,8,.7); color:var(--lt1);
+  border:none; border-radius:50%; width:20px; height:20px;
+  font-size:.6rem; font-weight:700; cursor:pointer;
+  display:none; align-items:center; justify-content:center;
+}
+.vision-thumb:hover .vt-del { display:flex; }
+.vision-add-btn {
+  aspect-ratio:4/3; border-radius:6px;
+  border:2px dashed var(--cream); background:none;
+  font-size:1.3rem; color:var(--dark3); cursor:pointer;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:2px; transition:all .15s;
+  touch-action:manipulation;
+}
+.vision-add-btn span { font-size:.6rem; font-weight:600; color:var(--dark3); }
+.vision-add-btn:hover { background:var(--off3); border-color:var(--acc); }
+
+/* ═══════════════════════════════════════════
+   TOOL GRID
+═══════════════════════════════════════════ */
+.tool-section-label {
+  font-size:.68rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--dark3);
+  margin-bottom:10px;
+}
+.tool-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+  gap:10px; margin-bottom:16px;
+}
+.tool-card {
+  background:var(--white);
+  border:1.5px solid var(--cream);
+  border-radius:var(--radius);
+  padding:14px 10px;
+  cursor:pointer; text-align:center;
+  transition:all .18s; position:relative;
+  touch-action:manipulation; user-select:none;
+}
+.tool-card:hover {
+  border-color:var(--acc); background:var(--off1);
+  transform:translateY(-2px); box-shadow:var(--shadow);
+}
+.tool-card:active { transform:scale(.96); }
+.tool-card .tc-emoji { font-size:1.8rem; line-height:1; margin-bottom:6px; }
+.tool-card .tc-name {
+  font-size:.72rem; font-weight:700; color:var(--dark1);
+  letter-spacing:.03em; line-height:1.3;
+}
+/* Tooltip on hover */
+.tool-card .tc-tip {
+  display:none; position:absolute;
+  bottom:calc(100% + 8px); left:50%;
+  transform:translateX(-50%);
+  background:var(--choc1); color:var(--lt2);
+  border-radius:8px; padding:10px 12px;
+  width:200px; font-size:.75rem; line-height:1.5;
+  font-weight:400; text-align:left; z-index:600;
+  box-shadow:var(--shadow-lg);
+  pointer-events:none;
+}
+.tool-card .tc-tip::after {
+  content:''; position:absolute; top:100%; left:50%;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-top-color:var(--choc1);
+}
+.tool-card:hover .tc-tip { display:block; }
+
+/* Add Tool card — dashed style */
+.tool-card.add-tool {
+  border-style:dashed; border-color:var(--acc-lt);
+  background:var(--off2);
+}
+.tool-card.add-tool .tc-emoji { color:var(--acc); }
+
+/* ═══════════════════════════════════════════
+   GRAPH SECTION
+═══════════════════════════════════════════ */
+.graph-section {
+  background:var(--white);
+  border:1.5px solid var(--cream); border-radius:var(--radius);
+  padding:16px; margin-bottom:16px;
+}
+.graph-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:12px;
+}
+.graph-label {
+  font-size:.7rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--dark3);
+  display:flex; align-items:center; gap:6px;
+}
+#life-graph { width:100%; height:160px; display:block; }
+
+/* Zone labels */
+.graph-zones { display:flex; gap:12px; margin-top:6px; font-size:.68rem; font-weight:600; }
+.zone-ex { color:#2a6040; display:flex; align-items:center; gap:4px; }
+.zone-mi { color:#8b1a0a; display:flex; align-items:center; gap:4px; }
+.zone-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ═══════════════════════════════════════════
+   FOOTER TAGLINE (dark background)
+═══════════════════════════════════════════ */
+.footer-tag {
+  background:var(--choc1); padding:20px;
+  text-align:center; transition:background .4s;
+}
+.footer-emoji { font-size:2rem; display:block; margin-bottom:8px; }
+.footer-l1 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.15rem; font-style:italic; font-weight:700;
+  color:rgba(250,247,240,.9); margin-bottom:4px;
+}
+.footer-l2 {
+  font-size:.78rem; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:rgba(250,247,240,.5);
+}
+
+/* ═══════════════════════════════════════════
+   FLOATING BUTTONS
+═══════════════════════════════════════════ */
+.fab-wrap {
+  position:fixed; bottom:22px; right:20px;
+  z-index:700; display:flex; flex-direction:column; gap:8px;
+}
+.fab {
+  background:var(--acc); color:var(--lt1); border:none;
+  border-radius:50px; padding:11px 16px;
+  font-family:'DM Sans',sans-serif; font-size:.76rem; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+  cursor:pointer; box-shadow:var(--shadow-lg);
+  transition:all .2s; touch-action:manipulation;
+  display:flex; align-items:center; gap:6px;
+  white-space:nowrap;
+}
+.fab:hover { opacity:.88; transform:translateY(-2px); }
+.fab:active { transform:scale(.96); }
+.fab.ideas { background:var(--choc3); }
+
+/* ═══════════════════════════════════════════
+   TOOL PANELS (full-screen overlays)
+═══════════════════════════════════════════ */
+.panel-overlay {
+  position:fixed; inset:0; z-index:900;
+  background:rgba(26,18,8,.4); backdrop-filter:blur(3px);
+  display:flex; align-items:flex-end;
+}
+.panel {
+  background:var(--white); width:100%;
+  max-height:92vh; border-radius:16px 16px 0 0;
+  display:flex; flex-direction:column;
+  animation:slideUp .25s ease;
+  box-shadow:0 -8px 40px rgba(26,18,8,.18);
+}
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+.panel-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1.5px solid var(--cream); flex-shrink:0;
+}
+.panel-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.3rem; font-weight:700; color:var(--dark1);
+  display:flex; align-items:center; gap:8px;
+}
+.panel-actions { display:flex; gap:7px; }
+.panel-body { flex:1; overflow-y:auto; padding:18px 20px 28px; }
+.panel-body::-webkit-scrollbar { width:3px; }
+.panel-body::-webkit-scrollbar-thumb { background:var(--cream); border-radius:2px; }
+
+/* Textarea inside panel */
+.panel-ta {
+  width:100%; border:none; border-bottom:2px solid var(--cream);
+  background:transparent; font-family:'DM Sans',sans-serif;
+  font-size:1.05rem; font-weight:400; color:var(--dark1);
+  padding:10px 4px; outline:none; resize:none;
+  min-height:120px; line-height:1.85;
+  -webkit-user-select:text; user-select:text;
+  transition:border-color .2s;
+}
+.panel-ta:focus { border-bottom-color:var(--acc); }
+.panel-ta::placeholder { color:var(--dark3); font-style:italic; opacity:.5; font-family:'Cormorant Garamond',serif; font-size:1.08rem; }
+
+/* Sub-label inside panel */
+.panel-sub {
+  font-size:.7rem; font-weight:700; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--dark3); margin:16px 0 6px;
+}
+
+/* Feel Good: group + inputs */
+.feel-group { margin-bottom:20px; }
+.feel-group-title {
+  font-size:.7rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--acc); margin-bottom:8px;
+  display:flex; align-items:center; gap:5px;
+}
+.feel-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+.feel-num {
+  font-family:'Cormorant Garamond',serif;
+  font-size:.8rem; color:var(--acc-lt); width:16px;
+  text-align:right; flex-shrink:0; font-weight:700;
+}
+.feel-inp {
+  flex:1; border:none; border-bottom:1.5px solid var(--cream);
+  background:transparent; font-family:'DM Sans',sans-serif;
+  font-size:1rem; font-weight:400; color:var(--dark1);
+  padding:6px 4px; outline:none; transition:border-color .2s;
+  -webkit-user-select:text; user-select:text;
+}
+.feel-inp:focus { border-bottom-color:var(--acc); }
+.feel-inp::placeholder { color:var(--dark3); opacity:.4; font-style:italic; font-size:.9rem; }
+
+/* ═══════════════════════════════════════════
+   NON-NEGOTIABLES PANEL
+═══════════════════════════════════════════ */
+.nn-setup-row { display:flex; gap:8px; margin-bottom:12px; }
+.nn-setup-inp {
+  flex:1; padding:9px 12px; border:1.5px solid var(--cream);
+  border-radius:7px; background:var(--off1);
+  font-family:'DM Sans',sans-serif; font-size:.95rem; color:var(--dark1);
+  outline:none; transition:border-color .15s;
+}
+.nn-setup-inp:focus { border-color:var(--acc); }
+.nn-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 0; border-bottom:1px solid var(--off3);
+}
+.nn-bullet { font-size:1rem; flex-shrink:0; }
+.nn-name   { flex:1; font-size:.95rem; font-weight:500; color:var(--dark1); }
+.nn-del    { background:none; border:none; cursor:pointer; color:var(--dark3); font-size:.9rem; padding:3px 6px; border-radius:4px; }
+.nn-del:hover { background:#fce8e8; color:var(--danger); }
+
+/* ═══════════════════════════════════════════
+   REVISE & REPEAT PANEL
+═══════════════════════════════════════════ */
+.rr-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:12px;
+}
+.rr-card {
+  background:var(--off2); border:1.5px solid var(--cream);
+  border-radius:10px; overflow:hidden; position:relative;
+}
+.rr-img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; cursor:pointer; }
+.rr-note {
+  width:100%; border:none; border-top:1.5px solid var(--cream);
+  background:var(--white); font-family:'DM Sans',sans-serif;
+  font-size:.82rem; color:var(--dark1); padding:7px 10px;
+  resize:none; outline:none; min-height:60px; line-height:1.5;
+  -webkit-user-select:text; user-select:text;
+}
+.rr-note::placeholder { color:var(--dark3); opacity:.4; font-style:italic; font-size:.78rem; }
+.rr-del {
+  position:absolute; top:5px; right:5px;
+  background:rgba(26,18,8,.7); color:var(--lt1);
+  border:none; border-radius:50%; width:22px; height:22px;
+  font-size:.65rem; font-weight:700; cursor:pointer;
+  display:none; align-items:center; justify-content:center;
+}
+.rr-card:hover .rr-del { display:flex; }
+
+/* ═══════════════════════════════════════════
+   IDEAS PANEL
+═══════════════════════════════════════════ */
+.ideas-list { flex:1; overflow-y:auto; padding:12px 20px 0; min-height:0; }
+.ideas-list::-webkit-scrollbar { width:3px; }
+.ideas-list::-webkit-scrollbar-thumb { background:var(--cream); border-radius:2px; }
+.idea-wrap  { margin-bottom:7px; }
+.idea-row   { display:flex; align-items:flex-start; gap:7px; padding:2px 0; }
+.idea-row:hover .ia { opacity:1; }
+.idea-num   { font-family:'Cormorant Garamond',serif; font-size:.85rem; color:var(--acc-lt); min-width:22px; padding-top:2px; flex-shrink:0; text-align:right; font-weight:700; }
+.idea-txt   { font-size:.95rem; line-height:1.55; flex:1; word-break:break-word; font-weight:500; color:var(--dark1); }
+.ia         { display:flex; gap:3px; opacity:0; transition:opacity .12s; flex-shrink:0; padding-top:2px; }
+.ia-btn     { background:none; border:none; cursor:pointer; font-size:.62rem; font-weight:700; color:var(--dark3); padding:2px 5px; border-radius:3px; }
+.ia-btn:hover { background:var(--off3); color:var(--dark1); }
+.ia-btn.d:hover { background:#fce8e8; color:var(--danger); }
+.sub-wrap   { padding-left:24px; }
+.sub-row    { display:flex; align-items:flex-start; gap:7px; padding:1px 0; margin-bottom:3px; }
+.sub-row:hover .ia { opacity:1; }
+.sub-num    { font-family:'Cormorant Garamond',serif; font-size:.72rem; color:var(--acc-lt); opacity:.7; min-width:28px; padding-top:2px; flex-shrink:0; text-align:right; }
+.sub-txt    { font-size:.88rem; line-height:1.5; color:var(--dark3); flex:1; word-break:break-word; }
+
+.ideas-bar  { flex-shrink:0; padding:10px 20px 18px; }
+.ideas-inp-row { display:flex; gap:8px; }
+.ideas-inp  {
+  flex:1; padding:10px 13px; border:1.5px solid var(--cream);
+  border-radius:8px; background:var(--off1);
+  font-family:'DM Sans',sans-serif; font-size:.95rem; color:var(--dark1); outline:none;
+}
+.ideas-inp:focus { border-color:var(--acc); }
+
+/* ═══════════════════════════════════════════
+   COLLECTIONS PANEL
+═══════════════════════════════════════════ */
+.coll-tabs { display:flex; border-bottom:1.5px solid var(--cream); flex-shrink:0; }
+.coll-tab  {
+  flex:1; padding:11px 8px; background:none; border:none;
+  border-bottom:3px solid transparent;
+  font-family:'DM Sans',sans-serif; font-size:.75rem; font-weight:700;
+  letter-spacing:.07em; text-transform:uppercase;
+  color:var(--dark3); cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.coll-tab.active { color:var(--acc); border-bottom-color:var(--acc); }
+.coll-pane { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.coll-pane.active { display:flex; }
+.coll-add  { flex-shrink:0; padding:10px 16px; border-bottom:1px solid var(--cream); display:flex; gap:7px; }
+.coll-inp  {
+  flex:1; padding:8px 11px; border:1.5px solid var(--cream); border-radius:7px;
+  background:var(--off1); font-family:'DM Sans',sans-serif;
+  font-size:.88rem; color:var(--dark1); outline:none; min-width:0;
+}
+.coll-inp:focus { border-color:var(--acc); }
+.coll-grid {
+  flex:1; overflow-y:auto; padding:12px;
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; align-content:start;
+}
+.coll-grid::-webkit-scrollbar { width:3px; }
+.coll-grid::-webkit-scrollbar-thumb { background:var(--cream); border-radius:2px; }
+.coll-item { position:relative; border-radius:10px; overflow:hidden; cursor:pointer; background:var(--off3); box-shadow:var(--shadow); transition:transform .2s; }
+.coll-item:hover { transform:scale(1.02); }
+.coll-item img  { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+.coll-np   { padding:6px 10px; font-size:.8rem; color:var(--dark3); font-style:italic; border-top:1px solid var(--cream); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Cormorant Garamond',serif; font-weight:600; }
+.coll-del  { position:absolute; top:5px; right:5px; background:rgba(26,18,8,.75); border:none; color:var(--lt1); border-radius:50%; width:24px; height:24px; font-size:.7rem; cursor:pointer; display:none; align-items:center; justify-content:center; font-weight:700; }
+.coll-item:hover .coll-del { display:flex; }
+
+/* ═══════════════════════════════════════════
+   LIGHTBOX (image fullscreen)
+═══════════════════════════════════════════ */
+#lightbox {
+  position:fixed; inset:0; z-index:1500;
+  background:rgba(16,10,4,.95);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+#lightbox img { max-width:100%; max-height:90vh; object-fit:contain; border-radius:6px; }
+#lightbox .lb-close {
+  position:absolute; top:14px; right:14px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  color:var(--lt1); border-radius:50%; width:36px; height:36px;
+  font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+
+/* Collections image viewer with note */
+#coll-viewer {
+  position:fixed; inset:0; z-index:1500;
+  background:rgba(16,10,4,.97);
+  display:flex; flex-direction:column;
+}
+.cv-top {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 18px; border-bottom:1px solid rgba(255,255,255,.1); flex-shrink:0;
+}
+.cv-title { font-family:'Cormorant Garamond',serif; font-size:1rem; color:var(--lt2); font-style:italic; }
+.cv-ctrls { display:flex; gap:6px; }
+.cv-btn   { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); color:var(--lt1); border-radius:6px; padding:6px 12px; font-family:'DM Sans',sans-serif; font-size:.78rem; font-weight:700; cursor:pointer; }
+.cv-body  { display:flex; flex:1; overflow:hidden; }
+.cv-left  { flex:1; display:flex; align-items:center; justify-content:center; padding:16px; overflow:hidden; }
+.cv-left img { max-width:100%; max-height:100%; object-fit:contain; border-radius:6px; }
+.cv-right {
+  width:300px; flex-shrink:0; border-left:1px solid rgba(255,255,255,.08);
+  background:rgba(20,12,4,.5); display:flex; flex-direction:column; padding:16px;
+}
+.cv-note-lbl { font-size:.72rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--lt3); margin-bottom:8px; }
+.cv-note-ta  { flex:1; width:100%; border:none; border-bottom:1px solid rgba(255,255,255,.15); background:transparent; font-family:'DM Sans',sans-serif; font-size:.95rem; color:rgba(250,247,240,.92); padding:6px 0; outline:none; resize:none; -webkit-user-select:text; user-select:text; line-height:1.75; }
+.cv-note-ta::placeholder { color:rgba(250,247,240,.2); font-style:italic; }
+.cv-save { margin-top:10px; }
+
+/* ═══════════════════════════════════════════
+   MODAL (add quote, add custom tool, vision add)
+═══════════════════════════════════════════ */
+.modal-ov {
+  position:fixed; inset:0; z-index:1600;
+  background:rgba(26,18,8,.4); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.modal-box {
+  background:var(--white); border-radius:14px; padding:22px;
+  width:100%; max-width:380px; box-shadow:var(--shadow-lg);
+  animation:popIn .15s ease;
+}
+.modal-title { font-family:'Cormorant Garamond',serif; font-size:1.2rem; font-weight:700; color:var(--dark1); margin-bottom:14px; }
+.modal-inp {
+  width:100%; padding:10px 12px; border:1.5px solid var(--cream);
+  border-radius:8px; background:var(--off1); font-family:'DM Sans',sans-serif;
+  font-size:.95rem; color:var(--dark1); outline:none; margin-bottom:10px;
+  transition:border-color .15s;
+}
+.modal-inp:focus { border-color:var(--acc); }
+.modal-ta  { min-height:80px; resize:none; }
+.modal-row { display:flex; gap:8px; justify-content:flex-end; }
+.modal-hint { font-size:.65rem; color:var(--dark3); text-align:center; margin-top:8px; opacity:.6; }
+
+/* ═══════════════════════════════════════════
+   ALARM BANNER
+═══════════════════════════════════════════ */
+#alarm-banner {
+  position:fixed; top:0; left:0; right:0; z-index:9999;
+  background:var(--choc1); color:var(--lt1);
+  text-align:center; padding:16px 20px;
+  font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; box-shadow:0 4px 20px rgba(0,0,0,.4);
+  animation:slideDown .3s ease;
+}
+@keyframes slideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+
+/* ═══════════════════════════════════════════
+   MOBILE RESPONSIVE
+═══════════════════════════════════════════ */
+@media(max-width:680px) {
+  .hdr        { height:52px; padding:0 12px; }
+  .logo-txt   { font-size:1.5rem; }
+  .hdr-dt, .timer { display:none; }
+  .mood-emoji-hdr { font-size:1.6rem; }
+
+  .goal-row   { grid-template-columns:1fr; }
+  .vision-section { border-left:none; border-top:1.5px solid var(--cream); }
+
+  .tool-grid  { grid-template-columns:repeat(3,1fr); gap:8px; }
+  .tool-card  { padding:12px 8px; }
+  .tool-card .tc-emoji { font-size:1.5rem; }
+  .tool-card .tc-name  { font-size:.65rem; }
+  .tool-card .tc-tip   { display:none!important; } /* Too messy on mobile */
+
+  .fab-wrap   { bottom:16px; right:14px; }
+
+  /* Ideas panel full width */
+  .ideas-list { padding:10px 14px 0; }
+  .ideas-bar  { padding:8px 14px 16px; }
+
+  /* Collections full screen */
+  .coll-grid  { grid-template-columns:1fr 1fr; }
+
+  /* Viewer stacks on mobile */
+  .cv-body    { flex-direction:column; }
+  .cv-left    { height:45vw; flex:none; padding:10px; }
+  .cv-right   { width:100%; flex:1; border-left:none; border-top:1px solid rgba(255,255,255,.08); }
+
+  #ribbon     { width:160px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SPLASH SCREEN
+═══════════════════════════════════════════ -->
+<div id="splash">
+  <div class="s-icon" id="splash-e">✨</div>
+  <div class="s-name">Clarv<em>oy</em>ance</div>
+  <div class="s-rule"></div>
+  <div class="s-tag">Think · Feel · Create</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     OVERLAY 1: MOOD CHECK (on app start)
+═══════════════════════════════════════════ -->
+<div class="overlay hidden" id="mood-overlay">
+  <div class="overlay-box">
+    <div class="ov-emoji">😊</div>
+    <div class="ov-title" style="font-size:1.1rem">Hey — how are you feeling right now?</div>
+    <select class="ov-select" id="mood-select"></select>
+    <div class="ov-verdict" id="mood-verdict">
+      <div class="ov-score" id="mood-score">—</div>
+      <div class="ov-label" id="mood-label">Select a feeling above</div>
+      <div class="ov-nudge" id="mood-nudge"></div>
+    </div>
+    <div style="font-size:.8rem;color:#8b7a60;text-align:center;margin-bottom:14px;font-style:italic">
+      💛 Find a better feeling place. Feelings manifest your life.
+    </div>
+    <div class="ov-btns">
+      <button class="btn primary" onclick="closeMoodOverlay()">Continue →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     OVERLAY 2: YESTERDAY CHECK
+═══════════════════════════════════════════ -->
+<div class="overlay hidden" id="yn-overlay">
+  <div class="overlay-box">
+    <div class="ov-emoji">📋</div>
+    <div class="ov-title" style="font-size:1rem">Quick check — how did yesterday go?</div>
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5a4830;margin-bottom:10px">🎯 Keep the Main Thing the Main Thing</div>
+    <div id="yn-list"></div>
+    <div class="ov-btns" style="margin-top:14px">
+      <button class="btn" onclick="closeYnOverlay(true)">Skip</button>
+      <button class="btn primary" onclick="closeYnOverlay(false)">Save & Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     LEFT EMOTIONAL RIBBON
+═══════════════════════════════════════════ -->
+<button id="ribbon-toggle" title="Emotional Scale" onclick="toggleRibbon()">🎭</button>
+<div id="ribbon">
+  <div class="rib-hdr">How I Feel ↑</div>
+  <div class="rib-list" id="rib-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════ -->
+<header class="hdr">
+  <div class="logo-wrap">
+    <div class="mood-emoji-hdr" id="hdr-emoji">✨</div>
+    <div class="logo-txt">Clarv<em>oy</em>ance</div>
+  </div>
+  <div class="hdr-right">
+    <div class="timer">
+      <input class="t-input" type="number" id="t-min" value="25" min="1" max="180">
+      <button class="t-btn" onclick="setTimer()">Set</button>
+      <div class="timer-disp" id="t-disp">25:00</div>
+      <button class="t-btn go" id="t-btn" onclick="toggleTimer()">Start</button>
+      <button class="t-btn" onclick="resetTimer()">Reset</button>
+    </div>
+    <div class="hdr-dt" id="hdr-dt"></div>
+    <div class="mood-badge" id="mood-badge" onclick="showMoodOverlay()" title="Tap to reset mood">✨ 100</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════
+     QUOTES BAR (dark, light text, rotating)
+═══════════════════════════════════════════ -->
+<div class="quotes-bar">
+  <div class="quote-text" id="quote-txt">Loading...</div>
+  <button class="quote-add-btn" onclick="showAddQuote()">+ Add</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     100% RESPONSIBLE BANNER
+═══════════════════════════════════════════ -->
+<div class="resp-banner">
+  ◎ &nbsp; I Am 100% Responsible — I Am The Creator of My Entire Reality
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════ -->
+<div class="main">
+
+  <!-- ── GOAL + VISION ROW ── -->
+  <div class="goal-row" id="goal-row">
+
+    <!-- Major Definite Goal -->
+    <div class="goal-section">
+      <div class="goal-header">
+        <div class="goal-label">
+          <span class="gl-sym">🎯</span> Major Definite Goal
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn" id="goal-edit-btn" onclick="toggleGoalEdit()">✏️ Edit</button>
+          <button class="btn primary hidden" id="goal-save-btn" onclick="saveGoal()">Save</button>
+        </div>
+      </div>
+      <textarea class="goal-ta" id="goal-ta" readonly
+        placeholder="🌟 What is your one major, burning, definite goal? Write it as if it's already happening... How does it feel? Step into the feeling of achieving it right now."></textarea>
+    </div>
+
+    <!-- Vision Images -->
+    <div class="vision-section">
+      <div class="vision-lbl">📸 Vision</div>
+      <div class="vision-grid" id="vision-grid">
+        <!-- thumbnails rendered by JS -->
+        <button class="vision-add-btn" onclick="showVisionAdd()">
+          <span style="font-size:1.4rem">＋</span>
+          <span>Add Image</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── TOOL GRID ── -->
+  <div class="tool-section-label">🧰 Your Tools — tap any to open</div>
+  <div class="tool-grid" id="tool-grid">
+
+    <div class="tool-card" onclick="openPanel('clarity')">
+      <div class="tc-emoji">📝</div>
+      <div class="tc-name">Written Clarity</div>
+      <div class="tc-tip">
+        <strong>Always think on paper.</strong><br>
+        Write what's really going on. Analyse the situation.<br>
+        <em>Example: "I'm stuck because..."</em>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="openPanel('dontwant')">
+      <div class="tc-emoji">🌊</div>
+      <div class="tc-name">What I Don't Want</div>
+      <div class="tc-tip">
+        <strong>Dump every worry here.</strong><br>
+        The moment it's on paper, it loses its power over you.<br>
+        <em>Example: "I don't want to feel stuck..."</em>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="openPanel('story')">
+      <div class="tc-emoji">✨</div>
+      <div class="tc-name">New Story</div>
+      <div class="tc-tip">
+        <strong>Your life = the story you tell.</strong><br>
+        What do you really want? Write it as if it's already yours.<br>
+        <em>Example: "I feel free, abundant..."</em>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="openPanel('feel')">
+      <div class="tc-emoji">🌅</div>
+      <div class="tc-name">Find Better Feeling</div>
+      <div class="tc-tip">
+        <strong>Shift your mood in minutes.</strong><br>
+        Appreciation × 5 · Positives × 5 · Gratitude × 5 · Self Image × 5.<br>
+        <em>Fill what's genuinely good right now.</em>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="openPanel('culprit')">
+      <div class="tc-emoji">🕵️</div>
+      <div class="tc-name">The Culprit</div>
+      <div class="tc-tip">
+        <strong>With unlimited power — who is responsible?</strong><br>
+        Honest accountability creates real change.<br>
+        <em>Example: "I chose to scroll instead of act."</em>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="openPanel('revise')">
+      <div class="tc-emoji">🔄</div>
+      <div class="tc-name">Revise & Repeat</div>
+      <div class="tc-tip">
+        <strong>Things worth remembering.</strong><br>
+        Add an image, write what it means to you. Review often.<br>
+        <em>The mind believes what it sees repeatedly.</em>
+      </div>
+    </div>
+
+    <div class="tool-card" onclick="openPanel('nn')">
+      <div class="tc-emoji">🔐</div>
+      <div class="tc-name">Non-Negotiables</div>
+      <div class="tc-tip">
+        <strong>Keep the Main Thing the Main Thing.</strong><br>
+        Up to 8 daily commitments. Track & graph your consistency.<br>
+        <em>These run no matter what.</em>
+      </div>
+    </div>
+
+    <!-- Custom user-created tools rendered here by JS -->
+    <div id="custom-tools-slot"></div>
+
+    <!-- Add Custom Tool -->
+    <div class="tool-card add-tool" onclick="showAddTool()">
+      <div class="tc-emoji">➕</div>
+      <div class="tc-name">Add Your Own Tool</div>
+    </div>
+
+  </div><!-- /tool-grid -->
+
+  <!-- ── LIFE GRAPH ── -->
+  <div class="graph-section">
+    <div class="graph-header">
+      <div class="graph-label">📊 Life Trajectory — Non-Negotiables Score</div>
+      <button class="btn" onclick="openPanel('nn')">View / Edit</button>
+    </div>
+    <canvas id="life-graph"></canvas>
+    <div class="graph-zones">
+      <div class="zone-ex"><div class="zone-dot" style="background:#2a6040"></div>Excellent Zone (80%+)</div>
+      <div class="zone-mi"><div class="zone-dot" style="background:#8b1a0a"></div>Miserable Zone (below 50%)</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ═══════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════ -->
+<div class="footer-tag" id="footer-tag">
+  <span class="footer-emoji" id="footer-emoji">✨</span>
+  <div class="footer-l1">Your life can only get as good as you feel.</div>
+  <div class="footer-l2">Nothing is more important than that I feel good.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FLOATING BUTTONS
+═══════════════════════════════════════════ -->
+<div class="fab-wrap">
+  <button class="fab ideas" onclick="openPanel('ideas')">◈ Ideas</button>
+  <button class="fab" onclick="openPanel('collections')">▣ Collections</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PANEL TEMPLATE (rendered dynamically)
+     All tool panels share this overlay structure
+═══════════════════════════════════════════ -->
+<div class="panel-overlay hidden" id="panel-overlay" onclick="panelOverlayClick(event)">
+  <div class="panel" id="panel-box">
+    <div class="panel-head">
+      <div class="panel-title" id="panel-title">Tool</div>
+      <div class="panel-actions" id="panel-actions">
+        <button class="btn" onclick="closePanel()">✕ Close</button>
+      </div>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     LIGHTBOX (simple image view)
+═══════════════════════════════════════════ -->
+<div id="lightbox" class="hidden" onclick="closeLightbox()">
+  <button class="lb-close">✕</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<!-- ═══════════════════════════════════════════
+     COLLECTION IMAGE VIEWER (with note)
+═══════════════════════════════════════════ -->
+<div id="coll-viewer" class="hidden">
+  <div class="cv-top">
+    <div class="cv-title" id="cv-title">Vision Board — Manifestation Note</div>
+    <div class="cv-ctrls">
+      <button class="cv-btn" onclick="cvZoom(-0.25)">− Out</button>
+      <button class="cv-btn" onclick="cvZoom(0.25)">+ In</button>
+      <button class="cv-btn" onclick="cvResetZoom()">Reset</button>
+      <button class="cv-btn" onclick="closeCvViewer()">✕ Close</button>
+    </div>
+  </div>
+  <div class="cv-body">
+    <div class="cv-left"><img id="cv-img" src="" alt="" style="transition:transform .2s;transform-origin:center;cursor:grab;user-select:none"></div>
+    <div class="cv-right">
+      <div class="cv-note-lbl">▸ Manifestation Note — saved with image</div>
+      <textarea class="cv-note-ta" id="cv-note" placeholder="I already have this... I feel... Write as your present reality..."></textarea>
+      <div style="margin-top:8px;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(250,247,240,.5)">◈ Revise &amp; Realign — session only</div>
+      <textarea class="cv-note-ta" id="cv-live" placeholder="Use this to realign your thoughts right now. Not saved." style="min-height:60px;margin-top:6px"></textarea>
+      <button class="btn primary cv-save" id="cv-save-btn" onclick="saveCollNote()">Save Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MODAL (reusable — used for add quote, add tool, vision add)
+═══════════════════════════════════════════ -->
+<div class="modal-ov hidden" id="modal-ov" onclick="modalOvClick(event)">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Add</div>
+    <div id="modal-body"></div>
+    <div class="modal-row" id="modal-btns">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" id="modal-confirm" onclick="modalConfirm()">Add</button>
+    </div>
+    <div class="modal-hint" id="modal-hint">Press Escape to cancel</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FILE INPUT (hidden, used for uploads)
+═══════════════════════════════════════════ -->
+<input type="file" id="file-inp" accept="image/*" multiple style="display:none" onchange="handleFileUpload(event)">
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════
+   DATA: EMOTIONAL SCALE (22 emotions)
+   score: 100 = Joy (best), 5 = Fear (lowest)
+   acc: accent color used for mood theming
+═══════════════════════════════════════════ */
+const EMOTIONS = [
+  {n:'Joy / Love',        e:'✨', score:100, acc:'#c9920a'},
+  {n:'Passion',           e:'🌺', score:95,  acc:'#c44000'},
+  {n:'Enthusiasm',        e:'🌈', score:88,  acc:'#b06000'},
+  {n:'Positive Expectation',e:'🌸',score:80, acc:'#b01858'},
+  {n:'Optimism',          e:'🌻', score:72,  acc:'#d08000'},
+  {n:'Hopefulness',       e:'🌿', score:64,  acc:'#287030'},
+  {n:'Contentment',       e:'🍃', score:56,  acc:'#407828'},
+  {n:'Boredom',           e:'🌫️', score:46,  acc:'#686868'},
+  {n:'Pessimism',         e:'🌧️', score:40,  acc:'#486070'},
+  {n:'Frustration',       e:'⚡', score:35,  acc:'#c85000'},
+  {n:'Overwhelm',         e:'🌊', score:30,  acc:'#1058b0'},
+  {n:'Disappointment',    e:'🍂', score:26,  acc:'#604030'},
+  {n:'Doubt',             e:'🌑', score:22,  acc:'#404040'},
+  {n:'Worry',             e:'🫧', score:19,  acc:'#3040a0'},
+  {n:'Blame',             e:'🌩️', score:16,  acc:'#304050'},
+  {n:'Discouragement',    e:'💧', score:13,  acc:'#0268a8'},
+  {n:'Anger',             e:'🌋', score:10,  acc:'#b01818'},
+  {n:'Revenge',           e:'🌪️', score:8,   acc:'#601890'},
+  {n:'Hatred / Rage',     e:'🖤', score:6,   acc:'#800000'},
+  {n:'Jealousy',          e:'🍀', score:5,   acc:'#1a5c1a'},
+  {n:'Insecurity / Guilt',e:'🌒', score:4,   acc:'#402890'},
+  {n:'Fear / Despair',    e:'🕯️', score:3,   acc:'#304048'}
+];
+
+/* ═══════════════════════════════════════════
+   DATA: DEFAULT QUOTES (pre-loaded)
+═══════════════════════════════════════════ */
+const DEFAULT_QUOTES = [
+  'Nothing is more important than that I feel good.',
+  'I am the creator of my entire reality.',
+  'Feelings manifest life — choose them wisely.',
+  'Everything I want is already on its way to me.',
+  'I am 100% responsible for everything in my life.',
+  'The better I feel, the better life becomes.',
+  'Every moment I choose how I feel.',
+  'I am worthy of all the good that comes to me.',
+  'My thoughts become things — I choose good ones.',
+  'Today I decide to feel good, no matter what.',
+  'I am always in the right place at the right time.',
+  'Success is inevitable when I align my feelings with my goals.',
+];
+
+/* Quote text colors (light — for dark background) */
+const QUOTE_COLORS = [
+  '#ffd080','#ffb3c6','#90e0c0','#c8b4ff',
+  '#faf0d0','#ffcc90','#90d0ff','#b0f0c0',
+  '#ffb890','#f0f090','#d0e8ff','#ffc8e8'
+];
+
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let state = {
+  curEmo:   0,                  // index into EMOTIONS
+  curScore: 100,
+  ideas:    [],
+  visionImgs: [],               // [{src,note}]
+  collVision: [],               // [{src,note}]
+  collDrawing: [],              // [{src,note}]
+  nn:       [],                 // non-negotiable names
+  nnHistory:{},                 // {YYYY-MM-DD: {0:true,1:false,...}}
+  goal:     '',
+  quotes:   [...DEFAULT_QUOTES],
+  customTools: [],              // [{id,emoji,name,type,data}]
+  rrItems:  [],                 // [{src,note}] for revise & repeat
+};
+
+/* ═══════════════════════════════════════════
+   STORAGE: load/save all state from localStorage
+   Key prefix: clv7_  (version 7)
+═══════════════════════════════════════════ */
+const SK = {
+  emo:     'clv7_emo',
+  ideas:   'clv7_ideas',
+  vision:  'clv7_vision',
+  collv:   'clv7_collv',
+  colld:   'clv7_colld',
+  nn:      'clv7_nn',
+  nnhist:  'clv7_nnhist',
+  goal:    'clv7_goal',
+  quotes:  'clv7_quotes',
+  custom:  'clv7_custom',
+  rr:      'clv7_rr',
+  lastdate:'clv7_lastdate',
+};
+
+function load() {
+  const g = (k, def) => { try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : def; } catch(e) { return def; } };
+  state.curEmo      = g(SK.emo,     0);
+  state.ideas       = g(SK.ideas,   []);
+  state.visionImgs  = g(SK.vision,  []);
+  state.collVision  = g(SK.collv,   []);
+  state.collDrawing = g(SK.colld,   []);
+  state.nn          = g(SK.nn,      []);
+  state.nnHistory   = g(SK.nnhist,  {});
+  state.goal        = g(SK.goal,    '');
+  state.quotes      = g(SK.quotes,  [...DEFAULT_QUOTES]);
+  state.customTools = g(SK.custom,  []);
+  state.rrItems     = g(SK.rr,      []);
+}
+
+function save(key) {
+  /* Only save the key that changed — avoids unnecessary writes */
+  const map = {
+    emo:    [SK.emo,    state.curEmo],
+    ideas:  [SK.ideas,  state.ideas],
+    vision: [SK.vision, state.visionImgs],
+    collv:  [SK.collv,  state.collVision],
+    colld:  [SK.colld,  state.collDrawing],
+    nn:     [SK.nn,     state.nn],
+    nnhist: [SK.nnhist, state.nnHistory],
+    goal:   [SK.goal,   state.goal],
+    quotes: [SK.quotes, state.quotes],
+    custom: [SK.custom, state.customTools],
+    rr:     [SK.rr,     state.rrItems],
+  };
+  const entry = map[key];
+  if (!entry) return;
+  try { localStorage.setItem(entry[0], JSON.stringify(entry[1])); } catch(e) { /* storage full */ }
+}
+
+/* ═══════════════════════════════════════════
+   MOOD SYSTEM
+═══════════════════════════════════════════ */
+function applyMood(idx) {
+  state.curEmo = idx;
+  const em = EMOTIONS[idx];
+  state.curScore = em.score;
+
+  /* Update CSS accent variable */
+  document.documentElement.style.setProperty('--acc', em.acc);
+  document.documentElement.style.setProperty('--acc-lt', em.acc + '99');
+
+  /* Update visible emoji everywhere */
+  const e = em.e;
+  document.getElementById('hdr-emoji').textContent = e;
+  document.getElementById('splash-e').textContent  = e;
+  document.getElementById('footer-emoji').textContent = e;
+  document.getElementById('mood-badge').textContent   = e + ' ' + em.score;
+
+  /* Ribbon active state */
+  document.querySelectorAll('.rib-item').forEach((el, i) => el.classList.toggle('active', i === idx));
+  save('emo');
+}
+
+/* Verdict text based on score */
+function getVerdict(score) {
+  if (score >= 80) return ['🌟 Excellent!',         'Keep it up — you\'re in a great place!'];
+  if (score >= 60) return ['😊 Good',               'You\'re in a good space. Keep rising.'];
+  if (score >= 40) return ['🌤️ Okay',               'You can shift higher. Find a better feeling.'];
+  if (score >= 20) return ['🌧️ Low',                'Let\'s find a better feeling place.'];
+  return                   ['🕯️ Very Low',          'Be gentle with yourself. Breathe.'];
+}
+
+/* ═══════════════════════════════════════════
+   MOOD OVERLAY
+═══════════════════════════════════════════ */
+function showMoodOverlay() {
+  document.getElementById('mood-overlay').classList.remove('hidden');
+}
+
+function closeMoodOverlay() {
+  document.getElementById('mood-overlay').classList.add('hidden');
+  /* If non-negotiables exist and haven't been checked today, show yesterday check */
+  if (state.nn.length > 0) {
+    const today = todayKey();
+    const last  = localStorage.getItem(SK.lastdate);
+    if (last !== today) showYnOverlay();
+  }
+}
+
+/* Build mood overlay select */
+function buildMoodSelect() {
+  const sel = document.getElementById('mood-select');
+  sel.innerHTML = '<option value="">— choose your feeling —</option>';
+  EMOTIONS.forEach((em, i) => {
+    const o = document.createElement('option');
+    o.value = i;
+    o.textContent = em.e + '  ' + em.n;
+    sel.appendChild(o);
+  });
+  sel.value = state.curEmo;
+  updateMoodVerdict();
+
+  sel.onchange = () => {
+    const idx = parseInt(sel.value);
+    if (!isNaN(idx)) { applyMood(idx); updateMoodVerdict(); }
+  };
+}
+
+function updateMoodVerdict() {
+  const idx   = parseInt(document.getElementById('mood-select').value);
+  const score = document.getElementById('mood-score');
+  const label = document.getElementById('mood-label');
+  const nudge = document.getElementById('mood-nudge');
+  if (isNaN(idx)) { score.textContent = '—'; label.textContent = 'Select a feeling above'; nudge.textContent = ''; return; }
+  const em = EMOTIONS[idx];
+  const [lbl, nudgeTxt] = getVerdict(em.score);
+  score.textContent = em.score + ' / 100';
+  label.textContent = lbl;
+  nudge.textContent = nudgeTxt;
+}
+
+/* ═══════════════════════════════════════════
+   YESTERDAY NON-NEGOTIABLES CHECK
+═══════════════════════════════════════════ */
+function showYnOverlay() {
+  const list = document.getElementById('yn-list');
+  list.innerHTML = '';
+  if (!state.nn.length) { document.getElementById('yn-overlay').classList.add('hidden'); return; }
+
+  /* Build yes/no for yesterday */
+  const yKey = yesterdayKey();
+  if (!state.nnHistory[yKey]) state.nnHistory[yKey] = {};
+
+  state.nn.forEach((name, i) => {
+    const row = document.createElement('div');
+    row.className = 'yn-item';
+    const val = state.nnHistory[yKey][i]; // true/false/undefined
+    row.innerHTML = `
+      <div class="yn-name">${escHtml(name)}</div>
+      <div class="yn-btns">
+        <button class="yn-btn yes ${val===true?'active-yes':''}" onclick="setYn('${yKey}',${i},true,this)">✅ Yes</button>
+        <button class="yn-btn no ${val===false?'active-no':''}"  onclick="setYn('${yKey}',${i},false,this)">❌ No</button>
+      </div>`;
+    list.appendChild(row);
+  });
+  document.getElementById('yn-overlay').classList.remove('hidden');
+}
+
+function setYn(dateKey, idx, val, btn) {
+  if (!state.nnHistory[dateKey]) state.nnHistory[dateKey] = {};
+  state.nnHistory[dateKey][idx] = val;
+  /* Update sibling button states */
+  const btns = btn.parentElement.querySelectorAll('.yn-btn');
+  btns[0].classList.toggle('active-yes', val === true);
+  btns[1].classList.toggle('active-no',  val === false);
+}
+
+function closeYnOverlay(skip) {
+  if (!skip) save('nnhist');
+  localStorage.setItem(SK.lastdate, todayKey());
+  document.getElementById('yn-overlay').classList.add('hidden');
+  drawGraph();
+}
+
+/* ═══════════════════════════════════════════
+   EMOTIONAL RIBBON
+═══════════════════════════════════════════ */
+function buildRibbon() {
+  const list = document.getElementById('rib-list');
+  list.innerHTML = '';
+  /* DOM order: index 0 at top (reversed in CSS to show Joy at top) */
+  EMOTIONS.forEach((em, i) => {
+    const el = document.createElement('div');
+    el.className = 'rib-item' + (i === state.curEmo ? ' active' : '');
+    el.innerHTML = `<div class="re">${em.e}</div><div class="rn">${em.n}</div>`;
+    el.onclick = () => { applyMood(i); };
+    list.appendChild(el);
+  });
+}
+
+function toggleRibbon() {
+  document.getElementById('ribbon').classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════
+   QUOTES SYSTEM
+═══════════════════════════════════════════ */
+let quoteIdx = 0;
+let quoteInterval = null;
+
+function startQuotes() {
+  showQuote();
+  quoteInterval = setInterval(showQuote, 10000); /* rotate every 10s */
+}
+
+function showQuote() {
+  const el = document.getElementById('quote-txt');
+  const q  = state.quotes[quoteIdx % state.quotes.length];
+  const c  = QUOTE_COLORS[quoteIdx % QUOTE_COLORS.length];
+  /* Fade out → change → fade in */
+  el.style.opacity = '0';
+  setTimeout(() => {
+    el.textContent = '"' + q + '"';
+    el.style.color = c;
+    el.style.opacity = '1';
+  }, 500);
+  quoteIdx++;
+}
+
+function showAddQuote() {
+  openModal('Add a Quote', `
+    <textarea class="modal-inp modal-ta" id="modal-quote-inp" placeholder="Write your powerful quote here..."></textarea>
+  `, 'Add Quote', () => {
+    const txt = document.getElementById('modal-quote-inp').value.trim();
+    if (!txt) return;
+    state.quotes.push(txt);
+    save('quotes');
+    closeModal();
+  });
+}
+
+/* ═══════════════════════════════════════════
+   TIMER + ALARM
+═══════════════════════════════════════════ */
+let timerSec = 25*60, timerTotal = 25*60, timerRunning = false, timerIv = null;
+let audioCtx = null;
+
+/* Unlock AudioContext on first user interaction (iOS requirement) */
+function unlockAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    /* Play silent buffer to unlock */
+    const buf = audioCtx.createBuffer(1,1,22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf; src.connect(audioCtx.destination); src.start(0);
+  } catch(e) {}
+}
+document.addEventListener('touchstart', unlockAudio, {passive:true});
+document.addEventListener('click',      unlockAudio);
+
+function fmtTime(s) {
+  return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+}
+function setTimer() {
+  const v = parseInt(document.getElementById('t-min').value);
+  if (!v || v < 1) return;
+  resetTimer();
+  timerSec = timerTotal = v * 60;
+  document.getElementById('t-disp').textContent = fmtTime(timerSec);
+  document.getElementById('t-disp').className = 'timer-disp';
+  if (Notification.permission === 'default') Notification.requestPermission().catch(()=>{});
+}
+function toggleTimer() {
+  const btn  = document.getElementById('t-btn');
+  const disp = document.getElementById('t-disp');
+  unlockAudio();
+  if (timerRunning) {
+    clearInterval(timerIv); timerRunning = false;
+    btn.textContent = 'Start'; btn.className = 't-btn go';
+  } else {
+    timerRunning = true; btn.textContent = 'Pause'; btn.className = 't-btn';
+    timerIv = setInterval(() => {
+      timerSec--;
+      if (timerSec <= 0) {
+        clearInterval(timerIv); timerRunning = false;
+        btn.textContent = 'Start'; btn.className = 't-btn go';
+        disp.textContent = 'Done!'; disp.className = 'timer-disp done';
+        playAlarm(); return;
+      }
+      disp.textContent = fmtTime(timerSec);
+      disp.className   = 'timer-disp ' + (timerSec <= 60 ? 'done' : 'run');
+    }, 1000);
+  }
+}
+function resetTimer() {
+  clearInterval(timerIv); timerRunning = false; timerSec = timerTotal;
+  document.getElementById('t-disp').textContent = fmtTime(timerSec);
+  document.getElementById('t-disp').className   = 'timer-disp';
+  document.getElementById('t-btn').textContent   = 'Start';
+  document.getElementById('t-btn').className     = 't-btn go';
+}
+
+/* Play 3-beep alarm */
+function playAlarm() {
+  /* 1. On-screen banner — always works */
+  let banner = document.getElementById('alarm-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'alarm-banner';
+    banner.textContent = '🔔 Focus session complete! Tap to dismiss.';
+    banner.onclick = () => banner.remove();
+    document.body.prepend(banner);
+    setTimeout(() => { if (banner.parentNode) banner.remove(); }, 8000);
+  }
+  /* 2. Web Audio beeps */
+  try {
+    const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = ctx;
+    const play = (freq, start) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = freq; o.type = 'triangle';
+      g.gain.setValueAtTime(0, start);
+      g.gain.linearRampToValueAtTime(.6, start+.05);
+      g.gain.linearRampToValueAtTime(0, start+.35);
+      o.start(start); o.stop(start+.4);
+    };
+    const t = ctx.currentTime;
+    if (ctx.state === 'suspended') {
+      ctx.resume().then(() => { [880,1100,880,1320,880].forEach((f,i) => play(f, t+i*.42)); });
+    } else { [880,1100,880,1320,880].forEach((f,i) => play(f, t+i*.42)); }
+  } catch(e) {}
+  /* 3. Vibrate */
+  if (navigator.vibrate) navigator.vibrate([300,100,300,100,500]);
+  /* 4. Notification */
+  if (Notification.permission === 'granted') {
+    try { new Notification('Clarvoyance — Done! 🎉', {body:'Focus session complete.'}); } catch(e) {}
+  }
+}
+
+/* ═══════════════════════════════════════════
+   DATE / TIME DISPLAY
+═══════════════════════════════════════════ */
+function updateDateTime() {
+  const d = new Date();
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const mths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const h  = String(d.getHours()).padStart(2,'0');
+  const mn = String(d.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('hdr-dt');
+  if (el) el.innerHTML = days[d.getDay()] + ', ' + d.getDate() + ' ' + mths[d.getMonth()] + '<br>' + h + ':' + mn;
+}
+
+function todayKey()     { const d = new Date(); return d.toISOString().slice(0,10); }
+function yesterdayKey() { const d = new Date(Date.now()-86400000); return d.toISOString().slice(0,10); }
+
+/* ═══════════════════════════════════════════
+   GOAL SYSTEM
+═══════════════════════════════════════════ */
+function initGoal() {
+  const ta = document.getElementById('goal-ta');
+  ta.value = state.goal;
+}
+function toggleGoalEdit() {
+  const ta  = document.getElementById('goal-ta');
+  const eb  = document.getElementById('goal-edit-btn');
+  const sb  = document.getElementById('goal-save-btn');
+  ta.removeAttribute('readonly'); ta.focus();
+  eb.classList.add('hidden'); sb.classList.remove('hidden');
+}
+function saveGoal() {
+  const ta = document.getElementById('goal-ta');
+  state.goal = ta.value;
+  save('goal');
+  ta.setAttribute('readonly', '');
+  document.getElementById('goal-edit-btn').classList.remove('hidden');
+  document.getElementById('goal-save-btn').classList.add('hidden');
+}
+
+/* ═══════════════════════════════════════════
+   VISION IMAGES (thumbnails next to goal)
+═══════════════════════════════════════════ */
+function renderVisionGrid() {
+  const grid = document.getElementById('vision-grid');
+  grid.innerHTML = '';
+  state.visionImgs.forEach((item, i) => {
+    const div  = document.createElement('div');
+    div.className = 'vision-thumb';
+    div.innerHTML = `
+      <img src="${escAttr(item.src)}" alt="" loading="lazy" onclick="openLightbox('${escAttr(item.src)}')" onerror="this.parentElement.style.opacity='.3'">
+      <button class="vt-del" onclick="event.stopPropagation();delVisionImg(${i})">✕</button>`;
+    grid.appendChild(div);
+  });
+  /* Add button always at end */
+  const addBtn = document.createElement('button');
+  addBtn.className = 'vision-add-btn'; addBtn.onclick = showVisionAdd;
+  addBtn.innerHTML = '<span style="font-size:1.4rem">＋</span><span>Add Image</span>';
+  grid.appendChild(addBtn);
+}
+
+function showVisionAdd() {
+  let uploadCb = null;
+  openModal('Add Vision Image', `
+    <input class="modal-inp" type="text" id="modal-vis-url" placeholder="Paste image URL...">
+    <div style="text-align:center;font-size:.8rem;color:#8b7a60;margin:6px 0">— or —</div>
+    <button class="btn" style="width:100%" onclick="document.getElementById('file-inp').dataset.target='vision';document.getElementById('file-inp').click();closeModal()">↑ Upload from device</button>
+  `, 'Add URL', () => {
+    const url = document.getElementById('modal-vis-url').value.trim();
+    if (!url) return;
+    state.visionImgs.push({src:url, note:''});
+    save('vision'); renderVisionGrid(); closeModal();
+  });
+}
+
+function delVisionImg(i) {
+  state.visionImgs.splice(i, 1);
+  save('vision'); renderVisionGrid();
+}
+
+/* ═══════════════════════════════════════════
+   LIGHTBOX (simple)
+═══════════════════════════════════════════ */
+function openLightbox(src) {
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lightbox').classList.remove('hidden');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.add('hidden');
+  document.getElementById('lb-img').src = '';
+}
+
+/* ═══════════════════════════════════════════
+   PANEL SYSTEM — each tool opens a panel
+   Panels are rendered dynamically into #panel-body
+═══════════════════════════════════════════ */
+let curPanel = null;
+
+function openPanel(name) {
+  curPanel = name;
+  const overlay = document.getElementById('panel-overlay');
+  const title   = document.getElementById('panel-title');
+  const actions = document.getElementById('panel-actions');
+  const body    = document.getElementById('panel-body');
+
+  overlay.classList.remove('hidden');
+  body.innerHTML = '';
+  actions.innerHTML = '<button class="btn" onclick="closePanel()">✕ Close</button>';
+
+  /* Render each panel type */
+  const panels = {
+    clarity:    renderClarityPanel,
+    dontwant:   renderDontWantPanel,
+    story:      renderStoryPanel,
+    feel:       renderFeelPanel,
+    culprit:    renderCulpritPanel,
+    revise:     renderRevisePanel,
+    nn:         renderNnPanel,
+    ideas:      renderIdeasPanel,
+    collections:renderCollPanel,
+  };
+
+  if (panels[name]) {
+    panels[name](title, actions, body);
+  } else {
+    /* Custom tool panel */
+    const tool = state.customTools.find(t => t.id === name);
+    if (tool) renderCustomPanel(tool, title, actions, body);
+  }
+}
+
+function closePanel() {
+  document.getElementById('panel-overlay').classList.add('hidden');
+  curPanel = null;
+}
+
+function panelOverlayClick(e) {
+  /* Close if clicking the overlay backdrop (not the panel itself) */
+  if (e.target === document.getElementById('panel-overlay')) closePanel();
+}
+
+/* ── CLARITY PANEL ── */
+function renderClarityPanel(title, actions, body) {
+  title.innerHTML = '📝 Written Clarity';
+  actions.innerHTML += '<button class="btn danger" onclick="clearPanelTa(\'p-clarity\')">Clear</button>';
+  body.innerHTML = `
+    <div style="font-size:.82rem;font-style:italic;color:#5a4830;margin-bottom:12px;border-left:3px solid var(--acc);padding-left:10px">
+      Always think on paper. Write what's really going on — analyse, decide, clarify. One honest paragraph can change everything.
+    </div>
+    <textarea class="panel-ta" id="p-clarity" placeholder="Write freely. What is actually happening? What do I know for certain? What is the clearest path forward? One honest paragraph can change everything..."></textarea>`;
+}
+
+/* ── DON'T WANT PANEL ── */
+function renderDontWantPanel(title, actions, body) {
+  title.innerHTML = '🌊 What I Don\'t Want';
+  actions.innerHTML += '<button class="btn danger" onclick="clearPanelTa(\'p-dontwant\')">Clear</button>';
+  body.innerHTML = `
+    <div style="font-size:.82rem;font-style:italic;color:#5a4830;margin-bottom:12px;border-left:3px solid var(--acc);padding-left:10px">
+      Write every worry, tension, and fear. The moment it lands on paper — it loses its power over you.
+    </div>
+    <textarea class="panel-ta" id="p-dontwant" placeholder="I don't want... I'm worried about... I'm frustrated by... I'm afraid that... Drop it all here. This page holds it so your mind doesn't have to."></textarea>`;
+}
+
+/* ── NEW STORY PANEL ── */
+function renderStoryPanel(title, actions, body) {
+  title.innerHTML = '✨ New Story';
+  actions.innerHTML += '<button class="btn danger" onclick="clearPanelTa(\'p-story\')">Clear</button>';
+  body.innerHTML = `
+    <div style="font-size:.82rem;font-style:italic;color:#5a4830;margin-bottom:12px;border-left:3px solid var(--acc);padding-left:10px">
+      Your life is as good as the story you tell about it. What do you really want? Write it as if it's already yours.
+    </div>
+    <textarea class="panel-ta" id="p-story" placeholder="Start general — how do you want to feel? I want to feel... Then get specific — what exactly do I want? Write it as if it's already yours. Get into the feeling of it fully."></textarea>`;
+}
+
+/* ── FEEL GOOD PANEL ── */
+function renderFeelPanel(title, actions, body) {
+  title.innerHTML = '🌅 Find a Better Feeling Place';
+  actions.innerHTML += '<button class="btn danger" onclick="clearFeelPanel()">Clear All</button>';
+  const groups = [
+    {label:'▸ Appreciation',    ph:'I appreciate...'},
+    {label:'▸ Positive Aspects', ph:'Something positive about this...'},
+    {label:'▸ Gratitude',        ph:'I am grateful for...'},
+    {label:'▸ Self Image',       ph:'I am... I have the power to...'},
+  ];
+  body.innerHTML = `<div style="font-size:.82rem;font-style:italic;color:#5a4830;margin-bottom:16px;border-left:3px solid var(--acc);padding-left:10px">The way you feel is everything. Every moment you create your own reality by dictating the way you feel.</div>`;
+  groups.forEach((g, gi) => {
+    const div = document.createElement('div');
+    div.className = 'feel-group';
+    div.innerHTML = `<div class="feel-group-title">${g.label}</div>`;
+    for (let i = 0; i < 5; i++) {
+      div.innerHTML += `<div class="feel-row"><span class="feel-num">${i+1}</span><input class="feel-inp" type="text" placeholder="${g.ph}" autocomplete="off"></div>`;
+    }
+    body.appendChild(div);
+  });
+}
+function clearFeelPanel() {
+  if (!confirm('Clear all Feel Good fields? Gone forever.')) return;
+  document.querySelectorAll('.feel-inp').forEach(el => el.value = '');
+}
+
+/* ── CULPRIT PANEL ── */
+function renderCulpritPanel(title, actions, body) {
+  title.innerHTML = '🕵️ The Culprit';
+  actions.innerHTML += '<button class="btn danger" onclick="clearCulprit()">Clear</button>';
+  body.innerHTML = `
+    <div style="font-size:.82rem;font-style:italic;color:#5a4830;margin-bottom:16px;border-left:3px solid var(--acc);padding-left:10px">
+      You have unlimited power, infinite resources and complete guidance available at every moment. Given this — who is truly responsible for your current situation?
+    </div>
+    <div class="panel-sub">What troubles me right now?</div>
+    <textarea class="panel-ta" id="p-c1" placeholder="Write your suffering and troubles honestly..."></textarea>
+    <div class="panel-sub">Whose fault is it really?</div>
+    <textarea class="panel-ta" id="p-c2" placeholder="Not using Clarvoyance... wasting time on reels... not resting properly... not manifesting... be completely honest with yourself..."></textarea>
+    <div class="panel-sub">What will I commit to right now?</div>
+    <textarea class="panel-ta" id="p-c3" placeholder="I commit to... Starting from this moment, I will..."></textarea>`;
+}
+function clearCulprit() {
+  if (!confirm('Clear Culprit section? Gone forever.')) return;
+  ['p-c1','p-c2','p-c3'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+}
+
+/* ── REVISE & REPEAT PANEL ── */
+function renderRevisePanel(title, actions, body) {
+  title.innerHTML = '🔄 Revise & Repeat';
+  actions.innerHTML = `
+    <button class="btn" onclick="document.getElementById('file-inp').dataset.target='rr';document.getElementById('file-inp').click()">↑ Upload</button>
+    <button class="btn" onclick="showRRAddUrl()">+ URL</button>
+    <button class="btn" onclick="closePanel()">✕ Close</button>`;
+
+  if (!state.rrItems.length) {
+    body.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#8b7a60;font-style:italic;font-family:Cormorant Garamond,serif;font-size:1.1rem;line-height:2">No images yet.<br>Add an image of something worth remembering.</div>';
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'rr-grid';
+  state.rrItems.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'rr-card';
+    card.innerHTML = `
+      <img class="rr-img" src="${escAttr(item.src)}" alt="" loading="lazy" onclick="openLightbox('${escAttr(item.src)}')" onerror="this.parentElement.style.opacity='.3'">
+      <textarea class="rr-note" placeholder="What does this mean to me / what do I remember..." onchange="updateRRNote(${i},this.value)">${escHtml(item.note||'')}</textarea>
+      <button class="rr-del" onclick="delRRItem(${i})">✕</button>`;
+    grid.appendChild(card);
+  });
+  body.appendChild(grid);
+}
+
+function showRRAddUrl() {
+  openModal('Add Image (URL)', `<input class="modal-inp" type="text" id="modal-rr-url" placeholder="Paste image URL...">`,
+    'Add', () => {
+      const url = document.getElementById('modal-rr-url').value.trim();
+      if (!url) return;
+      state.rrItems.push({src:url, note:''});
+      save('rr'); closeModal(); openPanel('revise');
+    });
+}
+function updateRRNote(i, val) { state.rrItems[i].note = val; save('rr'); }
+function delRRItem(i) { state.rrItems.splice(i,1); save('rr'); openPanel('revise'); }
+
+/* ── NON-NEGOTIABLES PANEL ── */
+function renderNnPanel(title, actions, body) {
+  title.innerHTML = '🔐 Non-Negotiables';
+  body.innerHTML = `
+    <div style="font-size:.82rem;font-style:italic;color:#5a4830;margin-bottom:16px;border-left:3px solid var(--acc);padding-left:10px">
+      🎯 <strong>Keep the Main Thing the Main Thing.</strong><br>
+      Define up to 8 daily non-negotiables — things that run no matter what.
+    </div>`;
+
+  /* Add new NN input (only if under 8) */
+  if (state.nn.length < 8) {
+    body.innerHTML += `
+      <div class="nn-setup-row">
+        <input class="nn-setup-inp" type="text" id="nn-new-inp" placeholder="E.g. Morning pooja, Exercise, No reels..." onkeydown="if(event.key==='Enter')addNn()">
+        <button class="btn primary" onclick="addNn()">+ Add</button>
+      </div>`;
+  }
+
+  /* Existing NNs */
+  const list = document.createElement('div');
+  state.nn.forEach((name, i) => {
+    const row = document.createElement('div');
+    row.className = 'nn-item';
+    row.innerHTML = `<div class="nn-bullet">🔷</div><div class="nn-name">${escHtml(name)}</div><button class="nn-del" onclick="delNn(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+  body.appendChild(list);
+
+  /* Today's status */
+  if (state.nn.length) {
+    const todayScore = calcDayScore(todayKey());
+    const status = document.createElement('div');
+    status.style.cssText = 'margin-top:18px;padding:14px;background:var(--off2);border-radius:8px;text-align:center';
+    status.innerHTML = `<div style="font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5a4830;margin-bottom:4px">Today's Score</div>
+      <div style="font-size:2rem;font-weight:700;color:var(--acc)">${todayScore}%</div>`;
+    body.appendChild(status);
+  }
+}
+
+function addNn() {
+  const inp = document.getElementById('nn-new-inp');
+  if (!inp) return;
+  const val = inp.value.trim();
+  if (!val || state.nn.length >= 8) return;
+  state.nn.push(val);
+  save('nn'); openPanel('nn');
+}
+function delNn(i) {
+  if (!confirm('Remove this non-negotiable?')) return;
+  state.nn.splice(i,1); save('nn'); openPanel('nn');
+}
+
+/* ── IDEAS PANEL ── */
+function renderIdeasPanel(title, actions, body) {
+  title.innerHTML = '◈ Ideas';
+  actions.innerHTML = `
+    <button class="btn" onclick="copyAllIdeas()" id="ideas-copy-btn">Copy All</button>
+    <button class="btn danger" onclick="clearAllIdeas()">Clear</button>
+    <button class="btn" onclick="closePanel()">✕ Close</button>`;
+
+  /* Ideas list */
+  const listDiv = document.createElement('div');
+  listDiv.className = 'ideas-list';
+  listDiv.id = 'ideas-list-el';
+  renderIdeasList(listDiv);
+  body.appendChild(listDiv);
+
+  /* Input bar */
+  const bar = document.createElement('div');
+  bar.className = 'ideas-bar';
+  bar.innerHTML = `
+    <div class="ideas-inp-row">
+      <select class="modal-inp" id="ideas-parent-sel" style="max-width:160px;padding:8px 10px;font-size:.82rem">
+        <option value="main">Main idea</option>
+        ${state.ideas.map((idea,i) => `<option value="${i}">Sub of ${i+1}. ${escHtml(idea.text.slice(0,20))}${idea.text.length>20?'…':''}</option>`).join('')}
+      </select>
+      <input class="ideas-inp" type="text" id="ideas-inp-el" placeholder="Write an idea..." onkeydown="if(event.key==='Enter')addIdea()">
+      <button class="btn primary" onclick="addIdea()">Add →</button>
+    </div>`;
+  body.appendChild(bar);
+
+  /* Make panel full-height */
+  document.getElementById('panel-box').style.maxHeight = '95vh';
+  body.style.overflow = 'hidden';
+  body.style.display  = 'flex';
+  body.style.flexDirection = 'column';
+  body.style.padding = '0';
+  listDiv.style.flex = '1';
+}
+
+function renderIdeasList(container) {
+  if (!container) return;
+  if (!state.ideas.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#8b7a60;font-style:italic;font-family:Cormorant Garamond,serif;font-size:1.05rem;line-height:2">Ideas appear here.<br>Start capturing your thoughts.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  state.ideas.forEach((idea, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'idea-wrap';
+    let html = `<div class="idea-row">
+      <div class="idea-num">${i+1}.</div>
+      <div class="idea-txt">${escHtml(idea.text)}</div>
+      <div class="ia">
+        <button class="ia-btn" onclick="promptSubIdea(${i})">+sub</button>
+        <button class="ia-btn d" onclick="delIdea(${i})">✕</button>
+      </div></div>`;
+    if (idea.subs && idea.subs.length) {
+      const subWrap = document.createElement('div');
+      subWrap.className = 'sub-wrap';
+      idea.subs.forEach((s, j) => {
+        subWrap.innerHTML += `<div class="sub-row">
+          <div class="sub-num">${i+1}.${j+1}</div>
+          <div class="sub-txt">${escHtml(s)}</div>
+          <div class="ia"><button class="ia-btn d" onclick="delSubIdea(${i},${j})">✕</button></div>
+        </div>`;
+      });
+      wrap.innerHTML = html;
+      wrap.appendChild(subWrap);
+    } else {
+      wrap.innerHTML = html;
+    }
+    container.appendChild(wrap);
+  });
+}
+
+function addIdea() {
+  const inp = document.getElementById('ideas-inp-el');
+  const sel = document.getElementById('ideas-parent-sel');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  const par = sel ? sel.value : 'main';
+  if (par === 'main') {
+    state.ideas.push({text, subs:[]});
+  } else {
+    const idx = parseInt(par);
+    if (!state.ideas[idx].subs) state.ideas[idx].subs = [];
+    state.ideas[idx].subs.push(text);
+  }
+  save('ideas'); inp.value = '';
+  renderIdeasList(document.getElementById('ideas-list-el'));
+}
+
+function promptSubIdea(i) {
+  const t = prompt('Sub-idea for: "' + state.ideas[i].text.slice(0,40) + '"');
+  if (!t || !t.trim()) return;
+  if (!state.ideas[i].subs) state.ideas[i].subs = [];
+  state.ideas[i].subs.push(t.trim());
+  save('ideas'); renderIdeasList(document.getElementById('ideas-list-el'));
+}
+function delIdea(i) { state.ideas.splice(i,1); save('ideas'); renderIdeasList(document.getElementById('ideas-list-el')); }
+function delSubIdea(i,j) { state.ideas[i].subs.splice(j,1); save('ideas'); renderIdeasList(document.getElementById('ideas-list-el')); }
+function clearAllIdeas() {
+  if (!state.ideas.length) return;
+  if (!confirm('Clear all ideas? Cannot be undone.')) return;
+  state.ideas = []; save('ideas'); renderIdeasList(document.getElementById('ideas-list-el'));
+}
+function copyAllIdeas() {
+  if (!state.ideas.length) { alert('No ideas to copy.'); return; }
+  let out = '';
+  state.ideas.forEach((idea, i) => {
+    out += (i+1) + '. ' + idea.text + '\n';
+    (idea.subs||[]).forEach((s,j) => { out += '   ' + (i+1) + '.' + (j+1) + ' ' + s + '\n'; });
+  });
+  navigator.clipboard.writeText(out.trim()).then(() => {
+    const btn = document.getElementById('ideas-copy-btn');
+    if (btn) { btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = 'Copy All', 2000); }
+  }).catch(() => prompt('Copy:', out.trim()));
+}
+
+/* ── COLLECTIONS PANEL ── */
+function renderCollPanel(title, actions, body) {
+  title.innerHTML = '▣ Collections';
+  actions.innerHTML = '<button class="btn" onclick="closePanel()">✕ Close</button>';
+
+  /* Tab bar */
+  body.style.padding = '0';
+  body.style.overflow = 'hidden';
+  body.style.display  = 'flex';
+  body.style.flexDirection = 'column';
+
+  body.innerHTML = `
+    <div class="coll-tabs">
+      <button class="coll-tab active" id="ct-v" onclick="switchCollTab('vision')">🖼️ Vision Board</button>
+      <button class="coll-tab" id="ct-d" onclick="switchCollTab('drawing')">✏️ Mind Drawings</button>
+    </div>
+    <div class="coll-pane active" id="cp-vision">
+      <div class="coll-add">
+        <input class="coll-inp" type="text" id="coll-v-url" placeholder="Paste image URL...">
+        <button class="btn primary" onclick="collAddUrl('vision')">Add</button>
+        <button class="btn" onclick="document.getElementById('file-inp').dataset.target='collv';document.getElementById('file-inp').click()">↑ Upload</button>
+      </div>
+      <div class="coll-grid" id="coll-v-grid"></div>
+    </div>
+    <div class="coll-pane" id="cp-drawing">
+      <div class="coll-add">
+        <input class="coll-inp" type="text" id="coll-d-url" placeholder="Paste image URL...">
+        <button class="btn primary" onclick="collAddUrl('drawing')">Add</button>
+        <button class="btn" onclick="document.getElementById('file-inp').dataset.target='colld';document.getElementById('file-inp').click()">↑ Upload</button>
+      </div>
+      <div class="coll-grid" id="coll-d-grid"></div>
+    </div>`;
+
+  renderCollGrid('vision');
+  renderCollGrid('drawing');
+
+  /* Key listener for URL inputs */
+  document.getElementById('coll-v-url').onkeydown = e => { if (e.key==='Enter') collAddUrl('vision'); };
+  document.getElementById('coll-d-url').onkeydown = e => { if (e.key==='Enter') collAddUrl('drawing'); };
+}
+
+function switchCollTab(tab) {
+  document.getElementById('ct-v').classList.toggle('active', tab==='vision');
+  document.getElementById('ct-d').classList.toggle('active', tab==='drawing');
+  document.getElementById('cp-vision').classList.toggle('active', tab==='vision');
+  document.getElementById('cp-drawing').classList.toggle('active', tab==='drawing');
+}
+
+function renderCollGrid(type) {
+  const arr    = type === 'vision' ? state.collVision : state.collDrawing;
+  const gridEl = document.getElementById('coll-' + (type==='vision'?'v':'d') + '-grid');
+  if (!gridEl) return;
+  gridEl.innerHTML = '';
+  if (!arr.length) {
+    gridEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:#8b7a60;font-style:italic;font-family:Cormorant Garamond,serif;font-size:1.05rem;line-height:2">No images yet.<br>Add via URL or upload.</div>';
+    return;
+  }
+  arr.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'coll-item';
+    div.innerHTML = `
+      <img src="${escAttr(item.src)}" alt="" loading="lazy" onerror="this.parentElement.style.opacity='.3'">
+      ${item.note ? `<div class="coll-np">${escHtml(item.note)}</div>` : ''}
+      <button class="coll-del" onclick="event.stopPropagation();delCollItem('${type}',${i})">✕</button>`;
+    div.onclick = () => openCvViewer(arr, i, type);
+    gridEl.appendChild(div);
+  });
+}
+
+function collAddUrl(type) {
+  const inp = document.getElementById(type==='vision' ? 'coll-v-url' : 'coll-d-url');
+  const url = inp.value.trim();
+  if (!url) return;
+  const arr = type==='vision' ? state.collVision : state.collDrawing;
+  arr.push({src:url, note:''});
+  const saveKey = type==='vision' ? 'collv' : 'colld';
+  save(saveKey); inp.value = ''; renderCollGrid(type);
+}
+
+function delCollItem(type, i) {
+  const arr = type==='vision' ? state.collVision : state.collDrawing;
+  arr.splice(i, 1);
+  save(type==='vision' ? 'collv' : 'colld'); renderCollGrid(type);
+}
+
+/* ═══════════════════════════════════════════
+   COLLECTION IMAGE VIEWER (with note)
+═══════════════════════════════════════════ */
+let cvArr = null, cvIdx = 0, cvType = '', cvZoomLevel = 1;
+
+function openCvViewer(arr, idx, type) {
+  cvArr = arr; cvIdx = idx; cvType = type; cvZoomLevel = 1;
+  const item = arr[idx];
+  document.getElementById('cv-img').src   = item.src;
+  document.getElementById('cv-img').style.transform = 'scale(1)';
+  document.getElementById('cv-note').value = item.note || '';
+  document.getElementById('cv-live').value = '';
+  document.getElementById('cv-title').textContent =
+    type === 'vision' ? 'Vision Board — Manifestation Note' : 'Mind Drawing — Revise & Repeat';
+  document.getElementById('coll-viewer').classList.remove('hidden');
+}
+function closeCvViewer() { document.getElementById('coll-viewer').classList.add('hidden'); cvArr = null; }
+function cvZoom(d)       { cvZoomLevel = Math.min(5, Math.max(.4, cvZoomLevel+d)); document.getElementById('cv-img').style.transform = `scale(${cvZoomLevel})`; }
+function cvResetZoom()   { cvZoomLevel = 1; document.getElementById('cv-img').style.transform = 'scale(1)'; }
+function saveCollNote() {
+  if (!cvArr) return;
+  cvArr[cvIdx].note = document.getElementById('cv-note').value;
+  save(cvType==='vision' ? 'collv' : 'colld');
+  renderCollGrid(cvType);
+  const btn = document.getElementById('cv-save-btn');
+  btn.textContent = 'Saved ✓'; setTimeout(() => btn.textContent = 'Save Note', 2000);
+}
+
+/* ── CUSTOM TOOL PANEL ── */
+function renderCustomPanel(tool, title, actions, body) {
+  title.innerHTML = tool.emoji + ' ' + escHtml(tool.name);
+  actions.innerHTML = `<button class="btn danger" onclick="delCustomTool('${tool.id}')">Delete Tool</button><button class="btn" onclick="closePanel()">✕ Close</button>`;
+  if (tool.type === 'text') {
+    body.innerHTML = `<textarea class="panel-ta" style="min-height:250px" placeholder="Write your thoughts here..." onchange="updateCustomData('${tool.id}',this.value)">${escHtml(tool.data||'')}</textarea>`;
+  } else {
+    /* List type */
+    body.innerHTML = '<div id="custom-list-items"></div>';
+    renderCustomList(tool);
+    body.innerHTML += `<div style="display:flex;gap:8px;margin-top:12px"><input class="ideas-inp" type="text" id="custom-list-inp" placeholder="Add item..." onkeydown="if(event.key==='Enter')addCustomListItem('${tool.id}')"><button class="btn primary" onclick="addCustomListItem('${tool.id}')">+ Add</button></div>`;
+  }
+}
+
+function renderCustomList(tool) {
+  const el = document.getElementById('custom-list-items');
+  if (!el) return;
+  const items = Array.isArray(tool.data) ? tool.data : [];
+  el.innerHTML = items.map((item, i) =>
+    `<div class="nn-item"><div class="nn-bullet">•</div><div class="nn-name">${escHtml(item)}</div><button class="nn-del" onclick="delCustomListItem('${tool.id}',${i})">✕</button></div>`
+  ).join('');
+}
+
+function addCustomListItem(toolId) {
+  const inp = document.getElementById('custom-list-inp');
+  if (!inp || !inp.value.trim()) return;
+  const tool = state.customTools.find(t => t.id === toolId);
+  if (!tool) return;
+  if (!Array.isArray(tool.data)) tool.data = [];
+  tool.data.push(inp.value.trim()); inp.value = '';
+  save('custom'); renderCustomList(tool);
+}
+
+function delCustomListItem(toolId, i) {
+  const tool = state.customTools.find(t => t.id === toolId);
+  if (!tool || !Array.isArray(tool.data)) return;
+  tool.data.splice(i, 1); save('custom'); renderCustomList(tool);
+}
+
+function updateCustomData(toolId, val) {
+  const tool = state.customTools.find(t => t.id === toolId);
+  if (tool) { tool.data = val; save('custom'); }
+}
+
+function delCustomTool(toolId) {
+  if (!confirm('Delete this tool? Cannot be undone.')) return;
+  state.customTools = state.customTools.filter(t => t.id !== toolId);
+  save('custom'); closePanel(); renderCustomToolCards();
+}
+
+/* ── ADD CUSTOM TOOL ── */
+function showAddTool() {
+  openModal('Create Your Own Tool', `
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input class="modal-inp" type="text" id="ct-emoji" placeholder="Emoji 🌟" style="width:70px;text-align:center">
+      <input class="modal-inp" type="text" id="ct-name"  placeholder="Tool name..." style="flex:1">
+    </div>
+    <div style="font-size:.78rem;font-weight:600;color:#5a4830;margin-bottom:8px">Type:</div>
+    <div style="display:flex;gap:10px">
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.88rem"><input type="radio" name="ct-type" value="text" checked> 📝 Text box</label>
+      <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.88rem"><input type="radio" name="ct-type" value="list"> 📋 List of notes</label>
+    </div>
+  `, 'Create', () => {
+    const emoji = document.getElementById('ct-emoji').value.trim() || '📦';
+    const name  = document.getElementById('ct-name').value.trim();
+    const type  = document.querySelector('[name="ct-type"]:checked').value;
+    if (!name) return;
+    const newTool = { id:'ct_'+Date.now(), emoji, name, type, data: type==='list' ? [] : '' };
+    state.customTools.push(newTool);
+    save('custom'); closeModal(); renderCustomToolCards();
+  });
+}
+
+function renderCustomToolCards() {
+  const slot = document.getElementById('custom-tools-slot');
+  if (!slot) return;
+  slot.innerHTML = '';
+  state.customTools.forEach(tool => {
+    const card = document.createElement('div');
+    card.className = 'tool-card';
+    card.onclick   = () => openPanel(tool.id);
+    card.innerHTML = `<div class="tc-emoji">${tool.emoji}</div><div class="tc-name">${escHtml(tool.name)}</div>`;
+    slot.appendChild(card);
+  });
+}
+
+/* ═══════════════════════════════════════════
+   MODAL SYSTEM (reusable)
+═══════════════════════════════════════════ */
+let modalConfirmCb = null;
+
+function openModal(title, bodyHtml, confirmLabel, onConfirm) {
+  document.getElementById('modal-title').textContent   = title;
+  document.getElementById('modal-body').innerHTML      = bodyHtml;
+  document.getElementById('modal-confirm').textContent = confirmLabel || 'Confirm';
+  document.getElementById('modal-ov').classList.remove('hidden');
+  modalConfirmCb = onConfirm;
+  /* Focus first input if present */
+  setTimeout(() => { const inp = document.querySelector('#modal-body input, #modal-body textarea'); if (inp) inp.focus(); }, 80);
+}
+
+function closeModal() { document.getElementById('modal-ov').classList.add('hidden'); modalConfirmCb = null; }
+function modalConfirm() { if (modalConfirmCb) modalConfirmCb(); }
+function modalOvClick(e) { if (e.target === document.getElementById('modal-ov')) closeModal(); }
+
+/* Vision add via modal */
+function showVisionAdd() {
+  openModal('Add Vision Image',
+    `<input class="modal-inp" type="text" id="modal-vis-url" placeholder="Paste image URL...">
+     <div style="text-align:center;font-size:.8rem;color:#8b7a60;margin:8px 0">— or —</div>
+     <button class="btn" style="width:100%" onclick="document.getElementById('file-inp').dataset.target='vision';document.getElementById('file-inp').click();closeModal()">↑ Upload from device</button>`,
+    'Add URL', () => {
+      const url = document.getElementById('modal-vis-url').value.trim();
+      if (!url) return;
+      state.visionImgs.push({src:url, note:''}); save('vision'); renderVisionGrid(); closeModal();
+    });
+}
+
+/* ═══════════════════════════════════════════
+   FILE UPLOAD HANDLER
+   Handles all file upload targets based on file-inp data-target
+═══════════════════════════════════════════ */
+function handleFileUpload(event) {
+  const target = document.getElementById('file-inp').dataset.target;
+  const files  = Array.from(event.target.files);
+  if (!files.length) return;
+
+  const processFile = (file) => new Promise(resolve => {
+    if (file.size > 5 * 1024 * 1024) { alert(file.name + ' is too large (max 5MB).'); resolve(); return; }
+    const reader = new FileReader();
+    reader.onload = e => { resolve(e.target.result); };
+    reader.readAsDataURL(file);
+  });
+
+  Promise.all(files.map(processFile)).then(results => {
+    const srcs = results.filter(Boolean);
+    if (target === 'vision')  { srcs.forEach(s => state.visionImgs.push({src:s, note:''}));  save('vision'); renderVisionGrid(); }
+    else if (target === 'rr'){ srcs.forEach(s => state.rrItems.push({src:s, note:''}));      save('rr');     if (curPanel === 'revise') openPanel('revise'); }
+    else if (target === 'collv') { srcs.forEach(s => state.collVision.push({src:s, note:''}));  save('collv'); renderCollGrid('vision'); }
+    else if (target === 'colld') { srcs.forEach(s => state.collDrawing.push({src:s, note:''})); save('colld'); renderCollGrid('drawing'); }
+    event.target.value = ''; /* Reset so same file can be uploaded again */
+  });
+}
+
+/* ═══════════════════════════════════════════
+   LIFE GRAPH (SVG canvas)
+   Shows last 14 days of non-negotiable scores
+═══════════════════════════════════════════ */
+function calcDayScore(dateKey) {
+  if (!state.nn.length || !state.nnHistory[dateKey]) return null;
+  const day = state.nnHistory[dateKey];
+  const done = Object.values(day).filter(v => v === true).length;
+  return Math.round((done / state.nn.length) * 100);
+}
+
+function drawGraph() {
+  const canvas = document.getElementById('life-graph');
+  if (!canvas) return;
+  const W = canvas.offsetWidth || 400;
+  const H = 160;
+  canvas.width  = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  /* Generate last 14 days */
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000);
+    days.push(d.toISOString().slice(0,10));
+  }
+
+  const pad = {l:30, r:10, t:10, b:24};
+  const gW  = W - pad.l - pad.r;
+  const gH  = H - pad.t - pad.b;
+
+  /* Background zones */
+  /* Excellent zone: 80%+ (top 20%) */
+  ctx.fillStyle = 'rgba(42,96,64,.08)';
+  ctx.fillRect(pad.l, pad.t, gW, gH * 0.2);
+  /* Miserable zone: below 50% (bottom 50%) */
+  ctx.fillStyle = 'rgba(139,26,10,.07)';
+  ctx.fillRect(pad.l, pad.t + gH * 0.5, gW, gH * 0.5);
+
+  /* Zone lines */
+  ctx.setLineDash([3,4]);
+  ctx.strokeStyle = '#2a6040';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const y80 = pad.t + gH * 0.2;
+  ctx.moveTo(pad.l, y80); ctx.lineTo(pad.l + gW, y80);
+  ctx.stroke();
+  ctx.strokeStyle = '#8b1a0a';
+  const y50 = pad.t + gH * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, y50); ctx.lineTo(pad.l + gW, y50);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  /* Axis labels */
+  ctx.fillStyle = '#8b7a60';
+  ctx.font = '9px DM Sans, sans-serif';
+  ctx.textAlign = 'right';
+  ['100','80','50','0'].forEach((lbl, i) => {
+    const yPos = [0, 0.2, 0.5, 1];
+    ctx.fillText(lbl, pad.l - 3, pad.t + gH * yPos[i] + 3);
+  });
+
+  /* Collect score points */
+  const points = days.map(dk => calcDayScore(dk));
+  const hasData = points.some(v => v !== null);
+
+  if (!hasData) {
+    ctx.fillStyle = '#c8b898';
+    ctx.textAlign = 'center';
+    ctx.font = 'italic 12px Cormorant Garamond, serif';
+    ctx.fillText('Complete yesterday\'s check to see your graph', W/2, H/2);
+    return;
+  }
+
+  /* Plot line */
+  ctx.strokeStyle = '#8b5e2a';
+  ctx.lineWidth   = 2;
+  ctx.lineJoin    = 'round';
+  ctx.beginPath();
+  let started = false;
+  points.forEach((score, i) => {
+    if (score === null) return;
+    const x = pad.l + (i / (days.length-1)) * gW;
+    const y = pad.t + gH - (score / 100) * gH;
+    if (!started) { ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+    /* Dot */
+    ctx.fillStyle = score >= 80 ? '#2a6040' : score < 50 ? '#8b1a0a' : '#8b5e2a';
+    ctx.beginPath();
+    ctx.arc(x, y, 3.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    if (started) ctx.moveTo(x, y); // re-open path for line continuation
+  });
+  ctx.stroke();
+
+  /* Day labels on X axis */
+  ctx.fillStyle   = '#8b7a60';
+  ctx.font        = '9px DM Sans, sans-serif';
+  ctx.textAlign   = 'center';
+  const labelStep = Math.ceil(days.length / 7); // show ~7 labels
+  days.forEach((dk, i) => {
+    if (i % labelStep !== 0 && i !== days.length-1) return;
+    const x = pad.l + (i / (days.length-1)) * gW;
+    ctx.fillText(dk.slice(8), x, H - 6); /* show day number only */
+  });
+}
+
+/* ═══════════════════════════════════════════
+   CLEAR HELPERS
+═══════════════════════════════════════════ */
+function clearPanelTa(id) {
+  const el = document.getElementById(id);
+  if (!el || !el.value) return;
+  if (confirm('Clear this section? Text is gone forever.')) { el.value = ''; el.focus(); }
+}
+
+/* ═══════════════════════════════════════════
+   ESCAPE HELPERS (prevent XSS in dynamic HTML)
+═══════════════════════════════════════════ */
+function escHtml(s)  { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s)  { return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+/* ═══════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+═══════════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!document.getElementById('modal-ov').classList.contains('hidden')) { closeModal(); return; }
+    if (!document.getElementById('coll-viewer').classList.contains('hidden')) { closeCvViewer(); return; }
+    if (!document.getElementById('lightbox').classList.contains('hidden')) { closeLightbox(); return; }
+    if (!document.getElementById('panel-overlay').classList.contains('hidden')) { closePanel(); return; }
+    /* Close ribbon on Escape */
+    document.getElementById('ribbon').classList.remove('open');
+  }
+});
+
+/* ═══════════════════════════════════════════
+   INIT — runs on page load
+═══════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  /* 1. Load all state from localStorage */
+  load();
+
+  /* 2. Apply saved mood */
+  applyMood(state.curEmo);
+
+  /* 3. Build ribbon */
+  buildRibbon();
+
+  /* 4. Build mood select */
+  buildMoodSelect();
+
+  /* 5. Init goal */
+  initGoal();
+
+  /* 6. Render vision thumbnails */
+  renderVisionGrid();
+
+  /* 7. Render custom tool cards */
+  renderCustomToolCards();
+
+  /* 8. Start rotating quotes */
+  startQuotes();
+
+  /* 9. Update datetime + start clock */
+  updateDateTime();
+  setInterval(updateDateTime, 30000);
+
+  /* 10. Draw graph */
+  drawGraph();
+
+  /* 11. Request notification permission for timer */
+  if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+    Notification.requestPermission().catch(() => {});
+  }
+
+  /* 12. Show splash → then mood overlay */
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    setTimeout(() => {
+      showMoodOverlay();
+    }, 800);
+  }, 1400);
+});
+
+/* Redraw graph on window resize */
+window.addEventListener('resize', drawGraph);
+</script>
+</body>
+</html>
