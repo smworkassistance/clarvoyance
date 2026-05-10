@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -546,9 +546,9 @@ body{
 }
 
 /* ===== FOCUS TIMER ===== */
-.ftimer-btn{position:fixed;bottom:80px;left:16px;z-index:9000;width:48px;height:48px;border-radius:50%;background:rgba(30,30,40,.92);border:1.5px solid rgba(255,255,255,.18);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45);backdrop-filter:blur(10px);transition:transform .15s}
+.ftimer-btn{z-index:9000;width:48px;height:48px;border-radius:50%;background:rgba(30,30,40,.92);border:1.5px solid rgba(255,255,255,.18);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.45);backdrop-filter:blur(10px);transition:transform .15s}
 .ftimer-btn:active{transform:scale(.93)}
-.ftimer-panel{position:fixed;bottom:138px;left:16px;z-index:9001;width:240px;background:rgba(22,22,32,.97);border:1.5px solid rgba(255,255,255,.13);border-radius:16px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.6);backdrop-filter:blur(16px);display:none;flex-direction:column;gap:12px}
+.ftimer-panel{position:fixed;top:50%;right:104px;transform:translateY(-50%);z-index:9001;width:240px;background:rgba(22,22,32,.97);border:1.5px solid rgba(255,255,255,.13);border-radius:16px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.6);backdrop-filter:blur(16px);display:none;flex-direction:column;gap:12px}
 .ftimer-panel.open{display:flex}
 .ftimer-panel-label{color:rgba(255,255,255,.55);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
 .ftimer-panel-title{color:#fff;font-size:13px;font-weight:600;margin-top:-4px}
@@ -597,7 +597,7 @@ body{
 </div>
 
 <!-- RIBBON TOGGLE + RIBBON -->
-<button id="rib-toggle" onclick="toggleRibbon()" title="Emotional Scale">🎭</button>
+<button id="rib-toggle" onclick="toggleRibbon()" title="Emotional Scale" data-tour-title="Emotional Scale" data-tour-body="Open the full emotional scale to see where your current mood sits and navigate toward a better feeling state." data-tour-order="2">🎭</button>
 <div id="ribbon">
   <div class="rib-hdr">How I Feel ↑ Joy at top</div>
   <div id="rib-list"></div>
@@ -615,12 +615,12 @@ body{
       <input class="tinp" type="number" id="t-min" value="25" min="1" max="180">
       <button class="tbtn" onclick="setTimer()">Set</button>
       <div class="tdisp" id="t-disp">25:00</div>
-      <button class="tbtn go" id="t-btn" onclick="toggleTimer()">Start</button>
+      <button class="tbtn go" id="t-btn" onclick="toggleTimer()" data-tour-title="Focus Timer" data-tour-body="Start a focused work session. Set your duration and let Clar keep you on track." data-tour-order="3">Start</button>
       <button class="tbtn" onclick="resetTimer()">Reset</button>
     </div>
     <div class="hdr-dt" id="hdr-dt"></div>
     <div class="winner-tag" id="winner-tag">🌱 Building</div>
-    <div class="mood-badge" id="mood-badge" onclick="showMoodOv()" title="Tap to change mood">✨ 100</div>
+    <div class="mood-badge" id="mood-badge" onclick="showMoodOv()" title="Tap to change mood" data-tour-title="Your Mood Score" data-tour-body="Tap here to log how you are feeling right now. Clar uses this to track your emotional patterns over time." data-tour-order="1">✨ 100</div>
   </div>
 </header>
 
@@ -2414,34 +2414,41 @@ function bnavSwitch(el){
 
 <!-- BOTTOM NAV -->
 <nav class="bnav" id="bnav">
-  <button class="bnav-tab active" data-tab="home" onclick="bnavSwitch(this)">
+  <button class="bnav-tab active" data-tab="home" onclick="bnavSwitch(this)" data-tour-title="Home" data-tour-body="Your personal dashboard — log your daily feeling, track your mood score, and jump to any section." data-tour-order="4">
     <span class="bt-ic">🏠</span>
     <span class="bt-lbl">Home</span>
   </button>
-  <button class="bnav-tab" data-tab="nn" onclick="bnavSwitch(this)">
+  <button class="bnav-tab" data-tab="nn" onclick="bnavSwitch(this)" data-tour-title="Non Negotiables" data-tour-body="Daily habits and check-ins that keep you grounded. Complete these every day to build momentum." data-tour-order="5">
     <span class="bt-ic">⭐</span>
     <span class="bt-lbl">Non Negotiables</span>
   </button>
-  <button class="bnav-tab" data-tab="goal" onclick="bnavSwitch(this)">
+  <button class="bnav-tab" data-tab="goal" onclick="bnavSwitch(this)" data-tour-title="Your Goal" data-tour-body="Define your one burning goal and keep your vision board, affirmations, and resources here." data-tour-order="6">
     <span class="bt-ic">🎯</span>
     <span class="bt-lbl">Goal</span>
   </button>
-  <button class="bnav-tab" data-tab="vibe" onclick="bnavSwitch(this)">
+  <button class="bnav-tab" data-tab="vibe" onclick="bnavSwitch(this)" data-tour-title="Vibe Feed" data-tour-body="A daily stream of questions, challenges, and prompts to shift your mindset and raise your energy." data-tour-order="7">
     <span class="bt-ic">⚡</span>
     <span class="bt-lbl">Vibe Feed</span>
   </button>
-  <button class="bnav-tab" data-tab="tools" onclick="bnavSwitch(this)">
+  <button class="bnav-tab" data-tab="tools" onclick="bnavSwitch(this)" data-tour-title="Tools" data-tour-body="Practical tools — journaling, breathing exercises, reframing techniques, and more to support your growth." data-tour-order="8">
     <span class="bt-ic">🛠️</span>
     <span class="bt-lbl">Tools</span>
   </button>
-  <button class="bnav-tab" data-tab="revise" onclick="bnavSwitch(this)">
+  <button class="bnav-tab" data-tab="revise" onclick="bnavSwitch(this)" data-tour-title="Revise and Repeat" data-tour-body="Review your past entries, track your progress, and refine what is working for you." data-tour-order="9">
     <span class="bt-ic">🔄</span>
     <span class="bt-lbl">Revise and Repeat</span>
   </button>
 </nav>
 
-<!-- FOCUS TIMER BUTTON -->
-<button class="ftimer-btn" id="ftimerBtn" onclick="ftimerTogglePanel()" title="Focus Timer">&#9203;</button>
+<!-- SIDE TRAY (tour + timer + ideas) -->
+<div id="side-tray">
+  <button id="tray-tab" onclick="toggleTray()" title="Tools">&#9001;</button>
+  <div id="tray-inner">
+    <button id="tour-fab" class="tray-btn" onclick="tourStart()" title="Quick Tour">?</button>
+    <button class="tray-btn ftimer-btn" id="ftimerBtn" onclick="ftimerTogglePanel()" title="Focus Timer">&#9203;</button>
+    <button class="tray-btn" id="tray-ideas-btn" onclick="openPanel('ideas')" title="Ideas">+</button>
+  </div>
+</div>
 
 <!-- FOCUS TIMER PANEL -->
 <div class="ftimer-panel" id="ftimerPanel">
@@ -2554,5 +2561,273 @@ function bnavSwitch(el){
 })();
 </script>
 
+
+<!-- ═══ TOUR ENGINE ═══ -->
+<style>
+/* Tour overlay */
+#tour-overlay{position:fixed;inset:0;z-index:9000;pointer-events:none;transition:opacity .3s}
+#tour-overlay.active{pointer-events:all}
+#tour-backdrop{position:fixed;inset:0;background:rgba(26,18,8,.75);transition:opacity .3s;opacity:0}
+#tour-overlay.active #tour-backdrop{opacity:1}
+
+/* Spotlight hole via box-shadow */
+#tour-spotlight{display:none;position:fixed;border-radius:12px;box-shadow:0 0 0 3px rgba(212,160,96,.9),0 0 20px rgba(212,160,96,.35);transition:all .35s cubic-bezier(.4,0,.2,1);z-index:10001;pointer-events:none;}
+
+/* Tooltip bubble */
+#tour-tip{display:none;pointer-events:all;z-index:10002;
+  position:fixed;
+  z-index:9002;
+  background:#faf8f3;
+  border:1.5px solid #d4a060;
+  border-radius:12px;
+  padding:18px 20px 14px;
+  width:min(300px,88vw);
+  box-shadow:0 8px 32px rgba(26,18,8,.22);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+}
+#tour-tip-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:700;color:#1a0800;margin-bottom:6px}
+#tour-tip-body{font-size:.88rem;color:#3a2c18;line-height:1.55;margin-bottom:14px}
+#tour-tip-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#tour-tip-dots{display:flex;gap:5px;flex:1}
+.tour-dot{width:7px;height:7px;border-radius:50%;background:#d8d0c0;transition:background .2s}
+.tour-dot.active{background:#8b5e2a}
+#tour-tip-btns{display:flex;gap:8px}
+.tour-btn{border:none;border-radius:7px;padding:6px 14px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.tour-btn.skip{background:transparent;color:#7a6040}
+.tour-btn.prev{background:#f0ebe0;color:#3a2c18}
+.tour-btn.next{background:#8b5e2a;color:#fff}
+
+/* Welcome modal */
+#tour-welcome{
+  position:fixed;inset:0;z-index:9010;display:flex;align-items:center;justify-content:center;
+  background:rgba(26,18,8,.75);
+}
+#tour-welcome.hidden{display:none}
+#tour-welcome-card{
+  background:#faf8f3;border-radius:16px;padding:32px 28px;width:min(340px,90vw);
+  text-align:center;box-shadow:0 8px 40px rgba(26,18,8,.25);
+}
+#tour-welcome-card h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:#1a0800;margin-bottom:10px}
+#tour-welcome-card p{font-size:.9rem;color:#3a2c18;line-height:1.6;margin-bottom:24px}
+.tour-welcome-btns{display:flex;flex-direction:column;gap:10px}
+.tour-welcome-btns button{border:none;border-radius:9px;padding:13px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.tw-start{background:#8b5e2a;color:#fff}
+.tw-skip{background:#f0ebe0;color:#3a2c18}
+
+/* Floating tour trigger button */
+#tour-fab{
+  position:fixed;bottom:90px;right:16px;z-index:8999;
+  width:40px;height:40px;border-radius:50%;
+  background:#8b5e2a;color:#fff;border:none;
+  font-size:1.1rem;font-weight:700;cursor:pointer;
+  box-shadow:0 3px 12px rgba(139,94,42,.35);
+  display:flex;align-items:center;justify-content:center;
+  opacity:.85;transition:opacity .2s,transform .2s;
+}
+#tour-fab:hover{opacity:1;transform:scale(1.08)}
+/* ─── SIDE TRAY ─── */
+#side-tray{
+  position:fixed;right:0;top:50%;z-index:8990;
+  transform:translateY(-50%) translateX(calc(100% - 44px));
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex;align-items:stretch;
+  filter:drop-shadow(-3px 0 12px rgba(26,18,8,.25));
+}
+#side-tray.open{transform:translateY(-50%) translateX(0)}
+#tray-tab{
+  width:44px;flex-shrink:0;
+  background:rgba(26,12,4,.88);
+  border:none;border-radius:12px 0 0 12px;
+  color:#d4a060;font-size:1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px 0;writing-mode:vertical-rl;letter-spacing:.08em;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:.62rem;
+  text-transform:uppercase;
+}
+#tray-inner{
+  background:rgba(26,12,4,.92);
+  padding:14px 10px;display:flex;flex-direction:column;
+  gap:12px;align-items:center;border-radius:0;
+  border-left:1px solid rgba(212,160,96,.2);
+}
+.tray-btn{
+  width:46px;height:46px;border-radius:50%;
+  border:1.5px solid rgba(212,160,96,.25);
+  background:rgba(255,255,255,.07);
+  color:#f0e8d8;font-size:1.3rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .18s,transform .15s;
+  font-family:'DM Sans',sans-serif;font-weight:700;
+}
+.tray-btn:active{background:rgba(212,160,96,.2);transform:scale(.92)}
+#tour-fab.hidden{opacity:.35;pointer-events:none}
+#tour-fab.hidden{display:none}
+</style>
+
+<!-- Welcome modal -->
+<div id="tour-welcome" class="hidden">
+  <div id="tour-welcome-card">
+    <h2>Welcome to Clarvoyance ✨</h2>
+    <p>A personal space to track your mood, set goals, and build daily momentum. Would you like a quick tour?</p>
+    <div class="tour-welcome-btns">
+      <button class="tw-start" onclick="tourStart()">Show me around →</button>
+      <button class="tw-skip" onclick="tourDismissWelcome()">I'll explore on my own</button>
+    </div>
+  </div>
+</div>
+
+<!-- Spotlight + tooltip -->
+<div id="tour-overlay">
+  <div id="tour-backdrop" onclick="tourEnd()"></div>
+  <div id="tour-spotlight"></div>
+  <div id="tour-tip">
+    <div id="tour-tip-title"></div>
+    <div id="tour-tip-body"></div>
+    <div id="tour-tip-footer">
+      <div id="tour-tip-dots"></div>
+      <div id="tour-tip-btns">
+        <button class="tour-btn skip" onclick="tourEnd()">End</button>
+        <button class="tour-btn prev" id="tour-prev-btn" onclick="tourPrev()">←</button>
+        <button class="tour-btn next" id="tour-next-btn" onclick="tourNext()">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- tour-fab is now inside #side-tray -->
+
+<script>
+(function(){
+  var _steps=[], _idx=0, _active=false, _currentEl=null;
+
+  function getSteps(){
+    return Array.from(document.querySelectorAll('[data-tour-title]'))
+      .sort(function(a,b){
+        return (parseInt(a.dataset.tourOrder)||99)-(parseInt(b.dataset.tourOrder)||99);
+      });
+  }
+
+  function tourInit(){
+    var seen=localStorage.getItem('clar_tour_seen');
+    if(!seen){
+      document.getElementById('tour-welcome').classList.remove('hidden');
+      document.getElementById('tour-fab').classList.add('hidden');
+    }
+  }
+
+  window.tourDismissWelcome=function(){
+    document.getElementById('tour-welcome').classList.add('hidden');
+    document.getElementById('tour-fab').classList.remove('hidden');
+    localStorage.setItem('clar_tour_seen','1');
+  };
+
+  window.tourStart=function(){
+    document.getElementById('tour-welcome').classList.add('hidden');
+    document.getElementById('tour-fab').classList.add('hidden');
+    localStorage.setItem('clar_tour_seen','1');
+    _steps=getSteps();
+    _idx=0;
+    _active=true;
+    document.getElementById('tour-overlay').classList.add('active');
+    tourShow(_idx);
+  };
+
+  window.tourNext=function(){
+    if(_idx<_steps.length-1){_idx++;tourShow(_idx);}
+    else tourEnd();
+  };
+
+  window.tourPrev=function(){
+    if(_idx>0){_idx--;tourShow(_idx);}
+  };
+
+  window.tourEnd=function(){
+    _active=false;
+    document.getElementById('tour-overlay').classList.remove('active');
+    document.getElementById('tour-spotlight').style.cssText='display:none';
+    document.getElementById('tour-tip').style.cssText='display:none';
+    if(_currentEl){_currentEl.style.position=_currentEl._origPos||"";_currentEl.style.zIndex=_currentEl._origZ||"";_currentEl=null;}
+    document.getElementById('tour-fab').classList.remove('hidden');
+  };
+
+  function tourPosition(i){
+    var el=_steps[i];
+    if(_currentEl&&_currentEl!==el){_currentEl.style.position=_currentEl._origPos||"";_currentEl.style.zIndex=_currentEl._origZ||"";}
+    if(el!==_currentEl){el._origPos=el.style.position;el._origZ=el.style.zIndex;el.style.position="relative";el.style.zIndex="10000";}
+    _currentEl=el;
+    var rect=el.getBoundingClientRect();
+    var pad=8;
+    var sp=document.getElementById('tour-spotlight');
+    sp.style.display='block';
+    document.getElementById('tour-tip').style.display='block';
+    sp.style.left=(rect.left-pad)+'px';
+    sp.style.top=(rect.top-pad)+'px';
+    sp.style.width=(rect.width+pad*2)+'px';
+    sp.style.height=(rect.height+pad*2)+'px';
+
+    var tip=document.getElementById('tour-tip');
+    var tipW=Math.min(300,window.innerWidth*0.88);
+    var tipLeft=Math.max(8,Math.min(rect.left,window.innerWidth-tipW-8));
+    var tipTop=rect.bottom+pad+12;
+    if(tipTop+180>window.innerHeight) tipTop=Math.max(8,rect.top-pad-180);
+    tip.style.left=tipLeft+'px';
+    tip.style.top=tipTop+'px';
+    tip.style.width=tipW+'px';
+
+    document.getElementById('tour-tip-title').textContent=el.dataset.tourTitle;
+    document.getElementById('tour-tip-body').textContent=el.dataset.tourBody;
+
+    var dots=document.getElementById('tour-tip-dots');
+    dots.innerHTML='';
+    _steps.forEach(function(_,j){
+      var d=document.createElement('span');
+      d.className='tour-dot'+(j===i?' active':'');
+      dots.appendChild(d);
+    });
+
+    document.getElementById('tour-prev-btn').style.display=i===0?'none':'';
+    document.getElementById('tour-next-btn').textContent=i===_steps.length-1?'Done ✓':'Next →';
+  }
+
+  function tourShow(i){
+    var el=_steps[i];
+    el.scrollIntoView({block:'center',behavior:'smooth'});
+    setTimeout(function(){tourPosition(i);},i===0?0:300);
+  }
+
+
+  // ─── SIDE TRAY ───
+  var _trayOpen=false;
+  window.toggleTray=function(){
+    _trayOpen=!_trayOpen;
+    var t=document.getElementById('side-tray');
+    var tab=document.getElementById('tray-tab');
+    t.classList.toggle('open',_trayOpen);
+    tab.textContent=_trayOpen?'▷':'◁';
+  };
+  document.addEventListener('click',function(e){
+    if(!_trayOpen)return;
+    var tray=document.getElementById('side-tray');
+    if(tray&&tray.contains(e.target))return;
+    _trayOpen=false;
+    tray.classList.remove('open');
+    document.getElementById('tray-tab').textContent='◁';
+  },true);
+  window.addEventListener('resize',function(){if(_active&&_steps.length)tourShow(_idx);});
+  document.addEventListener('DOMContentLoaded',tourInit);
+})();
+</script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
