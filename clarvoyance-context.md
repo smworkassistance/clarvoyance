@@ -55,9 +55,20 @@ Contains images, charts, quotes, and thoughts that form the philosophical founda
 
 ---
 
+## Focus Timer
+NOT a standalone productivity tool. It exists purely as a focus aid — to help the user stay undistracted while using any tool inside the app. It should be available as a supporting utility, not as a primary action or quest goal.
+
+---
+
+## Ideas (Quick Capture)
+A lightweight notepad for spontaneous inspired ideas that come to mind at any moment. Not a major feature — just a quick way to capture a thought before it disappears. No structured input required.
+
+---
+
 ## Notes for Future Development
 - Whenever new tools are added, their context and purpose will be documented here.
 - All quests, vibe cards, and features should align with the core philosophy: **feeling is everything.**
-- Low mood → guide toward Tools (clarity, better feeling, reframing)
-- Mid mood → reinforce through Goals, Non-Negotiables, Vibe Feed
-- High mood → expand through Goal updates, New Story, Ideas, challenges
+- Focus Timer and Ideas are utility features — never make them quest goals.
+- Low mood → T2 (What I Don't Want), T4 (Find Better Feeling), T1 (Written Clarity)
+- Mid mood → Non-Negotiables, Vibe Feed, Goals (revisit/reinforce)
+- High mood → T3 (New Story), Goal update, Revise & Repeat, T5 (The Culprit)
