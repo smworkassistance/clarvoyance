@@ -238,6 +238,9 @@ body{
 
 /* ═══ INLINE WRITING SECTIONS ═══ */
 .inline-secs{margin-bottom:20px}
+.tool-fs{position:fixed!important;inset:0!important;z-index:8000!important;border-radius:0!important;overflow-y:auto}
+.tool-fs .ibody{min-height:calc(100vh - 60px)}
+.tool-fs .ita{min-height:calc(100vh - 130px)!important}
 .isec{background:var(--su);border:1.5px solid var(--bo);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:background .4s,border-color .4s}
 .isec-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 13px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:background .12s;gap:12px}
 .isec-head:active{background:var(--ca)}
@@ -604,6 +607,7 @@ body{
 @keyframes dqGlow{0%,100%{border-color:var(--acl);box-shadow:0 0 0 1px rgba(212,160,96,.2)}50%{box-shadow:0 0 22px rgba(212,160,96,.45),0 0 0 2px rgba(212,160,96,.55)}}
 #dq-card.dq-complete{animation:dqGlow 1.8s ease-in-out 3}
 </style>
+  <script src="tools/registry.js"></script>
 </head>
 <body>
 
@@ -807,36 +811,7 @@ body{
     </div>
   </div>
   <div class="tool-grid" id="tool-grid">
-    <div class="tc" onclick="scrollToInline('clarity')">
-      <div class="tce">📝</div>
-      <div class="tcn">Written Clarity</div>
-      <div class="tcd">Think on paper. Write until it's clear.</div>
-      <div class="tip"><strong>Always think on paper.</strong><br>Write what's really going on. Analyse the situation.<br><em>Example: "I'm stuck because..."</em></div>
-    </div>
-    <div class="tc" onclick="scrollToInline('dontwant')">
-      <div class="tce">🌊</div>
-      <div class="tcn">What I Don't Want</div>
-      <div class="tcd">Dump every worry. Paper holds it.</div>
-      <div class="tip"><strong>Dump every worry here.</strong><br>The moment it's on paper, it loses power over you.</div>
-    </div>
-    <div class="tc" onclick="scrollToInline('story')">
-      <div class="tce">✨</div>
-      <div class="tcn">New Story</div>
-      <div class="tcd">Write what you want as if it's yours.</div>
-      <div class="tip"><strong>Your life = the story you tell.</strong><br>Write what you want as if it's already yours.</div>
-    </div>
-    <div class="tc" onclick="scrollToInline('feel')">
-      <div class="tce">🌅</div>
-      <div class="tcn">Find Better Feeling</div>
-      <div class="tcd">Appreciation · Gratitude · Self Image.</div>
-      <div class="tip"><strong>Shift your mood in minutes.</strong><br>Appreciation · Positives · Gratitude · Self Image.</div>
-    </div>
-    <div class="tc" onclick="scrollToInline('culprit')">
-      <div class="tce">🕵️</div>
-      <div class="tcn">The Culprit</div>
-      <div class="tcd">Who is truly responsible? Be honest.</div>
-      <div class="tip"><strong>With unlimited power — who is responsible?</strong><br>Honest accountability creates real change.</div>
-    </div>
+    <div id="tool-grid-dynamic"></div>
     <div class="tc" style="position:relative" onclick="openPanel('nn')">
       <div class="tce">🔐</div>
       <div class="tcn">Non-Negotiables</div>
@@ -854,124 +829,9 @@ body{
 
   <!-- INLINE WRITING SECTIONS -->
   <div class="slbl" style="margin-top:4px">✍️ Writing Space — always here, always open</div>
-  <div class="inline-secs">
-
-    <!-- Written Clarity -->
-    <div class="isec open" id="is-clarity">
-      <div class="isec-head" onclick="toggleISec('is-clarity')">
-        <div class="isec-meta">
-          <div class="isec-lbl"><span class="ils">◆</span>Always Think on Paper</div>
-          <div class="isec-desc">Clarity Thinking — Write until the decision becomes obvious.</div>
-        </div>
-        <div class="isec-right">
-          <div class="isec-acts">
-            <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
-            <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearITa('ta-clarity','Clarity Thinking')">Clear</button>
-          </div>
-          <span class="ichev">▾</span>
-        </div>
-      </div>
-      <div class="ibody">
-        <textarea class="ita" id="ta-clarity" placeholder="Write freely. What is actually happening? What do I know for certain? What is the clearest path forward? One honest paragraph can change everything..."></textarea>
-      </div>
+    <div class="inline-secs" id="tools-container">
+      <div id="tools-loading" style="padding:20px;text-align:center;color:var(--sub);font-size:.85rem">Loading tools...</div>
     </div>
-
-    <!-- What I Don't Want -->
-    <div class="isec" id="is-dontwant">
-      <div class="isec-head" onclick="toggleISec('is-dontwant')">
-        <div class="isec-meta">
-          <div class="isec-lbl"><span class="ils">∿</span>What I Don't Want</div>
-          <div class="isec-desc">Write every worry — the moment it lands on paper, it loses its power.</div>
-        </div>
-        <div class="isec-right">
-          <div class="isec-acts">
-            <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
-            <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearITa('ta-dontwant','What I Dont Want')">Clear</button>
-          </div>
-          <span class="ichev">▾</span>
-        </div>
-      </div>
-      <div class="ibody">
-        <textarea class="ita" id="ta-dontwant" placeholder="I don't want... I'm worried about... I'm frustrated by... Drop it all here. This page holds it so your mind doesn't have to."></textarea>
-      </div>
-    </div>
-
-    <!-- New Story -->
-    <div class="isec" id="is-story">
-      <div class="isec-head" onclick="toggleISec('is-story')">
-        <div class="isec-meta">
-          <div class="isec-lbl"><span class="ils">✦</span>What Do I Really Want · New Story</div>
-          <div class="isec-desc">Your life is as good as the story you tell about it.</div>
-        </div>
-        <div class="isec-right">
-          <div class="isec-acts">
-            <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
-            <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearITa('ta-story','New Story')">Clear</button>
-          </div>
-          <span class="ichev">▾</span>
-        </div>
-      </div>
-      <div class="ibody">
-        <textarea class="ita" id="ta-story" placeholder="Start general — how do you want to feel? Then get specific — what exactly do I want? Write it as if it's already yours. Get into the feeling of it fully."></textarea>
-      </div>
-    </div>
-
-    <!-- Find Better Feeling -->
-    <div class="isec" id="is-feel">
-      <div class="isec-head" onclick="toggleISec('is-feel')">
-        <div class="isec-meta">
-          <div class="isec-lbl"><span class="ils">◉</span>Find a Better Feeling Place</div>
-          <div class="isec-desc">The way you feel is everything. Every moment you create your own reality.</div>
-        </div>
-        <div class="isec-right">
-          <div class="isec-acts">
-            <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearFeel()">Clear All</button>
-          </div>
-          <span class="ichev">▾</span>
-        </div>
-      </div>
-      <div class="ibody">
-        <div class="feel-body">
-          <div class="feel-q">The way you feel is everything. Every moment you create your own reality by dictating the way you feel.</div>
-          <div class="fg"><div class="fgt">▸ Appreciation</div><div id="appr"></div></div>
-          <div class="fg"><div class="fgt">▸ Positive Aspects</div><div id="posp"></div></div>
-          <div class="fg"><div class="fgt">▸ Gratitude</div><div id="grat"></div></div>
-          <div class="fg"><div class="fgt">▸ Self Image</div><div id="self-img"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- The Culprit -->
-    <div class="isec" id="is-culprit">
-      <div class="isec-head" onclick="toggleISec('is-culprit')">
-        <div class="isec-meta">
-          <div class="isec-lbl"><span class="ils">🕵️</span>The Culprit</div>
-          <div class="isec-desc">With unlimited power & infinite resources — who is truly responsible?</div>
-        </div>
-        <div class="isec-right">
-          <div class="isec-acts">
-            <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
-            <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearCulprit()">Clear</button>
-          </div>
-          <span class="ichev">▾</span>
-        </div>
-      </div>
-      <div class="ibody" style="padding:0 0 4px">
-        <div style="padding:14px 20px 0;background:var(--bg);border-top:1.5px solid var(--bo)">
-          <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;color:var(--sub);margin-bottom:12px;border-left:3px solid var(--acc);padding-left:11px;line-height:1.6;transition:border-color .4s">
-            You have unlimited power, infinite resourcefulness, complete guidance at every moment. Given this truth — who is truly responsible for your current situation?
-          </div>
-          <div class="psub">What troubles me right now?</div>
-          <textarea class="ita" id="ta-c1" style="min-height:80px;border-top:none;border-bottom:1.5px solid var(--bo);padding:8px 0" placeholder="Write your suffering and troubles honestly..."></textarea>
-          <div class="psub">Whose fault is it really?</div>
-          <textarea class="ita" id="ta-c2" style="min-height:80px;border-top:none;border-bottom:1.5px solid var(--bo);padding:8px 0" placeholder="Not using Clarvoyance... wasting time on reels... not resting properly... be completely honest..."></textarea>
-          <div class="psub">What will I commit to right now?</div>
-          <textarea class="ita" id="ta-c3" style="min-height:80px;border-top:none;padding:8px 0 16px" placeholder="I commit to... Starting from this moment, I will..."></textarea>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /inline-secs -->
 
   <!-- LIFE GRAPH (hidden, kept for data functions) -->
   <div class="graph-sec" style="display:none">
@@ -2673,6 +2533,261 @@ function bnavSwitch(el){
   document.addEventListener('DOMContentLoaded',function(){xpRefreshAll();});
 })();
 </script>
+<!-- ═══ TOOLS LOADER ENGINE ═══ -->
+<script>
+(function(){
+  window.DYNAMIC_QUEST_REGISTRY = [];
+  window.TOOL_CONFIGS = [];
+
+  /* Tools already covered by hardcoded DQ/MOOD registries — skip dynamic quest creation */
+  var BUILTIN_TOOLS = ['clarity','dontwant','story','feel','culprit'];
+
+  function parseConfig(text){
+    var m = text.match(/<!--CONFIG([\s\S]*?)CONFIG-->/);
+    if(!m) return null;
+    var cfg = {};
+    m[1].split('\n').forEach(function(line){
+      var c = line.indexOf(':');
+      if(c < 0) return;
+      cfg[line.slice(0,c).trim()] = line.slice(c+1).trim();
+    });
+    return cfg;
+  }
+
+  function extractHTML(text){
+    var e = text.indexOf('CONFIG-->');
+    if(e < 0) return '';
+    return text.slice(e+9).trim();
+  }
+
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  function generateHTML(cfg, name){
+    var secId = 'is-'+name;
+    var taId  = 'ta-'+name;
+    var icon  = cfg['icon']||'◆';
+    var lbl   = cfg['name']||name;
+    var desc  = cfg['description']||'';
+    var ph    = cfg['placeholder']||'Write here...';
+    var isFS  = cfg['fullscreen']==='yes';
+    var isPersist = cfg['persist']==='yes';
+
+    var fsBtn = isFS ? '<button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();toggleToolFS(\''+secId+'\')">⛶</button>' : '';
+    var head = '<div class="isec-head" onclick="toggleISec(\''+secId+'\')">'+
+      '<div class="isec-meta">'+
+        '<div class="isec-lbl"><span class="ils">'+icon+'</span>'+lbl+'</div>'+
+        '<div class="isec-desc">'+desc+'</div>'+
+      '</div>'+
+      '<div class="isec-right"><div class="isec-acts">'+fsBtn;
+
+    if(cfg['type']==='textarea'){
+      var clearFn = isPersist
+        ? 'clearDynPersistTa(\''+taId+'\',\''+esc(lbl)+'\',\'clar_dtool_'+name+'\')'
+        : 'clearITa(\''+taId+'\',\''+esc(lbl)+'\')';
+      return head+
+        '<button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();'+clearFn+'">Clear</button>'+
+        '</div><span class="ichev">▾</span></div></div>'+
+        '<div class="ibody"><textarea class="ita" id="'+taId+'" placeholder="'+esc(ph)+'"></textarea></div>';
+    }
+
+    if(cfg['type']==='checklist'){
+      return head+
+        '</div><span class="ichev">▾</span></div></div>'+
+        '<div class="ibody" style="padding:12px 16px">'+
+          '<div id="cl-dyn-'+name+'" style="margin-bottom:8px"></div>'+
+          '<div style="display:flex;gap:8px">'+
+            '<input id="cl-inp-'+name+'" class="ta-inp" placeholder="'+esc(ph)+'" style="flex:1" onkeydown="if(event.key===\'Enter\')clAddDyn(\''+name+'\')"/>'+
+            '<button class="btn" onclick="clAddDyn(\''+name+'\')">Add</button>'+
+          '</div>'+
+        '</div>';
+    }
+
+    return '';
+  }
+
+  function buildQuestText(cfg){
+    var t = {};
+    ['en','hi','hinglish'].forEach(function(lang){
+      t[lang]={};
+      ['low','mid','high'].forEach(function(lvl){
+        var v = cfg['quest-'+lang+'-'+lvl];
+        if(v) t[lang][lvl] = v;
+      });
+    });
+    return t;
+  }
+
+  function buildQuestEntry(cfg, name){
+    var secId = 'is-'+name;
+    var taId  = 'ta-'+name;
+    var isTA  = cfg['type']==='textarea';
+    var xp    = parseInt(cfg['xp']||'10')||10;
+    var qid   = 'dyn_'+name;
+    return {
+      id: qid, xp: xp, mood: cfg['mood']||'all',
+      nav: function(){
+        var tab = document.querySelector('.bnav-tab[data-tab="tools"]');
+        if(tab && window.bnavSwitch) bnavSwitch(tab);
+        setTimeout(function(){
+          var el = document.getElementById(secId);
+          if(el){ el.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+        },220);
+        if(isTA){
+          setTimeout(function(){
+            var ta = document.getElementById(taId);
+            if(!ta) return;
+            function h(){ if(ta.value.trim().length>=15){ if(window.dqComplete)dqComplete(qid); ta.removeEventListener('input',h); } }
+            ta.addEventListener('input',h);
+            ta.focus();
+          },380);
+        }
+      },
+      text: buildQuestText(cfg)
+    };
+  }
+
+  function buildGridCard(cfg, name){
+    var secId = 'is-'+name;
+    var div = document.createElement('div');
+    div.className = 'tc';
+    div.onclick = function(){
+      var tab = document.querySelector('.bnav-tab[data-tab="tools"]');
+      if(tab && window.bnavSwitch) bnavSwitch(tab);
+      setTimeout(function(){
+        var el = document.getElementById(secId);
+        if(el){ el.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
+      },220);
+    };
+    div.innerHTML = '<div class="tce">'+(cfg['icon']||'◆')+'</div>'+
+      '<div class="tcn">'+(cfg['name']||name)+'</div>'+
+      '<div class="tcd">'+(cfg['description']||'')+'</div>';
+    return div;
+  }
+
+  function wirePersistTA(name){
+    var key = 'clar_dtool_'+name;
+    setTimeout(function(){
+      var ta = document.getElementById('ta-'+name);
+      if(!ta) return;
+      var saved = localStorage.getItem(key);
+      if(saved) ta.value = saved;
+      ta.addEventListener('input',function(){ localStorage.setItem(key, ta.value); });
+    },150);
+  }
+
+  function renderDynCL(name){
+    var el = document.getElementById('cl-dyn-'+name);
+    if(!el) return;
+    var items = window['_dyn_cl_'+name]||[];
+    el.innerHTML = items.map(function(item,i){
+      return '<div class="nn-item"><div class="nn-bul">•</div><div class="nn-name">'+esc(item)+'</div>'+
+        '<button class="nn-del" onclick="clDelDyn(\''+name+'\','+i+')">✕</button></div>';
+    }).join('');
+  }
+
+  function wirePersistCL(name){
+    var key = 'clar_dtool_cl_'+name;
+    try{ window['_dyn_cl_'+name] = JSON.parse(localStorage.getItem(key)||'[]'); }catch(e){ window['_dyn_cl_'+name]=[]; }
+    setTimeout(function(){ renderDynCL(name); },150);
+  }
+
+  async function loadTools(){
+    if(!window.TOOL_FILES||!TOOL_FILES.length){
+      var ld=document.getElementById('tools-loading'); if(ld)ld.style.display='none'; return;
+    }
+    var base = window.location.href.replace(/[^\/]*$/,'');
+    var container = document.getElementById('tools-container');
+    var grid = document.getElementById('tool-grid-dynamic');
+    var firstLoaded = false;
+
+    for(var i=0;i<TOOL_FILES.length;i++){
+      var name = TOOL_FILES[i];
+      try{
+        var resp = await fetch(base+'tools/'+name+'.html');
+        if(!resp.ok) throw new Error(resp.status);
+        var text = await resp.text();
+        var cfg = parseConfig(text);
+        if(!cfg) continue;
+        window.TOOL_CONFIGS.push(cfg);
+
+        var customHTML = extractHTML(text);
+        var innerHTML  = customHTML || generateHTML(cfg, name);
+        if(!innerHTML) continue;
+
+        if(!firstLoaded){
+          var ld=document.getElementById('tools-loading'); if(ld)ld.remove();
+          firstLoaded=true;
+        }
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'isec';
+        wrapper.id = 'is-'+name;
+        if(cfg['bg-image']) wrapper.style.backgroundImage='url('+cfg['bg-image']+')';
+        wrapper.innerHTML = innerHTML;
+        if(container) container.appendChild(wrapper);
+
+        /* Post-inject hooks */
+        if(name==='feel' && window.buildFeel) buildFeel();
+
+        /* Persistence */
+        if(cfg['persist']==='yes'){
+          if(cfg['type']==='textarea') wirePersistTA(name);
+          else if(cfg['type']==='checklist') wirePersistCL(name);
+        }
+
+        /* Grid card */
+        if(grid) grid.appendChild(buildGridCard(cfg, name));
+
+        /* Dynamic quest — skip builtins already in hardcoded registries */
+        if(BUILTIN_TOOLS.indexOf(name)<0){
+          window.DYNAMIC_QUEST_REGISTRY.push(buildQuestEntry(cfg, name));
+        }
+
+      }catch(e){
+        console.warn('[tools] failed:',name,e);
+      }
+    }
+
+    if(!firstLoaded){
+      var ld=document.getElementById('tools-loading');
+      if(ld) ld.textContent='Tools not available offline.';
+    }
+  }
+
+  window.toggleToolFS = function(secId){
+    var el=document.getElementById(secId); if(el) el.classList.toggle('tool-fs');
+  };
+
+  window.clearDynPersistTa = function(taId, name, key){
+    var ta=document.getElementById(taId);
+    if(!ta||!ta.value) return;
+    if(confirm('Clear '+name+'?\n\nGone forever.')){ ta.value=''; localStorage.removeItem(key); }
+  };
+
+  window.clAddDyn = function(name){
+    var key='clar_dtool_cl_'+name;
+    var inp=document.getElementById('cl-inp-'+name);
+    if(!inp||!inp.value.trim()) return;
+    var items=window['_dyn_cl_'+name]||[];
+    items.push(inp.value.trim());
+    window['_dyn_cl_'+name]=items;
+    inp.value='';
+    localStorage.setItem(key,JSON.stringify(items));
+    renderDynCL(name);
+  };
+
+  window.clDelDyn = function(name, i){
+    var key='clar_dtool_cl_'+name;
+    var items=window['_dyn_cl_'+name]||[];
+    items.splice(i,1);
+    window['_dyn_cl_'+name]=items;
+    localStorage.setItem(key,JSON.stringify(items));
+    renderDynCL(name);
+  };
+
+  document.addEventListener('DOMContentLoaded', function(){ loadTools(); });
+})();
+</script>
 <!-- ═══ DAILY QUEST ENGINE ═══ -->
 <script>
 (function(){
@@ -2787,7 +2902,7 @@ function bnavSwitch(el){
   /* ── Daily selection ── */
   function _seed(){return new Date().toDateString().split('').reduce(function(a,c){return a+c.charCodeAt(0);},0);}
   function _getDailyQuests(){
-    var seed=_seed(),pool=QUEST_REGISTRY.slice(),fixed=[];
+    var seed=_seed(),pool=QUEST_REGISTRY.concat(window.DYNAMIC_QUEST_REGISTRY||[]),fixed=[];
     fixed.push(pool.splice(seed%pool.length,1)[0]);
     fixed.push(pool.splice((seed*7)%pool.length,1)[0]);
     var s=typeof S!=='undefined'&&typeof EMO!=='undefined'?EMO[S.emo].s:50;
