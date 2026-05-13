@@ -1,0 +1,46 @@
+<!--CONFIG
+name        : Find a Better Feeling Place
+description : The way you feel is everything. Every moment you create your own reality.
+icon        : ◉
+type        : custom
+persist     : no
+mood        : low
+placeholder :
+bg-image    :
+fullscreen  : no
+xp          : 15
+quest-en-low      : You do not have to stay here — shift your feeling right now
+quest-en-mid      : Find a slightly better feeling — just one step up
+quest-en-high     : Even from a good place — there is always a better feeling
+quest-hi-low      : Yahan rukna zaruri nahi — abhi apni feeling shift karo
+quest-hi-mid      : Thoda behtar feel dhundho — bas ek kadam upar
+quest-hi-high     : Achhi jagah se bhi — aur behtar feel hamesha hota hai
+quest-hinglish-low      : Yahan rehna zaroori nahi — abhi feeling shift karo
+quest-hinglish-mid      : Thoda better feel dhundo — ek step upar
+quest-hinglish-high     : Good place pe ho — aur better hamesha possible hai
+vibe-text   : Open Find Better Feeling — write one appreciation right now.
+tour-title  : Find Better Feeling
+tour-body   : This tool guides you to consciously find a better feeling place — not just emotionally, but vibrationally. Shifting feeling shifts life experience.
+tour-order  : 6
+CONFIG-->
+<div class="isec-head" onclick="toggleISec('is-feel')">
+  <div class="isec-meta">
+    <div class="isec-lbl"><span class="ils">◉</span>Find a Better Feeling Place</div>
+    <div class="isec-desc">The way you feel is everything. Every moment you create your own reality.</div>
+  </div>
+  <div class="isec-right">
+    <div class="isec-acts">
+      <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearFeel()">Clear All</button>
+    </div>
+    <span class="ichev">▾</span>
+  </div>
+</div>
+<div class="ibody">
+  <div class="feel-body">
+    <div class="feel-q">The way you feel is everything. Every moment you create your own reality by dictating the way you feel.</div>
+    <div class="fg"><div class="fgt">▸ Appreciation</div><div id="appr"></div></div>
+    <div class="fg"><div class="fgt">▸ Positive Aspects</div><div id="posp"></div></div>
+    <div class="fg"><div class="fgt">▸ Gratitude</div><div id="grat"></div></div>
+    <div class="fg"><div class="fgt">▸ Self Image</div><div id="self-img"></div></div>
+  </div>
+</div>

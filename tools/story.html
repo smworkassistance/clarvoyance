@@ -1,0 +1,41 @@
+<!--CONFIG
+name        : What Do I Really Want · New Story
+description : Your life is as good as the story you tell about it.
+icon        : ✦
+type        : textarea
+persist     : yes
+mood        : high
+placeholder : Start general — how do you want to feel? Then get specific — what exactly do I want? Write it as if it's already yours. Get into the feeling of it fully.
+bg-image    :
+fullscreen  : yes
+xp          : 20
+quest-en-low      : Your story can change right now — write the one you actually want
+quest-en-mid      : Write the reality you want — feel it fully as you write
+quest-en-high     : You are in the perfect space — write your new story now
+quest-hi-low      : Aapki kahani abhi badal sakti hai — woh likho jo aap sach mein chahte ho
+quest-hi-mid      : Apni manpasand reality likho — likhte waqt poori tarah feel karo
+quest-hi-high     : Bilkul sahi jagah ho abhi — apni nayi kahani likho
+quest-hinglish-low      : Teri kahani abhi badal sakti hai — jo chahiye wo likh
+quest-hinglish-mid      : Jo reality chahiye wo likh — likhte waqt feel karo usse
+quest-hinglish-high     : Perfect jagah pe ho — abhi apni nayi kahani likh
+vibe-text   : Write your new story right now. Start with how you want to feel — then get specific.
+tour-title  : New Story
+tour-body   : Your life is as good as the story you tell about it. Write a new story — the reality you expect — so you can begin to attract it.
+tour-order  : 5
+CONFIG-->
+<div class="isec-head" onclick="toggleISec('is-story')">
+  <div class="isec-meta">
+    <div class="isec-lbl"><span class="ils">✦</span>What Do I Really Want · New Story</div>
+    <div class="isec-desc">Your life is as good as the story you tell about it.</div>
+  </div>
+  <div class="isec-right">
+    <div class="isec-acts">
+      <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
+      <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearITa('ta-story','New Story')">Clear</button>
+    </div>
+    <span class="ichev">▾</span>
+  </div>
+</div>
+<div class="ibody">
+  <textarea class="ita" id="ta-story" placeholder="Start general — how do you want to feel? Then get specific — what exactly do I want? Write it as if it's already yours. Get into the feeling of it fully."></textarea>
+</div>

@@ -1,0 +1,51 @@
+<!--CONFIG
+name        : The Culprit
+description : With unlimited power and infinite resources — who is truly responsible?
+icon        : 🕵️
+type        : custom
+persist     : yes
+mood        : high
+placeholder :
+bg-image    :
+fullscreen  : yes
+xp          : 20
+quest-en-low      : Hard truth: only you hold the power — face The Culprit
+quest-en-mid      : Ready to own your life fully? The Culprit is waiting
+quest-en-high     : From your strongest place — this is the moment for The Culprit
+quest-hi-low      : Kadvi sachai: taakat sirf aapke paas hai — The Culprit face karo
+quest-hi-mid      : Apni poori zindagi ki zimmedari lene ke liye taiyar? The Culprit karo
+quest-hi-high     : Apni sabse mazboot jagah se — The Culprit ke liye yahi sahi waqt hai
+quest-hinglish-low      : Hard truth: power sirf tere paas hai — The Culprit face kar
+quest-hinglish-mid      : Apni life fully own karne ke liye ready? The Culprit waiting hai
+quest-hinglish-high     : Sabse strong jagah pe ho — yahi moment hai The Culprit ke liye
+vibe-text   : Open The Culprit — answer honestly: who is truly responsible for where you are right now?
+tour-title  : The Culprit
+tour-body   : You are the only one responsible for your life experience. This tool guides you to reclaim your power — no external person or event has power over you unless you give it.
+tour-order  : 7
+CONFIG-->
+<div class="isec-head" onclick="toggleISec('is-culprit')">
+  <div class="isec-meta">
+    <div class="isec-lbl"><span class="ils">🕵️</span>The Culprit</div>
+    <div class="isec-desc">With unlimited power & infinite resources — who is truly responsible?</div>
+  </div>
+  <div class="isec-right">
+    <div class="isec-acts">
+      <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
+      <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearCulprit()">Clear</button>
+    </div>
+    <span class="ichev">▾</span>
+  </div>
+</div>
+<div class="ibody" style="padding:0 0 4px">
+  <div style="padding:14px 20px 0;background:var(--bg);border-top:1.5px solid var(--bo)">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-style:italic;color:var(--sub);margin-bottom:12px;border-left:3px solid var(--acc);padding-left:11px;line-height:1.6;transition:border-color .4s">
+      You have unlimited power, infinite resourcefulness, complete guidance at every moment. Given this truth — who is truly responsible for your current situation?
+    </div>
+    <div class="psub">What troubles me right now?</div>
+    <textarea class="ita" id="ta-c1" style="min-height:80px;border-top:none;border-bottom:1.5px solid var(--bo);padding:8px 0" placeholder="Write your suffering and troubles honestly..."></textarea>
+    <div class="psub">Whose fault is it really?</div>
+    <textarea class="ita" id="ta-c2" style="min-height:80px;border-top:none;border-bottom:1.5px solid var(--bo);padding:8px 0" placeholder="Not using Clarvoyance... wasting time on reels... not resting properly... be completely honest..."></textarea>
+    <div class="psub">What will I commit to right now?</div>
+    <textarea class="ita" id="ta-c3" style="min-height:80px;border-top:none;padding:8px 0 16px" placeholder="I commit to... Starting from this moment, I will..."></textarea>
+  </div>
+</div>

@@ -1,0 +1,41 @@
+<!--CONFIG
+name        : Always Think on Paper
+description : Clarity Thinking — Write until the decision becomes obvious.
+icon        : ◆
+type        : textarea
+persist     : yes
+mood        : all
+placeholder : Write freely. What is actually happening? What do I know for certain? What is the clearest path forward? One honest paragraph can change everything...
+bg-image    :
+fullscreen  : yes
+xp          : 15
+quest-en-low      : Something heavy on your mind? Write it — paper holds what your mind should not
+quest-en-mid      : Got something to think through? Write it out on paper
+quest-en-high     : Capture your clear thinking now — write for clarity
+quest-hi-low      : Mann mein kuch bhaari hai? Likh do — kagaz thamega jo dimaag ko nahi rakhna chahiye
+quest-hi-mid      : Kuch sochna hai? Kagaz pe likh ke dekho
+quest-hi-high     : Jab dimaag saaf ho tab apni soch capture karo
+quest-hinglish-low      : Kuch bhaari chal raha hai? Likh do — kagaz handle kar lega
+quest-hinglish-mid      : Kuch think through karna hai? Kagaz pe likh ke dekho
+quest-hinglish-high     : Dimaag saaf hai abhi — apni clarity capture karo
+vibe-text   : Pick up the clarity tool — write one thought that has been sitting heavy. Just one.
+tour-title  : Written Clarity
+tour-body   : A space to write and discuss any ongoing issue — externalising thoughts reduces mental noise and creates clarity.
+tour-order  : 3
+CONFIG-->
+<div class="isec-head" onclick="toggleISec('is-clarity')">
+  <div class="isec-meta">
+    <div class="isec-lbl"><span class="ils">◆</span>Always Think on Paper</div>
+    <div class="isec-desc">Clarity Thinking — Write until the decision becomes obvious.</div>
+  </div>
+  <div class="isec-right">
+    <div class="isec-acts">
+      <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
+      <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearITa('ta-clarity','Clarity Thinking')">Clear</button>
+    </div>
+    <span class="ichev">▾</span>
+  </div>
+</div>
+<div class="ibody">
+  <textarea class="ita" id="ta-clarity" placeholder="Write freely. What is actually happening? What do I know for certain? What is the clearest path forward? One honest paragraph can change everything..."></textarea>
+</div>

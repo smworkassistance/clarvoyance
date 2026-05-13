@@ -1,0 +1,41 @@
+<!--CONFIG
+name        : What I Don't Want
+description : Write every worry — the moment it lands on paper, it loses its power.
+icon        : ∿
+type        : textarea
+persist     : yes
+mood        : low
+placeholder : I don't want... I'm worried about... I'm frustrated by... Drop it all here. This page holds it so your mind doesn't have to.
+bg-image    :
+fullscreen  : yes
+xp          : 15
+quest-en-low      : Feeling bad? Write exactly what you do not want — clarity will follow
+quest-en-mid      : Define what you do not want — it reveals what you do
+quest-en-high     : From your strong place — get sharp on what you do not want
+quest-hi-low      : Bura lag raha hai? Exactly likho kya nahi chahiye — raasta saaf ho jaayega
+quest-hi-mid      : Jo nahi chahiye wo define karo — jo chahiye wo khud reveal ho jaayega
+quest-hi-high     : Mazboot jagah se — precisely likho kya bilkul nahi chahiye
+quest-hinglish-low      : Bura feel ho raha hai? Likh do kya nahi chahiye — clarity aayegi
+quest-hinglish-mid      : Jo nahi chahiye usse define karo — jo chahiye wo reveal hoga
+quest-hinglish-high     : Strong ho abhi — precisely likh do kya nahi chahiye
+vibe-text   : Write down one thing you do not want right now. Just one. Watch what becomes clear.
+tour-title  : What I Don't Want
+tour-body   : When you know what you don't want, you discover what you do want. Write what is making you feel bad to find clarity about the desired direction.
+tour-order  : 4
+CONFIG-->
+<div class="isec-head" onclick="toggleISec('is-dontwant')">
+  <div class="isec-meta">
+    <div class="isec-lbl"><span class="ils">∿</span>What I Don't Want</div>
+    <div class="isec-desc">Write every worry — the moment it lands on paper, it loses its power.</div>
+  </div>
+  <div class="isec-right">
+    <div class="isec-acts">
+      <button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();quickIdea()">◈ Idea</button>
+      <button class="btn dn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();clearITa('ta-dontwant','What I Dont Want')">Clear</button>
+    </div>
+    <span class="ichev">▾</span>
+  </div>
+</div>
+<div class="ibody">
+  <textarea class="ita" id="ta-dontwant" placeholder="I don't want... I'm worried about... I'm frustrated by... Drop it all here. This page holds it so your mind doesn't have to."></textarea>
+</div>
