@@ -211,6 +211,7 @@ body{
 
 /* ═══ TOOL GRID ═══ */
 .tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:12px;margin-bottom:20px}
+#tool-grid-dynamic{display:contents}
 .tc{background:var(--ca);border:1.5px solid var(--bo);border-radius:12px;padding:18px 12px 14px;cursor:pointer;text-align:center;transition:all .18s;position:relative;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 .tc:hover{border-color:var(--acc);background:var(--su);transform:translateY(-3px);box-shadow:0 6px 20px rgba(26,18,8,.13)}
 .tc:active{transform:scale(.96)}
@@ -428,10 +429,10 @@ body{
 .vf-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 8px;flex-shrink:0;background:rgba(0,0,0,.25)}
 .vf-type-badge{font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:5px 13px;border-radius:20px;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.85)}
 .vf-score-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
-.vf-score-num{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;color:#f8d080;line-height:1}
-.vf-score-num.pop{animation:vfPop .42s ease}
-@keyframes vfPop{0%{transform:scale(1)}35%{transform:scale(1.6);color:#fff}100%{transform:scale(1)}}
-.vf-score-lbl-sm{font-size:.5rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.38);text-align:right}
+.vf-score-num{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:700;color:#f8d080;line-height:1}
+.vf-score-num.pop{animation:vfPop .55s ease}
+@keyframes vfPop{0%{transform:scale(1)}30%{transform:scale(1.75);color:#fff;text-shadow:0 0 20px rgba(255,220,100,.8)}100%{transform:scale(1)}}
+.vf-score-lbl-sm{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.5);text-align:right}
 .vf-warn{background:#b45309;color:#fff;text-align:center;padding:9px 18px;font-size:.82rem;font-weight:700;flex-shrink:0;letter-spacing:.04em;animation:vfWarnPulse .65s infinite}
 @keyframes vfWarnPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .vf-card-area{flex:1;display:flex;align-items:center;justify-content:center;padding:14px 16px;overflow:hidden}
@@ -453,7 +454,7 @@ body{
 .vf-timer{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;color:rgba(255,255,255,.75);text-align:center;margin:10px 0 4px;line-height:1}
 .vf-done-btn{width:100%;padding:12px;border:none;border-radius:11px;background:rgba(255,255,255,.16);color:rgba(255,255,255,.95);font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;margin-top:8px;touch-action:manipulation;transition:background .15s}
 .vf-done-btn:active{background:rgba(255,255,255,.28)}
-.vf-tool-name{font-size:1.15rem;font-weight:700;color:rgba(255,255,255,.92);background:rgba(255,255,255,.1);border-radius:11px;padding:13px 16px;margin-bottom:14px;text-align:center;letter-spacing:.02em}
+.vf-tool-name{font-size:1.35rem;font-weight:700;color:rgba(255,255,255,.92);background:rgba(255,255,255,.1);border-radius:11px;padding:13px 16px;margin-bottom:14px;text-align:center;letter-spacing:.02em}
 .vf-open-btn{width:100%;padding:12px;border:1.5px solid rgba(255,255,255,.28);border-radius:11px;background:none;color:rgba(255,255,255,.9);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;touch-action:manipulation;transition:background .15s}
 .vf-open-btn:active{background:rgba(255,255,255,.14)}
 .vf-bottom{flex-shrink:0;padding:10px 20px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.22)}
@@ -461,8 +462,9 @@ body{
 .vf-next-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.88);border-radius:9px;padding:9px 22px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;touch-action:manipulation;transition:background .15s}
 .vf-next-btn:active{background:rgba(255,255,255,.22)}
 .vf-next-btn.done{background:rgba(80,200,120,.16);border-color:rgba(80,200,120,.38);color:rgba(140,255,170,.92)}
-.vf-skip-hint{font-size:.64rem;color:rgba(255,80,80,.52);letter-spacing:.04em;transition:opacity .3s}
+.vf-skip-hint{font-size:.8rem;color:rgba(255,80,80,.7);letter-spacing:.04em;transition:color .3s,opacity .3s;font-weight:600}
 .vf-skip-hint.hidden-hint{opacity:0;pointer-events:none}
+.vf-skip-hint.xp-done{color:rgba(100,220,130,.9);opacity:1;pointer-events:none}
 /* New vibe feed wrapper backgrounds */
 .vf-wrap-breathing{background:linear-gradient(170deg,#020d1c,#041830)}
 .vf-wrap-movement{background:linear-gradient(170deg,#1a0600,#280e00)}
@@ -494,7 +496,7 @@ body{
 /* Big italic text for affirmation / charger */
 .vf-big-text{font-family:'Cormorant Garamond',serif;font-size:1.48rem;font-style:italic;font-weight:600;color:rgba(255,255,255,.94);line-height:1.65;margin-bottom:16px}
 /* Writing char counter */
-.vf-char-ct{font-size:.66rem;color:rgba(255,255,255,.32);text-align:right;margin-top:3px;letter-spacing:.04em;transition:color .25s}
+.vf-char-ct{font-size:.82rem;color:rgba(255,255,255,.42);text-align:right;margin-top:5px;letter-spacing:.04em;transition:color .25s}
 .vf-char-ct.ok{color:#6ee7b7}
 /* Quote author */
 .vf-q-author{font-size:.72rem;color:rgba(255,255,255,.38);letter-spacing:.1em;text-transform:uppercase;margin-top:10px;font-style:normal;text-align:right}
@@ -545,6 +547,16 @@ body{
 .nn-cl-name{font-size:.98rem;font-weight:500;color:var(--tx);transition:all .2s;word-break:break-word}
 .nn-cl-name.done{text-decoration:line-through;color:var(--lt)}
 .nn-cl-streak{font-size:.8rem;font-weight:700;color:var(--acc);white-space:nowrap;flex-shrink:0;min-width:44px;text-align:right}
+.nn-edit{background:none;border:none;cursor:pointer;color:var(--lt);font-size:.85rem;padding:3px 5px;border-radius:4px;flex-shrink:0}
+.nn-edit:hover{background:rgba(212,160,96,.15);color:var(--acc)}
+.nn-subs{padding:0 0 4px 32px}
+.nn-sub-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--ca)}
+.nn-sub-item:last-child{border-bottom:none}
+.nn-sub-add-row{display:flex;align-items:center;gap:7px;padding:4px 0 6px 32px}
+.nn-sub-inp{flex:1;padding:7px 10px;border:1.5px solid var(--bo);border-radius:6px;background:var(--ca);font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--tx);outline:none}
+.nn-sub-inp:focus{border-color:var(--acc)}
+.nn-add-sub-btn{background:none;border:1px dashed var(--bo);color:var(--lt);font-size:.78rem;padding:4px 9px;border-radius:5px;cursor:pointer;white-space:nowrap}
+.nn-add-sub-btn:hover{border-color:var(--acc);color:var(--acc)}
 
 /* ═══ CHARGERS ═══ */
 .ch-section{display:none;flex-direction:column;flex:1;overflow:hidden}
@@ -782,9 +794,8 @@ body{
     </div>
     <div id="vf-warn" class="vf-warn hidden"></div>
     <div id="vf-card-area" class="vf-card-area"></div>
-    <div class="vf-bottom">
+    <div class="vf-bottom" style="justify-content:flex-start">
       <span class="vf-skip-hint" id="vf-skip-hint">skip early = −5⚡</span>
-      <button class="vf-next-btn" id="vf-next-btn" onclick="vfNext()">Next ↑</button>
     </div>
   </div>
 
@@ -821,7 +832,7 @@ body{
     </div>
     <div class="hw-quick-grid">
       <button class="hw-quick-btn" onclick="bnavSwitch(document.querySelector('.bnav-tab[data-tab=vibe]'))">⚡<span>Vibe Feed</span></button>
-      <button class="hw-quick-btn" onclick="bnavSwitch(document.querySelector('.bnav-tab[data-tab=nn]'))">⭐<span>Check-in</span></button>
+      <button class="hw-quick-btn" onclick="bnavSwitch(document.querySelector('.bnav-tab[data-tab=chargers]'))">🔋<span>Chargers</span></button>
       <button class="hw-quick-btn" onclick="bnavSwitch(document.querySelector('.bnav-tab[data-tab=goal]'))">🎯<span>My Goal</span></button>
       <button class="hw-quick-btn" onclick="bnavSwitch(document.querySelector('.bnav-tab[data-tab=tools]'))">🛠️<span>Tools</span></button>
     </div>
@@ -974,11 +985,14 @@ body{
     <canvas id="life-canvas"></canvas>
   </div>
 
-  <!-- NN CHECKLIST TAB SECTION -->
+  <!-- NN CHECKLIST — shown on home tab -->
   <div id="nn-tab-section">
-    <div class="graph-sec" style="border:none;padding:0">
+    <div class="graph-sec" style="margin-top:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)">⭐ Non-Negotiables</div>
+      </div>
       <div id="nn-cl-list"></div>
-      <div class="nn-add-row" style="padding:8px 0 4px">
+      <div class="nn-add-row" style="padding:10px 0 2px">
         <input class="nn-inp" type="text" id="nn-tab-new" placeholder="Add a non-negotiable..." onkeydown="if(event.key==='Enter')addNNTab()">
         <button class="btn pr" onclick="addNNTab()">+ Add</button>
       </div>
@@ -1264,7 +1278,7 @@ async function loadImgArr(lsKey){
 
 async function load(){
   S.emo=get(K.e,0); S.ideas=get(K.i,[]); S.collV=get(K.cv,[]); S.collD=get(K.cd,[]);
-  S.nn=get(K.n,[]); S.nnHist=get(K.nh,{}); S.goal=get(K.g,''); S.goalLinks=get(K.gl,[]);
+  S.nn=get(K.n,[]).map(n=>typeof n==='string'?{text:n,subs:[]}:n); S.nnHist=get(K.nh,{}); S.goal=get(K.g,''); S.goalLinks=get(K.gl,[]);
   S.quotes=get(K.q,S.quotes); S.customTools=get(K.ct,[]); S.rrDocs=get(K.rd,[]); S.rrLinks=get(K.rl,[]);
   S.visImgs=await loadImgArr(K.v);
   S.rrItems=await loadImgArr(K.rr);
@@ -2103,17 +2117,35 @@ function renderNNTab(){
   const list=document.getElementById('nn-cl-list');if(!list)return;
   const today=todayKey();
   if(!S.nnHist[today])S.nnHist[today]={};
-  if(!S.nn.length){list.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--lt);font-style:italic;font-family:\'Cormorant Garamond\',serif;font-size:1.1rem;line-height:2">No non-negotiables yet.<br>Add your first one below.</div>';return;}
-  list.innerHTML=S.nn.map((n,i)=>{
+  if(!S.nn.length){list.innerHTML='<div style="text-align:center;padding:32px 20px;color:var(--lt);font-style:italic;font-family:\'Cormorant Garamond\',serif;font-size:1.05rem;line-height:2">No non-negotiables yet.<br>Add your first one below.</div>';return;}
+  list.innerHTML=S.nn.map(function(n,i){
+    const txt=n.text||n;
+    const subs=n.subs||[];
     const checked=S.nnHist[today][i]===true;
     const streak=calcStreak(i);
+    const subsHTML=subs.map(function(sub,j){
+      const sc=S.nnHist[today]['s'+i+'_'+j]===true;
+      return '<div class="nn-sub-item">'
+        +'<label class="nn-cl-label">'
+        +'<input type="checkbox" class="nn-cl-cb"'+(sc?' checked':'')+' onchange="toggleNNSubCheck('+i+','+j+',this.checked)">'
+        +'<span class="nn-cl-name'+(sc?' done':'')+'">'+esc(sub)+'</span>'
+        +'</label>'
+        +'<button class="nn-del" onclick="delNNSub('+i+','+j+')" title="Remove sub">✕</button>'
+        +'</div>';
+    }).join('');
     return '<div class="nn-cl-item">'
       +'<label class="nn-cl-label">'
       +'<input type="checkbox" class="nn-cl-cb"'+(checked?' checked':'')+' onchange="toggleNNCheck('+i+',this.checked)">'
-      +'<span class="nn-cl-name'+(checked?' done':'')+'">'+esc(n)+'</span>'
+      +'<span class="nn-cl-name'+(checked?' done':'')+'">'+esc(txt)+'</span>'
       +'</label>'
       +'<span class="nn-cl-streak">'+(streak>0?'🔥 '+streak+'d':'—')+'</span>'
+      +'<button class="nn-edit" onclick="editNNItem('+i+')" title="Edit">✏️</button>'
       +'<button class="nn-del" onclick="delNNTab('+i+')" title="Remove">✕</button>'
+      +'</div>'
+      +(subsHTML?'<div class="nn-subs">'+subsHTML+'</div>':'')
+      +'<div class="nn-sub-add-row">'
+      +'<input class="nn-sub-inp" type="text" id="nn-sub-inp-'+i+'" placeholder="Add sub-point..." style="display:none" onkeydown="if(event.key===\'Enter\')addNNSub('+i+')">'
+      +'<button class="nn-add-sub-btn" onclick="nnToggleSubInp('+i+')">+ sub-point</button>'
       +'</div>';
   }).join('');
 }
@@ -2123,18 +2155,64 @@ function toggleNNCheck(idx,val){
   S.nnHist[today][idx]=val;sv('nh');
   updNNBadge();renderNNTab();
 }
+function toggleNNSubCheck(i,j,val){
+  const today=todayKey();
+  if(!S.nnHist[today])S.nnHist[today]={};
+  S.nnHist[today]['s'+i+'_'+j]=val;sv('nh');
+  renderNNTab();
+}
+function editNNItem(i){
+  const cur=S.nn[i];const txt=cur.text||cur;
+  const v=prompt('Edit:',txt);
+  if(v&&v.trim()&&v.trim()!==txt){S.nn[i]={text:v.trim(),subs:cur.subs||[]};sv('n');renderNNTab();}
+}
+function nnToggleSubInp(i){
+  const inp=document.getElementById('nn-sub-inp-'+i);
+  if(!inp)return;
+  if(inp.style.display==='none'){inp.style.display='';inp.focus();}
+  else inp.style.display='none';
+}
+function addNNSub(i){
+  const inp=document.getElementById('nn-sub-inp-'+i);
+  if(!inp||!inp.value.trim())return;
+  const cur=S.nn[i];
+  S.nn[i]={text:cur.text||cur,subs:[...(cur.subs||[]),inp.value.trim()]};
+  sv('n');inp.value='';renderNNTab();
+}
+function delNNSub(i,j){
+  const cur=S.nn[i];
+  const subs=[...(cur.subs||[])];subs.splice(j,1);
+  S.nn[i]={text:cur.text||cur,subs};
+  Object.keys(S.nnHist).forEach(function(dk){
+    const day=S.nnHist[dk];
+    delete day['s'+i+'_'+j];
+    let k=j+1;
+    while(day['s'+i+'_'+k]!==undefined){day['s'+i+'_'+(k-1)]=day['s'+i+'_'+k];delete day['s'+i+'_'+k];k++;}
+  });
+  sv('n');sv('nh');renderNNTab();
+}
 function addNNTab(){
   const inp=document.getElementById('nn-tab-new');
   if(!inp||!inp.value.trim())return;
-  S.nn.push(inp.value.trim());sv('n');
+  S.nn.push({text:inp.value.trim(),subs:[]});sv('n');
   inp.value='';updNNBadge();renderNNTab();
 }
 function delNNTab(i){
   if(!confirm('Remove this non-negotiable?'))return;
   S.nn.splice(i,1);
-  Object.keys(S.nnHist).forEach(dk=>{
+  Object.keys(S.nnHist).forEach(function(dk){
     const day=S.nnHist[dk];const nd={};
-    Object.keys(day).forEach(k=>{const ki=parseInt(k);if(ki<i)nd[k]=day[k];else if(ki>i)nd[ki-1]=day[k];});
+    Object.keys(day).forEach(function(k){
+      if(k.startsWith('s')){
+        const m=k.match(/^s(\d+)_(\d+)$/);if(!m)return;
+        const pi=parseInt(m[1]);
+        if(pi<i)nd[k]=day[k];
+        else if(pi>i)nd['s'+(pi-1)+'_'+m[2]]=day[k];
+      }else{
+        const ki=parseInt(k);
+        if(ki<i)nd[k]=day[k];else if(ki>i)nd[ki-1]=day[k];
+      }
+    });
     S.nnHist[dk]=nd;
   });
   sv('n');sv('nh');updNNBadge();renderNNTab();
@@ -2217,86 +2295,96 @@ document.addEventListener('sheetsDataReady', function(e){
       });
     });
   }
-  /* ── Vibe cards (quotes from vibe_cards sheet) ── */
-  var cards = (e.detail && e.detail.vibe_cards) || [];
-  cards.forEach(function(c){
-    if(!c.content) return;
-    var entry = {type:'QUOTE', content:c.content, author:c.title||c.author||'', timer:20};
-    VF_SAMPLE.push(entry);
-    if(window.vfDeck && window.vfDeck.length) window.vfDeck.push(entry);
-  });
+  /* ── Vibe cards from vibe_cards sheet — replaces fallback cards on load ── */
+  var vcards = (e.detail && e.detail.vibe_cards) || [];
+  if(vcards.length){
+    /* TOOL slot count = one slot per available tool (min 3, max 8) */
+    var toolSlots = Math.max(3, Math.min(VF_TOOLS.length || 3, 8));
+    VF_SAMPLE.length = 0;
+    for(var _ts=0; _ts<toolSlots; _ts++) VF_SAMPLE.push({type:'TOOL'});
+    vcards.forEach(function(c){
+      if(!c.content) return;
+      if(c.active==='false'||c.active===false) return;
+      var type=(c.type||'').toUpperCase();
+      if(!type) return;
+      var entry={type:type,content:c.content};
+      if(c.title) entry.title=c.title;
+      if(c.icon) entry.icon=c.icon;
+      if(c.category) entry.category=c.category;
+      if(c.timer) entry.timer=parseInt(c.timer)||undefined;
+      if(c.xp) entry.xp=parseInt(c.xp)||undefined;
+      if(c.placeholder) entry.placeholder=c.placeholder;
+      if(type==='WRITING') entry.minChars=parseInt(c.min_chars||c.minChars||'20')||20;
+      if(type==='AFFIRMATION'&&!entry.timer) entry.timer=15;
+      if(type==='QUOTE'&&!entry.timer) entry.timer=20;
+      if(c.author) entry.author=c.author;
+      VF_SAMPLE.push(entry);
+    });
+  }
   /* ── Chargers → CHARGER cards in vibe feed ── */
   var chargers = (e.detail && e.detail.chargers) || [];
   chargers.forEach(function(c){
-    if(!c.content) return;
-    var entry = {type:'CHARGER', content:c.content, category:c.category_name||c.category_id||'Mind Charger'};
-    VF_SAMPLE.push(entry);
-    if(window.vfDeck && window.vfDeck.length) window.vfDeck.push(entry);
+    /* chargers sheet uses 'name'+'description', not 'content' */
+    var text = c.description || c.content || c.name || '';
+    if(!text) return;
+    VF_SAMPLE.push({type:'CHARGER', content:text, title:c.name||'', category:c.category_name||c.category_id||'Mind Charger'});
   });
+  /* ── Rebuild pools (handles slow Sheets load edge case too) ── */
+  if(typeof vfBuildPools==='function') vfBuildPools();
 });
 
 /* ═══ VIBE FEED ═══ */
+/* Minimal fallback — replaced by vibe_cards sheet data at runtime */
 const VF_SAMPLE=[
-  /* ── BREATHING (5) ── */
-  {type:'BREATHING',title:'Box Breath',content:'Breathe in slowly through your nose for 4 counts. Hold for 4. Breathe out through your mouth for 4. Hold empty for 4. Repeat this 4 times.',timer:64,xp:10},
-  {type:'BREATHING',title:'Slow Release',content:'Take the slowest breath you have ever taken — breathe in for 8 full seconds. Hold for 1. Then breathe out even slower, for 10 seconds. Do this 3 times.',timer:60,xp:10},
-  {type:'BREATHING',title:'Belly Breath',content:'Put one hand on your belly. Breathe in through your nose — let your belly push your hand out. Your chest should barely move. Hold 2 seconds. Breathe out fully. Repeat 5 times.',timer:55,xp:10},
-  {type:'BREATHING',title:'Candle Breath',content:'Breathe in through your nose for 4 seconds. Now breathe out through your mouth slowly — like you are gently blowing out a candle across the room. Make the exhale last 6 to 8 seconds. Do this 5 times.',timer:65,xp:10},
-  {type:'BREATHING',title:'Full Reset',content:'Empty your lungs first — breathe all the way out, squeeze out every last bit. Now breathe in fully until you can hold no more. Breathe out slowly. 5 complete cycles.',timer:60,xp:10},
-  /* ── MOVEMENT (8) ── */
-  {type:'MOVEMENT',icon:'🙆',title:'Shoulder Roll Release',content:'Roll your shoulders backwards — slowly and fully — 8 times. Then forwards 8 times. Then gently tilt your head to the left, hold 3 seconds, then right. Feel the tension leaving your body.',timer:40,xp:8},
-  {type:'MOVEMENT',icon:'🤸',title:'Power Shake',content:'Stand up. Start shaking your hands. Then your arms. Then your whole body — shake everything, like you are shaking off all stress and heavy feelings. Keep going for 30 full seconds.',timer:35,xp:8},
-  {type:'MOVEMENT',icon:'🙌',title:'Sky Reach',content:'Stand tall, feet shoulder-width apart. Breathe in and reach both arms up as high as you can — stretch your whole body upward. Hold 3 seconds at the top. Breathe out as you lower them. Do this 8 times.',timer:55,xp:8},
-  {type:'MOVEMENT',icon:'👏',title:'Energy Clap',content:'Clap your hands firmly together 10 times. Then rub your palms fast against each other for 5 seconds — back and forth quickly. Feel the warmth and energy build up. Press your warm palms gently over your closed eyes.',timer:30,xp:8},
-  {type:'MOVEMENT',icon:'🚶',title:'Mindful Walk',content:'Walk slowly to any open space. Take one step every second — feel each foot touch the ground completely. Walk in a circle or straight and back. Stay fully present with each step. 30 seconds total.',timer:35,xp:8},
-  {type:'MOVEMENT',icon:'⬆️',title:'Jump Reset',content:'Jump lightly up and down 20 times. Not high — just enough to leave the ground. Shake your hands at the same time. Let everything in your body loosen up and wake up.',timer:30,xp:8},
-  {type:'MOVEMENT',icon:'🔄',title:'Hip Circle',content:'Stand feet shoulder-width apart, hands on hips. Move your hips in a big slow circle — like drawing a hula hoop in the air. 5 circles to the left, 5 circles to the right. Keep your upper body relaxed.',timer:40,xp:8},
-  {type:'MOVEMENT',icon:'🌀',title:'Spine Twist',content:'Sit straight or stand. Breathe in. As you breathe out, gently twist your body to the right — turn your head to look behind you. Hold 3 seconds. Come back to centre. Repeat left. 4 times each side.',timer:50,xp:8},
-  /* ── AFFIRMATION (12) ── */
-  {type:'AFFIRMATION',content:'__NICK__, you are capable of far more than you have shown the world yet.'},
-  {type:'AFFIRMATION',content:'__NICK__, you are not behind. You are on your path — and your path is perfectly on time.'},
-  {type:'AFFIRMATION',content:'Every single day, __NICK__ is becoming stronger, clearer, and more aligned with their purpose.'},
-  {type:'AFFIRMATION',content:'__NICK__, your desires are real and they are valid. You are allowed to want everything you want.'},
-  {type:'AFFIRMATION',content:'Right now, something in the universe is actively working in __NICK__\'s favour — even if it is invisible.'},
-  {type:'AFFIRMATION',content:'__NICK__ does not need to be perfect to deserve a beautiful life. You deserve it right now, exactly as you are.'},
-  {type:'AFFIRMATION',content:'__NICK__, you are a rare kind of person — one who chooses to grow. That single choice changes everything.'},
-  {type:'AFFIRMATION',content:'Abundance flows naturally and easily to __NICK__. There is always more than enough.'},
-  {type:'AFFIRMATION',content:'__NICK__, you are loved — by people who matter, and by the life that keeps showing up for you.'},
-  {type:'AFFIRMATION',content:'Every version of __NICK__ that ever tried and failed brought you exactly here. That is not failure. That is the path.'},
-  {type:'AFFIRMATION',content:'__NICK__, your mind is your most powerful asset. You are using it on purpose, right now.'},
-  {type:'AFFIRMATION',content:'The best chapter of __NICK__\'s life is the one being written today.'},
-  /* ── WRITING (12) ── */
-  {type:'WRITING',content:'Write down 3 things you are genuinely grateful for right now. Make them specific — not "family" but who exactly, and why.',placeholder:'I am grateful for...',minChars:20,xp:7},
-  {type:'WRITING',content:'What is one thing you have been pretending not to know? Write it down honestly — no one is reading this but you.',placeholder:'The truth I keep avoiding is...',minChars:20,xp:7},
-  {type:'WRITING',content:'Describe tomorrow in full detail — wake up, what you feel, what you do. Make it feel real as you write it.',placeholder:'Tomorrow I wake up and...',minChars:20,xp:7},
-  {type:'WRITING',content:'What would you do this week if you had zero fear of anyone\'s judgment? Write it all.',placeholder:'Without any fear of judgment, I would...',minChars:20,xp:7},
-  {type:'WRITING',content:'Write a short letter to yourself from your future self — the version of you who already has everything you want. What do they want you to know?',placeholder:'Dear present me...',minChars:20,xp:7},
-  {type:'WRITING',content:'What has been your single biggest win in the last 7 days? It does not have to be big to the world — just real to you.',placeholder:'My win this week was...',minChars:20,xp:7},
-  {type:'WRITING',content:'Name one belief about yourself that has held you back. Now write the opposite — the true version you choose to believe instead.',placeholder:'Old belief: I am...\nNew truth: I am...',minChars:20,xp:7},
-  {type:'WRITING',content:'If money, time, and other people\'s opinions did not exist as limits — what would your life actually look like?',placeholder:'My life would look like...',minChars:20,xp:7},
-  {type:'WRITING',content:'Who is one person who has made your life genuinely better? Write what they gave you and what you would want them to know.',placeholder:'They gave me...',minChars:20,xp:7},
-  {type:'WRITING',content:'What old story about yourself are you finally ready to put down? Write it — then write the new story you choose.',placeholder:'The old story was...\nThe new story is...',minChars:20,xp:7},
-  {type:'WRITING',content:'Name three specific things about your body or health that you are genuinely grateful for right now.',placeholder:'My body gives me...',minChars:20,xp:7},
-  {type:'WRITING',content:'What is one thing you keep postponing that you know you need to do? Write it. Then write one small step you could take today.',placeholder:'I keep postponing...\nOne step I can take today...',minChars:20,xp:7},
-  /* ── TOOL (3) ── */
+  {type:'BREATHING',title:'Box Breath',content:'Breathe in for 4 counts. Hold for 4. Out for 4. Hold for 4. Repeat 4 times.',timer:64,xp:10},
+  {type:'MOVEMENT',icon:'🙆',title:'Shoulder Roll',content:'Roll your shoulders backwards 8 times, then forwards 8 times. Tilt head left, hold 3 s, then right.',timer:30,xp:8},
+  {type:'AFFIRMATION',content:'__NICK__, you are capable of far more than you have shown the world yet.',timer:15},
+  {type:'WRITING',content:'Write 3 things you are genuinely grateful for right now.',placeholder:'I am grateful for...',minChars:20,xp:7},
   {type:'TOOL'},{type:'TOOL'},{type:'TOOL'},
 ];
 /* VF_TOOLS starts empty — populated from Google Sheets tools data */
 const VF_TOOLS=[];
-const VF_PTS={QUOTE:3,AFFIRMATION:4,WRITING:7,GOAL_VISION:6,BREATHING:10,MOVEMENT:8,CHARGER:5,TOOL:8};
-const VF_BG={QUOTE:'vf-wrap-quote',AFFIRMATION:'vf-wrap-affirmation',WRITING:'vf-wrap-writing',GOAL_VISION:'vf-wrap-goal',BREATHING:'vf-wrap-breathing',MOVEMENT:'vf-wrap-movement',CHARGER:'vf-wrap-charger',TOOL:'vf-wrap-tool'};
-const VF_CBG={QUOTE:'vf-bg-quote',AFFIRMATION:'vf-bg-affirmation',WRITING:'vf-bg-writing',GOAL_VISION:'vf-bg-goal',BREATHING:'vf-bg-breathing',MOVEMENT:'vf-bg-movement',CHARGER:'vf-bg-charger',TOOL:'vf-bg-tool'};
-const VF_TYPE_LABELS={QUOTE:'Quote',AFFIRMATION:'Affirm',WRITING:'Journal',GOAL_VISION:'Vision',BREATHING:'Breathe',MOVEMENT:'Move',CHARGER:'Charger',TOOL:'Tool'};
+const VF_PTS={QUOTE:3,AFFIRMATION:4,WRITING:7,GOAL_VISION:6,BREATHING:10,MOVEMENT:8,CHARGER:7,TOOL:8,REVISE_REPEAT:6};
+const VF_BG={QUOTE:'vf-wrap-quote',AFFIRMATION:'vf-wrap-affirmation',WRITING:'vf-wrap-writing',GOAL_VISION:'vf-wrap-goal',BREATHING:'vf-wrap-breathing',MOVEMENT:'vf-wrap-movement',CHARGER:'vf-wrap-charger',TOOL:'vf-wrap-tool',REVISE_REPEAT:'vf-wrap-goal'};
+const VF_CBG={QUOTE:'vf-bg-quote',AFFIRMATION:'vf-bg-affirmation',WRITING:'vf-bg-writing',GOAL_VISION:'vf-bg-goal',BREATHING:'vf-bg-breathing',MOVEMENT:'vf-bg-movement',CHARGER:'vf-bg-charger',TOOL:'vf-bg-tool',REVISE_REPEAT:'vf-bg-goal'};
+const VF_TYPE_LABELS={QUOTE:'Quote',AFFIRMATION:'Affirm',WRITING:'Journal',GOAL_VISION:'Vision',BREATHING:'Breathe',MOVEMENT:'Move',CHARGER:'Charger',TOOL:'Tool',REVISE_REPEAT:'Revise'};
 const VF_SCORE_KEY='clar_xp';
-let vfIdx=0,vfScore=0,vfTouchY=0,vfIdleWarn=null,vfIdleReset=null,vfChalInterval=null,vfChalDone=false,vfCurCard=null,vfCurTool=null,vfDeck=[],vfStreak=0,vfStreakMult=1,vfLastType=null,vfXpUnlocked=false;
+let vfScore=0,vfTouchY=0,vfIdleWarn=null,vfIdleReset=null,vfChalInterval=null,vfChalDone=false,vfCurCard=null,vfStreak=0,vfStreakMult=1,vfLastType=null,vfXpUnlocked=false;
+let vfPools={},vfPoolIdx={};
+
+function vfBuildPools(){
+  vfPools={};vfPoolIdx={};
+  /* Bucket VF_SAMPLE cards by type, shuffle each bucket independently */
+  VF_SAMPLE.forEach(function(c){
+    if(c.type==='TOOL')return; /* TOOL handled separately via VF_TOOLS */
+    if(!vfPools[c.type])vfPools[c.type]=[];
+    vfPools[c.type].push(c);
+  });
+  /* Add My Quotes to QUOTE pool */
+  var myQ=get(MYQ_KEY,[]);
+  myQ.forEach(function(q){
+    if(!q)return;
+    if(!vfPools['QUOTE'])vfPools['QUOTE']=[];
+    vfPools['QUOTE'].push({type:'QUOTE',content:q,timer:20});
+  });
+  /* Shuffle each pool */
+  Object.keys(vfPools).forEach(function(type){
+    var p=vfPools[type];
+    for(var i=p.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=p[i];p[i]=p[j];p[j]=t;}
+    vfPoolIdx[type]=0;
+  });
+}
 
 function vfInit(){
   vfScore=parseInt(localStorage.getItem(VF_SCORE_KEY)||'0');
-  /* Fisher-Yates shuffle a fresh copy of VF_SAMPLE every session */
-  vfDeck=[...VF_SAMPLE];
-  for(let i=vfDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[vfDeck[i],vfDeck[j]]=[vfDeck[j],vfDeck[i]];}
-  vfIdx=0;
+  vfBuildPools();
   const area=document.getElementById('vf-card-area');
+  if(!window._vfKeyBound){
+    window._vfKeyBound=true;
+    window.addEventListener('keydown',function(e){
+      if(e.key==='ArrowDown'&&document.getElementById('vibe-feed')&&document.getElementById('vibe-feed').style.display!=='none')vfNext();
+    });
+  }
   if(area&&!area._vfBound){
     area._vfBound=true;
     area.addEventListener('touchstart',e=>{vfTouchY=e.touches[0].clientY;unlockAudio();},{passive:true});
@@ -2308,41 +2396,49 @@ function vfInit(){
 
 function vfPickCard(){
   const nick=localStorage.getItem('clv_nick')||'Friend';
-  const quotes=get(MYQ_KEY,[]);
-  const visImgs=(S.visImgs||[]).filter(img=>img&&img.src);
-  /* 25% chance to show a quote or vision image (anti-repeat respected) */
-  const pool=[];
-  if(quotes.length){pool.push('QUOTE');pool.push('QUOTE');}
-  if(visImgs.length)pool.push('GOAL_VISION');
-  if(pool.length&&Math.random()<0.25){
-    const pick=pool[Math.floor(Math.random()*pool.length)];
-    if(pick!==vfLastType){
-      if(pick==='QUOTE'){
-        return {type:'QUOTE',content:quotes[Math.floor(Math.random()*quotes.length)],timer:20};
-      }
-      if(pick==='GOAL_VISION'){
-        const img=visImgs[Math.floor(Math.random()*visImgs.length)];
-        return {type:'GOAL_VISION',src:img.src,note:img.note||''};
-      }
-    }
+  const visImgs=(S.visImgs||[]).filter(function(img){return img&&img.src;});
+  const rrImgs=get(K.rr,[]).filter(function(img){return img&&img.src;});
+
+  /* Build list of available types this pick */
+  const avail=[];
+  ['BREATHING','MOVEMENT','AFFIRMATION','WRITING','QUOTE','CHARGER'].forEach(function(t){
+    if(vfPools[t]&&vfPools[t].length)avail.push(t);
+  });
+  if(VF_TOOLS.length)avail.push('TOOL');
+  if(visImgs.length)avail.push('GOAL_VISION');
+  if(rrImgs.length)avail.push('REVISE_REPEAT');
+
+  if(!avail.length)return {type:'AFFIRMATION',content:nick+', you are doing great. Keep going.',timer:15};
+
+  /* Anti-repeat: prefer types different from last shown */
+  const eligible=avail.filter(function(t){return t!==vfLastType;});
+  const pickFrom=eligible.length?eligible:avail;
+
+  /* Equal-weight random pick */
+  const type=pickFrom[Math.floor(Math.random()*pickFrom.length)];
+
+  /* TOOL — random tool from VF_TOOLS */
+  if(type==='TOOL'){
+    var tool=VF_TOOLS[Math.floor(Math.random()*VF_TOOLS.length)];
+    return {type:'TOOL',name:tool.name,emoji:tool.emoji||'🛠',desc:tool.desc||''};
   }
-  /* Advance through shuffled deck, skipping same type as last */
-  let tries=0;
-  while(tries<vfDeck.length*2){
-    const c={...vfDeck[vfIdx%vfDeck.length]};
-    vfIdx++;
-    tries++;
-    if(c.type===vfLastType)continue;
-    if(c.type==='AFFIRMATION'&&c.content){
-      c.content=c.content.replace(/__NICK__/g,nick);
-    }
-    if(c.type==='TOOL'){
-      if(!VF_TOOLS.length)continue; /* skip TOOL cards until sheets tools are loaded */
-      c._tool=VF_TOOLS[Math.floor(Math.random()*VF_TOOLS.length)];
-    }
-    return c;
+  /* GOAL_VISION — random vision image */
+  if(type==='GOAL_VISION'){
+    var img=visImgs[Math.floor(Math.random()*visImgs.length)];
+    return {type:'GOAL_VISION',src:img.src,note:img.note||''};
   }
-  return {type:'AFFIRMATION',content:nick+', you are doing great. Keep going.'};
+  /* REVISE_REPEAT — random revise image */
+  if(type==='REVISE_REPEAT'){
+    var rImg=rrImgs[Math.floor(Math.random()*rrImgs.length)];
+    return {type:'REVISE_REPEAT',src:rImg.src,note:rImg.note||''};
+  }
+  /* Pool-based types — cycle through unique cards before repeating */
+  var pool=vfPools[type];
+  var idx=vfPoolIdx[type]||0;
+  var card=Object.assign({},pool[idx%pool.length]);
+  vfPoolIdx[type]=(idx+1)%pool.length;
+  if(type==='AFFIRMATION'&&card.content)card.content=card.content.replace(/__NICK__/g,nick);
+  return card;
 }
 
 function vfRender(){
@@ -2376,8 +2472,10 @@ function vfRender(){
     html+=_vfChargerHTML(card);
   }else if(card.type==='QUOTE'){
     html+=_vfQuoteHTML(card);
-  }else if(card.type==='TOOL'&&card._tool){
-    html+=_vfToolCardHTML(card._tool);
+  }else if(card.type==='TOOL'){
+    html+=_vfToolCardHTML(card);
+  }else if(card.type==='REVISE_REPEAT'){
+    html+=_vfReviseRepeatHTML(card);
   }
   html+='</div>';
   area.innerHTML=html;
@@ -2398,11 +2496,9 @@ function vfRender(){
   vfScoreDisplay(false);
   vfStreakDisplay();
   const w=document.getElementById('vf-warn');if(w)w.classList.add('hidden');
-  /* Reset next button to skip-mode for new card */
-  const nb=document.getElementById('vf-next-btn');
-  if(nb){nb.textContent='Next ↑';nb.classList.remove('done');}
+  /* Reset skip hint for new card */
   const sh=document.getElementById('vf-skip-hint');
-  if(sh)sh.classList.remove('hidden-hint');
+  if(sh){sh.textContent='skip early = −5⚡';sh.classList.remove('xp-done','hidden-hint');}
 }
 
 function _vfBreathingHTML(card){
@@ -2448,8 +2544,19 @@ function _vfGoalVisionHTML(card){
 
 function _vfChargerHTML(card){
   return '<div class="vf-charger-lbl">'+(card.category||'Mind Charger')+'</div>'
-    +'<div class="vf-big-text">'+esc(card.content||'')+'</div>'
-    +'<button class="vf-done-btn" id="vf-action-btn" onclick="vfUnlockXP()">⚡ I\'m Charged</button>';
+    +'<div class="vf-tool-name">'+esc(card.title||card.content||'')+'</div>'
+    +(card.title?'<div class="vf-card-body" style="font-size:1rem;margin-bottom:10px">'+esc(card.content||'')+'</div>':'')
+    +'<textarea class="vf-card-inp" id="vf-ta" rows="4" placeholder="Write your response here..." style="resize:none;line-height:1.6;min-height:88px" oninput="vfWritingCheck(this,10)"></textarea>'
+    +'<div class="vf-char-ct" id="vf-char-ct">0 / 10 — XP unlocks automatically</div>';
+}
+
+function _vfReviseRepeatHTML(card){
+  return '<div class="vf-card-type">Right understanding makes instant paradigm shift</div>'
+    +'<img class="vf-goal-img" src="'+escA(card.src||'')+'" onerror="this.style.display=\'none\'">'
+    +(card.note?'<div class="vf-q-author">'+esc(card.note)+'</div>':'')
+    +'<div style="font-size:.82rem;color:rgba(255,255,255,.55);font-style:italic;margin-bottom:8px">What is your key takeaway from this?</div>'
+    +'<textarea class="vf-card-inp" id="vf-ta" rows="3" placeholder="My understanding is..." style="resize:none;line-height:1.6;min-height:75px" oninput="vfWritingCheck(this,20)"></textarea>'
+    +'<div class="vf-char-ct" id="vf-char-ct">0 / 20 — XP unlocks automatically</div>';
 }
 
 function _vfQuoteHTML(card){
@@ -2468,7 +2575,7 @@ function _vfQuoteHTML(card){
 function _vfToolCardHTML(tool){
   const prompt=tool.desc||tool.description||tool.tagline||'Write freely using this tool. Be honest with yourself.';
   return '<div class="vf-tool-name">'+esc(tool.emoji||'🛠')+' '+esc(tool.name||'Tool')+'</div>'
-    +'<div class="vf-card-body" style="font-size:1rem;margin-bottom:10px">'+esc(prompt)+'</div>'
+    +'<div class="vf-card-body" style="font-size:1.2rem;margin-bottom:10px">'+esc(prompt)+'</div>'
     +'<textarea class="vf-card-inp" id="vf-ta" rows="4" placeholder="Write here..." style="resize:none;line-height:1.6;min-height:88px" oninput="vfWritingCheck(this,10)"></textarea>'
     +'<div class="vf-char-ct" id="vf-char-ct">0 / 10 — XP unlocks automatically</div>';
 }
@@ -2577,12 +2684,9 @@ function vfUnlockXP(){
   /* Update action button if present */
   const ab=document.getElementById('vf-action-btn');
   if(ab){ab.textContent='✓ +'+pts+' XP — Continue ↑';ab.disabled=true;ab.style.opacity='.55';}
-  /* Flip next button to green "Continue" */
-  const nb=document.getElementById('vf-next-btn');
-  if(nb){nb.textContent='Continue ↑';nb.classList.add('done');}
-  /* Hide skip warning */
+  /* Flip skip hint to green done state */
   const sh=document.getElementById('vf-skip-hint');
-  if(sh)sh.classList.add('hidden-hint');
+  if(sh){sh.textContent='✓ +'+pts+' XP — swipe up to continue';sh.classList.add('xp-done');sh.classList.remove('hidden-hint');}
 }
 
 /* Writing/goal/tool — auto-award XP when min chars reached */
@@ -2713,25 +2817,24 @@ function bnavSwitch(el){
   const inlineSecs=main.querySelector('.inline-secs');
   const nnTabSec=document.getElementById('nn-tab-section');
   const homeWidget=document.getElementById('home-widget');
+  const dqCard=document.getElementById('dq-card');
   const vibeFeed=document.getElementById('vibe-feed');
   const rrQuotesSec=document.getElementById('rr-quotes-section');
   if(tab!=='vibe'){clearTimeout(vfIdleWarn);clearTimeout(vfIdleReset);clearInterval(vfChalInterval);const w=document.getElementById('vf-warn');if(w)w.classList.add('hidden');}
   const chargersSec=document.getElementById('chargers-section');
   const toolsSearch=document.getElementById('tools-search-wrap');
-  const sheetRevSec=document.getElementById('sheets-revise-section'); // Bug1 fix: must be in all[]
-  const all=[homeWidget,vibeFeed,goalRow,rrRow,rrQuotesSec,...slbls,toolGrid,inlineSecs,nnTabSec,chargersSec,toolsSearch,sheetRevSec];
+  const sheetRevSec=document.getElementById('sheets-revise-section');
+  const all=[homeWidget,dqCard,nnTabSec,vibeFeed,goalRow,rrRow,rrQuotesSec,...slbls,toolGrid,inlineSecs,chargersSec,toolsSearch,sheetRevSec];
   all.forEach(s=>{if(s)s.style.display='none';});
   const map={
-    home:[homeWidget],
-    nn:[nnTabSec],
+    home:[homeWidget,dqCard,nnTabSec],
     goal:[goalRow],
     vibe:[vibeFeed],
     tools:[toolsSearch,slbls[0],toolGrid,slbls[1],inlineSecs],
     revise:[sheetRevSec,rrRow,rrQuotesSec],
     chargers:[chargersSec]
   };
-  if(tab==='nn')renderNNTab();
-  if(tab==='home')renderHomeWidget();
+  if(tab==='home'){renderHomeWidget();renderNNTab();}
   if(tab==='vibe')vfInit();
   if(tab==='revise'){renderMyQuotes();renderSheetsRevise();}
   if(tab==='chargers'){chargersSec.style.display='flex';renderChargers();}
@@ -2745,29 +2848,25 @@ function bnavSwitch(el){
     <span class="bt-ic">🏠</span>
     <span class="bt-lbl">Home</span>
   </button>
-  <button class="bnav-tab" data-tab="nn" onclick="bnavSwitch(this)" data-tour-title="Non Negotiables" data-tour-body="Daily habits and check-ins that keep you grounded. Complete these every day to build momentum." data-tour-order="5">
-    <span class="bt-ic">⭐</span>
-    <span class="bt-lbl">Non Negotiables</span>
-  </button>
-  <button class="bnav-tab" data-tab="goal" onclick="bnavSwitch(this)" data-tour-title="Your Goal" data-tour-body="Define your one burning goal and keep your vision board, affirmations, and resources here." data-tour-order="6">
+  <button class="bnav-tab" data-tab="goal" onclick="bnavSwitch(this)" data-tour-title="Your Goal" data-tour-body="Define your one burning goal and keep your vision board, affirmations, and resources here." data-tour-order="5">
     <span class="bt-ic">🎯</span>
     <span class="bt-lbl">Goal</span>
   </button>
-  <button class="bnav-tab" data-tab="vibe" onclick="bnavSwitch(this)" data-tour-title="Vibe Feed" data-tour-body="A daily stream of questions, challenges, and prompts to shift your mindset and raise your energy." data-tour-order="7">
-    <span class="bt-ic">⚡</span>
-    <span class="bt-lbl">Vibe Feed</span>
+  <button class="bnav-tab" data-tab="chargers" onclick="bnavSwitch(this)" data-tour-title="Mind Chargers" data-tour-body="Charge your mind into a desired state — confidence, peace, non-negative. Write your way into the state you want." data-tour-order="6">
+    <span class="bt-ic">🔋</span>
+    <span class="bt-lbl">Chargers</span>
   </button>
-  <button class="bnav-tab" data-tab="tools" onclick="bnavSwitch(this)" data-tour-title="Tools" data-tour-body="Practical tools — journaling, breathing exercises, reframing techniques, and more to support your growth." data-tour-order="8">
+  <button class="bnav-tab" data-tab="tools" onclick="bnavSwitch(this)" data-tour-title="Tools" data-tour-body="Practical tools — journaling, breathing exercises, reframing techniques, and more to support your growth." data-tour-order="7">
     <span class="bt-ic">🛠️</span>
     <span class="bt-lbl">Tools</span>
   </button>
-  <button class="bnav-tab" data-tab="revise" onclick="bnavSwitch(this)" data-tour-title="Revise and Repeat" data-tour-body="Review your past entries, track your progress, and refine what is working for you." data-tour-order="9">
+  <button class="bnav-tab" data-tab="revise" onclick="bnavSwitch(this)" data-tour-title="Revise and Repeat" data-tour-body="Review your past entries, track your progress, and refine what is working for you." data-tour-order="8">
     <span class="bt-ic">🔄</span>
     <span class="bt-lbl">Revise</span>
   </button>
-  <button class="bnav-tab" data-tab="chargers" onclick="bnavSwitch(this)" data-tour-title="Mind Chargers" data-tour-body="Charge your mind into a desired state — confidence, peace, non-negative. Write your way into the state you want.">
+  <button class="bnav-tab" data-tab="vibe" onclick="bnavSwitch(this)" data-tour-title="Vibe Feed" data-tour-body="A daily stream of questions, challenges, and prompts to shift your mindset and raise your energy." data-tour-order="9">
     <span class="bt-ic">⚡</span>
-    <span class="bt-lbl">Chargers</span>
+    <span class="bt-lbl">Vibe Feed</span>
   </button>
 </nav>
 
@@ -3636,36 +3735,37 @@ function bnavSwitch(el){
 /* ─── SIDE TRAY ─── */
 #side-tray{
   position:fixed;right:0;top:50%;z-index:8990;
-  transform:translateY(-50%) translateX(calc(100% - 44px));
+  transform:translateY(-50%) translateX(calc(100% - 28px));
   transition:transform .3s cubic-bezier(.4,0,.2,1);
   display:flex;align-items:stretch;
   filter:drop-shadow(-3px 0 12px rgba(26,18,8,.25));
 }
 #side-tray.open{transform:translateY(-50%) translateX(0)}
 #tray-tab{
-  width:44px;flex-shrink:0;
+  width:28px;flex-shrink:0;
   background:rgba(26,12,4,.88);
-  border:none;border-radius:12px 0 0 12px;
-  color:#d4a060;font-size:1rem;cursor:pointer;
+  border:none;border-radius:10px 0 0 10px;
+  color:#d4a060;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  padding:20px 0;writing-mode:vertical-rl;letter-spacing:.08em;
-  font-family:'DM Sans',sans-serif;font-weight:700;font-size:.62rem;
+  padding:16px 0;writing-mode:vertical-rl;letter-spacing:.08em;
+  font-family:'DM Sans',sans-serif;font-weight:700;font-size:.55rem;
   text-transform:uppercase;
 }
 #tray-inner{
   background:rgba(26,12,4,.92);
-  padding:14px 10px;display:flex;flex-direction:column;
-  gap:12px;align-items:center;border-radius:0;
+  padding:12px 8px;display:flex;flex-direction:column;
+  gap:10px;align-items:center;border-radius:0;
   border-left:1px solid rgba(212,160,96,.2);
 }
 .tray-btn{
-  width:46px;height:46px;border-radius:50%;
+  width:38px;height:38px;border-radius:50%;
   border:1.5px solid rgba(212,160,96,.25);
   background:rgba(255,255,255,.07);
-  color:#f0e8d8;font-size:1.3rem;cursor:pointer;
+  color:#f0e8d8;font-size:1.1rem;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   transition:background .18s,transform .15s;
   font-family:'DM Sans',sans-serif;font-weight:700;
+  flex-shrink:0;
 }
 .tray-btn:active{background:rgba(212,160,96,.2);transform:scale(.92)}
 #tour-fab.hidden{opacity:.35;pointer-events:none}
@@ -3906,15 +4006,12 @@ function bnavSwitch(el){
       }).join('');
   }
 
-  // Inject curated quotes into VF_SAMPLE for vibe feed
-  // Also push to vfDeck directly if vibe feed already initialised
+  // Inject curated quotes into VF_SAMPLE — vfBuildPools() picks them up
   document.addEventListener('sheetsDataReady', function(e){
     var quotes = (e.detail && e.detail.quotes) || [];
     quotes.forEach(function(q){
       if(!q.quote) return;
-      var entry = { type:'QUOTE', content:q.quote, author:q.author||'', timer:20 };
-      VF_SAMPLE.push(entry);
-      if(window.vfDeck && window.vfDeck.length) window.vfDeck.push(entry);
+      VF_SAMPLE.push({ type:'QUOTE', content:q.quote, author:q.author||'', timer:20 });
     });
   });
 })();
