@@ -2220,9 +2220,10 @@ document.addEventListener('sheetsDataReady', function(e){
   /* ── Vibe cards from vibe_cards sheet — replaces fallback cards on load ── */
   var vcards = (e.detail && e.detail.vibe_cards) || [];
   if(vcards.length){
-    var toolCards=VF_SAMPLE.filter(function(c){return c.type==='TOOL';});
-    VF_SAMPLE.length=0;
-    toolCards.forEach(function(t){VF_SAMPLE.push(t);});
+    /* TOOL slot count = one slot per available tool (min 3, max 8) */
+    var toolSlots = Math.max(3, Math.min(VF_TOOLS.length || 3, 8));
+    VF_SAMPLE.length = 0;
+    for(var _ts=0; _ts<toolSlots; _ts++) VF_SAMPLE.push({type:'TOOL'});
     vcards.forEach(function(c){
       if(!c.content) return;
       if(c.active==='false'||c.active===false) return;
@@ -2241,23 +2242,20 @@ document.addEventListener('sheetsDataReady', function(e){
       if(c.author) entry.author=c.author;
       VF_SAMPLE.push(entry);
     });
-    if(window.vfDeck&&window.vfDeck.length){
-      vfDeck.length=0;
-      VF_SAMPLE.forEach(function(c){vfDeck.push(c);});
-      for(var _i=vfDeck.length-1;_i>0;_i--){var _j=Math.floor(Math.random()*(_i+1));var _t=vfDeck[_i];vfDeck[_i]=vfDeck[_j];vfDeck[_j]=_t;}
-    }
   }
   /* ── Chargers → CHARGER cards in vibe feed ── */
   var chargers = (e.detail && e.detail.chargers) || [];
-  var _chargerAdded = 0;
   chargers.forEach(function(c){
-    if(!c.content) return;
-    var entry = {type:'CHARGER', content:c.content, category:c.category_name||c.category_id||'Mind Charger'};
-    VF_SAMPLE.push(entry);
-    if(window.vfDeck) { vfDeck.push(entry); _chargerAdded++; }
+    /* chargers sheet uses 'name'+'description', not 'content' */
+    var text = c.description || c.content || c.name || '';
+    if(!text) return;
+    VF_SAMPLE.push({type:'CHARGER', content:text, title:c.name||'', category:c.category_name||c.category_id||'Mind Charger'});
   });
-  if(_chargerAdded && window.vfDeck && vfDeck.length){
-    for(var _ci=vfDeck.length-1;_ci>0;_ci--){var _cj=Math.floor(Math.random()*(_ci+1));var _ct=vfDeck[_ci];vfDeck[_ci]=vfDeck[_cj];vfDeck[_cj]=_ct;}
+  /* ── Rebuild vfDeck with full VF_SAMPLE (handles slow Sheets load too) ── */
+  if(VF_SAMPLE.length > 4){
+    vfDeck.length = 0;
+    VF_SAMPLE.forEach(function(c){ vfDeck.push(c); });
+    for(var _i=vfDeck.length-1;_i>0;_i--){var _j=Math.floor(Math.random()*(_i+1));var _t=vfDeck[_i];vfDeck[_i]=vfDeck[_j];vfDeck[_j]=_t;}
   }
 });
 
