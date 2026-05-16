@@ -2251,12 +2251,8 @@ document.addEventListener('sheetsDataReady', function(e){
     if(!text) return;
     VF_SAMPLE.push({type:'CHARGER', content:text, title:c.name||'', category:c.category_name||c.category_id||'Mind Charger'});
   });
-  /* ── Rebuild vfDeck with full VF_SAMPLE (handles slow Sheets load too) ── */
-  if(VF_SAMPLE.length > 4){
-    vfDeck.length = 0;
-    VF_SAMPLE.forEach(function(c){ vfDeck.push(c); });
-    for(var _i=vfDeck.length-1;_i>0;_i--){var _j=Math.floor(Math.random()*(_i+1));var _t=vfDeck[_i];vfDeck[_i]=vfDeck[_j];vfDeck[_j]=_t;}
-  }
+  /* ── Rebuild pools (handles slow Sheets load edge case too) ── */
+  if(typeof vfBuildPools==='function') vfBuildPools();
 });
 
 /* ═══ VIBE FEED ═══ */
@@ -2270,19 +2266,40 @@ const VF_SAMPLE=[
 ];
 /* VF_TOOLS starts empty — populated from Google Sheets tools data */
 const VF_TOOLS=[];
-const VF_PTS={QUOTE:3,AFFIRMATION:4,WRITING:7,GOAL_VISION:6,BREATHING:10,MOVEMENT:8,CHARGER:5,TOOL:8};
-const VF_BG={QUOTE:'vf-wrap-quote',AFFIRMATION:'vf-wrap-affirmation',WRITING:'vf-wrap-writing',GOAL_VISION:'vf-wrap-goal',BREATHING:'vf-wrap-breathing',MOVEMENT:'vf-wrap-movement',CHARGER:'vf-wrap-charger',TOOL:'vf-wrap-tool'};
-const VF_CBG={QUOTE:'vf-bg-quote',AFFIRMATION:'vf-bg-affirmation',WRITING:'vf-bg-writing',GOAL_VISION:'vf-bg-goal',BREATHING:'vf-bg-breathing',MOVEMENT:'vf-bg-movement',CHARGER:'vf-bg-charger',TOOL:'vf-bg-tool'};
-const VF_TYPE_LABELS={QUOTE:'Quote',AFFIRMATION:'Affirm',WRITING:'Journal',GOAL_VISION:'Vision',BREATHING:'Breathe',MOVEMENT:'Move',CHARGER:'Charger',TOOL:'Tool'};
+const VF_PTS={QUOTE:3,AFFIRMATION:4,WRITING:7,GOAL_VISION:6,BREATHING:10,MOVEMENT:8,CHARGER:7,TOOL:8,REVISE_REPEAT:6};
+const VF_BG={QUOTE:'vf-wrap-quote',AFFIRMATION:'vf-wrap-affirmation',WRITING:'vf-wrap-writing',GOAL_VISION:'vf-wrap-goal',BREATHING:'vf-wrap-breathing',MOVEMENT:'vf-wrap-movement',CHARGER:'vf-wrap-charger',TOOL:'vf-wrap-tool',REVISE_REPEAT:'vf-wrap-goal'};
+const VF_CBG={QUOTE:'vf-bg-quote',AFFIRMATION:'vf-bg-affirmation',WRITING:'vf-bg-writing',GOAL_VISION:'vf-bg-goal',BREATHING:'vf-bg-breathing',MOVEMENT:'vf-bg-movement',CHARGER:'vf-bg-charger',TOOL:'vf-bg-tool',REVISE_REPEAT:'vf-bg-goal'};
+const VF_TYPE_LABELS={QUOTE:'Quote',AFFIRMATION:'Affirm',WRITING:'Journal',GOAL_VISION:'Vision',BREATHING:'Breathe',MOVEMENT:'Move',CHARGER:'Charger',TOOL:'Tool',REVISE_REPEAT:'Revise'};
 const VF_SCORE_KEY='clar_xp';
-let vfIdx=0,vfScore=0,vfTouchY=0,vfIdleWarn=null,vfIdleReset=null,vfChalInterval=null,vfChalDone=false,vfCurCard=null,vfCurTool=null,vfDeck=[],vfStreak=0,vfStreakMult=1,vfLastType=null,vfXpUnlocked=false;
+let vfScore=0,vfTouchY=0,vfIdleWarn=null,vfIdleReset=null,vfChalInterval=null,vfChalDone=false,vfCurCard=null,vfStreak=0,vfStreakMult=1,vfLastType=null,vfXpUnlocked=false;
+let vfPools={},vfPoolIdx={};
+
+function vfBuildPools(){
+  vfPools={};vfPoolIdx={};
+  /* Bucket VF_SAMPLE cards by type, shuffle each bucket independently */
+  VF_SAMPLE.forEach(function(c){
+    if(c.type==='TOOL')return; /* TOOL handled separately via VF_TOOLS */
+    if(!vfPools[c.type])vfPools[c.type]=[];
+    vfPools[c.type].push(c);
+  });
+  /* Add My Quotes to QUOTE pool */
+  var myQ=get(MYQ_KEY,[]);
+  myQ.forEach(function(q){
+    if(!q)return;
+    if(!vfPools['QUOTE'])vfPools['QUOTE']=[];
+    vfPools['QUOTE'].push({type:'QUOTE',content:q,timer:20});
+  });
+  /* Shuffle each pool */
+  Object.keys(vfPools).forEach(function(type){
+    var p=vfPools[type];
+    for(var i=p.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=p[i];p[i]=p[j];p[j]=t;}
+    vfPoolIdx[type]=0;
+  });
+}
 
 function vfInit(){
   vfScore=parseInt(localStorage.getItem(VF_SCORE_KEY)||'0');
-  /* Fisher-Yates shuffle a fresh copy of VF_SAMPLE every session */
-  vfDeck=[...VF_SAMPLE];
-  for(let i=vfDeck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[vfDeck[i],vfDeck[j]]=[vfDeck[j],vfDeck[i]];}
-  vfIdx=0;
+  vfBuildPools();
   const area=document.getElementById('vf-card-area');
   if(area&&!area._vfBound){
     area._vfBound=true;
@@ -2295,41 +2312,49 @@ function vfInit(){
 
 function vfPickCard(){
   const nick=localStorage.getItem('clv_nick')||'Friend';
-  const quotes=get(MYQ_KEY,[]);
-  const visImgs=(S.visImgs||[]).filter(img=>img&&img.src);
-  /* 25% chance to show a quote or vision image (anti-repeat respected) */
-  const pool=[];
-  if(quotes.length){pool.push('QUOTE');pool.push('QUOTE');}
-  if(visImgs.length)pool.push('GOAL_VISION');
-  if(pool.length&&Math.random()<0.25){
-    const pick=pool[Math.floor(Math.random()*pool.length)];
-    if(pick!==vfLastType){
-      if(pick==='QUOTE'){
-        return {type:'QUOTE',content:quotes[Math.floor(Math.random()*quotes.length)],timer:20};
-      }
-      if(pick==='GOAL_VISION'){
-        const img=visImgs[Math.floor(Math.random()*visImgs.length)];
-        return {type:'GOAL_VISION',src:img.src,note:img.note||''};
-      }
-    }
+  const visImgs=(S.visImgs||[]).filter(function(img){return img&&img.src;});
+  const rrImgs=get(K.rr,[]).filter(function(img){return img&&img.src;});
+
+  /* Build list of available types this pick */
+  const avail=[];
+  ['BREATHING','MOVEMENT','AFFIRMATION','WRITING','QUOTE','CHARGER'].forEach(function(t){
+    if(vfPools[t]&&vfPools[t].length)avail.push(t);
+  });
+  if(VF_TOOLS.length)avail.push('TOOL');
+  if(visImgs.length)avail.push('GOAL_VISION');
+  if(rrImgs.length)avail.push('REVISE_REPEAT');
+
+  if(!avail.length)return {type:'AFFIRMATION',content:nick+', you are doing great. Keep going.',timer:15};
+
+  /* Anti-repeat: prefer types different from last shown */
+  const eligible=avail.filter(function(t){return t!==vfLastType;});
+  const pickFrom=eligible.length?eligible:avail;
+
+  /* Equal-weight random pick */
+  const type=pickFrom[Math.floor(Math.random()*pickFrom.length)];
+
+  /* TOOL — random tool from VF_TOOLS */
+  if(type==='TOOL'){
+    var tool=VF_TOOLS[Math.floor(Math.random()*VF_TOOLS.length)];
+    return {type:'TOOL',name:tool.name,emoji:tool.emoji||'🛠',desc:tool.desc||''};
   }
-  /* Advance through shuffled deck, skipping same type as last */
-  let tries=0;
-  while(tries<vfDeck.length*2){
-    const c={...vfDeck[vfIdx%vfDeck.length]};
-    vfIdx++;
-    tries++;
-    if(c.type===vfLastType)continue;
-    if(c.type==='AFFIRMATION'&&c.content){
-      c.content=c.content.replace(/__NICK__/g,nick);
-    }
-    if(c.type==='TOOL'){
-      if(!VF_TOOLS.length)continue; /* skip TOOL cards until sheets tools are loaded */
-      c._tool=VF_TOOLS[Math.floor(Math.random()*VF_TOOLS.length)];
-    }
-    return c;
+  /* GOAL_VISION — random vision image */
+  if(type==='GOAL_VISION'){
+    var img=visImgs[Math.floor(Math.random()*visImgs.length)];
+    return {type:'GOAL_VISION',src:img.src,note:img.note||''};
   }
-  return {type:'AFFIRMATION',content:nick+', you are doing great. Keep going.'};
+  /* REVISE_REPEAT — random revise image */
+  if(type==='REVISE_REPEAT'){
+    var rImg=rrImgs[Math.floor(Math.random()*rrImgs.length)];
+    return {type:'REVISE_REPEAT',src:rImg.src,note:rImg.note||''};
+  }
+  /* Pool-based types — cycle through unique cards before repeating */
+  var pool=vfPools[type];
+  var idx=vfPoolIdx[type]||0;
+  var card=Object.assign({},pool[idx%pool.length]);
+  vfPoolIdx[type]=(idx+1)%pool.length;
+  if(type==='AFFIRMATION'&&card.content)card.content=card.content.replace(/__NICK__/g,nick);
+  return card;
 }
 
 function vfRender(){
@@ -2363,8 +2388,10 @@ function vfRender(){
     html+=_vfChargerHTML(card);
   }else if(card.type==='QUOTE'){
     html+=_vfQuoteHTML(card);
-  }else if(card.type==='TOOL'&&card._tool){
-    html+=_vfToolCardHTML(card._tool);
+  }else if(card.type==='TOOL'){
+    html+=_vfToolCardHTML(card);
+  }else if(card.type==='REVISE_REPEAT'){
+    html+=_vfReviseRepeatHTML(card);
   }
   html+='</div>';
   area.innerHTML=html;
@@ -2435,8 +2462,19 @@ function _vfGoalVisionHTML(card){
 
 function _vfChargerHTML(card){
   return '<div class="vf-charger-lbl">'+(card.category||'Mind Charger')+'</div>'
-    +'<div class="vf-big-text">'+esc(card.content||'')+'</div>'
-    +'<button class="vf-done-btn" id="vf-action-btn" onclick="vfUnlockXP()">⚡ I\'m Charged</button>';
+    +'<div class="vf-tool-name">'+esc(card.title||card.content||'')+'</div>'
+    +(card.title?'<div class="vf-card-body" style="font-size:1rem;margin-bottom:10px">'+esc(card.content||'')+'</div>':'')
+    +'<textarea class="vf-card-inp" id="vf-ta" rows="4" placeholder="Write your response here..." style="resize:none;line-height:1.6;min-height:88px" oninput="vfWritingCheck(this,10)"></textarea>'
+    +'<div class="vf-char-ct" id="vf-char-ct">0 / 10 — XP unlocks automatically</div>';
+}
+
+function _vfReviseRepeatHTML(card){
+  return '<div class="vf-card-type">Right understanding makes instant paradigm shift</div>'
+    +'<img class="vf-goal-img" src="'+escA(card.src||'')+'" onerror="this.style.display=\'none\'">'
+    +(card.note?'<div class="vf-q-author">'+esc(card.note)+'</div>':'')
+    +'<div style="font-size:.82rem;color:rgba(255,255,255,.55);font-style:italic;margin-bottom:8px">What is your key takeaway from this?</div>'
+    +'<textarea class="vf-card-inp" id="vf-ta" rows="3" placeholder="My understanding is..." style="resize:none;line-height:1.6;min-height:75px" oninput="vfWritingCheck(this,20)"></textarea>'
+    +'<div class="vf-char-ct" id="vf-char-ct">0 / 20 — XP unlocks automatically</div>';
 }
 
 function _vfQuoteHTML(card){
@@ -3893,15 +3931,12 @@ function bnavSwitch(el){
       }).join('');
   }
 
-  // Inject curated quotes into VF_SAMPLE for vibe feed
-  // Also push to vfDeck directly if vibe feed already initialised
+  // Inject curated quotes into VF_SAMPLE — vfBuildPools() picks them up
   document.addEventListener('sheetsDataReady', function(e){
     var quotes = (e.detail && e.detail.quotes) || [];
     quotes.forEach(function(q){
       if(!q.quote) return;
-      var entry = { type:'QUOTE', content:q.quote, author:q.author||'', timer:20 };
-      VF_SAMPLE.push(entry);
-      if(window.vfDeck && window.vfDeck.length) window.vfDeck.push(entry);
+      VF_SAMPLE.push({ type:'QUOTE', content:q.quote, author:q.author||'', timer:20 });
     });
   });
 })();
