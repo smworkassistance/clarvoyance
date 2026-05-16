@@ -2249,12 +2249,16 @@ document.addEventListener('sheetsDataReady', function(e){
   }
   /* ── Chargers → CHARGER cards in vibe feed ── */
   var chargers = (e.detail && e.detail.chargers) || [];
+  var _chargerAdded = 0;
   chargers.forEach(function(c){
     if(!c.content) return;
     var entry = {type:'CHARGER', content:c.content, category:c.category_name||c.category_id||'Mind Charger'};
     VF_SAMPLE.push(entry);
-    if(window.vfDeck && window.vfDeck.length) window.vfDeck.push(entry);
+    if(window.vfDeck) { vfDeck.push(entry); _chargerAdded++; }
   });
+  if(_chargerAdded && window.vfDeck && vfDeck.length){
+    for(var _ci=vfDeck.length-1;_ci>0;_ci--){var _cj=Math.floor(Math.random()*(_ci+1));var _ct=vfDeck[_ci];vfDeck[_ci]=vfDeck[_cj];vfDeck[_cj]=_ct;}
+  }
 });
 
 /* ═══ VIBE FEED ═══ */
