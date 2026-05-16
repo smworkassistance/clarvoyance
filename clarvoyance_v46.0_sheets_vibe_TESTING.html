@@ -2217,14 +2217,36 @@ document.addEventListener('sheetsDataReady', function(e){
       });
     });
   }
-  /* ── Vibe cards (quotes from vibe_cards sheet) ── */
-  var cards = (e.detail && e.detail.vibe_cards) || [];
-  cards.forEach(function(c){
-    if(!c.content) return;
-    var entry = {type:'QUOTE', content:c.content, author:c.title||c.author||'', timer:20};
-    VF_SAMPLE.push(entry);
-    if(window.vfDeck && window.vfDeck.length) window.vfDeck.push(entry);
-  });
+  /* ── Vibe cards from vibe_cards sheet — replaces fallback cards on load ── */
+  var vcards = (e.detail && e.detail.vibe_cards) || [];
+  if(vcards.length){
+    var toolCards=VF_SAMPLE.filter(function(c){return c.type==='TOOL';});
+    VF_SAMPLE.length=0;
+    toolCards.forEach(function(t){VF_SAMPLE.push(t);});
+    vcards.forEach(function(c){
+      if(!c.content) return;
+      if(c.active==='false'||c.active===false) return;
+      var type=(c.type||'').toUpperCase();
+      if(!type) return;
+      var entry={type:type,content:c.content};
+      if(c.title) entry.title=c.title;
+      if(c.icon) entry.icon=c.icon;
+      if(c.category) entry.category=c.category;
+      if(c.timer) entry.timer=parseInt(c.timer)||undefined;
+      if(c.xp) entry.xp=parseInt(c.xp)||undefined;
+      if(c.placeholder) entry.placeholder=c.placeholder;
+      if(type==='WRITING') entry.minChars=parseInt(c.min_chars||c.minChars||'20')||20;
+      if(type==='AFFIRMATION'&&!entry.timer) entry.timer=15;
+      if(type==='QUOTE'&&!entry.timer) entry.timer=20;
+      if(c.author) entry.author=c.author;
+      VF_SAMPLE.push(entry);
+    });
+    if(window.vfDeck&&window.vfDeck.length){
+      vfDeck.length=0;
+      VF_SAMPLE.forEach(function(c){vfDeck.push(c);});
+      for(var _i=vfDeck.length-1;_i>0;_i--){var _j=Math.floor(Math.random()*(_i+1));var _t=vfDeck[_i];vfDeck[_i]=vfDeck[_j];vfDeck[_j]=_t;}
+    }
+  }
   /* ── Chargers → CHARGER cards in vibe feed ── */
   var chargers = (e.detail && e.detail.chargers) || [];
   chargers.forEach(function(c){
@@ -2236,49 +2258,12 @@ document.addEventListener('sheetsDataReady', function(e){
 });
 
 /* ═══ VIBE FEED ═══ */
+/* Minimal fallback — replaced by vibe_cards sheet data at runtime */
 const VF_SAMPLE=[
-  /* ── BREATHING (5) ── */
-  {type:'BREATHING',title:'Box Breath',content:'Breathe in slowly through your nose for 4 counts. Hold for 4. Breathe out through your mouth for 4. Hold empty for 4. Repeat this 4 times.',timer:64,xp:10},
-  {type:'BREATHING',title:'Slow Release',content:'Take the slowest breath you have ever taken — breathe in for 8 full seconds. Hold for 1. Then breathe out even slower, for 10 seconds. Do this 3 times.',timer:60,xp:10},
-  {type:'BREATHING',title:'Belly Breath',content:'Put one hand on your belly. Breathe in through your nose — let your belly push your hand out. Your chest should barely move. Hold 2 seconds. Breathe out fully. Repeat 5 times.',timer:55,xp:10},
-  {type:'BREATHING',title:'Candle Breath',content:'Breathe in through your nose for 4 seconds. Now breathe out through your mouth slowly — like you are gently blowing out a candle across the room. Make the exhale last 6 to 8 seconds. Do this 5 times.',timer:65,xp:10},
-  {type:'BREATHING',title:'Full Reset',content:'Empty your lungs first — breathe all the way out, squeeze out every last bit. Now breathe in fully until you can hold no more. Breathe out slowly. 5 complete cycles.',timer:60,xp:10},
-  /* ── MOVEMENT (8) ── */
-  {type:'MOVEMENT',icon:'🙆',title:'Shoulder Roll Release',content:'Roll your shoulders backwards — slowly and fully — 8 times. Then forwards 8 times. Then gently tilt your head to the left, hold 3 seconds, then right. Feel the tension leaving your body.',timer:40,xp:8},
-  {type:'MOVEMENT',icon:'🤸',title:'Power Shake',content:'Stand up. Start shaking your hands. Then your arms. Then your whole body — shake everything, like you are shaking off all stress and heavy feelings. Keep going for 30 full seconds.',timer:35,xp:8},
-  {type:'MOVEMENT',icon:'🙌',title:'Sky Reach',content:'Stand tall, feet shoulder-width apart. Breathe in and reach both arms up as high as you can — stretch your whole body upward. Hold 3 seconds at the top. Breathe out as you lower them. Do this 8 times.',timer:55,xp:8},
-  {type:'MOVEMENT',icon:'👏',title:'Energy Clap',content:'Clap your hands firmly together 10 times. Then rub your palms fast against each other for 5 seconds — back and forth quickly. Feel the warmth and energy build up. Press your warm palms gently over your closed eyes.',timer:30,xp:8},
-  {type:'MOVEMENT',icon:'🚶',title:'Mindful Walk',content:'Walk slowly to any open space. Take one step every second — feel each foot touch the ground completely. Walk in a circle or straight and back. Stay fully present with each step. 30 seconds total.',timer:35,xp:8},
-  {type:'MOVEMENT',icon:'⬆️',title:'Jump Reset',content:'Jump lightly up and down 20 times. Not high — just enough to leave the ground. Shake your hands at the same time. Let everything in your body loosen up and wake up.',timer:30,xp:8},
-  {type:'MOVEMENT',icon:'🔄',title:'Hip Circle',content:'Stand feet shoulder-width apart, hands on hips. Move your hips in a big slow circle — like drawing a hula hoop in the air. 5 circles to the left, 5 circles to the right. Keep your upper body relaxed.',timer:40,xp:8},
-  {type:'MOVEMENT',icon:'🌀',title:'Spine Twist',content:'Sit straight or stand. Breathe in. As you breathe out, gently twist your body to the right — turn your head to look behind you. Hold 3 seconds. Come back to centre. Repeat left. 4 times each side.',timer:50,xp:8},
-  /* ── AFFIRMATION (12) ── */
-  {type:'AFFIRMATION',content:'__NICK__, you are capable of far more than you have shown the world yet.'},
-  {type:'AFFIRMATION',content:'__NICK__, you are not behind. You are on your path — and your path is perfectly on time.'},
-  {type:'AFFIRMATION',content:'Every single day, __NICK__ is becoming stronger, clearer, and more aligned with their purpose.'},
-  {type:'AFFIRMATION',content:'__NICK__, your desires are real and they are valid. You are allowed to want everything you want.'},
-  {type:'AFFIRMATION',content:'Right now, something in the universe is actively working in __NICK__\'s favour — even if it is invisible.'},
-  {type:'AFFIRMATION',content:'__NICK__ does not need to be perfect to deserve a beautiful life. You deserve it right now, exactly as you are.'},
-  {type:'AFFIRMATION',content:'__NICK__, you are a rare kind of person — one who chooses to grow. That single choice changes everything.'},
-  {type:'AFFIRMATION',content:'Abundance flows naturally and easily to __NICK__. There is always more than enough.'},
-  {type:'AFFIRMATION',content:'__NICK__, you are loved — by people who matter, and by the life that keeps showing up for you.'},
-  {type:'AFFIRMATION',content:'Every version of __NICK__ that ever tried and failed brought you exactly here. That is not failure. That is the path.'},
-  {type:'AFFIRMATION',content:'__NICK__, your mind is your most powerful asset. You are using it on purpose, right now.'},
-  {type:'AFFIRMATION',content:'The best chapter of __NICK__\'s life is the one being written today.'},
-  /* ── WRITING (12) ── */
-  {type:'WRITING',content:'Write down 3 things you are genuinely grateful for right now. Make them specific — not "family" but who exactly, and why.',placeholder:'I am grateful for...',minChars:20,xp:7},
-  {type:'WRITING',content:'What is one thing you have been pretending not to know? Write it down honestly — no one is reading this but you.',placeholder:'The truth I keep avoiding is...',minChars:20,xp:7},
-  {type:'WRITING',content:'Describe tomorrow in full detail — wake up, what you feel, what you do. Make it feel real as you write it.',placeholder:'Tomorrow I wake up and...',minChars:20,xp:7},
-  {type:'WRITING',content:'What would you do this week if you had zero fear of anyone\'s judgment? Write it all.',placeholder:'Without any fear of judgment, I would...',minChars:20,xp:7},
-  {type:'WRITING',content:'Write a short letter to yourself from your future self — the version of you who already has everything you want. What do they want you to know?',placeholder:'Dear present me...',minChars:20,xp:7},
-  {type:'WRITING',content:'What has been your single biggest win in the last 7 days? It does not have to be big to the world — just real to you.',placeholder:'My win this week was...',minChars:20,xp:7},
-  {type:'WRITING',content:'Name one belief about yourself that has held you back. Now write the opposite — the true version you choose to believe instead.',placeholder:'Old belief: I am...\nNew truth: I am...',minChars:20,xp:7},
-  {type:'WRITING',content:'If money, time, and other people\'s opinions did not exist as limits — what would your life actually look like?',placeholder:'My life would look like...',minChars:20,xp:7},
-  {type:'WRITING',content:'Who is one person who has made your life genuinely better? Write what they gave you and what you would want them to know.',placeholder:'They gave me...',minChars:20,xp:7},
-  {type:'WRITING',content:'What old story about yourself are you finally ready to put down? Write it — then write the new story you choose.',placeholder:'The old story was...\nThe new story is...',minChars:20,xp:7},
-  {type:'WRITING',content:'Name three specific things about your body or health that you are genuinely grateful for right now.',placeholder:'My body gives me...',minChars:20,xp:7},
-  {type:'WRITING',content:'What is one thing you keep postponing that you know you need to do? Write it. Then write one small step you could take today.',placeholder:'I keep postponing...\nOne step I can take today...',minChars:20,xp:7},
-  /* ── TOOL (3) ── */
+  {type:'BREATHING',title:'Box Breath',content:'Breathe in for 4 counts. Hold for 4. Out for 4. Hold for 4. Repeat 4 times.',timer:64,xp:10},
+  {type:'MOVEMENT',icon:'🙆',title:'Shoulder Roll',content:'Roll your shoulders backwards 8 times, then forwards 8 times. Tilt head left, hold 3 s, then right.',timer:30,xp:8},
+  {type:'AFFIRMATION',content:'__NICK__, you are capable of far more than you have shown the world yet.',timer:15},
+  {type:'WRITING',content:'Write 3 things you are genuinely grateful for right now.',placeholder:'I am grateful for...',minChars:20,xp:7},
   {type:'TOOL'},{type:'TOOL'},{type:'TOOL'},
 ];
 /* VF_TOOLS starts empty — populated from Google Sheets tools data */
