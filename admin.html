@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Clarvoyance Admin</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F4F3FF;min-height:100vh;color:#1a1a2e}
+
+/* ─── LOGIN ──────────────────────────────── */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.login-box{background:#fff;border-radius:24px;padding:40px 28px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(108,99,255,.12)}
+.login-logo{font-size:40px;margin-bottom:12px}
+.login-box h1{font-size:22px;font-weight:800;color:#6C63FF;margin-bottom:4px}
+.login-box p{font-size:13px;color:#999;margin-bottom:28px}
+.login-box input{width:100%;padding:14px 16px;border:1.5px solid #E8E8F0;border-radius:14px;font-size:16px;outline:none;transition:border .2s;background:#FAFAFA;color:#1a1a2e}
+.login-box input:focus{border-color:#6C63FF;background:#fff}
+.login-box button{width:100%;padding:15px;background:#6C63FF;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s}
+.login-box button:active{opacity:.8}
+.login-err{color:#F44336;font-size:13px;margin-top:10px;display:none}
+
+/* ─── APP SHELL ──────────────────────────── */
+#app{display:none;flex-direction:column;min-height:100vh}
+header{background:#6C63FF;color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(108,99,255,.3)}
+header h1{font-size:17px;font-weight:800;letter-spacing:.2px}
+.logout-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* ─── TABS ───────────────────────────────── */
+.tabs{background:#fff;display:flex;overflow-x:auto;padding:0 6px;border-bottom:1px solid #EEEEF8;position:sticky;top:53px;z-index:99;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;padding:13px 18px;font-size:14px;font-weight:600;color:#AAA;border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap}
+.tab-btn.active{color:#6C63FF;border-bottom-color:#6C63FF}
+
+/* ─── CONTENT ────────────────────────────── */
+.tab-pane{display:none;padding:16px;padding-bottom:40px}
+.tab-pane.active{display:block}
+
+/* ─── CARD ───────────────────────────────── */
+.card{background:#fff;border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:800;color:#444;margin-bottom:16px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ─── FORM ───────────────────────────────── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field textarea,.field select{width:100%;padding:13px 15px;border:1.5px solid #EEEEF0;border-radius:12px;font-size:15px;outline:none;transition:border .2s;font-family:inherit;background:#FAFAFA;color:#1a1a2e}
+.field textarea{resize:vertical;min-height:80px;line-height:1.5}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#6C63FF;background:#fff}
+.row2{display:grid;grid-template-columns:72px 1fr;gap:12px}
+.emoji-inp{font-size:26px;text-align:center;padding:10px 6px !important}
+.btn-primary{width:100%;padding:15px;background:#6C63FF;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:4px}
+.btn-primary:active{opacity:.8}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+
+/* ─── LIST ───────────────────────────────── */
+.list-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #F5F5FA}
+.list-item:last-child{border-bottom:none}
+.item-icon{font-size:22px;width:34px;text-align:center;flex-shrink:0}
+.item-body{flex:1;min-width:0}
+.item-name{font-size:14px;font-weight:700;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item-sub{font-size:12px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.item-badge{font-size:11px;padding:3px 9px;border-radius:20px;background:#EEEEFF;color:#6C63FF;font-weight:700;flex-shrink:0;white-space:nowrap}
+
+/* ─── MODULE TOGGLE ──────────────────────── */
+.mod-item{display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid #F5F5FA}
+.mod-item:last-child{border-bottom:none}
+.mod-label{font-size:15px;font-weight:700;color:#333}
+.mod-id{font-size:11px;color:#AAA;margin-top:2px;font-family:monospace}
+.toggle{position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#DDD;border-radius:28px;transition:.25s}
+.slider:before{content:'';position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input:checked+.slider{background:#6C63FF}
+input:checked+.slider:before{transform:translateX(22px)}
+.toggle input:disabled+.slider{opacity:.4;cursor:not-allowed}
+
+/* ─── HINTS ──────────────────────────────── */
+.hint{font-size:12px;color:#AAA;margin-bottom:14px;line-height:1.5}
+.empty{text-align:center;padding:28px;color:#CCC;font-size:14px}
+.loading-msg{text-align:center;padding:28px;color:#BBB;font-size:14px}
+
+/* ─── TOAST ──────────────────────────────── */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);background:#333;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.success{background:#4CAF50}
+#toast.error{background:#F44336}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══════════════════════════════════════════ -->
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo">⚡</div>
+    <h1>Clarvoyance</h1>
+    <p>Admin Panel</p>
+    <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">Enter</button>
+    <div class="login-err" id="login-err">Wrong password. Try again.</div>
+  </div>
+</div>
+
+<!-- ═══ APP ═════════════════════════════════════════════ -->
+<div id="app">
+  <header>
+    <h1>⚡ Admin Panel</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tools"    onclick="switchTab(this)">🛠 Tools</button>
+    <button class="tab-btn"        data-tab="chargers" onclick="switchTab(this)">⚡ Chargers</button>
+    <button class="tab-btn"        data-tab="modules"  onclick="switchTab(this)">📦 Modules</button>
+    <button class="tab-btn"        data-tab="quotes"   onclick="switchTab(this)">💬 Quotes</button>
+  </div>
+
+  <!-- ── TOOLS ── -->
+  <div id="pane-tools" class="tab-pane active">
+    <div class="card">
+      <div class="card-title">Add New Tool</div>
+      <div class="row2">
+        <div class="field">
+          <label>Emoji</label>
+          <input class="emoji-inp" id="t-emoji" type="text" placeholder="🧠" maxlength="2">
+        </div>
+        <div class="field">
+          <label>Name</label>
+          <input id="t-name" type="text" placeholder="Tool name">
+        </div>
+      </div>
+      <div class="field">
+        <label>Description</label>
+        <textarea id="t-desc" placeholder="What does this tool help with?"></textarea>
+      </div>
+      <div class="field">
+        <label>Textarea Hint (placeholder)</label>
+        <input id="t-ph" type="text" placeholder="e.g. Write your thoughts here...">
+      </div>
+      <button class="btn-primary" id="t-btn" onclick="addTool()">Add Tool</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Existing Tools</div>
+      <div id="tools-list"><div class="loading-msg">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ── CHARGERS ── -->
+  <div id="pane-chargers" class="tab-pane">
+    <div class="card">
+      <div class="card-title">Add New Charger</div>
+      <div class="field">
+        <label>Category</label>
+        <input id="c-cat" type="text" list="cat-opts" placeholder="Type or pick a category">
+        <datalist id="cat-opts"></datalist>
+      </div>
+      <div class="field">
+        <label>Name / Title</label>
+        <input id="c-name" type="text" placeholder="Charger name">
+      </div>
+      <div class="field">
+        <label>Description / Activity</label>
+        <textarea id="c-desc" placeholder="What does the user do?"></textarea>
+      </div>
+      <button class="btn-primary" id="c-btn" onclick="addCharger()">Add Charger</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Existing Chargers</div>
+      <div id="chargers-list"><div class="loading-msg">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ── MODULES ── -->
+  <div id="pane-modules" class="tab-pane">
+    <div class="card">
+      <div class="card-title">Active Modules</div>
+      <p class="hint">Toggle tabs on or off. Changes appear in the app within 60 seconds (cache TTL).</p>
+      <div id="modules-list"><div class="loading-msg">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- ── QUOTES ── -->
+  <div id="pane-quotes" class="tab-pane">
+    <div class="card">
+      <div class="card-title">Add New Quote</div>
+      <div class="field">
+        <label>Quote</label>
+        <textarea id="q-text" placeholder="Enter the quote..."></textarea>
+      </div>
+      <div class="field">
+        <label>Author</label>
+        <input id="q-author" type="text" placeholder="Author name">
+      </div>
+      <button class="btn-primary" id="q-btn" onclick="addQuote()">Add Quote</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Existing Quotes</div>
+      <div id="quotes-list"><div class="loading-msg">Loading...</div></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  CONFIG — change password & token, token must also
+//  be set in Apps Script as ADMIN_TOKEN constant
+// ══════════════════════════════════════════════════════
+const ADMIN_PASSWORD = 'clv2024';
+const ADMIN_TOKEN    = 'clv_admin_2024';
+const API = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
+
+// All known modules (toggle needs full list, API only returns active ones)
+const ALL_MODULES = [
+  { id: 'vibe_feed',        label: 'Vibe Feed' },
+  { id: 'tools',            label: 'Tools' },
+  { id: 'chargers',         label: 'Mind Chargers' },
+  { id: 'revise_repeat',    label: 'Revise & Repeat' },
+  { id: 'non_negotiables',  label: 'Non-Negotiables' },
+  { id: 'goals',            label: 'Goals' },
+];
+
+let sheetsData = null;
+
+// ── AUTH ──────────────────────────────────────────────
+function doLogin() {
+  if (document.getElementById('pwd').value === ADMIN_PASSWORD) {
+    document.getElementById('login').style.display = 'none';
+    const app = document.getElementById('app');
+    app.style.display = 'flex';
+    app.style.flexDirection = 'column';
+    loadData();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('pwd').value = '';
+    document.getElementById('pwd').focus();
+  }
+}
+
+function logout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login').style.display = 'flex';
+  document.getElementById('pwd').value = '';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+// ── TABS ──────────────────────────────────────────────
+function switchTab(btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+}
+
+// ── DATA ──────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch(API + '?t=' + Date.now()); // bust client cache
+    sheetsData = await res.json();
+    renderTools(sheetsData.tools || []);
+    renderChargers(sheetsData.chargers || [], sheetsData.charger_categories || []);
+    renderModules(sheetsData.modules || []);
+    renderQuotes(sheetsData.quotes || []);
+  } catch (e) {
+    toast('Failed to load data — check connection', 'error');
+  }
+}
+
+// ── API WRITE ─────────────────────────────────────────
+async function api(params) {
+  params.token = ADMIN_TOKEN;
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(API + '?' + qs);
+  return await res.json();
+}
+
+// ── TOOLS ─────────────────────────────────────────────
+function renderTools(tools) {
+  const el = document.getElementById('tools-list');
+  if (!tools.length) { el.innerHTML = '<div class="empty">No tools yet</div>'; return; }
+  el.innerHTML = tools.map(t => `
+    <div class="list-item">
+      <div class="item-icon">${t.emoji || t.icon || '🛠'}</div>
+      <div class="item-body">
+        <div class="item-name">${esc(t.name)}</div>
+        <div class="item-sub">${esc(t.description || '')}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function addTool() {
+  const name = v('t-name'), emoji = v('t-emoji'), desc = v('t-desc'), ph = v('t-ph');
+  if (!name) { toast('Tool name is required', 'error'); return; }
+  setBusy('t-btn', true, 'Add Tool');
+  try {
+    const r = await api({ action: 'addTool', name, emoji, description: desc, placeholder: ph });
+    if (r.success) {
+      toast('Tool added!', 'success');
+      ['t-name','t-emoji','t-desc','t-ph'].forEach(clear);
+      await loadData();
+    } else throw new Error(r.error || 'Unknown error');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+  setBusy('t-btn', false, 'Add Tool');
+}
+
+// ── CHARGERS ──────────────────────────────────────────
+function renderChargers(chargers, cats) {
+  const dl = document.getElementById('cat-opts');
+  dl.innerHTML = cats.map(c => `<option value="${esc(c.name || c)}">`).join('');
+
+  const el = document.getElementById('chargers-list');
+  if (!chargers.length) { el.innerHTML = '<div class="empty">No chargers yet</div>'; return; }
+  el.innerHTML = chargers.map(c => `
+    <div class="list-item">
+      <div class="item-body">
+        <div class="item-name">${esc(c.name || c.title || '')}</div>
+        <div class="item-sub">${esc(c.description || c.content || '')}</div>
+      </div>
+      <span class="item-badge">${esc(c.category_name || c.category || '')}</span>
+    </div>`).join('');
+}
+
+async function addCharger() {
+  const cat = v('c-cat'), name = v('c-name'), desc = v('c-desc');
+  if (!name) { toast('Name is required', 'error'); return; }
+  setBusy('c-btn', true, 'Add Charger');
+  try {
+    const r = await api({ action: 'addCharger', category: cat, name, description: desc });
+    if (r.success) {
+      toast('Charger added!', 'success');
+      ['c-cat','c-name','c-desc'].forEach(clear);
+      await loadData();
+    } else throw new Error(r.error || 'Unknown error');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+  setBusy('c-btn', false, 'Add Charger');
+}
+
+// ── MODULES ───────────────────────────────────────────
+function renderModules(activeModules) {
+  const activeIds = new Set((activeModules).map(m => m.id));
+  const el = document.getElementById('modules-list');
+  el.innerHTML = ALL_MODULES.map(m => `
+    <div class="mod-item">
+      <div>
+        <div class="mod-label">${esc(m.label)}</div>
+        <div class="mod-id">${esc(m.id)}</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" ${activeIds.has(m.id) ? 'checked' : ''}
+          onchange="toggleModule('${m.id}', this.checked, this)">
+        <span class="slider"></span>
+      </label>
+    </div>`).join('');
+}
+
+async function toggleModule(moduleId, active, checkbox) {
+  checkbox.disabled = true;
+  try {
+    const r = await api({ action: 'toggleModule', moduleId, active: String(active) });
+    if (r.success) toast((active ? 'Enabled: ' : 'Disabled: ') + moduleId, 'success');
+    else throw new Error(r.error || 'Unknown error');
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+    checkbox.checked = !active; // revert
+  }
+  checkbox.disabled = false;
+}
+
+// ── QUOTES ────────────────────────────────────────────
+function renderQuotes(quotes) {
+  const el = document.getElementById('quotes-list');
+  if (!quotes.length) { el.innerHTML = '<div class="empty">No quotes yet</div>'; return; }
+  el.innerHTML = quotes.map(q => `
+    <div class="list-item">
+      <div class="item-body">
+        <div class="item-name" style="white-space:normal;font-style:italic;font-weight:500">"${esc(q.quote || q.text || '')}"</div>
+        <div class="item-sub">— ${esc(q.author || 'Unknown')}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function addQuote() {
+  const text = v('q-text'), author = v('q-author');
+  if (!text) { toast('Quote text is required', 'error'); return; }
+  setBusy('q-btn', true, 'Add Quote');
+  try {
+    const r = await api({ action: 'addQuote', quote: text, author });
+    if (r.success) {
+      toast('Quote added!', 'success');
+      ['q-text','q-author'].forEach(clear);
+      await loadData();
+    } else throw new Error(r.error || 'Unknown error');
+  } catch (e) { toast('Error: ' + e.message, 'error'); }
+  setBusy('q-btn', false, 'Add Quote');
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function v(id) { return document.getElementById(id).value.trim(); }
+function clear(id) { document.getElementById(id).value = ''; }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setBusy(id, busy, label) {
+  const btn = document.getElementById(id);
+  btn.disabled = busy;
+  btn.textContent = busy ? 'Saving...' : label;
+}
+
+let _tt;
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + (type || '');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => { el.className = ''; }, 3200);
+}
+</script>
+</body>
+</html>
