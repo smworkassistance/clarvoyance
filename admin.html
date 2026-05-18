@@ -6,56 +6,55 @@
 <title>Clarvoyance Admin</title>
 <style>
 
-/* ══ RESET ══════════════════════════════════════════════════ */
+/* ══ RESET ══════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#EEF2FF;color:#1E1B4B;min-height:100vh}
 
-/* ══ LOGIN ══════════════════════════════════════════════════ */
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(135deg,#4338CA 0%,#7C3AED 100%)}
+/* ══ LOGIN ══════════════════════════════════════════ */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(135deg,#4338CA,#7C3AED)}
 .lcard{background:#fff;border-radius:28px;padding:44px 32px;width:100%;max-width:380px;text-align:center;box-shadow:0 24px 64px rgba(67,56,202,.3)}
-.lcard .lico{font-size:48px;margin-bottom:14px}
+.lico{font-size:48px;margin-bottom:14px}
 .lcard h1{font-size:24px;font-weight:800;color:#4338CA;margin-bottom:4px}
 .lcard p{font-size:13px;color:#9CA3AF;margin-bottom:28px}
 .lcard input{width:100%;padding:15px 18px;border:2px solid #E5E7EB;border-radius:14px;font-size:16px;outline:none;transition:border-color .2s;background:#FAFAFA;color:#1E1B4B}
 .lcard input:focus{border-color:#4338CA;background:#fff}
-.lcard .lbtn{width:100%;padding:15px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s,transform .1s}
-.lcard .lbtn:active{opacity:.85;transform:scale(.98)}
+.lbtn{width:100%;padding:15px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s,transform .1s}
+.lbtn:active{opacity:.85;transform:scale(.98)}
 .lerr{color:#DC2626;font-size:13px;margin-top:10px;display:none}
 
-/* ══ APP SHELL ══════════════════════════════════════════════ */
+/* ══ APP SHELL ══════════════════════════════════════ */
 #app{display:none;flex-direction:column;min-height:100vh}
 
-/* ══ HEADER ═════════════════════════════════════════════════ */
+/* ══ HEADER ═════════════════════════════════════════ */
 header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(67,56,202,.3)}
-.h-left{display:flex;align-items:center;gap:8px}
-.h-left h1{font-size:17px;font-weight:800}
-.h-right{display:flex;gap:8px}
-.hbtn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.h-l{display:flex;align-items:center;gap:8px}
+.h-l h1{font-size:17px;font-weight:800}
+.h-r{display:flex;gap:8px}
+.hbtn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
 .hbtn:active{background:rgba(255,255,255,.3)}
 
-/* ══ TAB BAR ════════════════════════════════════════════════ */
+/* ══ TAB BAR ════════════════════════════════════════ */
 .tabs{background:#fff;display:flex;overflow-x:auto;border-bottom:1px solid #E5E7EB;position:sticky;top:53px;z-index:199;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex-shrink:0;padding:13px 16px;font-size:13px;font-weight:600;color:#9CA3AF;border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s}
 .tab.on{color:#4338CA;border-bottom-color:#4338CA}
 
-/* ══ PANES ══════════════════════════════════════════════════ */
+/* ══ PANES ══════════════════════════════════════════ */
 .pane{display:none;padding:16px;padding-bottom:80px}
 .pane.on{display:block}
+.sec-lbl{font-size:11px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin:20px 0 10px}
+.sec-lbl:first-child{margin-top:0}
 
-/* ══ ADD BUTTON ═════════════════════════════════════════════ */
-.add-btn{width:100%;padding:14px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(67,56,202,.28);transition:opacity .15s,transform .1s}
+/* ══ ADD BUTTON ═════════════════════════════════════ */
+.add-btn{width:100%;padding:14px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(67,56,202,.25);transition:opacity .15s,transform .1s}
 .add-btn:active{opacity:.85;transform:scale(.98)}
 
-/* ══ SECTION LABEL ══════════════════════════════════════════ */
-.sec-lbl{font-size:11px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px}
-
-/* ══ ITEM CARDS ═════════════════════════════════════════════ */
+/* ══ ITEM CARDS ═════════════════════════════════════ */
 .ic{background:#fff;border-radius:18px;padding:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid #F3F4F6}
 .ic-head{display:flex;align-items:center;gap:12px}
 .ic-emo{font-size:26px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:#EEF2FF;border-radius:12px;flex-shrink:0}
 .ic-body{flex:1;min-width:0}
-.ic-name{font-size:15px;font-weight:700;color:#1E1B4B;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ic-name{font-size:15px;font-weight:700;color:#1E1B4B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px}
 .ic-sub{font-size:12px;color:#9CA3AF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
 .ic-acts{display:flex;gap:7px;flex-shrink:0}
 .ab{padding:7px 13px;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
@@ -64,51 +63,58 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 .a-del{background:#FEF2F2;color:#DC2626}
 .ic-det{margin-top:12px;padding-top:12px;border-top:1px solid #F3F4F6;display:grid;gap:7px}
 .dr{display:flex;gap:8px;align-items:flex-start}
-.dl{font-size:10px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.4px;min-width:82px;padding-top:2px;flex-shrink:0}
+.dl{font-size:10px;font-weight:800;color:#B0B0C0;text-transform:uppercase;letter-spacing:.4px;min-width:80px;padding-top:2px;flex-shrink:0}
 .dv{font-size:13px;color:#374151;line-height:1.4;flex:1;word-break:break-word}
+.bdg{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bon{background:#D1FAE5;color:#059669}
+.boff{background:#FEE2E2;color:#DC2626}
+.btype{background:#EEF2FF;color:#4338CA}
+.bmood{background:#FEF3C7;color:#D97706}
 
-/* ══ BADGES ═════════════════════════════════════════════════ */
-.bdg{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.bdg-on{background:#D1FAE5;color:#059669}
-.bdg-off{background:#FEE2E2;color:#DC2626}
-.bdg-type{background:#EEF2FF;color:#4338CA}
+/* ══ EMPTY / LOADING ════════════════════════════════ */
+.s-empty{text-align:center;padding:36px 20px;color:#D1D5DB}
+.s-empty .sei{font-size:36px;margin-bottom:8px}
+.s-empty p{font-size:13px}
+.s-load{text-align:center;padding:36px;color:#9CA3AF;font-size:14px}
 
-/* ══ STATES ═════════════════════════════════════════════════ */
-.s-empty{text-align:center;padding:40px 20px;color:#D1D5DB}
-.s-empty .sei{font-size:40px;margin-bottom:10px}
-.s-empty p{font-size:14px}
-.s-load{text-align:center;padding:40px;color:#9CA3AF;font-size:14px}
+/* ══ MODULE CARDS ═══════════════════════════════════ */
+.mcard{background:#fff;border-radius:16px;padding:15px 18px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.05);border:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.m-info .m-name{font-size:15px;font-weight:700;color:#1E1B4B}
+.m-info .m-desc{font-size:12px;color:#9CA3AF;margin-top:2px}
+.m-info .m-id{font-size:11px;color:#C4C4D4;font-family:monospace;margin-top:1px}
 
-/* ══ BOTTOM SHEET ═══════════════════════════════════════════ */
+/* ══ BOTTOM SHEET ═══════════════════════════════════ */
 #sh-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;backdrop-filter:blur(2px)}
-#sh{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:24px 24px 0 0;z-index:501;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,0,.67,0);max-height:90vh;display:flex;flex-direction:column}
+#sh{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:24px 24px 0 0;z-index:501;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,0,.67,0);max-height:92vh;display:flex;flex-direction:column}
 #sh.open{transform:translateY(0);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
 .sh-hnd{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:12px auto 0;flex-shrink:0}
 .sh-hdr{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid #F3F4F6}
 .sh-ttl{font-size:17px;font-weight:800;color:#1E1B4B}
 .sh-cls{background:#F3F4F6;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6B7280}
 .sh-body{padding:16px 20px;overflow-y:auto;flex:1}
-.sh-foot{padding:12px 20px;border-top:1px solid #F3F4F6;display:flex;gap:10px;flex-shrink:0;background:#fff}
-.btn-save{flex:1;padding:14px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
-.btn-save:disabled{opacity:.45;cursor:not-allowed}
-.btn-cancel{padding:14px 20px;background:#F3F4F6;color:#6B7280;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer}
+.sh-foot{padding:12px 20px 20px;border-top:1px solid #F3F4F6;display:flex;gap:10px;flex-shrink:0;background:#fff}
+.btn-sv{flex:1;padding:14px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-sv:disabled{opacity:.45;cursor:not-allowed}
+.btn-cx{padding:14px 20px;background:#F3F4F6;color:#6B7280;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer}
 
-/* Form fields inside sheet */
-.fld{margin-bottom:16px}
+/* Form fields */
+.fld{margin-bottom:15px}
 .fld label{display:block;font-size:11px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
 .fld input,.fld textarea,.fld select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;font-size:15px;outline:none;transition:border-color .2s;color:#1E1B4B;background:#FAFAFA;font-family:inherit}
-.fld textarea{resize:vertical;min-height:90px;line-height:1.5}
+.fld textarea{resize:vertical;min-height:80px;line-height:1.5}
 .fld input:focus,.fld textarea:focus,.fld select:focus{border-color:#4338CA;background:#fff}
 .fld-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .fld-hint{font-size:12px;color:#9CA3AF;margin-top:5px;line-height:1.4}
-/* Emoji picker trigger inside form */
+.fld-sep{font-size:11px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 12px;padding-bottom:8px;border-bottom:1px solid #F3F4F6}
+/* Emoji trigger */
 .ep-trig{display:flex;gap:10px;align-items:center}
-.ep-prev{width:52px;height:52px;background:#EEF2FF;border-radius:12px;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #E5E7EB;flex-shrink:0;transition:border-color .2s;user-select:none}
+.ep-prev{width:52px;height:52px;background:#EEF2FF;border-radius:12px;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #E5E7EB;flex-shrink:0;transition:border-color .2s}
 .ep-prev:hover{border-color:#4338CA}
 .ep-open{flex:1;padding:13px 15px;background:#FAFAFA;border:2px dashed #E5E7EB;border-radius:12px;font-size:14px;color:#9CA3AF;cursor:pointer;text-align:left;font-family:inherit}
-/* Active toggle inside form */
-.tgl-wrap{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:#FAFAFA;border:2px solid #E5E7EB;border-radius:12px}
-.tgl-wrap span{font-size:15px;color:#374151}
+/* Toggle (yes/no and active) */
+.tgl-row{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:#FAFAFA;border:2px solid #E5E7EB;border-radius:12px}
+.tgl-row span{font-size:14px;color:#374151}
 .tgl{position:relative;width:50px;height:28px;flex-shrink:0}
 .tgl input{opacity:0;width:0;height:0}
 .tgl-sl{position:absolute;inset:0;background:#D1D5DB;border-radius:28px;cursor:pointer;transition:background .25s}
@@ -117,38 +123,33 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 .tgl input:checked+.tgl-sl::before{transform:translateX(22px)}
 .tgl input:disabled+.tgl-sl{opacity:.4;cursor:not-allowed}
 
-/* ══ EMOJI PICKER OVERLAY ═══════════════════════════════════ */
+/* ══ EMOJI PICKER ═══════════════════════════════════ */
 #ep-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none}
 #ep{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:24px 24px 0 0;z-index:601;max-height:72vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s}
 #ep.open{transform:translateY(0)}
-.ep-hdr{padding:12px 16px 8px;flex-shrink:0}
+.ep-hdr{padding:12px 16px 6px;flex-shrink:0}
 .ep-hnd{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 12px}
 .ep-srch{width:100%;padding:11px 14px;border:2px solid #E5E7EB;border-radius:12px;font-size:15px;outline:none;font-family:inherit}
 .ep-srch:focus{border-color:#4338CA}
-.ep-cats{display:flex;gap:6px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.ep-cats{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px;scrollbar-width:none}
 .ep-cats::-webkit-scrollbar{display:none}
-.ep-cat{flex-shrink:0;padding:5px 14px;border:none;background:#F3F4F6;border-radius:20px;font-size:13px;cursor:pointer;font-weight:600;color:#6B7280;transition:all .15s}
+.ep-cat{flex-shrink:0;padding:5px 14px;border:none;background:#F3F4F6;border-radius:20px;font-size:12px;cursor:pointer;font-weight:600;color:#6B7280;transition:all .15s}
 .ep-cat.on{background:#4338CA;color:#fff}
 .ep-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px 12px 24px;overflow-y:auto;flex:1}
-.ep-e{font-size:26px;text-align:center;padding:6px 4px;border-radius:8px;cursor:pointer;border:none;background:none;transition:background .1s;line-height:1}
+.ep-e{font-size:25px;text-align:center;padding:5px 3px;border-radius:8px;cursor:pointer;border:none;background:none;line-height:1}
 .ep-e:active{background:#EEF2FF}
 
-/* ══ CONFIRM DIALOG ══════════════════════════════════════════ */
+/* ══ CONFIRM DIALOG ══════════════════════════════════ */
 #cf-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;display:none;align-items:center;justify-content:center;padding:24px}
 #cf-box{background:#fff;border-radius:22px;padding:30px 24px;width:100%;max-width:360px;text-align:center}
 .cf-ico{font-size:44px;margin-bottom:12px}
 .cf-ttl{font-size:17px;font-weight:800;color:#1E1B4B;margin-bottom:8px}
 .cf-msg{font-size:14px;color:#6B7280;margin-bottom:24px;line-height:1.5}
 .cf-btns{display:flex;gap:10px}
-.cf-del{flex:1;padding:13px;background:#DC2626;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
 .cf-no{flex:1;padding:13px;background:#F3F4F6;color:#374151;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+.cf-yes{flex:1;padding:13px;background:#DC2626;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
 
-/* ══ MODULE ROWS ═════════════════════════════════════════════ */
-.mcard{background:#fff;border-radius:18px;padding:16px 20px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between}
-.m-info .m-name{font-size:15px;font-weight:700;color:#1E1B4B}
-.m-info .m-id{font-size:11px;color:#9CA3AF;font-family:monospace;margin-top:2px}
-
-/* ══ TOAST ══════════════════════════════════════════════════ */
+/* ══ TOAST ══════════════════════════════════════════ */
 #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);background:#1E1B4B;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.ok{background:#059669}
@@ -158,7 +159,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 </head>
 <body>
 
-<!-- ════════════ LOGIN ════════════════════════════════════════ -->
+<!-- ════ LOGIN ═══════════════════════════════════════ -->
 <div id="login">
   <div class="lcard">
     <div class="lico">⚡</div>
@@ -166,30 +167,28 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <p>Admin · Content Management</p>
     <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="lbtn" onclick="doLogin()">Sign In</button>
-    <div class="lerr" id="lerr">Incorrect password. Try again.</div>
+    <div class="lerr" id="lerr">Incorrect password.</div>
   </div>
 </div>
 
-<!-- ════════════ APP ══════════════════════════════════════════ -->
+<!-- ════ APP ══════════════════════════════════════════ -->
 <div id="app">
-
   <header>
-    <div class="h-left"><span>⚡</span><h1>Clarvoyance Admin</h1></div>
-    <div class="h-right">
-      <button class="hbtn" onclick="loadData()" title="Refresh data">↻ Refresh</button>
+    <div class="h-l"><span>⚡</span><h1>Clarvoyance Admin</h1></div>
+    <div class="h-r">
+      <button class="hbtn" onclick="loadData()">↻ Refresh</button>
       <button class="hbtn" onclick="logout()">Logout</button>
     </div>
   </header>
 
-  <!-- Scrollable tab bar — 7 sections -->
   <div class="tabs">
-    <button class="tab on"  data-p="tools"    onclick="switchTab(this)">🛠 Tools</button>
-    <button class="tab"     data-p="chargers" onclick="switchTab(this)">⚡ Chargers</button>
-    <button class="tab"     data-p="vibe"     onclick="switchTab(this)">🎴 Vibe Cards</button>
-    <button class="tab"     data-p="quotes"   onclick="switchTab(this)">💬 Quotes</button>
-    <button class="tab"     data-p="revise"   onclick="switchTab(this)">📚 Revise</button>
-    <button class="tab"     data-p="channels" onclick="switchTab(this)">📺 Channels</button>
-    <button class="tab"     data-p="modules"  onclick="switchTab(this)">📦 Modules</button>
+    <button class="tab on" data-p="tools"    onclick="switchTab(this)">🛠 Tools</button>
+    <button class="tab"    data-p="chargers" onclick="switchTab(this)">⚡ Chargers</button>
+    <button class="tab"    data-p="vibe"     onclick="switchTab(this)">🎴 Vibe Cards</button>
+    <button class="tab"    data-p="quotes"   onclick="switchTab(this)">💬 Quotes</button>
+    <button class="tab"    data-p="revise"   onclick="switchTab(this)">📚 Revise</button>
+    <button class="tab"    data-p="channels" onclick="switchTab(this)">📺 Channels</button>
+    <button class="tab"    data-p="modules"  onclick="switchTab(this)">📦 Modules</button>
   </div>
 
   <!-- TOOLS -->
@@ -198,7 +197,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <div id="tools-list"><div class="s-load">Loading...</div></div>
   </div>
 
-  <!-- CHARGERS: categories + chargers in one pane -->
+  <!-- CHARGERS: 3 sequential sections -->
   <div id="pane-chargers" class="pane">
     <div class="sec-lbl">Charger Categories</div>
     <button class="add-btn" onclick="openCatForm()">＋ Add Category</button>
@@ -206,6 +205,9 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <div class="sec-lbl">Chargers</div>
     <button class="add-btn" onclick="openChargerForm()">＋ Add Charger</button>
     <div id="chargers-list"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl">Charger Rules</div>
+    <button class="add-btn" onclick="openRuleForm()">＋ Add Rule</button>
+    <div id="rules-list"><div class="s-load">Loading...</div></div>
   </div>
 
   <!-- VIBE CARDS -->
@@ -228,53 +230,52 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 
   <!-- LEARNING CHANNELS -->
   <div id="pane-channels" class="pane">
-    <button class="add-btn" onclick="openChannelForm()">＋ Add Learning Channel</button>
+    <button class="add-btn" onclick="openChannelForm()">＋ Add Channel</button>
     <div id="channels-list"><div class="s-load">Loading...</div></div>
   </div>
 
-  <!-- MODULES — toggle only, no add/delete (fixed list) -->
+  <!-- MODULES: toggle only -->
   <div id="pane-modules" class="pane">
-    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Toggle app tabs on or off. Changes appear in the app within 60 seconds (cache TTL).</p>
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Toggle tabs on or off. Changes appear in the app within 60 seconds (server cache TTL).</p>
     <div id="modules-list"><div class="s-load">Loading...</div></div>
   </div>
+</div>
 
-</div><!-- /#app -->
-
-<!-- ════════════ BOTTOM SHEET ═════════════════════════════════ -->
+<!-- ════ BOTTOM SHEET ════════════════════════════════ -->
 <div id="sh-ov" onclick="closeSheet()"></div>
 <div id="sh">
   <div class="sh-hnd"></div>
   <div class="sh-hdr">
-    <span class="sh-ttl" id="sh-ttl">Add Item</span>
+    <span class="sh-ttl" id="sh-ttl">Add</span>
     <button class="sh-cls" onclick="closeSheet()">×</button>
   </div>
   <div class="sh-body" id="sh-body"></div>
   <div class="sh-foot">
-    <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
-    <button class="btn-save" id="sh-save" onclick="sheetSave()">Save</button>
+    <button class="btn-cx" onclick="closeSheet()">Cancel</button>
+    <button class="btn-sv" id="sh-sv" onclick="sheetSave()">Save</button>
   </div>
 </div>
 
-<!-- ════════════ EMOJI PICKER ════════════════════════════════ -->
+<!-- ════ EMOJI PICKER ════════════════════════════════ -->
 <div id="ep-ov" onclick="closeEP()"></div>
 <div id="ep">
   <div class="ep-hdr">
     <div class="ep-hnd"></div>
-    <input class="ep-srch" id="ep-srch" placeholder="🔍 Search emojis..." oninput="filterEP(this.value)">
+    <input class="ep-srch" id="ep-srch" placeholder="🔍 Search..." oninput="filterEP(this.value)">
     <div class="ep-cats" id="ep-cats"></div>
   </div>
   <div class="ep-grid" id="ep-grid"></div>
 </div>
 
-<!-- ════════════ CONFIRM DIALOG ══════════════════════════════ -->
+<!-- ════ CONFIRM ═════════════════════════════════════ -->
 <div id="cf-ov">
   <div id="cf-box">
     <div class="cf-ico">🗑️</div>
     <div class="cf-ttl">Delete this item?</div>
-    <div class="cf-msg" id="cf-msg">This action cannot be undone.</div>
+    <div class="cf-msg" id="cf-msg">This cannot be undone.</div>
     <div class="cf-btns">
       <button class="cf-no"  onclick="closeConfirm()">Cancel</button>
-      <button class="cf-del" onclick="doConfirm()">Delete</button>
+      <button class="cf-yes" onclick="doConfirm()">Delete</button>
     </div>
   </div>
 </div>
@@ -283,43 +284,44 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 
 <script>
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    CONFIG
-   ══════════════════════════════════════════════════════════════ */
-const PASS  = 'clv2024';         // Login password — change as needed
-const TOKEN = 'clv_admin_2024';  // Must match ADMIN_TOKEN in Apps Script
+   ══════════════════════════════════════════════════════ */
+const PASS  = 'clv2024';
+const TOKEN = 'clv_admin_2024'; // Must match ADMIN_TOKEN in Apps Script
 const API   = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
 
-/* Known module definitions — API only returns active ones,
-   so we hardcode the full list for toggle display */
-const MODULE_DEFS = [
-  {id:'vibe_feed',       label:'Vibe Feed',         desc:'The daily card-based exercise feed'},
-  {id:'tools',           label:'Tools',             desc:'Self-reflection tool grid'},
-  {id:'chargers',        label:'Mind Chargers',     desc:'Quick energy boost activities'},
-  {id:'revise_repeat',   label:'Revise & Repeat',   desc:'Spaced review & philosophy content'},
-  {id:'non_negotiables', label:'Non-Negotiables',   desc:'Daily checklist commitments'},
-  {id:'goals',           label:'Goals',             desc:'Goal tracking + vision board'},
+/* Full module list — hardcoded because API only returns active ones */
+const MOD_DEFS = [
+  {id:'tools',           name:'Tools',            desc:'T1-T5 tools for resolving conflicted mind',   order:1},
+  {id:'chargers',        name:'Mind Chargers',     desc:'Charge your mind into a desired state',       order:2},
+  {id:'vibe_feed',       name:'Vibe Feed',         desc:'Random cards to shift focus',                 order:3},
+  {id:'quests',          name:'Quests',            desc:'Mood-based guided missions',                  order:4},
+  {id:'revise_repeat',   name:'Revise & Repeat',   desc:'Philosophy, quotes, images',                  order:5},
+  {id:'learning_channels',name:'Learning Channels',desc:'Curated links for deeper learning',           order:6},
+  {id:'non_negotiables', name:'Non-Negotiables',   desc:'Daily must-do commitments',                   order:7},
+  {id:'goals',           name:'Goals',             desc:'Current desires to manifest',                 order:8},
 ];
 
-/* Vibe card types supported by the app */
 const VIBE_TYPES = ['BREATHING','MOVEMENT','AFFIRMATION','WRITING','QUOTE','CHARGER','TOOL'];
+const MOOD_OPTS  = [{v:'all',l:'All Moods'},{v:'low',l:'Low'},{v:'mid',l:'Mid'},{v:'high',l:'High'}];
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    STATE
-   ══════════════════════════════════════════════════════════════ */
-let SD = null;          // Sheets data cache (refreshed on login and ↻)
-let _saveFn    = null;  // Current bottom-sheet save callback
-let _confirmFn = null;  // Current confirm dialog callback
-let _epTarget  = null;  // ID prefix for the emoji field being edited
+   ══════════════════════════════════════════════════════ */
+let SD = null;        // sheets data cache
+let _saveFn    = null;
+let _confirmFn = null;
+let _epTarget  = null; // id prefix of current emoji field
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    AUTH
-   ══════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 function doLogin() {
   if (document.getElementById('pwd').value === PASS) {
     document.getElementById('login').style.display = 'none';
-    const app = document.getElementById('app');
-    app.style.cssText = 'display:flex;flex-direction:column';
+    const a = document.getElementById('app');
+    a.style.cssText = 'display:flex;flex-direction:column';
     loadData();
   } else {
     document.getElementById('lerr').style.display = 'block';
@@ -333,9 +335,9 @@ function logout() {
   document.getElementById('lerr').style.display = 'none';
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    NAVIGATION
-   ══════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 function switchTab(btn) {
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
   document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
@@ -343,46 +345,41 @@ function switchTab(btn) {
   document.getElementById('pane-' + btn.dataset.p).classList.add('on');
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    DATA & API
-   ══════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 async function loadData() {
   try {
-    /* Cache-bust with timestamp so we always get fresh data */
-    const res = await fetch(API + '?t=' + Date.now());
+    const res = await fetch(API + '?t=' + Date.now()); // bust cache
     SD = await res.json();
-    renderTools    (SD.tools             || []);
-    renderCats     (SD.charger_categories|| []);
-    renderChargers (SD.chargers          || []);
-    renderVibeCards(SD.vibe_cards        || []);
-    renderQuotes   (SD.quotes            || []);
-    renderRevise   (SD.revise_repeat     || []);
-    renderChannels (SD.learning_channels || []);
-    renderModules  (SD.modules           || []);
+    renderTools    (SD.tools              || []);
+    renderCats     (SD.charger_categories || []);
+    renderChargers (SD.chargers           || []);
+    renderRules    (SD.charger_rules      || []);
+    renderVibeCards(SD.vibe_cards         || []);
+    renderQuotes   (SD.quotes             || []);
+    renderRevise   (SD.revise_repeat      || []);
+    renderChannels (SD.learning_channels  || []);
+    renderModules  (SD.modules            || []);
     toast('Data refreshed ✓', 'ok');
-  } catch (e) {
-    toast('Load failed — check connection', 'err');
-  }
+  } catch(e) { toast('Load failed — check connection', 'err'); }
 }
 
-/* Single API call helper — appends token and fires GET request */
 async function api(params) {
   params.token = TOKEN;
   const res = await fetch(API + '?' + new URLSearchParams(params));
-  const json = await res.json();
-  return json;
+  return res.json();
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    BOTTOM SHEET
-   ══════════════════════════════════════════════════════════════ */
-function openSheet(title, html, saveFn) {
-  _saveFn = saveFn;
+   ══════════════════════════════════════════════════════ */
+function openSheet(title, html, fn) {
+  _saveFn = fn;
   document.getElementById('sh-ttl').textContent = title;
   document.getElementById('sh-body').innerHTML  = html;
-  const btn = document.getElementById('sh-save');
-  btn.disabled    = false;
-  btn.textContent = 'Save';
+  const b = document.getElementById('sh-sv');
+  b.disabled = false; b.textContent = 'Save';
   document.getElementById('sh-ov').style.display = 'block';
   document.getElementById('sh').classList.add('open');
 }
@@ -393,50 +390,46 @@ function closeSheet() {
 }
 async function sheetSave() {
   if (!_saveFn) return;
-  const btn = document.getElementById('sh-save');
-  btn.disabled = true; btn.textContent = 'Saving...';
+  const b = document.getElementById('sh-sv');
+  b.disabled = true; b.textContent = 'Saving...';
   try { await _saveFn(); }
-  catch (e) { toast('Error: ' + e.message, 'err'); }
-  btn.disabled = false; btn.textContent = 'Save';
+  catch(e) { toast('Error: ' + e.message, 'err'); }
+  b.disabled = false; b.textContent = 'Save';
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    CONFIRM DIALOG
-   ══════════════════════════════════════════════════════════════ */
+   ══════════════════════════════════════════════════════ */
 function showConfirm(msg, fn) {
   document.getElementById('cf-msg').textContent = msg;
   document.getElementById('cf-ov').style.display = 'flex';
   _confirmFn = fn;
 }
-function doConfirm()   { closeConfirm(); if (_confirmFn) _confirmFn(); }
-function closeConfirm(){ document.getElementById('cf-ov').style.display = 'none'; _confirmFn = null; }
+function doConfirm()    { closeConfirm(); if (_confirmFn) _confirmFn(); }
+function closeConfirm() { document.getElementById('cf-ov').style.display = 'none'; _confirmFn = null; }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    EMOJI PICKER
-   ══════════════════════════════════════════════════════════════ */
-/* Organized by category for the filter tabs */
-const EP_CATS = {
-  'Mind & Work': ['🧠','💡','🔮','📖','📚','📝','✏️','🖊️','🗒️','📋','🎯','⚙️','🔧','🪄','🧬','🔬','🔭','💻','📱','🖥️'],
-  'Wellness':    ['🧘','🏃','💪','🤸','🏊','🚴','🧗','🌅','🌿','🍃','🌱','🌾','☀️','🌙','🌈','❄️','🔥','💧','🌊','🌬️'],
-  'Energy':      ['⚡','💥','🌟','✨','💫','⭐','🌠','🎆','🎇','🪐','🌌','🌞','🌛','🌝','🪅','🎊','🎉','🏆','🥇','💎'],
-  'People':      ['🙌','👏','🤝','✊','🫶','💖','💝','💛','💚','💙','💜','❤️','🤍','🫂','👁️','🧡','💗','❤️‍🔥','🫀','🧿'],
-  'Nature':      ['🦋','🐝','🦊','🦁','🐯','🦅','🦜','🌳','🌲','🌴','🌵','🍀','🍁','🍂','🍄','🌷','🌹','🌺','🌸','🌼'],
-  'Food':        ['🍎','🍊','🍋','🍇','🍓','🫐','🍒','🥝','🥑','🫖','☕','🍵','🧃','🧁','🍰','🍫','🍬','🥗','🥦','🫚'],
-  'Activities':  ['🎨','🎭','🎮','🕹️','🎲','🧩','🎵','🎶','🎸','🎹','🥁','🎷','🎺','🎻','🎤','🎬','📸','🎡','🎢','🎠'],
-  'Symbols':     ['🔑','🗝️','🔓','🎁','🎀','🌐','🧭','🗺️','🚀','✈️','⛵','🏔️','🌋','🏝️','🏕️','🛸','🪩','🫧','🌀','🔴'],
+   ══════════════════════════════════════════════════════ */
+const EP = {
+  'Mind': ['🧠','💡','🔮','📖','📚','📝','✏️','🗒️','📋','🎯','⚙️','🔧','🪄','🧬','🔬','💻','📱','🖊️','🖋️','📌'],
+  'Wellness': ['🧘','🏃','💪','🤸','🏊','🚴','🌅','🌿','🍃','🌱','🌾','☀️','🌙','🌈','❄️','🔥','💧','🌊','🌬️','🧊'],
+  'Energy': ['⚡','💥','🌟','✨','💫','⭐','🌠','🎆','🎇','🪐','🌌','🌞','🌛','💎','🏆','🥇','🎊','🎉','🪩','🫧'],
+  'Heart': ['💖','💝','💛','💚','💙','💜','❤️','🤍','🖤','🧡','💗','❤️‍🔥','🫶','🙌','👏','✊','🤝','🫂','💞','💓'],
+  'Nature': ['🦋','🐝','🦊','🦁','🦅','🌳','🌲','🌴','🌵','🍀','🍁','🍂','🍄','🌷','🌹','🌺','🌸','🌼','🌻','🐉'],
+  'Food': ['🍎','🍊','🍋','🍇','🍓','🫐','🥝','🥑','🫖','☕','🍵','🧃','🧁','🍰','🍫','🥗','🫚','🍒','🍌','🥦'],
+  'Fun': ['🎨','🎭','🎮','🎲','🧩','🎵','🎶','🎸','🎹','🥁','🎷','🎺','🎤','🎬','📸','🎡','🚀','✈️','🛸','🎠'],
+  'Symbols': ['🔑','🗝️','🔓','🎁','🎀','🌐','🧭','🗺️','💬','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🔺','🔻','♾️'],
 };
-const ALL_EP = Object.values(EP_CATS).flat();
-let _epCat = null; // active category filter
+const ALL_EP = Object.values(EP).flat();
+let _epCat = null;
 
-function openEP(targetId) {
-  _epTarget = targetId;
-  _epCat    = null;
+function openEP(id) {
+  _epTarget = id;
+  _epCat = null;
   document.getElementById('ep-srch').value = '';
-  /* Render category buttons */
   document.getElementById('ep-cats').innerHTML =
-    Object.keys(EP_CATS).map(cat =>
-      `<button class="ep-cat" onclick="setEPCat('${cat}',this)">${cat}</button>`
-    ).join('');
+    Object.keys(EP).map(c => `<button class="ep-cat" onclick="setEPCat('${c}',this)">${c}</button>`).join('');
   renderEPGrid(ALL_EP);
   document.getElementById('ep-ov').style.display = 'block';
   document.getElementById('ep').classList.add('open');
@@ -444,12 +437,11 @@ function openEP(targetId) {
 function closeEP() {
   document.getElementById('ep').classList.remove('open');
   document.getElementById('ep-ov').style.display = 'none';
-  _epTarget = null;
 }
 function setEPCat(cat, btn) {
   document.querySelectorAll('.ep-cat').forEach(b => b.classList.remove('on'));
   if (_epCat === cat) { _epCat = null; renderEPGrid(ALL_EP); }
-  else { _epCat = cat; btn.classList.add('on'); renderEPGrid(EP_CATS[cat]); }
+  else { _epCat = cat; btn.classList.add('on'); renderEPGrid(EP[cat]); }
 }
 function filterEP(q) {
   _epCat = null;
@@ -462,66 +454,95 @@ function renderEPGrid(list) {
 }
 function pickEmoji(e) {
   if (_epTarget) {
-    const prev = document.getElementById(_epTarget + '-prev');
-    const val  = document.getElementById(_epTarget + '-val');
-    if (prev) prev.textContent = e;
-    if (val)  val.value = e;
+    const p = document.getElementById(_epTarget + '-prev');
+    const v = document.getElementById(_epTarget + '-val');
+    if (p) p.textContent = e;
+    if (v) v.value = e;
   }
   closeEP();
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    FORM FIELD HELPERS
-   Keeps form-building code concise and consistent
-   ══════════════════════════════════════════════════════════════ */
-function fText(lbl, id, val, ph, hint) {
-  return `<div class="fld"><label>${lbl}</label>
-    <input type="text" id="${id}" value="${x(val)}" placeholder="${ph||''}">
-    ${hint?`<div class="fld-hint">${hint}</div>`:''}</div>`;
-}
-function fArea(lbl, id, val, ph, hint) {
-  return `<div class="fld"><label>${lbl}</label>
-    <textarea id="${id}" placeholder="${ph||''}">${x(val)}</textarea>
-    ${hint?`<div class="fld-hint">${hint}</div>`:''}</div>`;
-}
-function fSel(lbl, id, opts, sel) {
-  const options = opts.map(o => {
-    const v = typeof o === 'object' ? o.v : o;
-    const l = typeof o === 'object' ? o.l : o;
-    return `<option value="${x(v)}" ${v===sel?'selected':''}>${x(l)}</option>`;
-  }).join('');
-  return `<div class="fld"><label>${lbl}</label><select id="${id}">${options}</select></div>`;
-}
-function fEmoji(lbl, id, cur) {
-  const e = cur || '❓';
-  return `<div class="fld"><label>${lbl}</label>
-    <div class="ep-trig">
-      <div class="ep-prev" id="${id}-prev" onclick="openEP('${id}')">${e}</div>
-      <button class="ep-open" type="button" onclick="openEP('${id}')">Tap to choose emoji</button>
-      <input type="hidden" id="${id}-val" value="${x(cur||'')}">
-    </div></div>`;
-}
-function fActive(id, checked) {
-  return `<div class="fld"><label>Status</label>
-    <div class="tgl-wrap">
-      <span>${checked?'Active — visible in app':'Inactive — hidden in app'}</span>
-      <label class="tgl"><input type="checkbox" id="${id}" ${checked?'checked':''}><span class="tgl-sl"></span></label>
-    </div></div>`;
-}
+   ══════════════════════════════════════════════════════ */
+const fT = (lbl,id,val,ph,hint) =>
+  `<div class="fld"><label>${lbl}</label><input type="text" id="${id}" value="${x(val)}" placeholder="${ph||''}">
+  ${hint?`<div class="fld-hint">${hint}</div>`:''}</div>`;
 
-/* ══════════════════════════════════════════════════════════════
-   TOOLS
-   ══════════════════════════════════════════════════════════════ */
+const fA = (lbl,id,val,ph,hint) =>
+  `<div class="fld"><label>${lbl}</label><textarea id="${id}" placeholder="${ph||''}">${x(val)}</textarea>
+  ${hint?`<div class="fld-hint">${hint}</div>`:''}</div>`;
+
+const fS = (lbl,id,opts,sel) =>
+  `<div class="fld"><label>${lbl}</label><select id="${id}">${
+    opts.map(o=>{const v=typeof o==='object'?o.v:o,l=typeof o==='object'?o.l:o;
+      return `<option value="${x(v)}"${v===sel?' selected':''}>${x(l)}</option>`;}).join('')
+  }</select></div>`;
+
+const fE = (lbl,id,cur) =>
+  `<div class="fld"><label>${lbl}</label><div class="ep-trig">
+    <div class="ep-prev" id="${id}-prev" onclick="openEP('${id}')">${cur||'❓'}</div>
+    <button class="ep-open" type="button" onclick="openEP('${id}')">Tap to choose emoji</button>
+    <input type="hidden" id="${id}-val" value="${x(cur||'')}">
+  </div></div>`;
+
+/* Active toggle → outputs TRUE/FALSE */
+const fActive = (id,checked) =>
+  `<div class="fld"><label>Status</label><div class="tgl-row">
+    <span>${checked?'Active — visible in app':'Inactive — hidden in app'}</span>
+    <label class="tgl"><input type="checkbox" id="${id}"${checked?' checked':''}><span class="tgl-sl"></span></label>
+  </div></div>`;
+
+/* Yes/No toggle → outputs yes/no */
+const fYN = (lbl,id,val) => {
+  const isY = val==='yes'||val==='Yes';
+  return `<div class="fld"><label>${lbl}</label><div class="tgl-row">
+    <span>${isY?'Yes':'No'}</span>
+    <label class="tgl"><input type="checkbox" id="${id}"${isY?' checked':''}><span class="tgl-sl"></span></label>
+  </div></div>`;
+};
+
+const fSep = lbl => `<div class="fld-sep">${lbl}</div>`;
+
+/* ══════════════════════════════════════════════════════
+   AUTO-ID HELPERS
+   ══════════════════════════════════════════════════════ */
+/* Tools: t1, t2, t3 … */
+function nextToolId() {
+  const nums = (SD.tools||[]).map(t=>parseInt((t.id||'').replace(/[^0-9]/g,''))).filter(n=>!isNaN(n));
+  return 't' + ((nums.length ? Math.max(...nums) : 0) + 1);
+}
+/* Chargers: c1, c2, c3 … */
+function nextChargerId() {
+  const nums = (SD.chargers||[]).map(c=>parseInt((c.id||'').replace(/[^0-9]/g,''))).filter(n=>!isNaN(n));
+  return 'c' + ((nums.length ? Math.max(...nums) : 0) + 1);
+}
+/* Generic next order number for any array */
+function nextOrder(arr) {
+  const nums = (arr||[]).map(i=>parseInt(i.order||0)).filter(n=>!isNaN(n));
+  return (nums.length ? Math.max(...nums) : 0) + 1;
+}
+/* Next numeric id (for quotes, revise, channels, rules) */
+function nextNumId(arr) {
+  const nums = (arr||[]).map(i=>parseInt(i.id||0)).filter(n=>!isNaN(n));
+  return (nums.length ? Math.max(...nums) : 0) + 1;
+}
+/* Auto code from tool id: t7 → T7 */
+function toolCode(id) { return (id||'').replace('t','T').replace('c','C'); }
+
+/* ══════════════════════════════════════════════════════
+   TOOLS  (16 cols: id,code,name,description,icon,type,mood,persist,placeholder,fullscreen,xp,quest_low,quest_mid,quest_high,order,active)
+   ══════════════════════════════════════════════════════ */
 function renderTools(tools) {
   const el = document.getElementById('tools-list');
-  if (!tools.length) { el.innerHTML = empty('🛠','No tools yet — add your first one'); return; }
-  el.innerHTML = tools.map((t, i) => `
+  if (!tools.length) { el.innerHTML = empty('🛠','No tools yet'); return; }
+  el.innerHTML = tools.map((t,i) => `
     <div class="ic">
       <div class="ic-head">
-        <div class="ic-emo">${t.emoji||t.icon||'🛠'}</div>
+        <div class="ic-emo">${t.icon||'🛠'}</div>
         <div class="ic-body">
           <div class="ic-name">${x(t.name)}</div>
-          <div class="ic-sub">${x(t.description||'No description')}</div>
+          <div class="ic-sub">${x(t.description||'')}</div>
         </div>
         <div class="ic-acts">
           <button class="ab a-edit" onclick="openToolForm(${i})">Edit</button>
@@ -529,26 +550,48 @@ function renderTools(tools) {
         </div>
       </div>
       <div class="ic-det">
-        <div class="dr"><span class="dl">Placeholder</span><span class="dv">${x(t.placeholder||'—')}</span></div>
-        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(t)?'bdg-on':'bdg-off'}">${act(t)?'Active':'Inactive'}</span></span></div>
+        <div class="dr"><span class="dl">ID / Code</span><span class="dv">${x(t.id||'')} · ${x(t.code||'')}</span></div>
+        <div class="dr"><span class="dl">Mood</span><span class="dv"><span class="bdg bmood">${x(t.mood||'all')}</span></span></div>
+        <div class="dr"><span class="dl">XP</span><span class="dv">${x(t.xp||'—')}</span></div>
+        <div class="dr"><span class="dl">Persist</span><span class="dv">${x(t.persist||'no')}</span></div>
+        <div class="dr"><span class="dl">Placeholder</span><span class="dv">${x((t.placeholder||'').slice(0,80))}</span></div>
+        <div class="dr"><span class="dl">Quest Low</span><span class="dv">${x((t.quest_low||'').slice(0,80))}</span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(t)?'bon':'boff'}">${act(t)?'Active':'Inactive'}</span></span></div>
       </div>
     </div>`).join('');
 }
 function openToolForm(idx) {
-  const t = idx !== undefined ? (SD.tools||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  openSheet(isEdit ? 'Edit Tool' : 'Add Tool',
-    fEmoji('Emoji', 'tf-emo', t.emoji||t.icon) +
-    fText ('Name *', 'tf-name', t.name, 'e.g. Clarity Tool') +
-    fArea ('Description', 'tf-desc', t.description, 'What does this tool help with?') +
-    fArea ('Placeholder (writing area hint)', 'tf-ph', t.placeholder, 'e.g. Write freely without judgment...', 'Shown inside the text area when empty') +
-    fActive('tf-act', isEdit ? act(t) : true),
+  const t = idx!==undefined ? (SD.tools||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  const newId  = nextToolId();
+  openSheet(isEdit?'Edit Tool':'Add Tool',
+    fSep('Identity') +
+    `<div class="fld-2">` + fT('ID','tf-id',isEdit?t.id:newId,'e.g. t7','Auto-generated') + fT('Code','tf-code',isEdit?t.code:toolCode(newId),'e.g. T7','Auto from ID') + `</div>` +
+    fE ('Icon','tf-ico',t.icon) +
+    fT ('Name *','tf-name',t.name,'e.g. Written Clarity') +
+    fA ('Description','tf-desc',t.description,'What this tool does for the user') +
+    fSep('Behaviour') +
+    fT ('Type','tf-type',t.type||'textarea','textarea') +
+    fS ('Mood','tf-mood',MOOD_OPTS,t.mood||'all') +
+    fYN('Persist (save writing)','tf-persist',t.persist||'no') +
+    fYN('Fullscreen','tf-full',t.fullscreen||'yes') +
+    fA ('Placeholder (textarea hint)','tf-ph',t.placeholder,'Write freely...') +
+    fSep('XP & Order') +
+    `<div class="fld-2">` + fT('XP Points','tf-xp',t.xp,'10') + fT('Order','tf-order',isEdit?t.order:nextOrder(SD.tools),'1') + `</div>` +
+    fActive('tf-act',isEdit?act(t):true) +
+    fSep('Quest Prompts') +
+    fA('Quest — Low Mood','tf-qlo',t.quest_low,'Prompt for low mood...') +
+    fA('Quest — Mid Mood','tf-qmi',t.quest_mid,'Prompt for mid mood...') +
+    fA('Quest — High Mood','tf-qhi',t.quest_high,'Prompt for high mood...'),
     async () => {
-      const d = { action: isEdit?'editTool':'addTool',
-        name:v('tf-name'), emoji:v('tf-emo-val'), description:v('tf-desc'),
-        placeholder:v('tf-ph'), active:chk('tf-act') };
+      const d = { action:isEdit?'editTool':'addTool',
+        id:v('tf-id'), code:v('tf-code'), name:v('tf-name'), description:v('tf-desc'),
+        icon:v('tf-ico-val'), type:v('tf-type')||'textarea', mood:v('tf-mood'),
+        persist:yn('tf-persist'), placeholder:v('tf-ph'), fullscreen:yn('tf-full'),
+        xp:v('tf-xp'), quest_low:v('tf-qlo'), quest_mid:v('tf-qmi'), quest_high:v('tf-qhi'),
+        order:v('tf-order'), active:chk('tf-act') };
       if (!d.name) { toast('Name is required','err'); return; }
-      if (isEdit) d.findName = t.name;
+      if (isEdit) d.findId = t.id;
       const r = await api(d);
       if (r.success) { toast(isEdit?'Tool updated ✓':'Tool added ✓','ok'); closeSheet(); await loadData(); }
       else throw new Error(r.error);
@@ -556,44 +599,54 @@ function openToolForm(idx) {
 }
 async function delTool(i) {
   const t = (SD.tools||[])[i];
-  showConfirm(`Delete tool "${t.name}"? This cannot be undone.`, async () => {
-    const r = await api({ action:'deleteTool', findName:t.name });
-    r.success ? (toast('Tool deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  showConfirm(`Delete tool "${t.name}"?`, async () => {
+    const r = await api({action:'deleteTool', findId:t.id});
+    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CHARGER CATEGORIES
-   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   CHARGER CATEGORIES  (6 cols: id,name,tagline,icon,order,active)
+   ══════════════════════════════════════════════════════ */
 function renderCats(cats) {
   const el = document.getElementById('cats-list');
   if (!cats.length) { el.innerHTML = empty('📂','No categories yet'); return; }
-  el.innerHTML = cats.map((c, i) => `
+  el.innerHTML = cats.map((c,i) => `
     <div class="ic">
       <div class="ic-head">
         <div class="ic-emo">${c.icon||'📂'}</div>
         <div class="ic-body">
           <div class="ic-name">${x(c.name)}</div>
-          <div class="ic-sub">ID: ${x(c.id||'')}</div>
+          <div class="ic-sub">${x(c.tagline||'')}</div>
         </div>
         <div class="ic-acts">
           <button class="ab a-edit" onclick="openCatForm(${i})">Edit</button>
           <button class="ab a-del"  onclick="delCat(${i})">Del</button>
         </div>
       </div>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">ID</span><span class="dv">${x(c.id||'')}</span></div>
+        <div class="dr"><span class="dl">Order</span><span class="dv">${x(c.order||'—')}</span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bon':'boff'}">${act(c)?'Active':'Inactive'}</span></span></div>
+      </div>
     </div>`).join('');
 }
 function openCatForm(idx) {
-  const c = idx !== undefined ? (SD.charger_categories||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  openSheet(isEdit ? 'Edit Category' : 'Add Category',
-    fEmoji('Icon', 'cc-ico', c.icon) +
-    fText ('Name *', 'cc-name', c.name, 'e.g. Morning Boost') +
-    fText ('ID (slug)', 'cc-id', c.id, 'e.g. morning_boost', 'Leave blank to auto-generate from name'),
+  const c = idx!==undefined ? (SD.charger_categories||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  openSheet(isEdit?'Edit Category':'Add Category',
+    fE('Icon','cc-ico',c.icon) +
+    fT('Name *','cc-name',c.name,'e.g. Sadhu Bhav') +
+    fT('ID (slug)','cc-id',c.id,'e.g. sadhu','Auto-generated from name if left blank') +
+    fT('Tagline','cc-tag',c.tagline,'e.g. Pure being, zero ego') +
+    `<div class="fld-2">` + fT('Order','cc-order',isEdit?c.order:nextOrder(SD.charger_categories),'1') + `</div>` +
+    fActive('cc-act',isEdit?act(c):true),
     async () => {
-      const name = v('cc-name'), id = v('cc-id') || slug(v('cc-name'));
+      const name = v('cc-name');
       if (!name) { toast('Name is required','err'); return; }
-      const d = { action:isEdit?'editChargerCategory':'addChargerCategory', name, id, icon:v('cc-ico-val') };
+      const d = { action:isEdit?'editChargerCategory':'addChargerCategory',
+        id: v('cc-id')||slug(name), name, tagline:v('cc-tag'),
+        icon:v('cc-ico-val'), order:v('cc-order'), active:chk('cc-act') };
       if (isEdit) d.findId = c.id;
       const r = await api(d);
       if (r.success) { toast(isEdit?'Category updated ✓':'Category added ✓','ok'); closeSheet(); await loadData(); }
@@ -602,24 +655,25 @@ function openCatForm(idx) {
 }
 async function delCat(i) {
   const c = (SD.charger_categories||[])[i];
-  showConfirm(`Delete category "${c.name}"? Chargers in this category may be affected.`, async () => {
-    const r = await api({ action:'deleteChargerCategory', findId:c.id });
-    r.success ? (toast('Category deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  showConfirm(`Delete category "${c.name}"? Chargers in this category may break.`, async () => {
+    const r = await api({action:'deleteChargerCategory', findId:c.id});
+    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CHARGERS
-   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   CHARGERS  (16 cols: id,category_id,name,description,icon,type,mood,persist,placeholder,fullscreen,xp,quest_low,quest_mid,quest_high,order,active)
+   ══════════════════════════════════════════════════════ */
 function renderChargers(chargers) {
   const el = document.getElementById('chargers-list');
   if (!chargers.length) { el.innerHTML = empty('⚡','No chargers yet'); return; }
-  el.innerHTML = chargers.map((c, i) => `
+  el.innerHTML = chargers.map((c,i) => `
     <div class="ic">
       <div class="ic-head">
+        <div class="ic-emo">${c.icon||'⚡'}</div>
         <div class="ic-body">
-          <div class="ic-name">${x(c.name||c.title||'')}</div>
-          <div class="ic-sub">${x(c.description||c.content||'No description')}</div>
+          <div class="ic-name">${x(c.name||'')}</div>
+          <div class="ic-sub">${x(c.description||'')}</div>
         </div>
         <div class="ic-acts">
           <button class="ab a-edit" onclick="openChargerForm(${i})">Edit</button>
@@ -627,25 +681,49 @@ function renderChargers(chargers) {
         </div>
       </div>
       <div class="ic-det">
-        <div class="dr"><span class="dl">Category</span><span class="dv"><span class="bdg bdg-type">${x(c.category_name||c.category_id||'—')}</span></span></div>
-        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bdg-on':'bdg-off'}">${act(c)?'Active':'Inactive'}</span></span></div>
+        <div class="dr"><span class="dl">ID</span><span class="dv">${x(c.id||'')}</span></div>
+        <div class="dr"><span class="dl">Category</span><span class="dv"><span class="bdg btype">${x(c.category_id||'—')}</span></span></div>
+        <div class="dr"><span class="dl">Mood</span><span class="dv"><span class="bdg bmood">${x(c.mood||'all')}</span></span></div>
+        <div class="dr"><span class="dl">XP</span><span class="dv">${x(c.xp||'—')}</span></div>
+        <div class="dr"><span class="dl">Quest Low</span><span class="dv">${x((c.quest_low||'').slice(0,80))}</span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bon':'boff'}">${act(c)?'Active':'Inactive'}</span></span></div>
       </div>
     </div>`).join('');
 }
 function openChargerForm(idx) {
-  const c = idx !== undefined ? (SD.chargers||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  const catOpts = (SD.charger_categories||[]).map(cat => ({v:cat.id, l:(cat.icon||'')+ ' ' +cat.name}));
-  openSheet(isEdit ? 'Edit Charger' : 'Add Charger',
-    fSel ('Category *', 'ch-cat', catOpts, c.category_id||'') +
-    fText ('Name *', 'ch-name', c.name||c.title, 'e.g. Take 5 deep breaths') +
-    fArea ('Description / Activity', 'ch-desc', c.description||c.content, 'What does the user do or reflect on?') +
-    fActive('ch-act', isEdit ? act(c) : true),
+  const c = idx!==undefined ? (SD.chargers||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  const catOpts = (SD.charger_categories||[]).map(cat=>({v:cat.id,l:(cat.icon||'')+' '+cat.name}));
+  const newId = nextChargerId();
+  openSheet(isEdit?'Edit Charger':'Add Charger',
+    fSep('Identity') +
+    fT('ID','ch-id',isEdit?c.id:newId,'e.g. c4','Auto-generated') +
+    fS('Category *','ch-cat',catOpts,c.category_id||'') +
+    fE('Icon','ch-ico',c.icon) +
+    fT('Name *','ch-name',c.name,'e.g. I Am Confident') +
+    fA('Description','ch-desc',c.description,'What the user charges into...') +
+    fSep('Behaviour') +
+    fT('Type','ch-type',c.type||'textarea','textarea') +
+    fS('Mood','ch-mood',MOOD_OPTS,c.mood||'all') +
+    fYN('Persist (save writing)','ch-persist',c.persist||'yes') +
+    fYN('Fullscreen','ch-full',c.fullscreen||'yes') +
+    fA('Placeholder (textarea hint)','ch-ph',c.placeholder,'Start writing as that fully confident version...') +
+    fSep('XP & Order') +
+    `<div class="fld-2">` + fT('XP Points','ch-xp',c.xp,'15') + fT('Order','ch-order',isEdit?c.order:nextOrder(SD.chargers),'1') + `</div>` +
+    fActive('ch-act',isEdit?act(c):true) +
+    fSep('Quest Prompts') +
+    fA('Quest — Low Mood','ch-qlo',c.quest_low,'Low mood prompt...') +
+    fA('Quest — Mid Mood','ch-qmi',c.quest_mid,'Mid mood prompt...') +
+    fA('Quest — High Mood','ch-qhi',c.quest_high,'High mood prompt...'),
     async () => {
       const d = { action:isEdit?'editCharger':'addCharger',
-        category:v('ch-cat'), name:v('ch-name'), description:v('ch-desc'), active:chk('ch-act') };
+        id:v('ch-id'), category_id:v('ch-cat'), name:v('ch-name'), description:v('ch-desc'),
+        icon:v('ch-ico-val'), type:v('ch-type')||'textarea', mood:v('ch-mood'),
+        persist:yn('ch-persist'), placeholder:v('ch-ph'), fullscreen:yn('ch-full'),
+        xp:v('ch-xp'), quest_low:v('ch-qlo'), quest_mid:v('ch-qmi'), quest_high:v('ch-qhi'),
+        order:v('ch-order'), active:chk('ch-act') };
       if (!d.name) { toast('Name is required','err'); return; }
-      if (isEdit) d.findName = c.name||c.title;
+      if (isEdit) d.findId = c.id;
       const r = await api(d);
       if (r.success) { toast(isEdit?'Charger updated ✓':'Charger added ✓','ok'); closeSheet(); await loadData(); }
       else throw new Error(r.error);
@@ -653,111 +731,166 @@ function openChargerForm(idx) {
 }
 async function delCharger(i) {
   const c = (SD.chargers||[])[i];
-  showConfirm(`Delete charger "${c.name||c.title}"?`, async () => {
-    const r = await api({ action:'deleteCharger', findName:c.name||c.title });
-    r.success ? (toast('Charger deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  showConfirm(`Delete charger "${c.name}"?`, async () => {
+    const r = await api({action:'deleteCharger', findId:c.id});
+    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   VIBE CARDS
-   ══════════════════════════════════════════════════════════════ */
-const TYPE_ICONS = {BREATHING:'🌬️',MOVEMENT:'🏃',AFFIRMATION:'💬',WRITING:'✏️',QUOTE:'💡',CHARGER:'⚡',TOOL:'🛠'};
-
-function renderVibeCards(cards) {
-  const el = document.getElementById('vibe-list');
-  if (!cards.length) { el.innerHTML = empty('🎴','No vibe cards yet'); return; }
-  el.innerHTML = cards.map((c, i) => `
+/* ══════════════════════════════════════════════════════
+   CHARGER RULES  (4 cols: id,rule,order,active)
+   ══════════════════════════════════════════════════════ */
+function renderRules(rules) {
+  const el = document.getElementById('rules-list');
+  if (!rules.length) { el.innerHTML = empty('📜','No rules yet'); return; }
+  el.innerHTML = rules.map((r,i) => `
     <div class="ic">
       <div class="ic-head">
-        <div class="ic-emo">${c.icon||TYPE_ICONS[c.type]||'🎴'}</div>
         <div class="ic-body">
-          <div class="ic-name">${x((c.title||c.content||'').slice(0,60))}</div>
-          <div class="ic-sub"><span class="bdg bdg-type">${x(c.type||'')}</span></div>
+          <div class="ic-name" style="white-space:normal">${x(r.rule||'')}</div>
         </div>
         <div class="ic-acts">
-          <button class="ab a-edit" onclick="openVibeForm(${i})">Edit</button>
-          <button class="ab a-del"  onclick="delVibeCard(${i})">Del</button>
+          <button class="ab a-edit" onclick="openRuleForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delRule(${i})">Del</button>
         </div>
       </div>
       <div class="ic-det">
-        ${c.content?`<div class="dr"><span class="dl">Content</span><span class="dv">${x(c.content.slice(0,120))}${c.content.length>120?'…':''}</span></div>`:''}
-        ${c.timer  ?`<div class="dr"><span class="dl">Timer</span><span class="dv">${c.timer}s</span></div>`:''}
-        ${c.xp     ?`<div class="dr"><span class="dl">XP</span><span class="dv">${c.xp} pts</span></div>`:''}
-        ${c.category?`<div class="dr"><span class="dl">Category</span><span class="dv">${x(c.category)}</span></div>`:''}
-        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bdg-on':'bdg-off'}">${act(c)?'Active':'Inactive'}</span></span></div>
+        <div class="dr"><span class="dl">Order</span><span class="dv">${x(r.order||'—')}</span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(r)?'bon':'boff'}">${act(r)?'Active':'Inactive'}</span></span></div>
+      </div>
+    </div>`).join('');
+}
+function openRuleForm(idx) {
+  const r = idx!==undefined ? (SD.charger_rules||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  openSheet(isEdit?'Edit Rule':'Add Rule',
+    fA('Rule Text *','rl-rule',r.rule,'e.g. Go big, no limits — feel it fully') +
+    fT('Order','rl-order',isEdit?r.order:nextOrder(SD.charger_rules),'1') +
+    fActive('rl-act',isEdit?act(r):true),
+    async () => {
+      const d = { action:isEdit?'editRule':'addRule',
+        id:isEdit?r.id:nextNumId(SD.charger_rules),
+        rule:v('rl-rule'), order:v('rl-order'), active:chk('rl-act') };
+      if (!d.rule) { toast('Rule text is required','err'); return; }
+      if (isEdit) d.findRule = r.rule;
+      const res = await api(d);
+      if (res.success) { toast(isEdit?'Rule updated ✓':'Rule added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(res.error);
+    });
+}
+async function delRule(i) {
+  const r = (SD.charger_rules||[])[i];
+  showConfirm(`Delete rule "${(r.rule||'').slice(0,60)}..."?`, async () => {
+    const res = await api({action:'deleteRule', findRule:r.rule});
+    res.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+res.error,'err');
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   VIBE CARDS  (10 cols: id,type,title,content,placeholder,timer,xp,icon,category,active)
+   ══════════════════════════════════════════════════════ */
+const TICONS = {BREATHING:'🌬️',MOVEMENT:'🏃',AFFIRMATION:'💬',WRITING:'✏️',QUOTE:'💡',CHARGER:'⚡',TOOL:'🛠'};
+function renderVibeCards(cards) {
+  const el = document.getElementById('vibe-list');
+  if (!cards.length) { el.innerHTML = empty('🎴','No vibe cards yet'); return; }
+  el.innerHTML = cards.map((c,i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-emo">${c.icon||TICONS[c.type]||'🎴'}</div>
+        <div class="ic-body">
+          <div class="ic-name">${x((c.title||c.content||'').slice(0,55))}</div>
+          <div class="ic-sub"><span class="bdg btype">${x(c.type||'')}</span></div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openVibeForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delVibe(${i})">Del</button>
+        </div>
+      </div>
+      <div class="ic-det">
+        ${c.content?`<div class="dr"><span class="dl">Content</span><span class="dv">${x(c.content.slice(0,100))}${c.content.length>100?'…':''}</span></div>`:''}
+        ${c.timer?`<div class="dr"><span class="dl">Timer</span><span class="dv">${c.timer}s</span></div>`:''}
+        ${c.xp?`<div class="dr"><span class="dl">XP</span><span class="dv">${c.xp} pts</span></div>`:''}
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bon':'boff'}">${act(c)?'Active':'Inactive'}</span></span></div>
       </div>
     </div>`).join('');
 }
 function openVibeForm(idx) {
-  const c = idx !== undefined ? (SD.vibe_cards||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  const typeOpts = VIBE_TYPES.map(t => ({v:t, l:(TYPE_ICONS[t]||'')+ ' ' +t}));
-  openSheet(isEdit ? 'Edit Vibe Card' : 'Add Vibe Card',
-    fText ('ID', 'vf-id', c.id, 'e.g. breathing_calm_01', 'Unique identifier — leave blank to auto-generate') +
-    fSel  ('Type *', 'vf-type', typeOpts, c.type||'AFFIRMATION') +
-    fText ('Title', 'vf-title', c.title, 'Heading shown on the card') +
-    fArea ('Content *', 'vf-content', c.content, 'Main text shown to the user') +
-    fArea ('Placeholder', 'vf-ph', c.placeholder, 'Hint text inside textarea', 'Only used for WRITING type cards') +
-    `<div class="fld-2">` +
-    fText ('Timer (seconds)', 'vf-timer', c.timer, '30', 'For BREATHING / MOVEMENT / QUOTE') +
-    fText ('XP Points', 'vf-xp', c.xp, '10') +
-    `</div>` +
-    fEmoji('Icon', 'vf-ico', c.icon) +
-    fText ('Category', 'vf-cat', c.category, 'e.g. Focus', 'Used by CHARGER type to group cards') +
-    fActive('vf-act', isEdit ? act(c) : true),
+  const c = idx!==undefined ? (SD.vibe_cards||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  openSheet(isEdit?'Edit Vibe Card':'Add Vibe Card',
+    `<div class="fld-2">` + fT('ID','vf-id',c.id,'e.g. b5','Leave blank to auto-generate') + fS('Type *','vf-type',VIBE_TYPES.map(t=>({v:t,l:(TICONS[t]||'')+' '+t})),c.type||'AFFIRMATION') + `</div>` +
+    fT('Title','vf-title',c.title,'Card heading') +
+    fA('Content *','vf-content',c.content,'Main text shown on card') +
+    fA('Placeholder','vf-ph',c.placeholder,'Hint text for WRITING cards') +
+    fSep('Settings') +
+    `<div class="fld-3">` + fT('Timer (s)','vf-timer',c.timer,'30') + fT('XP','vf-xp',c.xp,'10') + `</div>` +
+    fE('Icon','vf-ico',c.icon) +
+    fT('Category','vf-cat',c.category,'e.g. Focus') +
+    fActive('vf-act',isEdit?act(c):true),
     async () => {
+      const content = v('vf-content');
+      if (!content) { toast('Content is required','err'); return; }
       const d = { action:isEdit?'editVibeCard':'addVibeCard',
-        id:v('vf-id')||slug(v('vf-content').slice(0,20)), type:v('vf-type'),
-        title:v('vf-title'), content:v('vf-content'), placeholder:v('vf-ph'),
+        id:v('vf-id')||slug(content.slice(0,20)), type:v('vf-type'),
+        title:v('vf-title'), content, placeholder:v('vf-ph'),
         timer:v('vf-timer'), xp:v('vf-xp'), icon:v('vf-ico-val'),
         category:v('vf-cat'), active:chk('vf-act') };
-      if (!d.content) { toast('Content is required','err'); return; }
       if (isEdit) d.findId = c.id;
       const r = await api(d);
-      if (r.success) { toast(isEdit?'Vibe card updated ✓':'Vibe card added ✓','ok'); closeSheet(); await loadData(); }
+      if (r.success) { toast(isEdit?'Card updated ✓':'Card added ✓','ok'); closeSheet(); await loadData(); }
       else throw new Error(r.error);
     });
 }
-async function delVibeCard(i) {
+async function delVibe(i) {
   const c = (SD.vibe_cards||[])[i];
   showConfirm(`Delete vibe card "${c.title||c.id||'this card'}"?`, async () => {
-    const r = await api({ action:'deleteVibeCard', findId:c.id });
-    r.success ? (toast('Vibe card deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+    const r = await api({action:'deleteVibeCard', findId:c.id});
+    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   QUOTES
-   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   QUOTES  (7 cols: id,quote,author,category,order,active,action)
+   ══════════════════════════════════════════════════════ */
 function renderQuotes(quotes) {
   const el = document.getElementById('quotes-list');
   if (!quotes.length) { el.innerHTML = empty('💬','No quotes yet'); return; }
-  el.innerHTML = quotes.map((q, i) => {
-    const text = q.quote||q.text||'';
+  el.innerHTML = quotes.map((q,i) => {
+    const txt = q.quote||q.text||'';
     return `<div class="ic">
       <div class="ic-head">
         <div class="ic-body">
-          <div class="ic-name" style="font-style:italic;font-weight:500;white-space:normal">"${x(text.slice(0,120))}${text.length>120?'…':''}"</div>
-          <div class="ic-sub">— ${x(q.author||'Unknown')}</div>
+          <div class="ic-name" style="font-style:italic;font-weight:500;white-space:normal">"${x(txt.slice(0,100))}${txt.length>100?'…':''}"</div>
+          <div class="ic-sub">— ${x(q.author||'Unknown')} ${q.category?'· '+x(q.category):''}</div>
         </div>
         <div class="ic-acts">
           <button class="ab a-edit" onclick="openQuoteForm(${i})">Edit</button>
           <button class="ab a-del"  onclick="delQuote(${i})">Del</button>
         </div>
       </div>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">Order</span><span class="dv">${x(q.order||'—')}</span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(q)?'bon':'boff'}">${act(q)?'Active':'Inactive'}</span></span></div>
+      </div>
     </div>`;
   }).join('');
 }
 function openQuoteForm(idx) {
-  const q = idx !== undefined ? (SD.quotes||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  openSheet(isEdit ? 'Edit Quote' : 'Add Quote',
-    fArea('Quote Text *', 'qq-text', q.quote||q.text, 'Enter the full quote...') +
-    fText('Author', 'qq-author', q.author, 'Author name'),
+  const q = idx!==undefined ? (SD.quotes||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  openSheet(isEdit?'Edit Quote':'Add Quote',
+    fA('Quote *','qq-q',q.quote||q.text,'Enter the full quote...') +
+    fT('Author','qq-a',q.author,'e.g. Abraham Hicks') +
+    fT('Category','qq-cat',q.category,'e.g. vibration, mindset, alignment') +
+    `<div class="fld-2">` + fT('Order','qq-order',isEdit?q.order:nextOrder(SD.quotes),'1') + fT('Action (optional)','qq-action',q.action,'') + `</div>` +
+    fActive('qq-act',isEdit?act(q):true),
     async () => {
-      const d = { action:isEdit?'editQuote':'addQuote', quote:v('qq-text'), author:v('qq-author') };
-      if (!d.quote) { toast('Quote text is required','err'); return; }
+      const quote = v('qq-q');
+      if (!quote) { toast('Quote text is required','err'); return; }
+      const d = { action:isEdit?'editQuote':'addQuote',
+        id:isEdit?q.id:nextNumId(SD.quotes),
+        quote, author:v('qq-a'), category:v('qq-cat'),
+        order:v('qq-order'), active:chk('qq-act'), action_col:v('qq-action') };
       if (isEdit) d.findQuote = q.quote||q.text;
       const r = await api(d);
       if (r.success) { toast(isEdit?'Quote updated ✓':'Quote added ✓','ok'); closeSheet(); await loadData(); }
@@ -766,24 +899,24 @@ function openQuoteForm(idx) {
 }
 async function delQuote(i) {
   const q = (SD.quotes||[])[i];
-  showConfirm('Delete this quote? This cannot be undone.', async () => {
-    const r = await api({ action:'deleteQuote', findQuote:q.quote||q.text });
-    r.success ? (toast('Quote deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  showConfirm('Delete this quote?', async () => {
+    const r = await api({action:'deleteQuote', findQuote:q.quote||q.text});
+    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   REVISE & REPEAT
-   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════
+   REVISE & REPEAT  (7 cols: id,title,content,image_url,type,order,active)
+   ══════════════════════════════════════════════════════ */
 function renderRevise(items) {
   const el = document.getElementById('revise-list');
   if (!items.length) { el.innerHTML = empty('📚','No revise items yet'); return; }
-  el.innerHTML = items.map((r, i) => `
+  el.innerHTML = items.map((r,i) => `
     <div class="ic">
       <div class="ic-head">
         <div class="ic-body">
-          <div class="ic-name">${x((r.title||'').slice(0,80))}</div>
-          <div class="ic-sub">${x((r.content||'').slice(0,80))}</div>
+          <div class="ic-name">${x(r.title||'')}</div>
+          <div class="ic-sub">${x((r.content||'').slice(0,70))}</div>
         </div>
         <div class="ic-acts">
           <button class="ab a-edit" onclick="openReviseForm(${i})">Edit</button>
@@ -791,23 +924,29 @@ function renderRevise(items) {
         </div>
       </div>
       <div class="ic-det">
-        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(r)?'bdg-on':'bdg-off'}">${act(r)?'Active':'Inactive'}</span></span></div>
+        ${r.image_url?`<div class="dr"><span class="dl">Image URL</span><span class="dv">${x(r.image_url.slice(0,60))}</span></div>`:''}
+        <div class="dr"><span class="dl">Type</span><span class="dv"><span class="bdg btype">${x(r.type||'—')}</span></span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(r)?'bon':'boff'}">${act(r)?'Active':'Inactive'}</span></span></div>
       </div>
     </div>`).join('');
 }
 function openReviseForm(idx) {
-  const r = idx !== undefined ? (SD.revise_repeat||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  openSheet(isEdit ? 'Edit Revise Item' : 'Add Revise Item',
-    fText ('Title *', 'rv-title', r.title, 'e.g. Morning Routine Steps') +
-    fArea ('Content / Philosophy', 'rv-content', r.content, 'Text content for review...') +
-    fActive('rv-act', isEdit ? act(r) : true),
+  const r = idx!==undefined ? (SD.revise_repeat||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  openSheet(isEdit?'Edit Revise Item':'Add Revise Item',
+    fT('Title *','rv-title',r.title,'e.g. Feelings Attract Reality') +
+    fA('Content','rv-content',r.content,'Philosophy text...') +
+    fT('Image URL','rv-img',r.image_url,'https://...') +
+    `<div class="fld-2">` + fT('Type','rv-type',r.type||'philosophy','philosophy') + fT('Order','rv-order',isEdit?r.order:nextOrder(SD.revise_repeat),'1') + `</div>` +
+    fActive('rv-act',isEdit?act(r):true),
     async () => {
+      const title = v('rv-title');
+      if (!title) { toast('Title is required','err'); return; }
       const d = { action:isEdit?'editRevise':'addRevise',
-        title:v('rv-title'), content:v('rv-content'), active:chk('rv-act') };
-      if (!d.title) { toast('Title is required','err'); return; }
+        id:isEdit?r.id:nextNumId(SD.revise_repeat),
+        title, content:v('rv-content'), image_url:v('rv-img'),
+        type:v('rv-type')||'philosophy', order:v('rv-order'), active:chk('rv-act') };
       if (isEdit) d.findTitle = r.title;
-      /* rv-act alias to avoid conflict with variable name r */
       const res = await api(d);
       if (res.success) { toast(isEdit?'Item updated ✓':'Item added ✓','ok'); closeSheet(); await loadData(); }
       else throw new Error(res.error);
@@ -815,22 +954,21 @@ function openReviseForm(idx) {
 }
 async function delRevise(i) {
   const r = (SD.revise_repeat||[])[i];
-  showConfirm(`Delete revise item "${r.title||'this item'}"?`, async () => {
-    const res = await api({ action:'deleteRevise', findTitle:r.title });
-    res.success ? (toast('Item deleted','ok'), loadData()) : toast('Error: '+res.error,'err');
+  showConfirm(`Delete "${r.title||'this item'}"?`, async () => {
+    const res = await api({action:'deleteRevise', findTitle:r.title});
+    res.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+res.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   LEARNING CHANNELS
-   ══════════════════════════════════════════════════════════════ */
-function renderChannels(channels) {
+/* ══════════════════════════════════════════════════════
+   LEARNING CHANNELS  (7 cols: id,name,url,description,category,order,active)
+   ══════════════════════════════════════════════════════ */
+function renderChannels(ch) {
   const el = document.getElementById('channels-list');
-  if (!channels.length) { el.innerHTML = empty('📺','No channels yet'); return; }
-  el.innerHTML = channels.map((c, i) => `
+  if (!ch.length) { el.innerHTML = empty('📺','No channels yet'); return; }
+  el.innerHTML = ch.map((c,i) => `
     <div class="ic">
       <div class="ic-head">
-        <div class="ic-emo">${c.icon||c.emoji||'📺'}</div>
         <div class="ic-body">
           <div class="ic-name">${x(c.name)}</div>
           <div class="ic-sub">${x(c.url||'')}</div>
@@ -842,25 +980,28 @@ function renderChannels(channels) {
       </div>
       <div class="ic-det">
         ${c.description?`<div class="dr"><span class="dl">Description</span><span class="dv">${x(c.description)}</span></div>`:''}
-        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bdg-on':'bdg-off'}">${act(c)?'Active':'Inactive'}</span></span></div>
+        <div class="dr"><span class="dl">Category</span><span class="dv"><span class="bdg btype">${x(c.category||'—')}</span></span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bon':'boff'}">${act(c)?'Active':'Inactive'}</span></span></div>
       </div>
     </div>`).join('');
 }
 function openChannelForm(idx) {
-  const c = idx !== undefined ? (SD.learning_channels||[])[idx] : {};
-  const isEdit = idx !== undefined;
-  openSheet(isEdit ? 'Edit Learning Channel' : 'Add Learning Channel',
-    fEmoji('Icon', 'lc-ico', c.icon||c.emoji) +
-    fText ('Name *', 'lc-name', c.name, 'e.g. Eckhart Tolle') +
-    fText ('URL *', 'lc-url', c.url, 'https://youtube.com/...') +
-    fArea ('Description', 'lc-desc', c.description, 'What is this channel about?') +
-    fActive('lc-act', isEdit ? act(c) : true),
+  const c = idx!==undefined ? (SD.learning_channels||[])[idx] : {};
+  const isEdit = idx!==undefined;
+  openSheet(isEdit?'Edit Channel':'Add Learning Channel',
+    fT('Name *','lc-name',c.name,'e.g. Abraham Hicks Official') +
+    fT('URL *','lc-url',c.url,'https://youtube.com/...') +
+    fA('Description','lc-desc',c.description,'What is this channel about?') +
+    `<div class="fld-2">` + fT('Category','lc-cat',c.category,'e.g. LOA, Manifestation') + fT('Order','lc-order',isEdit?c.order:nextOrder(SD.learning_channels),'1') + `</div>` +
+    fActive('lc-act',isEdit?act(c):true),
     async () => {
+      const name=v('lc-name'), url=v('lc-url');
+      if (!name||!url) { toast('Name and URL are required','err'); return; }
       const d = { action:isEdit?'editChannel':'addChannel',
-        name:v('lc-name'), url:v('lc-url'), icon:v('lc-ico-val'),
-        description:v('lc-desc'), active:chk('lc-act') };
-      if (!d.name || !d.url) { toast('Name and URL are required','err'); return; }
-      if (isEdit) d.findUrl = c.url;
+        id:isEdit?c.id:nextNumId(SD.learning_channels),
+        name, url, description:v('lc-desc'),
+        category:v('lc-cat'), order:v('lc-order'), active:chk('lc-act') };
+      if (isEdit) d.findName = c.name;
       const r = await api(d);
       if (r.success) { toast(isEdit?'Channel updated ✓':'Channel added ✓','ok'); closeSheet(); await loadData(); }
       else throw new Error(r.error);
@@ -869,20 +1010,21 @@ function openChannelForm(idx) {
 async function delChannel(i) {
   const c = (SD.learning_channels||[])[i];
   showConfirm(`Delete channel "${c.name}"?`, async () => {
-    const r = await api({ action:'deleteChannel', findUrl:c.url });
-    r.success ? (toast('Channel deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+    const r = await api({action:'deleteChannel', findName:c.name});
+    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   MODULES — toggle only, no add/delete
-   ══════════════════════════════════════════════════════════════ */
-function renderModules(activeModules) {
-  const activeIds = new Set((activeModules||[]).map(m => m.id));
-  document.getElementById('modules-list').innerHTML = MODULE_DEFS.map(m => `
+/* ══════════════════════════════════════════════════════
+   MODULES  (5 cols: id,name,description,order,active) — toggle only
+   ══════════════════════════════════════════════════════ */
+function renderModules(activeMods) {
+  const activeIds = new Set((activeMods||[]).map(m=>m.id));
+  document.getElementById('modules-list').innerHTML = MOD_DEFS.map(m => `
     <div class="mcard">
       <div class="m-info">
-        <div class="m-name">${x(m.label)}</div>
+        <div class="m-name">${x(m.name)}</div>
+        <div class="m-desc">${x(m.desc)}</div>
         <div class="m-id">${x(m.id)}</div>
       </div>
       <label class="tgl">
@@ -895,42 +1037,31 @@ function renderModules(activeModules) {
 async function toggleMod(id, active, cb) {
   cb.disabled = true;
   try {
-    const r = await api({ action:'toggleModule', moduleId:id, active:String(active) });
-    if (r.success) toast((active ? 'Enabled: ':'Disabled: ') + id, 'ok');
+    const r = await api({action:'toggleModule', moduleId:id, active:String(active)});
+    if (r.success) toast((active?'Enabled: ':'Disabled: ')+id,'ok');
     else { cb.checked = !active; throw new Error(r.error); }
   } catch(e) { toast('Error: '+e.message,'err'); }
   cb.disabled = false;
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
    UTILITIES
-   ══════════════════════════════════════════════════════════════ */
-/* Read a form field value (trimmed) */
-function v(id) { const el=document.getElementById(id); return el ? el.value.trim() : ''; }
+   ══════════════════════════════════════════════════════ */
+const v   = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
+const chk = id => document.getElementById(id)?.checked ? 'TRUE' : 'FALSE'; // for active
+const yn  = id => document.getElementById(id)?.checked ? 'yes'  : 'no';   // for persist/fullscreen
+const act = item => { const a=item.active; return a===true||a==='TRUE'||a==='true'; };
+const x   = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const slug = s => s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'').slice(0,24);
+const empty = (ico,msg) => `<div class="s-empty"><div class="sei">${ico}</div><p>${msg}</p></div>`;
 
-/* Read a checkbox state as 'TRUE'/'FALSE' string for Sheets */
-function chk(id) { const el=document.getElementById(id); return (el&&el.checked)?'TRUE':'FALSE'; }
-
-/* Escape HTML special chars for safe innerHTML insertion */
-function x(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-/* Check if an item is active — handles TRUE, 'TRUE', true */
-function act(item) { const a=item.active; return a===true||a==='TRUE'||a==='true'; }
-
-/* Generate a URL-safe slug from text + timestamp suffix to avoid collisions */
-function slug(s) { return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'').slice(0,24)+'_'+Date.now().toString(36); }
-
-/* Empty state HTML */
-function empty(icon, msg) { return `<div class="s-empty"><div class="sei">${icon}</div><p>${msg}</p></div>`; }
-
-/* Toast notification (3.2s auto-dismiss) */
 let _tt;
 function toast(msg, type) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'show' + (type?' '+type:'');
+  el.className = 'show'+(type?' '+type:'');
   clearTimeout(_tt);
-  _tt = setTimeout(() => { el.className = ''; }, 3200);
+  _tt = setTimeout(()=>{ el.className=''; }, 3200);
 }
 
 </script>

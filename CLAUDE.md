@@ -12,6 +12,9 @@ A mood-based self-development app (mobile-first PWA). Core idea: the user opens 
 Hosted on GitHub Pages. Single HTML file. No build system.
 Repo: https://github.com/smworkassistance/clarvoyance
 
+### Product Philosophy
+> Clarvoyance optimizes for daily micro-action over comprehensive tracking. Every interaction must be completable in under 2 minutes. The app is mood-first, not goal-first — it meets the user where they are emotionally, not where they think they should be. It should feel like a trusted friend checking in, not a productivity coach demanding output. Every new feature must pass this test: does it lower friction or add it?
+
 ---
 
 ## Tech Stack
@@ -44,6 +47,9 @@ STATUS: TESTING | STABLE
 | v44 | Vibe feed redesign foundation |
 | v45 | Nickname onboarding, full vibe feed rebuild (7 card types), tools from Sheets |
 | v46 | Vibe feed cards moved from hardcode → Google Sheets |
+| v47 | Daily quest home-only, NN on home screen, NN edit + subpoints, tab swap |
+| v48 | UI polish — tools grid, XP display size, tray layout, skip hint, next btn removed |
+| v51 | Full visual redesign — Unified Material Design style (Claude Design output) |
 
 ---
 
@@ -212,4 +218,4 @@ Next button after task complete = clean advance (green "Continue ↑").
 
 ---
 
-*Last updated: 2026-05-16 — v46 session*
+*Last updated: 2026-05-19 — v51 session*
