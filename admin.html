@@ -5,196 +5,276 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Clarvoyance Admin</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F4F3FF;min-height:100vh;color:#1a1a2e}
 
-/* ─── LOGIN ──────────────────────────────── */
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
-.login-box{background:#fff;border-radius:24px;padding:40px 28px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(108,99,255,.12)}
-.login-logo{font-size:40px;margin-bottom:12px}
-.login-box h1{font-size:22px;font-weight:800;color:#6C63FF;margin-bottom:4px}
-.login-box p{font-size:13px;color:#999;margin-bottom:28px}
-.login-box input{width:100%;padding:14px 16px;border:1.5px solid #E8E8F0;border-radius:14px;font-size:16px;outline:none;transition:border .2s;background:#FAFAFA;color:#1a1a2e}
-.login-box input:focus{border-color:#6C63FF;background:#fff}
-.login-box button{width:100%;padding:15px;background:#6C63FF;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s}
-.login-box button:active{opacity:.8}
-.login-err{color:#F44336;font-size:13px;margin-top:10px;display:none}
+/* ══ RESET ══════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#EEF2FF;color:#1E1B4B;min-height:100vh}
 
-/* ─── APP SHELL ──────────────────────────── */
+/* ══ LOGIN ══════════════════════════════════════════════════ */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:linear-gradient(135deg,#4338CA 0%,#7C3AED 100%)}
+.lcard{background:#fff;border-radius:28px;padding:44px 32px;width:100%;max-width:380px;text-align:center;box-shadow:0 24px 64px rgba(67,56,202,.3)}
+.lcard .lico{font-size:48px;margin-bottom:14px}
+.lcard h1{font-size:24px;font-weight:800;color:#4338CA;margin-bottom:4px}
+.lcard p{font-size:13px;color:#9CA3AF;margin-bottom:28px}
+.lcard input{width:100%;padding:15px 18px;border:2px solid #E5E7EB;border-radius:14px;font-size:16px;outline:none;transition:border-color .2s;background:#FAFAFA;color:#1E1B4B}
+.lcard input:focus{border-color:#4338CA;background:#fff}
+.lcard .lbtn{width:100%;padding:15px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s,transform .1s}
+.lcard .lbtn:active{opacity:.85;transform:scale(.98)}
+.lerr{color:#DC2626;font-size:13px;margin-top:10px;display:none}
+
+/* ══ APP SHELL ══════════════════════════════════════════════ */
 #app{display:none;flex-direction:column;min-height:100vh}
-header{background:#6C63FF;color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(108,99,255,.3)}
-header h1{font-size:17px;font-weight:800;letter-spacing:.2px}
-.logout-btn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer}
 
-/* ─── TABS ───────────────────────────────── */
-.tabs{background:#fff;display:flex;overflow-x:auto;padding:0 6px;border-bottom:1px solid #EEEEF8;position:sticky;top:53px;z-index:99;scrollbar-width:none}
+/* ══ HEADER ═════════════════════════════════════════════════ */
+header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:0 2px 20px rgba(67,56,202,.3)}
+.h-left{display:flex;align-items:center;gap:8px}
+.h-left h1{font-size:17px;font-weight:800}
+.h-right{display:flex;gap:8px}
+.hbtn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:background .2s}
+.hbtn:active{background:rgba(255,255,255,.3)}
+
+/* ══ TAB BAR ════════════════════════════════════════════════ */
+.tabs{background:#fff;display:flex;overflow-x:auto;border-bottom:1px solid #E5E7EB;position:sticky;top:53px;z-index:199;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
-.tab-btn{flex-shrink:0;padding:13px 18px;font-size:14px;font-weight:600;color:#AAA;border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap}
-.tab-btn.active{color:#6C63FF;border-bottom-color:#6C63FF}
+.tab{flex-shrink:0;padding:13px 16px;font-size:13px;font-weight:600;color:#9CA3AF;border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s}
+.tab.on{color:#4338CA;border-bottom-color:#4338CA}
 
-/* ─── CONTENT ────────────────────────────── */
-.tab-pane{display:none;padding:16px;padding-bottom:40px}
-.tab-pane.active{display:block}
+/* ══ PANES ══════════════════════════════════════════════════ */
+.pane{display:none;padding:16px;padding-bottom:80px}
+.pane.on{display:block}
 
-/* ─── CARD ───────────────────────────────── */
-.card{background:#fff;border-radius:18px;padding:20px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.04)}
-.card-title{font-size:14px;font-weight:800;color:#444;margin-bottom:16px;text-transform:uppercase;letter-spacing:.4px}
+/* ══ ADD BUTTON ═════════════════════════════════════════════ */
+.add-btn{width:100%;padding:14px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:16px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(67,56,202,.28);transition:opacity .15s,transform .1s}
+.add-btn:active{opacity:.85;transform:scale(.98)}
 
-/* ─── FORM ───────────────────────────────── */
-.field{margin-bottom:14px}
-.field label{display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.field input,.field textarea,.field select{width:100%;padding:13px 15px;border:1.5px solid #EEEEF0;border-radius:12px;font-size:15px;outline:none;transition:border .2s;font-family:inherit;background:#FAFAFA;color:#1a1a2e}
-.field textarea{resize:vertical;min-height:80px;line-height:1.5}
-.field input:focus,.field textarea:focus,.field select:focus{border-color:#6C63FF;background:#fff}
-.row2{display:grid;grid-template-columns:72px 1fr;gap:12px}
-.emoji-inp{font-size:26px;text-align:center;padding:10px 6px !important}
-.btn-primary{width:100%;padding:15px;background:#6C63FF;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s;margin-top:4px}
-.btn-primary:active{opacity:.8}
-.btn-primary:disabled{opacity:.45;cursor:not-allowed}
+/* ══ SECTION LABEL ══════════════════════════════════════════ */
+.sec-lbl{font-size:11px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin:18px 0 10px}
 
-/* ─── LIST ───────────────────────────────── */
-.list-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid #F5F5FA}
-.list-item:last-child{border-bottom:none}
-.item-icon{font-size:22px;width:34px;text-align:center;flex-shrink:0}
-.item-body{flex:1;min-width:0}
-.item-name{font-size:14px;font-weight:700;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.item-sub{font-size:12px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
-.item-badge{font-size:11px;padding:3px 9px;border-radius:20px;background:#EEEEFF;color:#6C63FF;font-weight:700;flex-shrink:0;white-space:nowrap}
+/* ══ ITEM CARDS ═════════════════════════════════════════════ */
+.ic{background:#fff;border-radius:18px;padding:16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid #F3F4F6}
+.ic-head{display:flex;align-items:center;gap:12px}
+.ic-emo{font-size:26px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:#EEF2FF;border-radius:12px;flex-shrink:0}
+.ic-body{flex:1;min-width:0}
+.ic-name{font-size:15px;font-weight:700;color:#1E1B4B;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ic-sub{font-size:12px;color:#9CA3AF;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+.ic-acts{display:flex;gap:7px;flex-shrink:0}
+.ab{padding:7px 13px;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.ab:active{opacity:.7}
+.a-edit{background:#EEF2FF;color:#4338CA}
+.a-del{background:#FEF2F2;color:#DC2626}
+.ic-det{margin-top:12px;padding-top:12px;border-top:1px solid #F3F4F6;display:grid;gap:7px}
+.dr{display:flex;gap:8px;align-items:flex-start}
+.dl{font-size:10px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.4px;min-width:82px;padding-top:2px;flex-shrink:0}
+.dv{font-size:13px;color:#374151;line-height:1.4;flex:1;word-break:break-word}
 
-/* ─── MODULE TOGGLE ──────────────────────── */
-.mod-item{display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid #F5F5FA}
-.mod-item:last-child{border-bottom:none}
-.mod-label{font-size:15px;font-weight:700;color:#333}
-.mod-id{font-size:11px;color:#AAA;margin-top:2px;font-family:monospace}
-.toggle{position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0}
-.toggle input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background:#DDD;border-radius:28px;transition:.25s}
-.slider:before{content:'';position:absolute;height:22px;width:22px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
-input:checked+.slider{background:#6C63FF}
-input:checked+.slider:before{transform:translateX(22px)}
-.toggle input:disabled+.slider{opacity:.4;cursor:not-allowed}
+/* ══ BADGES ═════════════════════════════════════════════════ */
+.bdg{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.bdg-on{background:#D1FAE5;color:#059669}
+.bdg-off{background:#FEE2E2;color:#DC2626}
+.bdg-type{background:#EEF2FF;color:#4338CA}
 
-/* ─── HINTS ──────────────────────────────── */
-.hint{font-size:12px;color:#AAA;margin-bottom:14px;line-height:1.5}
-.empty{text-align:center;padding:28px;color:#CCC;font-size:14px}
-.loading-msg{text-align:center;padding:28px;color:#BBB;font-size:14px}
+/* ══ STATES ═════════════════════════════════════════════════ */
+.s-empty{text-align:center;padding:40px 20px;color:#D1D5DB}
+.s-empty .sei{font-size:40px;margin-bottom:10px}
+.s-empty p{font-size:14px}
+.s-load{text-align:center;padding:40px;color:#9CA3AF;font-size:14px}
 
-/* ─── TOAST ──────────────────────────────── */
-#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);background:#333;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
+/* ══ BOTTOM SHEET ═══════════════════════════════════════════ */
+#sh-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;backdrop-filter:blur(2px)}
+#sh{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:24px 24px 0 0;z-index:501;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,0,.67,0);max-height:90vh;display:flex;flex-direction:column}
+#sh.open{transform:translateY(0);transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.sh-hnd{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:12px auto 0;flex-shrink:0}
+.sh-hdr{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid #F3F4F6}
+.sh-ttl{font-size:17px;font-weight:800;color:#1E1B4B}
+.sh-cls{background:#F3F4F6;border:none;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6B7280}
+.sh-body{padding:16px 20px;overflow-y:auto;flex:1}
+.sh-foot{padding:12px 20px;border-top:1px solid #F3F4F6;display:flex;gap:10px;flex-shrink:0;background:#fff}
+.btn-save{flex:1;padding:14px;background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.btn-save:disabled{opacity:.45;cursor:not-allowed}
+.btn-cancel{padding:14px 20px;background:#F3F4F6;color:#6B7280;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer}
+
+/* Form fields inside sheet */
+.fld{margin-bottom:16px}
+.fld label{display:block;font-size:11px;font-weight:800;color:#9CA3AF;text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.fld input,.fld textarea,.fld select{width:100%;padding:13px 15px;border:2px solid #E5E7EB;border-radius:12px;font-size:15px;outline:none;transition:border-color .2s;color:#1E1B4B;background:#FAFAFA;font-family:inherit}
+.fld textarea{resize:vertical;min-height:90px;line-height:1.5}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:#4338CA;background:#fff}
+.fld-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fld-hint{font-size:12px;color:#9CA3AF;margin-top:5px;line-height:1.4}
+/* Emoji picker trigger inside form */
+.ep-trig{display:flex;gap:10px;align-items:center}
+.ep-prev{width:52px;height:52px;background:#EEF2FF;border-radius:12px;font-size:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #E5E7EB;flex-shrink:0;transition:border-color .2s;user-select:none}
+.ep-prev:hover{border-color:#4338CA}
+.ep-open{flex:1;padding:13px 15px;background:#FAFAFA;border:2px dashed #E5E7EB;border-radius:12px;font-size:14px;color:#9CA3AF;cursor:pointer;text-align:left;font-family:inherit}
+/* Active toggle inside form */
+.tgl-wrap{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:#FAFAFA;border:2px solid #E5E7EB;border-radius:12px}
+.tgl-wrap span{font-size:15px;color:#374151}
+.tgl{position:relative;width:50px;height:28px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tgl-sl{position:absolute;inset:0;background:#D1D5DB;border-radius:28px;cursor:pointer;transition:background .25s}
+.tgl-sl::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.tgl input:checked+.tgl-sl{background:#4338CA}
+.tgl input:checked+.tgl-sl::before{transform:translateX(22px)}
+.tgl input:disabled+.tgl-sl{opacity:.4;cursor:not-allowed}
+
+/* ══ EMOJI PICKER OVERLAY ═══════════════════════════════════ */
+#ep-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:none}
+#ep{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:24px 24px 0 0;z-index:601;max-height:72vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s}
+#ep.open{transform:translateY(0)}
+.ep-hdr{padding:12px 16px 8px;flex-shrink:0}
+.ep-hnd{width:40px;height:4px;background:#E5E7EB;border-radius:2px;margin:0 auto 12px}
+.ep-srch{width:100%;padding:11px 14px;border:2px solid #E5E7EB;border-radius:12px;font-size:15px;outline:none;font-family:inherit}
+.ep-srch:focus{border-color:#4338CA}
+.ep-cats{display:flex;gap:6px;overflow-x:auto;padding:8px 0;scrollbar-width:none}
+.ep-cats::-webkit-scrollbar{display:none}
+.ep-cat{flex-shrink:0;padding:5px 14px;border:none;background:#F3F4F6;border-radius:20px;font-size:13px;cursor:pointer;font-weight:600;color:#6B7280;transition:all .15s}
+.ep-cat.on{background:#4338CA;color:#fff}
+.ep-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:8px 12px 24px;overflow-y:auto;flex:1}
+.ep-e{font-size:26px;text-align:center;padding:6px 4px;border-radius:8px;cursor:pointer;border:none;background:none;transition:background .1s;line-height:1}
+.ep-e:active{background:#EEF2FF}
+
+/* ══ CONFIRM DIALOG ══════════════════════════════════════════ */
+#cf-ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;display:none;align-items:center;justify-content:center;padding:24px}
+#cf-box{background:#fff;border-radius:22px;padding:30px 24px;width:100%;max-width:360px;text-align:center}
+.cf-ico{font-size:44px;margin-bottom:12px}
+.cf-ttl{font-size:17px;font-weight:800;color:#1E1B4B;margin-bottom:8px}
+.cf-msg{font-size:14px;color:#6B7280;margin-bottom:24px;line-height:1.5}
+.cf-btns{display:flex;gap:10px}
+.cf-del{flex:1;padding:13px;background:#DC2626;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
+.cf-no{flex:1;padding:13px;background:#F3F4F6;color:#374151;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+
+/* ══ MODULE ROWS ═════════════════════════════════════════════ */
+.mcard{background:#fff;border-radius:18px;padding:16px 20px;margin-bottom:10px;box-shadow:0 2px 10px rgba(0,0,0,.05);border:1px solid #F3F4F6;display:flex;align-items:center;justify-content:space-between}
+.m-info .m-name{font-size:15px;font-weight:700;color:#1E1B4B}
+.m-info .m-id{font-size:11px;color:#9CA3AF;font-family:monospace;margin-top:2px}
+
+/* ══ TOAST ══════════════════════════════════════════════════ */
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);background:#1E1B4B;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;pointer-events:none}
 #toast.show{transform:translateX(-50%) translateY(0)}
-#toast.success{background:#4CAF50}
-#toast.error{background:#F44336}
+#toast.ok{background:#059669}
+#toast.err{background:#DC2626}
+
 </style>
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══════════════════════════════════════════ -->
+<!-- ════════════ LOGIN ════════════════════════════════════════ -->
 <div id="login">
-  <div class="login-box">
-    <div class="login-logo">⚡</div>
+  <div class="lcard">
+    <div class="lico">⚡</div>
     <h1>Clarvoyance</h1>
-    <p>Admin Panel</p>
+    <p>Admin · Content Management</p>
     <input type="password" id="pwd" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()">Enter</button>
-    <div class="login-err" id="login-err">Wrong password. Try again.</div>
+    <button class="lbtn" onclick="doLogin()">Sign In</button>
+    <div class="lerr" id="lerr">Incorrect password. Try again.</div>
   </div>
 </div>
 
-<!-- ═══ APP ═════════════════════════════════════════════ -->
+<!-- ════════════ APP ══════════════════════════════════════════ -->
 <div id="app">
+
   <header>
-    <h1>⚡ Admin Panel</h1>
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <div class="h-left"><span>⚡</span><h1>Clarvoyance Admin</h1></div>
+    <div class="h-right">
+      <button class="hbtn" onclick="loadData()" title="Refresh data">↻ Refresh</button>
+      <button class="hbtn" onclick="logout()">Logout</button>
+    </div>
   </header>
 
+  <!-- Scrollable tab bar — 7 sections -->
   <div class="tabs">
-    <button class="tab-btn active" data-tab="tools"    onclick="switchTab(this)">🛠 Tools</button>
-    <button class="tab-btn"        data-tab="chargers" onclick="switchTab(this)">⚡ Chargers</button>
-    <button class="tab-btn"        data-tab="modules"  onclick="switchTab(this)">📦 Modules</button>
-    <button class="tab-btn"        data-tab="quotes"   onclick="switchTab(this)">💬 Quotes</button>
+    <button class="tab on"  data-p="tools"    onclick="switchTab(this)">🛠 Tools</button>
+    <button class="tab"     data-p="chargers" onclick="switchTab(this)">⚡ Chargers</button>
+    <button class="tab"     data-p="vibe"     onclick="switchTab(this)">🎴 Vibe Cards</button>
+    <button class="tab"     data-p="quotes"   onclick="switchTab(this)">💬 Quotes</button>
+    <button class="tab"     data-p="revise"   onclick="switchTab(this)">📚 Revise</button>
+    <button class="tab"     data-p="channels" onclick="switchTab(this)">📺 Channels</button>
+    <button class="tab"     data-p="modules"  onclick="switchTab(this)">📦 Modules</button>
   </div>
 
-  <!-- ── TOOLS ── -->
-  <div id="pane-tools" class="tab-pane active">
-    <div class="card">
-      <div class="card-title">Add New Tool</div>
-      <div class="row2">
-        <div class="field">
-          <label>Emoji</label>
-          <input class="emoji-inp" id="t-emoji" type="text" placeholder="🧠" maxlength="2">
-        </div>
-        <div class="field">
-          <label>Name</label>
-          <input id="t-name" type="text" placeholder="Tool name">
-        </div>
-      </div>
-      <div class="field">
-        <label>Description</label>
-        <textarea id="t-desc" placeholder="What does this tool help with?"></textarea>
-      </div>
-      <div class="field">
-        <label>Textarea Hint (placeholder)</label>
-        <input id="t-ph" type="text" placeholder="e.g. Write your thoughts here...">
-      </div>
-      <button class="btn-primary" id="t-btn" onclick="addTool()">Add Tool</button>
-    </div>
-    <div class="card">
-      <div class="card-title">Existing Tools</div>
-      <div id="tools-list"><div class="loading-msg">Loading...</div></div>
-    </div>
+  <!-- TOOLS -->
+  <div id="pane-tools" class="pane on">
+    <button class="add-btn" onclick="openToolForm()">＋ Add New Tool</button>
+    <div id="tools-list"><div class="s-load">Loading...</div></div>
   </div>
 
-  <!-- ── CHARGERS ── -->
-  <div id="pane-chargers" class="tab-pane">
-    <div class="card">
-      <div class="card-title">Add New Charger</div>
-      <div class="field">
-        <label>Category</label>
-        <input id="c-cat" type="text" list="cat-opts" placeholder="Type or pick a category">
-        <datalist id="cat-opts"></datalist>
-      </div>
-      <div class="field">
-        <label>Name / Title</label>
-        <input id="c-name" type="text" placeholder="Charger name">
-      </div>
-      <div class="field">
-        <label>Description / Activity</label>
-        <textarea id="c-desc" placeholder="What does the user do?"></textarea>
-      </div>
-      <button class="btn-primary" id="c-btn" onclick="addCharger()">Add Charger</button>
-    </div>
-    <div class="card">
-      <div class="card-title">Existing Chargers</div>
-      <div id="chargers-list"><div class="loading-msg">Loading...</div></div>
-    </div>
+  <!-- CHARGERS: categories + chargers in one pane -->
+  <div id="pane-chargers" class="pane">
+    <div class="sec-lbl">Charger Categories</div>
+    <button class="add-btn" onclick="openCatForm()">＋ Add Category</button>
+    <div id="cats-list"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl">Chargers</div>
+    <button class="add-btn" onclick="openChargerForm()">＋ Add Charger</button>
+    <div id="chargers-list"><div class="s-load">Loading...</div></div>
   </div>
 
-  <!-- ── MODULES ── -->
-  <div id="pane-modules" class="tab-pane">
-    <div class="card">
-      <div class="card-title">Active Modules</div>
-      <p class="hint">Toggle tabs on or off. Changes appear in the app within 60 seconds (cache TTL).</p>
-      <div id="modules-list"><div class="loading-msg">Loading...</div></div>
-    </div>
+  <!-- VIBE CARDS -->
+  <div id="pane-vibe" class="pane">
+    <button class="add-btn" onclick="openVibeForm()">＋ Add Vibe Card</button>
+    <div id="vibe-list"><div class="s-load">Loading...</div></div>
   </div>
 
-  <!-- ── QUOTES ── -->
-  <div id="pane-quotes" class="tab-pane">
-    <div class="card">
-      <div class="card-title">Add New Quote</div>
-      <div class="field">
-        <label>Quote</label>
-        <textarea id="q-text" placeholder="Enter the quote..."></textarea>
-      </div>
-      <div class="field">
-        <label>Author</label>
-        <input id="q-author" type="text" placeholder="Author name">
-      </div>
-      <button class="btn-primary" id="q-btn" onclick="addQuote()">Add Quote</button>
-    </div>
-    <div class="card">
-      <div class="card-title">Existing Quotes</div>
-      <div id="quotes-list"><div class="loading-msg">Loading...</div></div>
+  <!-- QUOTES -->
+  <div id="pane-quotes" class="pane">
+    <button class="add-btn" onclick="openQuoteForm()">＋ Add Quote</button>
+    <div id="quotes-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- REVISE & REPEAT -->
+  <div id="pane-revise" class="pane">
+    <button class="add-btn" onclick="openReviseForm()">＋ Add Revise Item</button>
+    <div id="revise-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- LEARNING CHANNELS -->
+  <div id="pane-channels" class="pane">
+    <button class="add-btn" onclick="openChannelForm()">＋ Add Learning Channel</button>
+    <div id="channels-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- MODULES — toggle only, no add/delete (fixed list) -->
+  <div id="pane-modules" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Toggle app tabs on or off. Changes appear in the app within 60 seconds (cache TTL).</p>
+    <div id="modules-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- ════════════ BOTTOM SHEET ═════════════════════════════════ -->
+<div id="sh-ov" onclick="closeSheet()"></div>
+<div id="sh">
+  <div class="sh-hnd"></div>
+  <div class="sh-hdr">
+    <span class="sh-ttl" id="sh-ttl">Add Item</span>
+    <button class="sh-cls" onclick="closeSheet()">×</button>
+  </div>
+  <div class="sh-body" id="sh-body"></div>
+  <div class="sh-foot">
+    <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
+    <button class="btn-save" id="sh-save" onclick="sheetSave()">Save</button>
+  </div>
+</div>
+
+<!-- ════════════ EMOJI PICKER ════════════════════════════════ -->
+<div id="ep-ov" onclick="closeEP()"></div>
+<div id="ep">
+  <div class="ep-hdr">
+    <div class="ep-hnd"></div>
+    <input class="ep-srch" id="ep-srch" placeholder="🔍 Search emojis..." oninput="filterEP(this.value)">
+    <div class="ep-cats" id="ep-cats"></div>
+  </div>
+  <div class="ep-grid" id="ep-grid"></div>
+</div>
+
+<!-- ════════════ CONFIRM DIALOG ══════════════════════════════ -->
+<div id="cf-ov">
+  <div id="cf-box">
+    <div class="cf-ico">🗑️</div>
+    <div class="cf-ttl">Delete this item?</div>
+    <div class="cf-msg" id="cf-msg">This action cannot be undone.</div>
+    <div class="cf-btns">
+      <button class="cf-no"  onclick="closeConfirm()">Cancel</button>
+      <button class="cf-del" onclick="doConfirm()">Delete</button>
     </div>
   </div>
 </div>
@@ -202,218 +282,657 @@ input:checked+.slider:before{transform:translateX(22px)}
 <div id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  CONFIG — change password & token, token must also
-//  be set in Apps Script as ADMIN_TOKEN constant
-// ══════════════════════════════════════════════════════
-const ADMIN_PASSWORD = 'clv2024';
-const ADMIN_TOKEN    = 'clv_admin_2024';
-const API = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
 
-// All known modules (toggle needs full list, API only returns active ones)
-const ALL_MODULES = [
-  { id: 'vibe_feed',        label: 'Vibe Feed' },
-  { id: 'tools',            label: 'Tools' },
-  { id: 'chargers',         label: 'Mind Chargers' },
-  { id: 'revise_repeat',    label: 'Revise & Repeat' },
-  { id: 'non_negotiables',  label: 'Non-Negotiables' },
-  { id: 'goals',            label: 'Goals' },
+/* ══════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════ */
+const PASS  = 'clv2024';         // Login password — change as needed
+const TOKEN = 'clv_admin_2024';  // Must match ADMIN_TOKEN in Apps Script
+const API   = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
+
+/* Known module definitions — API only returns active ones,
+   so we hardcode the full list for toggle display */
+const MODULE_DEFS = [
+  {id:'vibe_feed',       label:'Vibe Feed',         desc:'The daily card-based exercise feed'},
+  {id:'tools',           label:'Tools',             desc:'Self-reflection tool grid'},
+  {id:'chargers',        label:'Mind Chargers',     desc:'Quick energy boost activities'},
+  {id:'revise_repeat',   label:'Revise & Repeat',   desc:'Spaced review & philosophy content'},
+  {id:'non_negotiables', label:'Non-Negotiables',   desc:'Daily checklist commitments'},
+  {id:'goals',           label:'Goals',             desc:'Goal tracking + vision board'},
 ];
 
-let sheetsData = null;
+/* Vibe card types supported by the app */
+const VIBE_TYPES = ['BREATHING','MOVEMENT','AFFIRMATION','WRITING','QUOTE','CHARGER','TOOL'];
 
-// ── AUTH ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
+   STATE
+   ══════════════════════════════════════════════════════════════ */
+let SD = null;          // Sheets data cache (refreshed on login and ↻)
+let _saveFn    = null;  // Current bottom-sheet save callback
+let _confirmFn = null;  // Current confirm dialog callback
+let _epTarget  = null;  // ID prefix for the emoji field being edited
+
+/* ══════════════════════════════════════════════════════════════
+   AUTH
+   ══════════════════════════════════════════════════════════════ */
 function doLogin() {
-  if (document.getElementById('pwd').value === ADMIN_PASSWORD) {
+  if (document.getElementById('pwd').value === PASS) {
     document.getElementById('login').style.display = 'none';
     const app = document.getElementById('app');
-    app.style.display = 'flex';
-    app.style.flexDirection = 'column';
+    app.style.cssText = 'display:flex;flex-direction:column';
     loadData();
   } else {
-    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('lerr').style.display = 'block';
     document.getElementById('pwd').value = '';
-    document.getElementById('pwd').focus();
   }
 }
-
 function logout() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('login').style.display = 'flex';
   document.getElementById('pwd').value = '';
-  document.getElementById('login-err').style.display = 'none';
+  document.getElementById('lerr').style.display = 'none';
 }
 
-// ── TABS ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════════════════════════════ */
 function switchTab(btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('pane-' + btn.dataset.p).classList.add('on');
 }
 
-// ── DATA ──────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
+   DATA & API
+   ══════════════════════════════════════════════════════════════ */
 async function loadData() {
   try {
-    const res = await fetch(API + '?t=' + Date.now()); // bust client cache
-    sheetsData = await res.json();
-    renderTools(sheetsData.tools || []);
-    renderChargers(sheetsData.chargers || [], sheetsData.charger_categories || []);
-    renderModules(sheetsData.modules || []);
-    renderQuotes(sheetsData.quotes || []);
+    /* Cache-bust with timestamp so we always get fresh data */
+    const res = await fetch(API + '?t=' + Date.now());
+    SD = await res.json();
+    renderTools    (SD.tools             || []);
+    renderCats     (SD.charger_categories|| []);
+    renderChargers (SD.chargers          || []);
+    renderVibeCards(SD.vibe_cards        || []);
+    renderQuotes   (SD.quotes            || []);
+    renderRevise   (SD.revise_repeat     || []);
+    renderChannels (SD.learning_channels || []);
+    renderModules  (SD.modules           || []);
+    toast('Data refreshed ✓', 'ok');
   } catch (e) {
-    toast('Failed to load data — check connection', 'error');
+    toast('Load failed — check connection', 'err');
   }
 }
 
-// ── API WRITE ─────────────────────────────────────────
+/* Single API call helper — appends token and fires GET request */
 async function api(params) {
-  params.token = ADMIN_TOKEN;
-  const qs = new URLSearchParams(params).toString();
-  const res = await fetch(API + '?' + qs);
-  return await res.json();
+  params.token = TOKEN;
+  const res = await fetch(API + '?' + new URLSearchParams(params));
+  const json = await res.json();
+  return json;
 }
 
-// ── TOOLS ─────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════════════
+   BOTTOM SHEET
+   ══════════════════════════════════════════════════════════════ */
+function openSheet(title, html, saveFn) {
+  _saveFn = saveFn;
+  document.getElementById('sh-ttl').textContent = title;
+  document.getElementById('sh-body').innerHTML  = html;
+  const btn = document.getElementById('sh-save');
+  btn.disabled    = false;
+  btn.textContent = 'Save';
+  document.getElementById('sh-ov').style.display = 'block';
+  document.getElementById('sh').classList.add('open');
+}
+function closeSheet() {
+  document.getElementById('sh').classList.remove('open');
+  document.getElementById('sh-ov').style.display = 'none';
+  _saveFn = null;
+}
+async function sheetSave() {
+  if (!_saveFn) return;
+  const btn = document.getElementById('sh-save');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try { await _saveFn(); }
+  catch (e) { toast('Error: ' + e.message, 'err'); }
+  btn.disabled = false; btn.textContent = 'Save';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONFIRM DIALOG
+   ══════════════════════════════════════════════════════════════ */
+function showConfirm(msg, fn) {
+  document.getElementById('cf-msg').textContent = msg;
+  document.getElementById('cf-ov').style.display = 'flex';
+  _confirmFn = fn;
+}
+function doConfirm()   { closeConfirm(); if (_confirmFn) _confirmFn(); }
+function closeConfirm(){ document.getElementById('cf-ov').style.display = 'none'; _confirmFn = null; }
+
+/* ══════════════════════════════════════════════════════════════
+   EMOJI PICKER
+   ══════════════════════════════════════════════════════════════ */
+/* Organized by category for the filter tabs */
+const EP_CATS = {
+  'Mind & Work': ['🧠','💡','🔮','📖','📚','📝','✏️','🖊️','🗒️','📋','🎯','⚙️','🔧','🪄','🧬','🔬','🔭','💻','📱','🖥️'],
+  'Wellness':    ['🧘','🏃','💪','🤸','🏊','🚴','🧗','🌅','🌿','🍃','🌱','🌾','☀️','🌙','🌈','❄️','🔥','💧','🌊','🌬️'],
+  'Energy':      ['⚡','💥','🌟','✨','💫','⭐','🌠','🎆','🎇','🪐','🌌','🌞','🌛','🌝','🪅','🎊','🎉','🏆','🥇','💎'],
+  'People':      ['🙌','👏','🤝','✊','🫶','💖','💝','💛','💚','💙','💜','❤️','🤍','🫂','👁️','🧡','💗','❤️‍🔥','🫀','🧿'],
+  'Nature':      ['🦋','🐝','🦊','🦁','🐯','🦅','🦜','🌳','🌲','🌴','🌵','🍀','🍁','🍂','🍄','🌷','🌹','🌺','🌸','🌼'],
+  'Food':        ['🍎','🍊','🍋','🍇','🍓','🫐','🍒','🥝','🥑','🫖','☕','🍵','🧃','🧁','🍰','🍫','🍬','🥗','🥦','🫚'],
+  'Activities':  ['🎨','🎭','🎮','🕹️','🎲','🧩','🎵','🎶','🎸','🎹','🥁','🎷','🎺','🎻','🎤','🎬','📸','🎡','🎢','🎠'],
+  'Symbols':     ['🔑','🗝️','🔓','🎁','🎀','🌐','🧭','🗺️','🚀','✈️','⛵','🏔️','🌋','🏝️','🏕️','🛸','🪩','🫧','🌀','🔴'],
+};
+const ALL_EP = Object.values(EP_CATS).flat();
+let _epCat = null; // active category filter
+
+function openEP(targetId) {
+  _epTarget = targetId;
+  _epCat    = null;
+  document.getElementById('ep-srch').value = '';
+  /* Render category buttons */
+  document.getElementById('ep-cats').innerHTML =
+    Object.keys(EP_CATS).map(cat =>
+      `<button class="ep-cat" onclick="setEPCat('${cat}',this)">${cat}</button>`
+    ).join('');
+  renderEPGrid(ALL_EP);
+  document.getElementById('ep-ov').style.display = 'block';
+  document.getElementById('ep').classList.add('open');
+}
+function closeEP() {
+  document.getElementById('ep').classList.remove('open');
+  document.getElementById('ep-ov').style.display = 'none';
+  _epTarget = null;
+}
+function setEPCat(cat, btn) {
+  document.querySelectorAll('.ep-cat').forEach(b => b.classList.remove('on'));
+  if (_epCat === cat) { _epCat = null; renderEPGrid(ALL_EP); }
+  else { _epCat = cat; btn.classList.add('on'); renderEPGrid(EP_CATS[cat]); }
+}
+function filterEP(q) {
+  _epCat = null;
+  document.querySelectorAll('.ep-cat').forEach(b => b.classList.remove('on'));
+  renderEPGrid(q ? ALL_EP.filter(e => e.includes(q)) : ALL_EP);
+}
+function renderEPGrid(list) {
+  document.getElementById('ep-grid').innerHTML =
+    list.map(e => `<button class="ep-e" data-e="${e}" onclick="pickEmoji(this.dataset.e)">${e}</button>`).join('');
+}
+function pickEmoji(e) {
+  if (_epTarget) {
+    const prev = document.getElementById(_epTarget + '-prev');
+    const val  = document.getElementById(_epTarget + '-val');
+    if (prev) prev.textContent = e;
+    if (val)  val.value = e;
+  }
+  closeEP();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORM FIELD HELPERS
+   Keeps form-building code concise and consistent
+   ══════════════════════════════════════════════════════════════ */
+function fText(lbl, id, val, ph, hint) {
+  return `<div class="fld"><label>${lbl}</label>
+    <input type="text" id="${id}" value="${x(val)}" placeholder="${ph||''}">
+    ${hint?`<div class="fld-hint">${hint}</div>`:''}</div>`;
+}
+function fArea(lbl, id, val, ph, hint) {
+  return `<div class="fld"><label>${lbl}</label>
+    <textarea id="${id}" placeholder="${ph||''}">${x(val)}</textarea>
+    ${hint?`<div class="fld-hint">${hint}</div>`:''}</div>`;
+}
+function fSel(lbl, id, opts, sel) {
+  const options = opts.map(o => {
+    const v = typeof o === 'object' ? o.v : o;
+    const l = typeof o === 'object' ? o.l : o;
+    return `<option value="${x(v)}" ${v===sel?'selected':''}>${x(l)}</option>`;
+  }).join('');
+  return `<div class="fld"><label>${lbl}</label><select id="${id}">${options}</select></div>`;
+}
+function fEmoji(lbl, id, cur) {
+  const e = cur || '❓';
+  return `<div class="fld"><label>${lbl}</label>
+    <div class="ep-trig">
+      <div class="ep-prev" id="${id}-prev" onclick="openEP('${id}')">${e}</div>
+      <button class="ep-open" type="button" onclick="openEP('${id}')">Tap to choose emoji</button>
+      <input type="hidden" id="${id}-val" value="${x(cur||'')}">
+    </div></div>`;
+}
+function fActive(id, checked) {
+  return `<div class="fld"><label>Status</label>
+    <div class="tgl-wrap">
+      <span>${checked?'Active — visible in app':'Inactive — hidden in app'}</span>
+      <label class="tgl"><input type="checkbox" id="${id}" ${checked?'checked':''}><span class="tgl-sl"></span></label>
+    </div></div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOOLS
+   ══════════════════════════════════════════════════════════════ */
 function renderTools(tools) {
   const el = document.getElementById('tools-list');
-  if (!tools.length) { el.innerHTML = '<div class="empty">No tools yet</div>'; return; }
-  el.innerHTML = tools.map(t => `
-    <div class="list-item">
-      <div class="item-icon">${t.emoji || t.icon || '🛠'}</div>
-      <div class="item-body">
-        <div class="item-name">${esc(t.name)}</div>
-        <div class="item-sub">${esc(t.description || '')}</div>
+  if (!tools.length) { el.innerHTML = empty('🛠','No tools yet — add your first one'); return; }
+  el.innerHTML = tools.map((t, i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-emo">${t.emoji||t.icon||'🛠'}</div>
+        <div class="ic-body">
+          <div class="ic-name">${x(t.name)}</div>
+          <div class="ic-sub">${x(t.description||'No description')}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openToolForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delTool(${i})">Del</button>
+        </div>
+      </div>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">Placeholder</span><span class="dv">${x(t.placeholder||'—')}</span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(t)?'bdg-on':'bdg-off'}">${act(t)?'Active':'Inactive'}</span></span></div>
       </div>
     </div>`).join('');
 }
-
-async function addTool() {
-  const name = v('t-name'), emoji = v('t-emoji'), desc = v('t-desc'), ph = v('t-ph');
-  if (!name) { toast('Tool name is required', 'error'); return; }
-  setBusy('t-btn', true, 'Add Tool');
-  try {
-    const r = await api({ action: 'addTool', name, emoji, description: desc, placeholder: ph });
-    if (r.success) {
-      toast('Tool added!', 'success');
-      ['t-name','t-emoji','t-desc','t-ph'].forEach(clear);
-      await loadData();
-    } else throw new Error(r.error || 'Unknown error');
-  } catch (e) { toast('Error: ' + e.message, 'error'); }
-  setBusy('t-btn', false, 'Add Tool');
+function openToolForm(idx) {
+  const t = idx !== undefined ? (SD.tools||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  openSheet(isEdit ? 'Edit Tool' : 'Add Tool',
+    fEmoji('Emoji', 'tf-emo', t.emoji||t.icon) +
+    fText ('Name *', 'tf-name', t.name, 'e.g. Clarity Tool') +
+    fArea ('Description', 'tf-desc', t.description, 'What does this tool help with?') +
+    fArea ('Placeholder (writing area hint)', 'tf-ph', t.placeholder, 'e.g. Write freely without judgment...', 'Shown inside the text area when empty') +
+    fActive('tf-act', isEdit ? act(t) : true),
+    async () => {
+      const d = { action: isEdit?'editTool':'addTool',
+        name:v('tf-name'), emoji:v('tf-emo-val'), description:v('tf-desc'),
+        placeholder:v('tf-ph'), active:chk('tf-act') };
+      if (!d.name) { toast('Name is required','err'); return; }
+      if (isEdit) d.findName = t.name;
+      const r = await api(d);
+      if (r.success) { toast(isEdit?'Tool updated ✓':'Tool added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(r.error);
+    });
+}
+async function delTool(i) {
+  const t = (SD.tools||[])[i];
+  showConfirm(`Delete tool "${t.name}"? This cannot be undone.`, async () => {
+    const r = await api({ action:'deleteTool', findName:t.name });
+    r.success ? (toast('Tool deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  });
 }
 
-// ── CHARGERS ──────────────────────────────────────────
-function renderChargers(chargers, cats) {
-  const dl = document.getElementById('cat-opts');
-  dl.innerHTML = cats.map(c => `<option value="${esc(c.name || c)}">`).join('');
+/* ══════════════════════════════════════════════════════════════
+   CHARGER CATEGORIES
+   ══════════════════════════════════════════════════════════════ */
+function renderCats(cats) {
+  const el = document.getElementById('cats-list');
+  if (!cats.length) { el.innerHTML = empty('📂','No categories yet'); return; }
+  el.innerHTML = cats.map((c, i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-emo">${c.icon||'📂'}</div>
+        <div class="ic-body">
+          <div class="ic-name">${x(c.name)}</div>
+          <div class="ic-sub">ID: ${x(c.id||'')}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openCatForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delCat(${i})">Del</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function openCatForm(idx) {
+  const c = idx !== undefined ? (SD.charger_categories||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  openSheet(isEdit ? 'Edit Category' : 'Add Category',
+    fEmoji('Icon', 'cc-ico', c.icon) +
+    fText ('Name *', 'cc-name', c.name, 'e.g. Morning Boost') +
+    fText ('ID (slug)', 'cc-id', c.id, 'e.g. morning_boost', 'Leave blank to auto-generate from name'),
+    async () => {
+      const name = v('cc-name'), id = v('cc-id') || slug(v('cc-name'));
+      if (!name) { toast('Name is required','err'); return; }
+      const d = { action:isEdit?'editChargerCategory':'addChargerCategory', name, id, icon:v('cc-ico-val') };
+      if (isEdit) d.findId = c.id;
+      const r = await api(d);
+      if (r.success) { toast(isEdit?'Category updated ✓':'Category added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(r.error);
+    });
+}
+async function delCat(i) {
+  const c = (SD.charger_categories||[])[i];
+  showConfirm(`Delete category "${c.name}"? Chargers in this category may be affected.`, async () => {
+    const r = await api({ action:'deleteChargerCategory', findId:c.id });
+    r.success ? (toast('Category deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  });
+}
 
+/* ══════════════════════════════════════════════════════════════
+   CHARGERS
+   ══════════════════════════════════════════════════════════════ */
+function renderChargers(chargers) {
   const el = document.getElementById('chargers-list');
-  if (!chargers.length) { el.innerHTML = '<div class="empty">No chargers yet</div>'; return; }
-  el.innerHTML = chargers.map(c => `
-    <div class="list-item">
-      <div class="item-body">
-        <div class="item-name">${esc(c.name || c.title || '')}</div>
-        <div class="item-sub">${esc(c.description || c.content || '')}</div>
+  if (!chargers.length) { el.innerHTML = empty('⚡','No chargers yet'); return; }
+  el.innerHTML = chargers.map((c, i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${x(c.name||c.title||'')}</div>
+          <div class="ic-sub">${x(c.description||c.content||'No description')}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openChargerForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delCharger(${i})">Del</button>
+        </div>
       </div>
-      <span class="item-badge">${esc(c.category_name || c.category || '')}</span>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">Category</span><span class="dv"><span class="bdg bdg-type">${x(c.category_name||c.category_id||'—')}</span></span></div>
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bdg-on':'bdg-off'}">${act(c)?'Active':'Inactive'}</span></span></div>
+      </div>
     </div>`).join('');
 }
-
-async function addCharger() {
-  const cat = v('c-cat'), name = v('c-name'), desc = v('c-desc');
-  if (!name) { toast('Name is required', 'error'); return; }
-  setBusy('c-btn', true, 'Add Charger');
-  try {
-    const r = await api({ action: 'addCharger', category: cat, name, description: desc });
-    if (r.success) {
-      toast('Charger added!', 'success');
-      ['c-cat','c-name','c-desc'].forEach(clear);
-      await loadData();
-    } else throw new Error(r.error || 'Unknown error');
-  } catch (e) { toast('Error: ' + e.message, 'error'); }
-  setBusy('c-btn', false, 'Add Charger');
+function openChargerForm(idx) {
+  const c = idx !== undefined ? (SD.chargers||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  const catOpts = (SD.charger_categories||[]).map(cat => ({v:cat.id, l:(cat.icon||'')+ ' ' +cat.name}));
+  openSheet(isEdit ? 'Edit Charger' : 'Add Charger',
+    fSel ('Category *', 'ch-cat', catOpts, c.category_id||'') +
+    fText ('Name *', 'ch-name', c.name||c.title, 'e.g. Take 5 deep breaths') +
+    fArea ('Description / Activity', 'ch-desc', c.description||c.content, 'What does the user do or reflect on?') +
+    fActive('ch-act', isEdit ? act(c) : true),
+    async () => {
+      const d = { action:isEdit?'editCharger':'addCharger',
+        category:v('ch-cat'), name:v('ch-name'), description:v('ch-desc'), active:chk('ch-act') };
+      if (!d.name) { toast('Name is required','err'); return; }
+      if (isEdit) d.findName = c.name||c.title;
+      const r = await api(d);
+      if (r.success) { toast(isEdit?'Charger updated ✓':'Charger added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(r.error);
+    });
+}
+async function delCharger(i) {
+  const c = (SD.chargers||[])[i];
+  showConfirm(`Delete charger "${c.name||c.title}"?`, async () => {
+    const r = await api({ action:'deleteCharger', findName:c.name||c.title });
+    r.success ? (toast('Charger deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  });
 }
 
-// ── MODULES ───────────────────────────────────────────
-function renderModules(activeModules) {
-  const activeIds = new Set((activeModules).map(m => m.id));
-  const el = document.getElementById('modules-list');
-  el.innerHTML = ALL_MODULES.map(m => `
-    <div class="mod-item">
-      <div>
-        <div class="mod-label">${esc(m.label)}</div>
-        <div class="mod-id">${esc(m.id)}</div>
+/* ══════════════════════════════════════════════════════════════
+   VIBE CARDS
+   ══════════════════════════════════════════════════════════════ */
+const TYPE_ICONS = {BREATHING:'🌬️',MOVEMENT:'🏃',AFFIRMATION:'💬',WRITING:'✏️',QUOTE:'💡',CHARGER:'⚡',TOOL:'🛠'};
+
+function renderVibeCards(cards) {
+  const el = document.getElementById('vibe-list');
+  if (!cards.length) { el.innerHTML = empty('🎴','No vibe cards yet'); return; }
+  el.innerHTML = cards.map((c, i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-emo">${c.icon||TYPE_ICONS[c.type]||'🎴'}</div>
+        <div class="ic-body">
+          <div class="ic-name">${x((c.title||c.content||'').slice(0,60))}</div>
+          <div class="ic-sub"><span class="bdg bdg-type">${x(c.type||'')}</span></div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openVibeForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delVibeCard(${i})">Del</button>
+        </div>
       </div>
-      <label class="toggle">
-        <input type="checkbox" ${activeIds.has(m.id) ? 'checked' : ''}
-          onchange="toggleModule('${m.id}', this.checked, this)">
-        <span class="slider"></span>
+      <div class="ic-det">
+        ${c.content?`<div class="dr"><span class="dl">Content</span><span class="dv">${x(c.content.slice(0,120))}${c.content.length>120?'…':''}</span></div>`:''}
+        ${c.timer  ?`<div class="dr"><span class="dl">Timer</span><span class="dv">${c.timer}s</span></div>`:''}
+        ${c.xp     ?`<div class="dr"><span class="dl">XP</span><span class="dv">${c.xp} pts</span></div>`:''}
+        ${c.category?`<div class="dr"><span class="dl">Category</span><span class="dv">${x(c.category)}</span></div>`:''}
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bdg-on':'bdg-off'}">${act(c)?'Active':'Inactive'}</span></span></div>
+      </div>
+    </div>`).join('');
+}
+function openVibeForm(idx) {
+  const c = idx !== undefined ? (SD.vibe_cards||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  const typeOpts = VIBE_TYPES.map(t => ({v:t, l:(TYPE_ICONS[t]||'')+ ' ' +t}));
+  openSheet(isEdit ? 'Edit Vibe Card' : 'Add Vibe Card',
+    fText ('ID', 'vf-id', c.id, 'e.g. breathing_calm_01', 'Unique identifier — leave blank to auto-generate') +
+    fSel  ('Type *', 'vf-type', typeOpts, c.type||'AFFIRMATION') +
+    fText ('Title', 'vf-title', c.title, 'Heading shown on the card') +
+    fArea ('Content *', 'vf-content', c.content, 'Main text shown to the user') +
+    fArea ('Placeholder', 'vf-ph', c.placeholder, 'Hint text inside textarea', 'Only used for WRITING type cards') +
+    `<div class="fld-2">` +
+    fText ('Timer (seconds)', 'vf-timer', c.timer, '30', 'For BREATHING / MOVEMENT / QUOTE') +
+    fText ('XP Points', 'vf-xp', c.xp, '10') +
+    `</div>` +
+    fEmoji('Icon', 'vf-ico', c.icon) +
+    fText ('Category', 'vf-cat', c.category, 'e.g. Focus', 'Used by CHARGER type to group cards') +
+    fActive('vf-act', isEdit ? act(c) : true),
+    async () => {
+      const d = { action:isEdit?'editVibeCard':'addVibeCard',
+        id:v('vf-id')||slug(v('vf-content').slice(0,20)), type:v('vf-type'),
+        title:v('vf-title'), content:v('vf-content'), placeholder:v('vf-ph'),
+        timer:v('vf-timer'), xp:v('vf-xp'), icon:v('vf-ico-val'),
+        category:v('vf-cat'), active:chk('vf-act') };
+      if (!d.content) { toast('Content is required','err'); return; }
+      if (isEdit) d.findId = c.id;
+      const r = await api(d);
+      if (r.success) { toast(isEdit?'Vibe card updated ✓':'Vibe card added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(r.error);
+    });
+}
+async function delVibeCard(i) {
+  const c = (SD.vibe_cards||[])[i];
+  showConfirm(`Delete vibe card "${c.title||c.id||'this card'}"?`, async () => {
+    const r = await api({ action:'deleteVibeCard', findId:c.id });
+    r.success ? (toast('Vibe card deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   QUOTES
+   ══════════════════════════════════════════════════════════════ */
+function renderQuotes(quotes) {
+  const el = document.getElementById('quotes-list');
+  if (!quotes.length) { el.innerHTML = empty('💬','No quotes yet'); return; }
+  el.innerHTML = quotes.map((q, i) => {
+    const text = q.quote||q.text||'';
+    return `<div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name" style="font-style:italic;font-weight:500;white-space:normal">"${x(text.slice(0,120))}${text.length>120?'…':''}"</div>
+          <div class="ic-sub">— ${x(q.author||'Unknown')}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openQuoteForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delQuote(${i})">Del</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openQuoteForm(idx) {
+  const q = idx !== undefined ? (SD.quotes||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  openSheet(isEdit ? 'Edit Quote' : 'Add Quote',
+    fArea('Quote Text *', 'qq-text', q.quote||q.text, 'Enter the full quote...') +
+    fText('Author', 'qq-author', q.author, 'Author name'),
+    async () => {
+      const d = { action:isEdit?'editQuote':'addQuote', quote:v('qq-text'), author:v('qq-author') };
+      if (!d.quote) { toast('Quote text is required','err'); return; }
+      if (isEdit) d.findQuote = q.quote||q.text;
+      const r = await api(d);
+      if (r.success) { toast(isEdit?'Quote updated ✓':'Quote added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(r.error);
+    });
+}
+async function delQuote(i) {
+  const q = (SD.quotes||[])[i];
+  showConfirm('Delete this quote? This cannot be undone.', async () => {
+    const r = await api({ action:'deleteQuote', findQuote:q.quote||q.text });
+    r.success ? (toast('Quote deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REVISE & REPEAT
+   ══════════════════════════════════════════════════════════════ */
+function renderRevise(items) {
+  const el = document.getElementById('revise-list');
+  if (!items.length) { el.innerHTML = empty('📚','No revise items yet'); return; }
+  el.innerHTML = items.map((r, i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${x((r.title||'').slice(0,80))}</div>
+          <div class="ic-sub">${x((r.content||'').slice(0,80))}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openReviseForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delRevise(${i})">Del</button>
+        </div>
+      </div>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(r)?'bdg-on':'bdg-off'}">${act(r)?'Active':'Inactive'}</span></span></div>
+      </div>
+    </div>`).join('');
+}
+function openReviseForm(idx) {
+  const r = idx !== undefined ? (SD.revise_repeat||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  openSheet(isEdit ? 'Edit Revise Item' : 'Add Revise Item',
+    fText ('Title *', 'rv-title', r.title, 'e.g. Morning Routine Steps') +
+    fArea ('Content / Philosophy', 'rv-content', r.content, 'Text content for review...') +
+    fActive('rv-act', isEdit ? act(r) : true),
+    async () => {
+      const d = { action:isEdit?'editRevise':'addRevise',
+        title:v('rv-title'), content:v('rv-content'), active:chk('rv-act') };
+      if (!d.title) { toast('Title is required','err'); return; }
+      if (isEdit) d.findTitle = r.title;
+      /* rv-act alias to avoid conflict with variable name r */
+      const res = await api(d);
+      if (res.success) { toast(isEdit?'Item updated ✓':'Item added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(res.error);
+    });
+}
+async function delRevise(i) {
+  const r = (SD.revise_repeat||[])[i];
+  showConfirm(`Delete revise item "${r.title||'this item'}"?`, async () => {
+    const res = await api({ action:'deleteRevise', findTitle:r.title });
+    res.success ? (toast('Item deleted','ok'), loadData()) : toast('Error: '+res.error,'err');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LEARNING CHANNELS
+   ══════════════════════════════════════════════════════════════ */
+function renderChannels(channels) {
+  const el = document.getElementById('channels-list');
+  if (!channels.length) { el.innerHTML = empty('📺','No channels yet'); return; }
+  el.innerHTML = channels.map((c, i) => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-emo">${c.icon||c.emoji||'📺'}</div>
+        <div class="ic-body">
+          <div class="ic-name">${x(c.name)}</div>
+          <div class="ic-sub">${x(c.url||'')}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openChannelForm(${i})">Edit</button>
+          <button class="ab a-del"  onclick="delChannel(${i})">Del</button>
+        </div>
+      </div>
+      <div class="ic-det">
+        ${c.description?`<div class="dr"><span class="dl">Description</span><span class="dv">${x(c.description)}</span></div>`:''}
+        <div class="dr"><span class="dl">Status</span><span class="dv"><span class="bdg ${act(c)?'bdg-on':'bdg-off'}">${act(c)?'Active':'Inactive'}</span></span></div>
+      </div>
+    </div>`).join('');
+}
+function openChannelForm(idx) {
+  const c = idx !== undefined ? (SD.learning_channels||[])[idx] : {};
+  const isEdit = idx !== undefined;
+  openSheet(isEdit ? 'Edit Learning Channel' : 'Add Learning Channel',
+    fEmoji('Icon', 'lc-ico', c.icon||c.emoji) +
+    fText ('Name *', 'lc-name', c.name, 'e.g. Eckhart Tolle') +
+    fText ('URL *', 'lc-url', c.url, 'https://youtube.com/...') +
+    fArea ('Description', 'lc-desc', c.description, 'What is this channel about?') +
+    fActive('lc-act', isEdit ? act(c) : true),
+    async () => {
+      const d = { action:isEdit?'editChannel':'addChannel',
+        name:v('lc-name'), url:v('lc-url'), icon:v('lc-ico-val'),
+        description:v('lc-desc'), active:chk('lc-act') };
+      if (!d.name || !d.url) { toast('Name and URL are required','err'); return; }
+      if (isEdit) d.findUrl = c.url;
+      const r = await api(d);
+      if (r.success) { toast(isEdit?'Channel updated ✓':'Channel added ✓','ok'); closeSheet(); await loadData(); }
+      else throw new Error(r.error);
+    });
+}
+async function delChannel(i) {
+  const c = (SD.learning_channels||[])[i];
+  showConfirm(`Delete channel "${c.name}"?`, async () => {
+    const r = await api({ action:'deleteChannel', findUrl:c.url });
+    r.success ? (toast('Channel deleted','ok'), loadData()) : toast('Error: '+r.error,'err');
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODULES — toggle only, no add/delete
+   ══════════════════════════════════════════════════════════════ */
+function renderModules(activeModules) {
+  const activeIds = new Set((activeModules||[]).map(m => m.id));
+  document.getElementById('modules-list').innerHTML = MODULE_DEFS.map(m => `
+    <div class="mcard">
+      <div class="m-info">
+        <div class="m-name">${x(m.label)}</div>
+        <div class="m-id">${x(m.id)}</div>
+      </div>
+      <label class="tgl">
+        <input type="checkbox" ${activeIds.has(m.id)?'checked':''}
+          onchange="toggleMod('${m.id}',this.checked,this)">
+        <span class="tgl-sl"></span>
       </label>
     </div>`).join('');
 }
-
-async function toggleModule(moduleId, active, checkbox) {
-  checkbox.disabled = true;
+async function toggleMod(id, active, cb) {
+  cb.disabled = true;
   try {
-    const r = await api({ action: 'toggleModule', moduleId, active: String(active) });
-    if (r.success) toast((active ? 'Enabled: ' : 'Disabled: ') + moduleId, 'success');
-    else throw new Error(r.error || 'Unknown error');
-  } catch (e) {
-    toast('Error: ' + e.message, 'error');
-    checkbox.checked = !active; // revert
-  }
-  checkbox.disabled = false;
+    const r = await api({ action:'toggleModule', moduleId:id, active:String(active) });
+    if (r.success) toast((active ? 'Enabled: ':'Disabled: ') + id, 'ok');
+    else { cb.checked = !active; throw new Error(r.error); }
+  } catch(e) { toast('Error: '+e.message,'err'); }
+  cb.disabled = false;
 }
 
-// ── QUOTES ────────────────────────────────────────────
-function renderQuotes(quotes) {
-  const el = document.getElementById('quotes-list');
-  if (!quotes.length) { el.innerHTML = '<div class="empty">No quotes yet</div>'; return; }
-  el.innerHTML = quotes.map(q => `
-    <div class="list-item">
-      <div class="item-body">
-        <div class="item-name" style="white-space:normal;font-style:italic;font-weight:500">"${esc(q.quote || q.text || '')}"</div>
-        <div class="item-sub">— ${esc(q.author || 'Unknown')}</div>
-      </div>
-    </div>`).join('');
-}
+/* ══════════════════════════════════════════════════════════════
+   UTILITIES
+   ══════════════════════════════════════════════════════════════ */
+/* Read a form field value (trimmed) */
+function v(id) { const el=document.getElementById(id); return el ? el.value.trim() : ''; }
 
-async function addQuote() {
-  const text = v('q-text'), author = v('q-author');
-  if (!text) { toast('Quote text is required', 'error'); return; }
-  setBusy('q-btn', true, 'Add Quote');
-  try {
-    const r = await api({ action: 'addQuote', quote: text, author });
-    if (r.success) {
-      toast('Quote added!', 'success');
-      ['q-text','q-author'].forEach(clear);
-      await loadData();
-    } else throw new Error(r.error || 'Unknown error');
-  } catch (e) { toast('Error: ' + e.message, 'error'); }
-  setBusy('q-btn', false, 'Add Quote');
-}
+/* Read a checkbox state as 'TRUE'/'FALSE' string for Sheets */
+function chk(id) { const el=document.getElementById(id); return (el&&el.checked)?'TRUE':'FALSE'; }
 
-// ── HELPERS ───────────────────────────────────────────
-function v(id) { return document.getElementById(id).value.trim(); }
-function clear(id) { document.getElementById(id).value = ''; }
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-function setBusy(id, busy, label) {
-  const btn = document.getElementById(id);
-  btn.disabled = busy;
-  btn.textContent = busy ? 'Saving...' : label;
-}
+/* Escape HTML special chars for safe innerHTML insertion */
+function x(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+/* Check if an item is active — handles TRUE, 'TRUE', true */
+function act(item) { const a=item.active; return a===true||a==='TRUE'||a==='true'; }
+
+/* Generate a URL-safe slug from text + timestamp suffix to avoid collisions */
+function slug(s) { return s.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'').slice(0,24)+'_'+Date.now().toString(36); }
+
+/* Empty state HTML */
+function empty(icon, msg) { return `<div class="s-empty"><div class="sei">${icon}</div><p>${msg}</p></div>`; }
+
+/* Toast notification (3.2s auto-dismiss) */
 let _tt;
 function toast(msg, type) {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'show ' + (type || '');
+  el.className = 'show' + (type?' '+type:'');
   clearTimeout(_tt);
   _tt = setTimeout(() => { el.className = ''; }, 3200);
 }
+
 </script>
 </body>
 </html>
