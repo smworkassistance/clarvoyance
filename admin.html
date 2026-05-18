@@ -352,7 +352,7 @@ function switchTab(btn) {
    ══════════════════════════════════════════════════════ */
 async function loadData() {
   try {
-    const res = await fetch(API + '?t=' + Date.now()); // bust cache
+    const res = await fetch(API + '?admin=1&token=' + TOKEN + '&t=' + Date.now());
     SD = await res.json();
     renderTools    (SD.tools              || []);
     renderCats     (SD.charger_categories || []);
