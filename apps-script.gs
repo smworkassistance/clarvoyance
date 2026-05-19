@@ -2,6 +2,7 @@ const SHEET_NAMES = ['modules','charger_categories','chargers','charger_rules','
 const CACHE_SECONDS = 60;
 
 const ADMIN_TOKEN = 'clv_admin_2024'; // Must match admin.html
+const CHAT_TOKEN  = 'clv_chat_2024';  // Must match index.html chat IIFE
 
 
 
@@ -295,6 +296,11 @@ if (WRITE_ACTIONS.includes(e.parameter.action)) {
 
 
 const params = e && e.parameter ? e.parameter : {};
+if (params.action === 'chat') {
+  if (!params.token || params.token !== CHAT_TOKEN) return jsonOut({success:false, error:'Unauthorized'});
+  let msgs; try { msgs = JSON.parse(params.messages || '[]'); } catch(e2) { msgs = []; }
+  return handleChat(msgs);
+}
 const isAdmin = params.admin === '1' && params.token === ADMIN_TOKEN;
 const requestedSheet = params.sheet || null;
 const sheetsToFetch = requestedSheet ? [requestedSheet] : SHEET_NAMES;
@@ -329,5 +335,91 @@ sheetsToFetch.forEach(sheetName => {
 
 function clearCache() {
   CacheService.getScriptCache().removeAll(SHEET_NAMES.map(n => 'clarvoyance_'+n).concat(['clarvoyance_all']));
+}
+
+// ── CLAR AI CHAT ─────────────────────────────────────────────────────────────
+function handleChat(messages) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('CLAUDE_API_KEY');
+  if (!apiKey) return jsonOut({success:false, error:'CLAUDE_API_KEY not set in Script Properties'});
+
+  function getActive(sheetName) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+    if (!sheet) return [];
+    const rows = sheet.getDataRange().getValues();
+    if (rows.length < 2) return [];
+    const headers = rows[0];
+    const ai = headers.indexOf('active');
+    return rows.slice(1)
+      .filter(r => ai === -1 || String(r[ai]).toUpperCase() === 'TRUE')
+      .map(r => { const o={}; headers.forEach((h,i)=>o[h]=r[i]); return o; });
+  }
+
+  const tools    = getActive('tools');
+  const chargers = getActive('chargers');
+
+  const toolsList = tools.map(t =>
+    `- ${t.icon||''} ${t.name} [id:${t.id}]: ${t.description}${t.mood?' — best for '+t.mood+' mood':''}`
+  ).join('\n') || 'No tools configured yet.';
+
+  const chargersList = chargers.map(c =>
+    `- ${c.icon||''} ${c.name} [id:${c.id}]: ${c.description}`
+  ).join('\n') || 'No chargers configured yet.';
+
+  const systemPrompt =
+`You are Clar — the warm, emotionally intelligent AI companion inside the Clarvoyance self-development app. You are the user's closest friend: present, non-judgmental, always on their side.
+
+YOUR PERSONALITY:
+- Warm, brief, real. Never lecture or moralize.
+- Listen first, suggest second. Validate before redirecting.
+- Max 2–3 sentences per reply. Keep it like texting a best friend.
+- Mirror the user's language exactly — if they write Hindi, reply in Hindi. Hinglish → Hinglish. English → English.
+
+YOUR FLOW:
+1. First message: ALWAYS ask how they are feeling. cards must be [].
+2. When they share: validate their feeling genuinely first.
+3. Only after they've expressed themselves: suggest 1 tool or charger.
+4. After they use one: ask how it felt — don't pile on more suggestions.
+5. Never suggest more than 1 card at a time.
+
+AVAILABLE TOOLS (writing exercises for mental clarity — lower energy tasks):
+${toolsList}
+
+AVAILABLE CHARGERS (immersive state-shift writing — higher energy tasks):
+${chargersList}
+
+CRITICAL — YOUR ENTIRE RESPONSE MUST BE VALID JSON ONLY. No explanation, no markdown, no other text. Format:
+{"message":"your reply here","cards":[]}
+or with one suggestion:
+{"message":"your reply here","cards":[{"type":"tool","id":"t1"}]}
+or:
+{"message":"your reply here","cards":[{"type":"charger","id":"conf_1"}]}`;
+
+  const payload = {
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 280,
+    system: systemPrompt,
+    messages: messages
+  };
+
+  try {
+    const resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    const data = JSON.parse(resp.getContentText());
+    if (data.error) return jsonOut({success:false, error: data.error.message});
+    const text = (data.content && data.content[0] && data.content[0].text) || '';
+    let parsed;
+    try { parsed = JSON.parse(text); } catch(e) { parsed = {message:text, cards:[]}; }
+    return jsonOut({success:true, reply: parsed.message||'', cards: parsed.cards||[]});
+  } catch(err) {
+    return jsonOut({success:false, error: err.message});
+  }
 }
 
