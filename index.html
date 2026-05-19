@@ -7849,9 +7849,9 @@ html[data-theme="dark"] .hdr{
       if(entry._cards)entry._cards.forEach(function(c){_addCardEl(c);});
       _save();
     })
-    .catch(function(){
+    .catch(function(err){
       _hideTyping();busy=false;
-      _addBubble('assistant','Connection issue. Check your network and try again.');
+      _addBubble('assistant','Error: '+(err&&err.message?err.message:String(err)));
     });
   }
 
