@@ -339,8 +339,8 @@ function clearCache() {
 
 // ── CLAR AI CHAT ─────────────────────────────────────────────────────────────
 function handleChat(messages) {
-  const apiKey = PropertiesService.getScriptProperties().getProperty('CLAUDE_API_KEY');
-  if (!apiKey) return jsonOut({success:false, error:'CLAUDE_API_KEY not set in Script Properties'});
+  const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) return jsonOut({success:false, error:'GEMINI_API_KEY not set in Script Properties'});
 
   function getActive(sheetName) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
@@ -394,27 +394,33 @@ or with one suggestion:
 or:
 {"message":"your reply here","cards":[{"type":"charger","id":"conf_1"}]}`;
 
+  // Convert roles: "assistant" → "model" for Gemini
+  const geminiMessages = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }]
+  }));
+
   const payload = {
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 280,
-    system: systemPrompt,
-    messages: messages
+    system_instruction: { parts: [{ text: systemPrompt }] },
+    contents: geminiMessages,
+    generationConfig: {
+      maxOutputTokens: 300,
+      responseMimeType: 'application/json',
+      thinkingConfig: { thinkingBudget: 0 }
+    }
   };
 
   try {
-    const resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + apiKey;
+    const resp = UrlFetchApp.fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
+      headers: { 'Content-Type': 'application/json' },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     });
     const data = JSON.parse(resp.getContentText());
     if (data.error) return jsonOut({success:false, error: data.error.message});
-    const text = (data.content && data.content[0] && data.content[0].text) || '';
+    const text = data.candidates[0].content.parts[0].text;
     let parsed;
     try { parsed = JSON.parse(text); } catch(e) { parsed = {message:text, cards:[]}; }
     return jsonOut({success:true, reply: parsed.message||'', cards: parsed.cards||[]});
