@@ -330,6 +330,10 @@ function doLogin() {
     document.getElementById('pwd').value = '';
   }
 }
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && SD) loadData();
+});
+
 function logout() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('login').style.display = 'flex';
