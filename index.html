@@ -952,11 +952,29 @@ body{
     </div>
   </div>
 
-  <!-- INLINE WRITING SECTIONS -->
-  <div class="slbl" style="margin-top:4px">✍️ Writing Space — always here, always open</div>
-    <div class="inline-secs" id="tools-container">
-      <div id="tools-loading" style="padding:20px;text-align:center;color:var(--sub);font-size:.85rem">Loading tools...</div>
+  <!-- TOOL WRITER VIEW (hidden until tool card clicked) -->
+  <div id="tool-writer" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <div class="ch-writer-hdr">
+      <button class="ch-back" onclick="toolWriterBack()">← Back</button>
+      <div class="ch-writer-title">
+        <span id="tw-ic">🛠</span>
+        <span id="tw-name"></span>
+      </div>
     </div>
+    <div id="tw-desc" style="padding:8px 16px 2px;font-size:.88rem;color:var(--sub);flex-shrink:0;line-height:1.5"></div>
+    <div class="ch-textarea-wrap">
+      <textarea id="tw-textarea" class="ch-textarea" placeholder="Write here..." oninput="toolWritingCheck(this)"></textarea>
+    </div>
+    <div class="ch-writer-foot">
+      <div id="tw-word-ct" style="flex:1;font-size:.84rem;color:var(--sub);padding:2px 0;transition:color .3s">0 / 30 words</div>
+      <button class="ch-fs-btn" onclick="twToggleFS()" title="Fullscreen">⛶</button>
+    </div>
+  </div>
+
+  <!-- INLINE SECTIONS — legacy registry tools only -->
+  <div class="inline-secs" id="tools-container" style="display:none">
+    <div id="tools-loading" style="padding:20px;text-align:center;color:var(--sub);font-size:.85rem">Loading tools...</div>
+  </div>
 
   <!-- CHARGERS SECTION -->
   <div id="chargers-section" class="ch-section">
@@ -982,10 +1000,10 @@ body{
       </div>
       <div class="ch-rules-panel" id="ch-rules-panel"></div>
       <div class="ch-textarea-wrap">
-        <textarea id="ch-textarea" class="ch-textarea" placeholder="Start writing..."></textarea>
+        <textarea id="ch-textarea" class="ch-textarea" placeholder="Start writing..." oninput="chWritingCheck(this)"></textarea>
       </div>
       <div class="ch-writer-foot">
-        <button class="ch-complete-btn" onclick="chComplete()">Complete ✦ Earn XP</button>
+        <div id="ch-word-ct" style="flex:1;font-size:.84rem;color:var(--sub);padding:2px 0;transition:color .3s">0 / 30 words</div>
         <button class="ch-fs-btn" onclick="chToggleFullscreen()" title="Fullscreen">⛶</button>
       </div>
     </div>
@@ -2246,67 +2264,85 @@ document.addEventListener('sheetsDataReady', function(e){
   tools.forEach(function(t){
     if(!t.name) return;
     var id   = (t.id || t.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''));
-    var secId = 'is-'+id;
-    var taId  = 'ta-'+id;
+    var cardId = 'tc-sheet-'+id;
     var icon  = t.emoji || t.icon || '🛠';
     var name  = t.name;
     var desc  = t.tagline || t.description || '';
-    var ph    = t.placeholder || t.prompt || 'Write freely here...';
 
-    /* Grid card — only add if not already in grid */
-    if(grid && !document.getElementById(secId+'-card')){
+    /* Grid card — opens tool writer panel */
+    if(grid && !document.getElementById(cardId)){
       var card = document.createElement('div');
       card.className = 'tc';
-      card.id = secId+'-card';
-      card.onclick = function(){
-        var tab = document.querySelector('.bnav-tab[data-tab="tools"]');
-        if(tab && window.bnavSwitch) bnavSwitch(tab);
-        setTimeout(function(){
-          var el = document.getElementById(secId);
-          if(el){ el.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'start'}); }
-        }, 220);
-      };
+      card.id = cardId;
+      card.setAttribute('data-tool-id', id);
+      card.onclick = function(){ window.openToolWriter(id); };
       card.innerHTML = '<div class="tce">'+icon+'</div>'
         +'<div class="tcn">'+name+'</div>'
         +'<div class="tcd">'+desc+'</div>';
       grid.appendChild(card);
     }
-
-    /* Inline section — only add if not already present */
-    if(container && !document.getElementById(secId)){
-      var isFS      = (t.fullscreen === 'yes');
-      var isPersist = (t.persist    === 'yes');
-      var fsBtn = isFS ? '<button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();toggleToolFS(\''+secId+'\')">⛶</button>' : '';
-      var sec = document.createElement('div');
-      sec.className = 'isec';
-      sec.id = secId;
-      sec.innerHTML =
-        '<div class="isec-head" onclick="toggleISec(\''+secId+'\')">'
-          +'<div class="isec-meta">'
-            +'<div class="isec-lbl"><span class="ils">'+icon+'</span>'+name+'</div>'
-            +'<div class="isec-desc">'+desc+'</div>'
-          +'</div>'
-          +'<div class="isec-right"><div class="isec-acts">'+fsBtn+'</div><span class="ichev">▾</span></div>'
-        +'</div>'
-        +'<div class="ibody">'
-          +'<textarea class="ita" id="'+taId+'" placeholder="'+ph+'"></textarea>'
-        +'</div>';
-      container.appendChild(sec);
-      /* Wire persistence from sheet setting */
-      if(isPersist){
-        (function(tid, sid){
-          var key = 'clar_dtool_'+sid;
-          setTimeout(function(){
-            var ta = document.getElementById(tid);
-            if(!ta) return;
-            ta.value = localStorage.getItem(key) || '';
-            ta.addEventListener('input', function(){ localStorage.setItem(key, ta.value); });
-          }, 150);
-        })(taId, id);
-      }
-    }
   });
 });
+
+/* ═══ TOOL WRITER — charger-style full writing panel ═══ */
+(function(){
+  var _tool = null, _xpDone = false;
+
+  function minWords(xp){
+    var x = parseInt(xp)||10;
+    return x <= 8 ? 20 : x <= 12 ? 30 : 50;
+  }
+
+  window.openToolWriter = function(toolId){
+    var tools = (window.SHEETS_DATA && window.SHEETS_DATA.tools) || [];
+    var t = tools.find(function(x){ return (x.id||x.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''))===toolId; });
+    if(!t) return;
+    _tool = t; _xpDone = false;
+
+    document.getElementById('tool-grid').style.display = 'none';
+    var sw = document.getElementById('tools-search-wrap'); if(sw) sw.style.display='none';
+    var tw = document.getElementById('tool-writer'); tw.style.cssText='display:flex;flex-direction:column;flex:1;overflow:hidden';
+
+    document.getElementById('tw-ic').textContent   = t.icon||t.emoji||'🛠';
+    document.getElementById('tw-name').textContent = t.name||'';
+    document.getElementById('tw-desc').textContent = t.description||t.tagline||'';
+    var ta = document.getElementById('tw-textarea');
+    ta.placeholder = t.placeholder||'Write freely here...';
+    ta.value = (t.persist==='yes') ? (localStorage.getItem('clar_dtool_'+toolId)||'') : '';
+    var mw = minWords(t.xp);
+    var ct = document.getElementById('tw-word-ct');
+    ct.textContent = '0 / '+mw+' words'; ct.style.color='var(--sub)';
+  };
+
+  window.toolWriterBack = function(){
+    document.getElementById('tool-writer').style.display='none';
+    document.getElementById('tool-grid').style.display='';
+    var sw = document.getElementById('tools-search-wrap'); if(sw) sw.style.display='';
+    _tool=null; _xpDone=false;
+  };
+
+  window.toolWritingCheck = function(ta){
+    if(!_tool) return;
+    var words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+    var mw = minWords(_tool.xp);
+    var ct = document.getElementById('tw-word-ct');
+    var toolId = _tool.id||_tool.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    if(_tool.persist==='yes') localStorage.setItem('clar_dtool_'+toolId, ta.value);
+    if(_xpDone) return;
+    if(words >= mw){
+      _xpDone = true;
+      var xp = parseInt(_tool.xp)||8;
+      if(typeof window.xpAdd==='function') window.xpAdd(xp);
+      ct.textContent='✓ +'+xp+' XP earned!'; ct.style.color='var(--green,#22c55e)';
+    } else {
+      ct.textContent=words+' / '+mw+' words'; ct.style.color='var(--sub)';
+    }
+  };
+
+  window.twToggleFS = function(){
+    var el=document.getElementById('tool-writer'); if(el) el.classList.toggle('tool-fs');
+  };
+})();
 
 /* ═══ VIBE FEED — inject Sheets data when ready ═══ */
 document.addEventListener('sheetsDataReady', function(e){
@@ -4144,10 +4180,33 @@ window.toolSearch = function(val){
 <!-- ═══ MIND CHARGERS ENGINE ═══ -->
 <script>
 (function(){
-  var _currentCatId = null;  // active category
-  var _currentCharger = null; // active charger object
+  var _currentCatId = null;
+  var _currentCharger = null;
   var _rulesOpen = false;
   var _fsActive = false;
+  var _chXpDone = false;
+
+  function _chMinWords(xp){
+    var x = parseInt(xp)||10;
+    return x <= 8 ? 20 : x <= 12 ? 30 : 50;
+  }
+
+  window.chWritingCheck = function(ta){
+    if(!_currentCharger) return;
+    var words = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+    var mw = _chMinWords(_currentCharger.xp);
+    var ct = document.getElementById('ch-word-ct');
+    if(_currentCharger.persist==='yes') localStorage.setItem('ch_'+_currentCharger.id, ta.value);
+    if(_chXpDone) return;
+    if(words >= mw){
+      _chXpDone = true;
+      var xp = parseInt(_currentCharger.xp)||10;
+      if(typeof window.xpAdd==='function') window.xpAdd(xp);
+      if(ct){ ct.textContent='✓ +'+xp+' XP earned!'; ct.style.color='var(--green,#22c55e)'; }
+    } else {
+      if(ct){ ct.textContent=words+' / '+mw+' words'; ct.style.color='var(--sub)'; }
+    }
+  };
 
   // ── Entry point — called when Chargers tab opens ──
   window.renderChargers = function(){
@@ -4265,6 +4324,12 @@ window.toolSearch = function(val){
     }).join('');
     document.getElementById('ch-rules-panel').classList.remove('open');
     document.querySelector('.ch-rules-toggle').textContent='✦ Show Rules';
+
+    // Reset word counter
+    _chXpDone = false;
+    var mw = _chMinWords(charger.xp);
+    var ct = document.getElementById('ch-word-ct');
+    if(ct){ ct.textContent='0 / '+mw+' words'; ct.style.color='var(--sub)'; }
   };
 
   // ── Back to category list (or cats if came from search) ──
