@@ -2274,6 +2274,9 @@ document.addEventListener('sheetsDataReady', function(e){
 
     /* Inline section — only add if not already present */
     if(container && !document.getElementById(secId)){
+      var isFS      = (t.fullscreen === 'yes');
+      var isPersist = (t.persist    === 'yes');
+      var fsBtn = isFS ? '<button class="btn" style="font-size:.7rem;padding:4px 9px" onclick="event.stopPropagation();toggleToolFS(\''+secId+'\')">⛶</button>' : '';
       var sec = document.createElement('div');
       sec.className = 'isec';
       sec.id = secId;
@@ -2283,12 +2286,24 @@ document.addEventListener('sheetsDataReady', function(e){
             +'<div class="isec-lbl"><span class="ils">'+icon+'</span>'+name+'</div>'
             +'<div class="isec-desc">'+desc+'</div>'
           +'</div>'
-          +'<div class="isec-right"><div class="isec-acts"></div><span class="ichev">▾</span></div>'
+          +'<div class="isec-right"><div class="isec-acts">'+fsBtn+'</div><span class="ichev">▾</span></div>'
         +'</div>'
         +'<div class="ibody">'
           +'<textarea class="ita" id="'+taId+'" placeholder="'+ph+'"></textarea>'
         +'</div>';
       container.appendChild(sec);
+      /* Wire persistence from sheet setting */
+      if(isPersist){
+        (function(tid, sid){
+          var key = 'clar_dtool_'+sid;
+          setTimeout(function(){
+            var ta = document.getElementById(tid);
+            if(!ta) return;
+            ta.value = localStorage.getItem(key) || '';
+            ta.addEventListener('input', function(){ localStorage.setItem(key, ta.value); });
+          }, 150);
+        })(taId, id);
+      }
     }
   });
 });
@@ -2304,7 +2319,9 @@ document.addEventListener('sheetsDataReady', function(e){
       VF_TOOLS.push({
         name: t.name,
         emoji: t.emoji || t.icon || '🛠',
-        desc: t.description || t.tagline || t.prompt || ''
+        desc: t.description || t.tagline || t.prompt || '',
+        xp: t.xp,
+        placeholder: t.placeholder
       });
     });
   }
@@ -2433,7 +2450,7 @@ function vfPickCard(){
   /* TOOL — random tool from VF_TOOLS */
   if(type==='TOOL'){
     var tool=VF_TOOLS[Math.floor(Math.random()*VF_TOOLS.length)];
-    return {type:'TOOL',name:tool.name,emoji:tool.emoji||'🛠',desc:tool.desc||''};
+    return {type:'TOOL',name:tool.name,emoji:tool.emoji||'🛠',desc:tool.desc||'',xp:tool.xp,placeholder:tool.placeholder};
   }
   /* GOAL_VISION — random vision image */
   if(type==='GOAL_VISION'){
@@ -2587,9 +2604,10 @@ function _vfQuoteHTML(card){
 
 function _vfToolCardHTML(tool){
   const prompt=tool.desc||tool.description||tool.tagline||'Write freely using this tool. Be honest with yourself.';
+  const ph=tool.placeholder||'Write here...';
   return '<div class="vf-tool-name">'+esc(tool.emoji||'🛠')+' '+esc(tool.name||'Tool')+'</div>'
     +'<div class="vf-card-body" style="font-size:1.2rem;margin-bottom:10px">'+esc(prompt)+'</div>'
-    +'<textarea class="vf-card-inp" id="vf-ta" rows="4" placeholder="Write here..." style="resize:none;line-height:1.6;min-height:88px" oninput="vfWritingCheck(this,10)"></textarea>'
+    +'<textarea class="vf-card-inp" id="vf-ta" rows="4" placeholder="'+esc(ph)+'" style="resize:none;line-height:1.6;min-height:88px" oninput="vfWritingCheck(this,10)"></textarea>'
     +'<div class="vf-char-ct" id="vf-char-ct">0 / 10 — XP unlocks automatically</div>';
 }
 
