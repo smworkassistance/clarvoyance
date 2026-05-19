@@ -7775,7 +7775,8 @@ html[data-theme="dark"] .hdr{
 /* ═══ CLAR AI CHAT ═══ */
 (function(){
   'use strict';
-  var GEMINI_KEY='AIzaSyBvbWkG4Cz2Wm1NnhFkv--DfBMRUMVzs-0';
+  var API='https://script.google.com/macros/s/AKfycbwfZ9nrQBx9hBN1-ZTH5K9Fwe8u0ZBMc_LeYmOSnZTo0A5Ro5eQKF4SsILyKwGihb3GWg/exec';
+  var CHAT_TOKEN='clv_chat_2024';
   var STORE_KEY='clv_chat_session';
   var chatHistory=[];  // [{role,content,_hidden?,_cards?}]
   var busy=false;
@@ -7820,49 +7821,22 @@ html[data-theme="dark"] .hdr{
     _sendToAI();
   };
 
-  function _buildSystemPrompt(){
-    var sd=window.SHEETS_DATA||{};
-    var toolsList=(sd.tools||[]).map(function(t){
-      return '- '+(t.icon||'')+' '+t.name+' [id:'+t.id+']: '+(t.description||'')+(t.mood?' — best for '+t.mood+' mood':'');
-    }).join('\n')||'No tools yet.';
-    var chargersList=(sd.chargers||[]).map(function(c){
-      return '- '+(c.icon||'')+' '+c.name+' [id:'+c.id+']: '+(c.description||'');
-    }).join('\n')||'No chargers yet.';
-    return 'You are Clar — a warm, emotionally intelligent companion inside the Clarvoyance self-development app. You are the user\'s closest friend: present, non-judgmental, always on their side.\n\n'
-      +'YOUR PERSONALITY:\n- Warm, brief, real. Never lecture or moralize.\n- Listen first, suggest second. Validate before redirecting.\n- Max 2-3 sentences per reply. Keep it like texting a best friend.\n- Mirror the user\'s language exactly — Hindi→Hindi, Hinglish→Hinglish, English→English.\n\n'
-      +'YOUR FLOW:\n1. First message: ALWAYS ask how they are feeling. cards must be [].\n2. When they share: validate their feeling genuinely first.\n3. Only after they\'ve expressed themselves: suggest 1 tool or charger.\n4. After they complete it: ask how it felt — never pile on more suggestions immediately.\n5. Never suggest more than 1 card at a time.\n\n'
-      +'AVAILABLE TOOLS (writing exercises for mental clarity):\n'+toolsList+'\n\n'
-      +'AVAILABLE CHARGERS (immersive state-shift writing):\n'+chargersList+'\n\n'
-      +'CRITICAL — YOUR ENTIRE RESPONSE MUST BE VALID JSON ONLY. No markdown, no explanation, nothing else.\n'
-      +'Format: {"message":"your reply here","cards":[]}\n'
-      +'With suggestion: {"message":"your reply","cards":[{"type":"tool","id":"t1"}]}\n'
-      +'Charger: {"message":"your reply","cards":[{"type":"charger","id":"conf_1"}]}';
-  }
-
   function _sendToAI(){
     if(busy)return;
     busy=true;
     _showTyping();
-    var geminiMsgs=chatHistory.slice(-8).map(function(m){
-      return {role:m.role==='assistant'?'model':'user',parts:[{text:String(m.content).slice(0,300)}]};
+    var msgs=chatHistory.slice(-8).map(function(m){
+      return {role:m.role,content:String(m.content).slice(0,300)};
     });
-    var payload={
-      system_instruction:{parts:[{text:_buildSystemPrompt()}]},
-      contents:geminiMsgs,
-      generationConfig:{maxOutputTokens:300,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
-    };
-    fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key='+GEMINI_KEY,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    })
+    var url=API+'?action=chat&token='+encodeURIComponent(CHAT_TOKEN)
+      +'&messages='+encodeURIComponent(JSON.stringify(msgs))
+      +'&t='+Date.now();
+    fetch(url)
     .then(function(r){return r.json();})
     .then(function(data){
       _hideTyping();busy=false;
-      if(data.error){_addBubble('assistant','Error: '+data.error.message);return;}
-      var text=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts[0]?data.candidates[0].content.parts[0].text:'';
-      var parsed;try{parsed=JSON.parse(text);}catch(e){parsed={message:text,cards:[]};}
-      var entry={role:'assistant',content:parsed.message||'',_cards:(parsed.cards&&parsed.cards.length)?parsed.cards:null};
+      if(!data.success){_addBubble('assistant','Error: '+(data.error||'Something went wrong'));return;}
+      var entry={role:'assistant',content:data.reply||'',_cards:(data.cards&&data.cards.length)?data.cards:null};
       chatHistory.push(entry);
       _addBubble('assistant',entry.content);
       if(entry._cards)entry._cards.forEach(function(c){_addCardEl(c);});
