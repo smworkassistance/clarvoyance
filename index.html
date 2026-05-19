@@ -7775,8 +7775,7 @@ html[data-theme="dark"] .hdr{
 /* ═══ CLAR AI CHAT ═══ */
 (function(){
   'use strict';
-  var API='https://script.google.com/macros/s/AKfycbwfZ9nrQBx9hBN1-ZTH5K9Fwe8u0ZBMc_LeYmOSnZTo0A5Ro5eQKF4SsILyKwGihb3GWg/exec';
-  var CHAT_TOKEN='clv_chat_2024';
+  var WORKER_URL='https://cold-frog-d555.smworkassistance.workers.dev/';
   var STORE_KEY='clv_chat_session';
   var chatHistory=[];  // [{role,content,_hidden?,_cards?}]
   var busy=false;
@@ -7825,18 +7824,26 @@ html[data-theme="dark"] .hdr{
     if(busy)return;
     busy=true;
     _showTyping();
-    var msgs=chatHistory.slice(-8).map(function(m){
-      return {role:m.role,content:String(m.content).slice(0,300)};
+    var sd=window.SHEETS_DATA||{};
+    var toolsList=(sd.tools||[]).map(function(t){return '- '+(t.icon||'')+' '+t.name+' [id:'+t.id+']: '+(t.description||'');}).join('\n')||'No tools yet.';
+    var chargersList=(sd.chargers||[]).map(function(c){return '- '+(c.icon||'')+' '+c.name+' [id:'+c.id+']: '+(c.description||'');}).join('\n')||'No chargers yet.';
+    var systemPrompt='You are Clar — a warm, emotionally intelligent companion inside the Clarvoyance self-development app. You are the user\'s closest friend: present, non-judgmental, always on their side.\n\nYOUR PERSONALITY:\n- Warm, brief, real. Never lecture.\n- Listen first, suggest second. Validate before redirecting.\n- Max 2-3 sentences per reply. Like texting a best friend.\n- Mirror the user\'s language — Hindi→Hindi, Hinglish→Hinglish, English→English.\n\nYOUR FLOW:\n1. First message: ALWAYS ask how they are feeling. cards must be [].\n2. When they share: validate first.\n3. Only then: suggest 1 tool or charger.\n4. After they complete it: ask how it felt.\n5. Never suggest more than 1 card at a time.\n\nAVAILABLE TOOLS:\n'+toolsList+'\n\nAVAILABLE CHARGERS:\n'+chargersList+'\n\nCRITICAL: Respond with VALID JSON ONLY. No markdown, no extra text.\nFormat: {"message":"your reply","cards":[]}\nWith card: {"message":"your reply","cards":[{"type":"tool","id":"t1"}]}';
+    var geminiMsgs=chatHistory.slice(-8).map(function(m){
+      return {role:m.role==='assistant'?'model':'user',parts:[{text:String(m.content).slice(0,300)}]};
     });
-    var url=API+'?action=chat&token='+encodeURIComponent(CHAT_TOKEN)
-      +'&messages='+encodeURIComponent(JSON.stringify(msgs))
-      +'&t='+Date.now();
-    fetch(url)
+    var payload={
+      system_instruction:{parts:[{text:systemPrompt}]},
+      contents:geminiMsgs,
+      generationConfig:{maxOutputTokens:300,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
+    };
+    fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(r){return r.json();})
     .then(function(data){
       _hideTyping();busy=false;
-      if(!data.success){_addBubble('assistant','Error: '+(data.error||'Something went wrong'));return;}
-      var entry={role:'assistant',content:data.reply||'',_cards:(data.cards&&data.cards.length)?data.cards:null};
+      if(data.error){_addBubble('assistant','Error: '+data.error.message);return;}
+      var text=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts[0]?data.candidates[0].content.parts[0].text:'';
+      var parsed;try{parsed=JSON.parse(text);}catch(e){parsed={message:text,cards:[]};}
+      var entry={role:'assistant',content:parsed.message||'',_cards:(parsed.cards&&parsed.cards.length)?parsed.cards:null};
       chatHistory.push(entry);
       _addBubble('assistant',entry.content);
       if(entry._cards)entry._cards.forEach(function(c){_addCardEl(c);});
