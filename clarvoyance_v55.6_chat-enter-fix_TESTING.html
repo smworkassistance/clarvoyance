@@ -8134,7 +8134,7 @@ html[data-theme="dark"] .hdr{
   }
   function _hideTyping(){
     var container=document.getElementById('chat-messages');
-    if(container){var all=container.querySelectorAll('.chat-typing');for(var i=all.length-1;i>=0;i--)all[i].remove();}
+    if(container){var all=container.querySelectorAll('.chat-typing');all.forEach(function(el){el.remove();});}
     typingEl=null;
   }
   function _save(){try{localStorage.setItem(STORE_KEY,JSON.stringify({date:new Date().toDateString(),history:chatHistory}));}catch(e){}}

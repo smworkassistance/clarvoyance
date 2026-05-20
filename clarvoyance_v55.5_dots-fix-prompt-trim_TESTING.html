@@ -7878,7 +7878,6 @@ html[data-theme="dark"] .hdr{
   var chatHistory=[];
   var busy=false;
   var typingEl=null;
-  var _pendingUserMsg=false;
 
   // Profile is now a full tab — opened via header chip
   window.chatProfileOpen=function(){if(window.openProfileTab)openProfileTab();};
@@ -7950,12 +7949,9 @@ html[data-theme="dark"] .hdr{
       chatHistory=saved.history;
       _renderAll();
     } else {
-      var _idData={};try{_idData=JSON.parse(localStorage.getItem('clv_user_identity')||'{}');}catch(e){}
-      var _nick=_idData.name||localStorage.getItem('clv_nick')||'';
-      var _greet=_nick?'Hey '+_nick+'! How are you feeling today?':'Hey! How are you feeling today?';
-      chatHistory=[{role:'user',content:'hi',_hidden:true},{role:'assistant',content:_greet}];
+      chatHistory=[{role:'user',content:'start',_hidden:true}];
       container.innerHTML='';
-      _addBubble('assistant',_greet);
+      _sendToAI();
     }
   };
 
@@ -7971,6 +7967,7 @@ html[data-theme="dark"] .hdr{
   }
 
   window.chatSend=function(){
+    if(busy)return;
     var input=document.getElementById('chat-input');
     var text=input.value.trim();
     if(!text)return;
@@ -7978,7 +7975,6 @@ html[data-theme="dark"] .hdr{
     chatHistory.push({role:'user',content:text});
     _addBubble('user',text);
     _save();
-    if(busy){_pendingUserMsg=true;return;}
     _sendToAI();
   };
 
@@ -8015,7 +8011,7 @@ html[data-theme="dark"] .hdr{
           setTimeout(function(){_hideTyping();busy=false;_sendToAI();},6000);
           return;
         }
-        _pendingUserMsg=false;_hideTyping();busy=false;
+        _hideTyping();busy=false;
         _addBubble('assistant','Something went wrong. ('+msg+')');return;
       }
       _hideTyping();busy=false;
@@ -8031,7 +8027,6 @@ html[data-theme="dark"] .hdr{
       _addBubble('assistant',entry.content);
       if(entry._cards)entry._cards.forEach(function(c){_addCardEl(c);});
       _save();
-      if(_pendingUserMsg){_pendingUserMsg=false;_sendToAI();}
     })
     .catch(function(err){
       clearTimeout(reqTimer);
@@ -8040,7 +8035,7 @@ html[data-theme="dark"] .hdr{
         setTimeout(function(){_hideTyping();busy=false;_sendToAI();},4000);
         return;
       }
-      _retries=0;_pendingUserMsg=false;
+      _retries=0;
       _hideTyping();busy=false;
       _addBubble('assistant','Connection issue. Check your network and try again.');
     });
@@ -8134,7 +8129,7 @@ html[data-theme="dark"] .hdr{
   }
   function _hideTyping(){
     var container=document.getElementById('chat-messages');
-    if(container){var all=container.querySelectorAll('.chat-typing');for(var i=all.length-1;i>=0;i--)all[i].remove();}
+    if(container){var all=container.querySelectorAll('.chat-typing');all.forEach(function(el){el.remove();});}
     typingEl=null;
   }
   function _save(){try{localStorage.setItem(STORE_KEY,JSON.stringify({date:new Date().toDateString(),history:chatHistory}));}catch(e){}}
