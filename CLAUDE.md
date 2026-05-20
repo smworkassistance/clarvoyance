@@ -50,6 +50,7 @@ STATUS: TESTING | STABLE
 | v47 | Daily quest home-only, NN on home screen, NN edit + subpoints, tab swap |
 | v48 | UI polish — tools grid, XP display size, tray layout, skip hint, next btn removed |
 | v51 | Full visual redesign — Unified Material Design style (Claude Design output) |
+| v52 | Clar AI companion chat — Gemini 2.5 Flash via Cloudflare Worker proxy |
 
 ---
 
@@ -218,4 +219,4 @@ Next button after task complete = clean advance (green "Continue ↑").
 
 ---
 
-*Last updated: 2026-05-19 — v51 session*
+*Last updated: 2026-05-20 — v52 session*
