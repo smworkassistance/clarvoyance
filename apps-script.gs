@@ -1,4 +1,4 @@
-const SHEET_NAMES = ['modules','charger_categories','chargers','charger_rules','tools','vibe_cards','quotes','revise_repeat','learning_channels'];
+const SHEET_NAMES = ['modules','charger_categories','chargers','charger_rules','tools','vibe_cards','quotes','revise_repeat','learning_channels','ai_context'];
 const CACHE_SECONDS = 60;
 
 const ADMIN_TOKEN = 'clv_admin_2024'; // Must match admin.html
@@ -331,6 +331,11 @@ sheetsToFetch.forEach(sheetName => {
   const json = JSON.stringify(data);
   cache.put(cacheKey, json, CACHE_SECONDS);
   return ContentService.createTextOutput(json).setMimeType(ContentService.MimeType.JSON);
+}
+
+function testChat() {
+  const result = handleChat([{role:'user', content:'Hello'}]);
+  Logger.log(result.getContent());
 }
 
 function clearCache() {

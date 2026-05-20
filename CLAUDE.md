@@ -51,6 +51,7 @@ STATUS: TESTING | STABLE
 | v48 | UI polish — tools grid, XP display size, tray layout, skip hint, next btn removed |
 | v51 | Full visual redesign — Unified Material Design style (Claude Design output) |
 | v52 | Clar AI companion chat — Gemini 2.5 Flash via Cloudflare Worker proxy |
+| v53 | Intelligent Clar AI — full context system prompt, user profile, daily summaries, auto-profile update |
 
 ---
 
@@ -73,6 +74,13 @@ https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjj
 | `quotes` | Curated quotes (injected into Revise tab + vibe feed) |
 | `revise_repeat` | Revise & Repeat section content |
 | `learning_channels` | Learning channel links |
+| `ai_context` | Key-value pairs driving Clar AI system prompt (evolvable without code changes) |
+
+**`ai_context` sheet columns:** `key | value`
+Keys used: `identity` `philosophy` `conversation_flow` `disclaimer`
+
+**AI-context columns on `tools`, `chargers`, `vibe_cards`:** `ai_why | ai_best_for | ai_how_to_use`
+These are optional — when filled, they make Clar's suggestions more precise and contextual.
 
 **Caching:** Apps Script server cache = 60s. Client localStorage cache = 60s (key: `clv_sheets_cache`).
 
@@ -131,6 +139,9 @@ K = {
 // clar_mood_date    — date of last mood log
 // clar_xp           — total XP / vibration score
 // clarQuotes        — user's My Quotes (shown in vibe feed)
+// clv_chat_session  — {date, history[]} today's Clar AI conversation
+// clv_user_profile  — {present_challenge, permanent_challenge, goal, intention}
+// clv_chat_summaries — [{date, summary}] last 7 days of conversation digests
 ```
 
 ---
@@ -200,6 +211,48 @@ Next button after task complete = clean advance (green "Continue ↑").
 
 ---
 
+## Clar AI Architecture
+
+### Overview
+Clar is an AI companion tab powered by Gemini 2.5 Flash (free tier) via a Cloudflare Worker proxy. The API key lives server-side in the worker — never in the browser or GitHub.
+
+**Cloudflare Worker URL:** `https://cold-frog-d555.smworkassistance.workers.dev/`
+(Passes the request body directly to Gemini; adds API key server-side; returns raw Gemini response)
+
+### System Prompt (`_buildSystemPrompt`)
+Built fresh on each API call from:
+1. `SHEETS_DATA.ai_context` — identity, philosophy, conversation_flow, disclaimer rows
+2. `localStorage clv_nick` — user's nickname
+3. `localStorage c9_emo` — mood index → label
+4. `localStorage clv_user_profile` — present_challenge, permanent_challenge, goal, intention
+5. `localStorage clv_chat_summaries` — last 7 days of conversation digests
+6. `SHEETS_DATA.tools` + `SHEETS_DATA.chargers` — with ai_why / ai_best_for / ai_how_to_use columns if filled
+
+### AI Response JSON Format
+```json
+{"message":"...","cards":[{"type":"tool","id":"t1"}],"profile_update":{"present_challenge":"..."}}
+```
+- `cards`: empty array or 1 card (tool or charger by id) — rendered inline as tappable card
+- `profile_update`: if Clar infers user's challenge from conversation, auto-saved to `clv_user_profile`
+
+### Daily Summaries
+On each new day's first `initChat`, yesterday's last 4 messages are compressed into a one-line summary and saved to `clv_chat_summaries` (max 7 entries). Injected into every system prompt for continuity.
+
+### User Profile Modal
+Accessible via 👤 button in chat header. 4 fields: present_challenge, permanent_challenge, goal, intention. Also auto-updated by Clar when it infers context from the conversation.
+
+### Key Chat Functions
+| Function | What |
+|----------|------|
+| `initChat()` | Entry point — restores today's session or starts fresh |
+| `chatSend()` | User message → history → AI |
+| `_buildSystemPrompt()` | Assembles full context from sheets + localStorage |
+| `_sendToAI()` | Calls Cloudflare Worker with payload |
+| `_addCardEl(card)` | Renders inline tappable tool/charger card |
+| `chatProfileOpen/Close/Save()` | Profile modal controls |
+
+---
+
 ## Deliberately Deferred (not built yet)
 - Challenges sheet (40 research-backed challenges) — Apps Script SHEET_NAMES needs `challenges` added
 - Quest system linked to challenges sheet
@@ -219,4 +272,4 @@ Next button after task complete = clean advance (green "Continue ↑").
 
 ---
 
-*Last updated: 2026-05-20 — v52 session*
+*Last updated: 2026-05-20 — v53 session*
