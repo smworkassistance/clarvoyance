@@ -622,6 +622,20 @@ body{
 .chat-input:focus{border-color:var(--acc)}
 .chat-send-btn{width:42px;height:42px;border-radius:14px;background:var(--acc);color:#fff;border:none;font-size:1.25rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;transition:opacity .15s}
 .chat-send-btn:active{opacity:.8}
+/* Inline interactive cards */
+.chat-icard{align-self:flex-start;width:100%;background:var(--su);border:2px solid var(--acc);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--sh)}
+.chat-icard.completed{border-color:var(--bo);opacity:.7}
+.cic-head{display:flex;align-items:center;gap:10px}
+.cic-ico{font-size:1.5rem;flex-shrink:0}
+.cic-name{font-weight:700;font-size:.95rem;color:var(--tx)}
+.cic-type{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--acc);margin-top:2px}
+.cic-prompt{font-size:.84rem;color:var(--sub);line-height:1.55}
+.cic-ta{border:1.5px solid var(--bo);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:.88rem;color:var(--tx);background:var(--bg);resize:none;outline:none;width:100%;box-sizing:border-box;min-height:70px;line-height:1.5;transition:border-color .2s}
+.cic-ta:focus{border-color:var(--acc)}
+.cic-done{background:var(--acc);color:#fff;border:none;border-radius:12px;padding:11px;font-size:.9rem;font-weight:700;cursor:pointer;width:100%;-webkit-tap-highlight-color:transparent;transition:background .2s}
+.cic-done.charged{background:#6c5ce7}
+.cic-done.finished{background:#27ae60;pointer-events:none}
+.cic-done:active{opacity:.85}
 .chat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--bo);flex-shrink:0;background:var(--su)}
 .chat-header-title{font-weight:700;font-size:1rem;color:var(--tx)}
 .chat-profile-btn{background:none;border:1.5px solid var(--bo);border-radius:10px;width:36px;height:36px;cursor:pointer;font-size:1rem;color:var(--sub);display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
@@ -636,7 +650,7 @@ body{
 .cpm-field{border:1.5px solid var(--bo);border-radius:12px;padding:10px 12px;font-family:inherit;font-size:.9rem;color:var(--tx);background:var(--su);resize:none;outline:none;width:100%;box-sizing:border-box;line-height:1.5}
 .cpm-field:focus{border-color:var(--acc)}
 .cpm-disclaimer{font-size:.76rem;color:var(--sub);padding:8px 10px;background:var(--bo);border-radius:10px;margin-top:4px;line-height:1.5}
-.cpm-save{background:var(--acc);color:#fff;border:none;border-radius:14px;padding:13px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:6px;width:100%;-webkit-tap-highlight-color:transparent}
+.cpm-save{background:var(--acc);color:#fff;border:none;border-radius:14px;padding:13px;font-size:1rem;font-weight:700;cursor:pointer;margin-top:6px;width:100%;-webkit-tap-highlight-color:transparent;position:sticky;bottom:0;z-index:1}
 .cpm-save:active{opacity:.85}
 
 /* ═══ BOTTOM NAV ═══ */
@@ -1103,10 +1117,6 @@ body{
 
 </div><!-- /main -->
 
-<!-- FABs -->
-<div class="fab-wrap">
-  <button class="fab" onclick="openPanel('ideas')" style="font-size:1.6rem;padding:0;width:52px;height:52px;border-radius:50%;align-self:flex-end;justify-content:center" title="Ideas">＋</button>
-</div>
 
 <!-- PANEL -->
 <div class="panel-ov hidden" id="panel-ov" onclick="panelOvClk(event)">
@@ -7894,7 +7904,7 @@ html[data-theme="dark"] .hdr{
       +(profile.goal?'- Goal: '+profile.goal+'\n':'')
       +(profile.intention?'- Daily intention: '+profile.intention+'\n':'')
       +'\nPAST 7-DAY CONTEXT:\n'+summaryText+'\n\n'
-      +'PERSONALITY:\n- Warm, brief, real. Never lecture. Max 2-3 sentences per reply — like texting a best friend.\n- Listen first, suggest second. Validate before redirecting.\n- Mirror the user\'s language — Hindi→Hindi, Hinglish→Hinglish, English→English.\n\n'
+      +'PERSONALITY:\n- Warm, brief, real. Never lecture. Max 2-3 sentences per reply — like texting a best friend.\n- ALWAYS use the user\'s name ('+nick+') naturally — especially in the opening greeting and occasionally through the conversation.\n- Listen first, suggest second. Validate before redirecting.\n- Mirror the user\'s language — Hindi→Hindi, Hinglish→Hinglish, English→English.\n\n'
       +'CONVERSATION FLOW:\n'+flow+'\n\n'
       +'AVAILABLE TOOLS (suggest by id):\n'+toolsList+'\n\n'
       +'AVAILABLE CHARGERS (suggest by id):\n'+chargersList+'\n\n'
@@ -7998,27 +8008,37 @@ html[data-theme="dark"] .hdr{
     if(card.type==='tool')d=(sd.tools||[]).find(function(t){return t.id===card.id;});
     else if(card.type==='charger')d=(sd.chargers||[]).find(function(c){return c.id===card.id;});
     if(!d)return;
+    var isCharger=card.type==='charger';
+    var uid='cic-'+Date.now();
+    var prompt=d.ai_how_to_use||d.description||'';
     var container=document.getElementById('chat-messages');
     var div=document.createElement('div');
-    div.className='chat-card';
-    div.innerHTML='<div class="chat-card-ic">'+(d.icon||'✨')+'</div>'
-      +'<div class="chat-card-info"><div class="chat-card-name">'+d.name+'</div>'
-      +'<div class="chat-card-desc">'+(d.ai_best_for||d.description||'')+'</div></div>'
-      +'<div class="chat-card-arrow">→</div>';
-    var type=card.type,id=card.id;
-    div.onclick=function(){
-      if(type==='tool'){
-        var t=document.querySelector('.bnav-tab[data-tab="tools"]');
-        if(t&&window.bnavSwitch)bnavSwitch(t);
-        setTimeout(function(){if(window.openToolWriter)openToolWriter(id);},130);
-      } else {
-        var c=document.querySelector('.bnav-tab[data-tab="chargers"]');
-        if(c&&window.bnavSwitch)bnavSwitch(c);
-        setTimeout(function(){if(window.chOpenWriter)chOpenWriter(id);},130);
-      }
-    };
+    div.className='chat-icard';
+    div.id=uid;
+    div.innerHTML='<div class="cic-head">'
+      +'<span class="cic-ico">'+(d.icon||'✨')+'</span>'
+      +'<div><div class="cic-name">'+d.name+'</div><div class="cic-type">'+(isCharger?'Charger':'Tool')+'</div></div>'
+      +'</div>'
+      +(prompt?'<div class="cic-prompt">'+prompt+'</div>':'')
+      +(!isCharger?'<textarea class="cic-ta" placeholder="Write here..."></textarea>':'')
+      +'<button class="cic-done'+(isCharger?' charged':'')+'">'+( isCharger?'I\'m Charged ⚡':'Done ✓')+'</button>';
+    var type=card.type,id=card.id,name=d.name;
+    div.querySelector('.cic-done').onclick=function(){_completeCard(uid,type,name,div,isCharger);};
     container.appendChild(div);
     container.scrollTop=container.scrollHeight;
+  }
+
+  function _completeCard(uid,type,name,cardEl,isCharger){
+    var ta=cardEl.querySelector('.cic-ta');
+    var text=ta?ta.value.trim():'';
+    var btn=cardEl.querySelector('.cic-done');
+    btn.textContent='✓ Done!';btn.classList.add('finished');
+    cardEl.classList.add('completed');
+    var msg=isCharger?'I completed the "'+name+'" charger.':'I used the "'+name+'" tool.'+(text?' Here\'s what came up: '+text:'');
+    chatHistory.push({role:'user',content:msg,_hidden:false});
+    _addBubble('user',msg);
+    _save();
+    _sendToAI();
   }
 
   function _showTyping(){
