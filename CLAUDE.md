@@ -52,6 +52,7 @@ STATUS: TESTING | STABLE
 | v51 | Full visual redesign — Unified Material Design style (Claude Design output) |
 | v52 | Clar AI companion chat — Gemini 2.5 Flash via Cloudflare Worker proxy |
 | v53 | Intelligent Clar AI — full context system prompt, user profile, daily summaries, auto-profile update |
+| v56 | Clar persona selection — 4 styles (Best Friend, Wise Guide, Coach, Nurturer) in onboarding + profile |
 
 ---
 
@@ -272,4 +273,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-20 — v53 session*
+*Last updated: 2026-05-21 — v56 session*
