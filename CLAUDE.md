@@ -53,6 +53,7 @@ STATUS: TESTING | STABLE
 | v52 | Clar AI companion chat — Gemini 2.5 Flash via Cloudflare Worker proxy |
 | v53 | Intelligent Clar AI — full context system prompt, user profile, daily summaries, auto-profile update |
 | v56 | Clar persona selection — 4 styles (Best Friend, Wise Guide, Coach, Nurturer) in onboarding + profile |
+| v57 | Clar conversation flow — 3-phase model, Talk/Act session intent chips, card reason rendering |
 
 ---
 
@@ -102,9 +103,11 @@ id | type | title | content | placeholder | timer | xp | icon | category | activ
 
 ### Onboarding Flow (first launch only)
 ```
-Language select → Nickname input → Daily mood select → App opens
-Keys: clar_lang | clv_nick | clar_mood_date
+Language select → Nickname input → Daily mood select → Clar persona select → App opens
+Keys: clar_lang | clv_nick | clar_mood_date | clv_clar_persona
 ```
+**Persona options:** `bestfriend` | `guide` | `coach` | `nurturer`
+Changeable anytime from Profile (👤 button in chat header).
 
 ### Tab Structure (bottom nav)
 | Tab key | What | Module ID in Sheets |
@@ -140,9 +143,11 @@ K = {
 // clar_mood_date    — date of last mood log
 // clar_xp           — total XP / vibration score
 // clarQuotes        — user's My Quotes (shown in vibe feed)
-// clv_chat_session  — {date, history[]} today's Clar AI conversation
+// clv_chat_session  — {date, history[], intent} today's Clar AI conversation
+//   intent: 'talk' | 'act' | null — set by session intent tap at start of session
 // clv_user_profile  — {present_challenge, permanent_challenge, goal, intention}
 // clv_chat_summaries — [{date, summary}] last 7 days of conversation digests
+// clv_clar_persona  — 'bestfriend' | 'guide' | 'coach' | 'nurturer'
 ```
 
 ---
@@ -231,10 +236,60 @@ Built fresh on each API call from:
 
 ### AI Response JSON Format
 ```json
-{"message":"...","cards":[{"type":"tool","id":"t1"}],"profile_update":{"present_challenge":"..."}}
+{"message":"...","cards":[{"type":"tool","id":"t1","reason":"short personal reason why this card right now"}],"profile_update":{"present_challenge":"..."}}
 ```
 - `cards`: empty array or 1 card (tool or charger by id) — rendered inline as tappable card
+- `cards[].reason`: optional short string — personal reason why this specific card for this moment, shown below the card chip
 - `profile_update`: if Clar infers user's challenge from conversation, auto-saved to `clv_user_profile`
+
+### Clar Conversation Philosophy (core — do not compromise)
+
+**The fundamental principle: Earn the right to suggest.**
+Clar's first job is not to help. It is to make the person feel *completely heard*. The moment you suggest something, you signal "I've heard enough." That closes people down. A suggestion only lands when the person is open — and they only open when they feel safe.
+
+**The trust loop:**
+```
+Person feels heard → opens up more → trust builds → becomes open to suggestion → suggestion lands → person acts → feels better → trusts Clar more
+```
+Without the trust loop, cards are just interruptions.
+
+**Three-phase conversation model:**
+
+| Phase | Name | What Clar does | Cards |
+|-------|------|----------------|-------|
+| Phase 1 | Hear | Reflect back what was shared. Ask ONE deeper follow-up. No agenda. | `[]` always |
+| Phase 2 | Understand | Keep listening. Build a genuine picture of their emotional state. Watch for the "exhale" — when their tone shifts from heavy to lighter/clearer. | `[]` always |
+| Phase 3 | Sense the moment | When the exhale comes: suggest one action confidently, with a personal reason. Not a question — a statement. | 1 card max |
+
+**The "exhale" signal** — what to watch for:
+- Person has said what they needed to say (topic naturally closes)
+- Tone shifts: less urgent, more reflective, or slight positivity emerges
+- They use words like "haan", "theek hai", "samjha", "ab kya karun"
+- Minimum 2-3 exchanges have happened regardless
+
+**How to suggest in Phase 3 (critical):**
+- Confident statement, NOT a submissive question ("kya tum try karna chahoge?" is WRONG)
+- Frame it around the rising momentum: "Ab jo positivity aa rahi hai — isko pakad le"
+- The reason must be personal — reference something specific from *this* conversation
+- Short reason: why THIS card for THIS person RIGHT NOW
+- If resistance (short reply, redirect, silence): acknowledge, continue conversation, try again after 2+ more exchanges
+- Goal is upliftment, not compliance — if the person isn't ready, keep building trust
+
+**Session intent (v57+):**
+At session start, user can tap: "💬 Bas baat karte hain" OR "⚡ Kuch try karna hai"
+- `talk` intent → Phase 1+2 extended, Phase 3 still happens but patience is higher
+- `act` intent → Phase 1 shortened (1 exchange), move to Phase 3 faster
+- No tap → default to full 3-phase flow
+Stored in `clv_chat_session.intent`
+
+**What Clar must never do:**
+- Suggest a card in the first 2 exchanges (regardless of intent)
+- Ask permission to suggest ("do you want to try something?")
+- Suggest more than 1 card per session unless user explicitly asks
+- Break conversation flow — suggestion should feel like a natural next sentence
+- Be generically warm — every message must feel personal to this person's situation
+
+---
 
 ### Daily Summaries
 On each new day's first `initChat`, yesterday's last 4 messages are compressed into a one-line summary and saved to `clv_chat_summaries` (max 7 entries). Injected into every system prompt for continuity.
@@ -273,4 +328,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-21 — v56 session*
+*Last updated: 2026-05-22 — v57 planning session*
