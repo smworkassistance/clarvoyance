@@ -54,6 +54,7 @@ STATUS: TESTING | STABLE
 | v53 | Intelligent Clar AI — full context system prompt, user profile, daily summaries, auto-profile update |
 | v56 | Clar persona selection — 4 styles (Best Friend, Wise Guide, Coach, Nurturer) in onboarding + profile |
 | v57 | Clar conversation flow — 3-phase model, Talk/Act session intent chips, card reason rendering |
+| v58 | Search fix (no-results msg, reset on tab switch & back), My Quotes collapsible with count badge, language screen removed from onboarding, charger click bug fix (always opened topmost) |
 
 ---
 
@@ -328,4 +329,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-22 — v57 planning session*
+*Last updated: 2026-05-25 — v58: charger click bug fix (_chId slug fallback)*
