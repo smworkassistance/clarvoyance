@@ -2616,7 +2616,6 @@ function delNNTab(i){
     var desc = (t.description||t.tagline||'').trim();
     var isPractice = (t.category||'').toLowerCase().includes('physical');
     var timerSecs = _parseSecs(t.timer);
-    var steps = (t.placeholder||'').trim(); /* practice tools: steps from placeholder col */
     var minW = _minW(t.xp);
     var saved= (!isPractice&&t.persist==='yes')?(localStorage.getItem('clar_dtool_'+id)||''):'';
 
@@ -2638,8 +2637,8 @@ function delNNTab(i){
     h += '<div class="cha-ch-body" id="tla-body-'+_e(id)+'" style="'+(isEx?'':'display:none')+'">';
 
     if(isPractice){
-      /* PRACTICE — steps (from placeholder col) + timer, no textarea, no fullscreen */
-      if(steps) h += '<p class="cha-ch-desc tl-steps">'+_e(steps).replace(/\n/g,'<br>')+'</p>';
+      /* PRACTICE — description (steps) read-only + timer, no textarea */
+      if(desc) h += '<p class="cha-ch-desc tl-steps">'+_e(desc).replace(/\n/g,'<br>')+'</p>';
       var state = _tlTimers[id];
       var remaining = (state&&state.remaining!==undefined) ? state.remaining : timerSecs;
       var isRunning = state&&state.running;
