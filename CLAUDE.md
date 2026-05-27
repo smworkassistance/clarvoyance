@@ -64,9 +64,14 @@ STATUS: TESTING | STABLE
 
 ## Google Sheets Backend
 
-**Apps Script URL:**
+**Apps Script URL (direct — do not use in app, CORS blocked):**
 ```
 https://script.google.com/macros/s/AKfycbzmOhp44tFDdaJDJpoBLS9A-36GkZZZpLl0tUEJkKJpu5ezJnFqtOO_blayT62tEgEBpg/exec
+```
+
+**Sheets Cloudflare Worker (use this in app — adds CORS headers):**
+```
+https://clarvoyance-sheets.smworkassistance.workers.dev/
 ```
 
 **Active sheets (SHEET_NAMES in Apps Script):**
