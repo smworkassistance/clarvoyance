@@ -57,6 +57,8 @@ STATUS: TESTING | STABLE
 | v58 | Search fix (no-results msg, reset on tab switch & back), My Quotes collapsible with count badge, language screen removed from onboarding, charger click bug fix (always opened topmost) |
 | v59 | Chargers redesign — two-level inline accordion (categories + chargers expand in-place), icon in each row, auto-XP on word count, fullscreen button, no separate writer screen, no "I'm Charged" button, hairline list layout, Apple-style sticky search |
 | v60 | Tools tab same accordion layout as chargers — categories from `category` column in tools sheet (no new Sheets tab), fullscreen heading highlight (gold), old grid/writer/toolSearch removed |
+| v61 | Physical practice tools — read-only steps, duration chips (30s/1m/2m/3m/5m/10m), countdown timer, XP on completion. Default start tab → Clar AI |
+| v62 | Sheets fetch: 30s timeout + retry button + SHEETS_FAILED flag + sheetsDataFailed event. New Apps Script URL (CORS fix via redeploy) |
 
 ---
 
@@ -64,7 +66,7 @@ STATUS: TESTING | STABLE
 
 **Apps Script URL:**
 ```
-https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec
+https://script.google.com/macros/s/AKfycbzmOhp44tFDdaJDJpoBLS9A-36GkZZZpLl0tUEJkKJpu5ezJnFqtOO_blayT62tEgEBpg/exec
 ```
 
 **Active sheets (SHEET_NAMES in Apps Script):**
