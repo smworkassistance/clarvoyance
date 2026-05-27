@@ -64,12 +64,12 @@ STATUS: TESTING | STABLE
 
 ## Google Sheets Backend
 
-**Apps Script URL (direct — do not use in app, CORS blocked):**
+**Apps Script URL (direct — do not use in app, CORS blocked from GitHub Pages):**
 ```
-https://script.google.com/macros/s/AKfycbzmOhp44tFDdaJDJpoBLS9A-36GkZZZpLl0tUEJkKJpu5ezJnFqtOO_blayT62tEgEBpg/exec
+https://script.google.com/macros/s/AKfycbw8CsadkFYEPFccU2YZ5JDnYKlF6DiP_bHLDWaGf3PUNHELjY61ZE7F2E6huc4oKaUjYw/exec
 ```
 
-**Sheets Cloudflare Worker (use this in app — adds CORS headers):**
+**Sheets Cloudflare Worker (use this in app — proxies Apps Script + adds CORS headers):**
 ```
 https://clarvoyance-sheets.smworkassistance.workers.dev/
 ```
