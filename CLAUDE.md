@@ -55,6 +55,7 @@ STATUS: TESTING | STABLE
 | v56 | Clar persona selection — 4 styles (Best Friend, Wise Guide, Coach, Nurturer) in onboarding + profile |
 | v57 | Clar conversation flow — 3-phase model, Talk/Act session intent chips, card reason rendering |
 | v58 | Search fix (no-results msg, reset on tab switch & back), My Quotes collapsible with count badge, language screen removed from onboarding, charger click bug fix (always opened topmost) |
+| v59 | Chargers redesign — two-level inline accordion (categories + chargers expand in-place), icon in each row, auto-XP on word count, fullscreen button, no separate writer screen, no "I'm Charged" button, hairline list layout, Apple-style sticky search |
 
 ---
 
@@ -329,4 +330,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-25 — v58: charger click bug fix (_chId slug fallback)*
+*Last updated: 2026-05-27 — v59: chargers inline accordion, icon, auto-XP, fullscreen, no writer screen*
