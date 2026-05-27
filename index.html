@@ -4864,12 +4864,14 @@ window.toolSearch = function(val){
 
   /* ── Clar AI compat ── */
   window.chOpenWriter = function(chId){
-    var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return _chId(c)===chId;});
+    /* chId here is the raw Sheets id — look up by that, not by __cid */
+    var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return String(c.id||'').trim()===String(chId);});
     if(!charger) return;
+    var domId=_chId(charger); /* tag it so __cid is set */
     if(charger.category_id) _openCats[charger.category_id]=true;
-    _activeChId=chId; _render();
+    _activeChId=domId; _render();
     setTimeout(function(){
-      var wrap=document.getElementById('cha-wrap-'+chId);
+      var wrap=document.getElementById('cha-wrap-'+domId);
       if(wrap) wrap.scrollIntoView({behavior:'smooth',block:'start'});
     },150);
   };
