@@ -970,14 +970,15 @@ body{
   border-bottom:1px solid color-mix(in oklab,var(--line-uni,var(--bo)) 25%,transparent);
 }
 .cha-fs-back-btn{
-  background:none;border:none;padding:4px 10px 4px 4px;
-  font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;
-  color:var(--gold-uni,var(--acc));cursor:pointer;border-radius:6px;
+  background:none;border:none;padding:2px 8px 2px 0;
+  font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:600;
+  color:var(--gold-uni,var(--acc));cursor:pointer;border-radius:4px;
   -webkit-tap-highlight-color:transparent;flex-shrink:0;
+  letter-spacing:.01em;
 }
-.cha-fs-back-btn:active{background:color-mix(in oklab,var(--gold-uni,var(--acc)) 10%,transparent);}
+.cha-fs-back-btn:active{opacity:.7;}
 .cha-fs-title{
-  font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;
+  font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;
   color:var(--ink-uni,var(--tx));flex:1;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -4651,12 +4652,15 @@ window.toolSearch = function(val){
   var _activeChId = null; // only one charger expanded at a time
   var _xpDone     = {};   // chId → true once XP awarded
   var _fsId       = null; // currently fullscreen charger id
+  var _cidSeq     = 0;    // auto-increment for unique IDs
 
-  /* ── Stable charger ID ── */
+  /* ── Stable charger ID — tags object on first call, guaranteed unique ── */
   function _chId(c){
-    var id=(c.id&&String(c.id).trim())||(c.name||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-    if(!id){var idx=(window.SHEETS_DATA&&window.SHEETS_DATA.chargers||[]).indexOf(c);id='ch-'+(idx>=0?idx:Math.random().toString(36).slice(2,8));}
-    return id;
+    if(!c.__cid){
+      var slug=(c.id&&String(c.id).trim())||(c.name||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+      c.__cid = slug || ('ch-'+(++_cidSeq));
+    }
+    return c.__cid;
   }
   /* ── HTML escape ── */
   function _e(s){return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});}
