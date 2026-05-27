@@ -838,7 +838,7 @@ body{
   transition:background .15s;
 }
 .cha-ch-hd:active,.cha-ch-hd.open{background:color-mix(in oklab,var(--gold-warm,var(--acc)) 6%,transparent);}
-.cha-ch-l{flex:1;min-width:0;}
+.cha-ch-l{flex:1;min-width:0;display:flex;align-items:center;}
 .cha-ch-name{
   font-family:'Cormorant Garamond',serif;font-weight:600;
   font-size:.98rem;color:var(--ink-uni,var(--tx));
@@ -929,6 +929,39 @@ body{
 
 /* ── Hide old hero if somehow present ── */
 #ch-hero{display:none!important;}
+
+/* ── Charger row icon ── */
+.cha-ch-row-ic{
+  font-size:1.05rem;line-height:1;
+  margin-right:8px;flex-shrink:0;
+  display:inline-flex;align-items:center;
+}
+
+/* ── Fullscreen button ── */
+.cha-ch-fs-btn{
+  background:none;border:none;padding:4px 6px;
+  font-size:1rem;line-height:1;
+  color:var(--ink-muted,var(--sub));
+  cursor:pointer;border-radius:6px;
+  -webkit-tap-highlight-color:transparent;
+  transition:background .15s,color .15s;
+  flex-shrink:0;
+}
+.cha-ch-fs-btn:active{background:color-mix(in oklab,var(--gold-uni,var(--acc)) 12%,transparent);}
+
+/* ── Fullscreen state ── */
+.cha-ch-body.cha-fs{
+  position:fixed;inset:0;z-index:900;
+  background:var(--su,var(--bg));
+  padding:20px 16px 16px;
+  overflow-y:auto;
+  display:block!important;
+  box-sizing:border-box;
+}
+.cha-ch-body.cha-fs .cha-ch-ta{
+  height:calc(100dvh - 140px);
+  min-height:unset;
+}
 </style>
   <script src="tools/registry.js"></script>
 </head>
@@ -4592,54 +4625,50 @@ window.toolSearch = function(val){
 };
 </script>
 
-<!-- ═══ MIND CHARGERS ENGINE v2 — inline two-level accordion ═══ -->
+<!-- ═══ MIND CHARGERS ENGINE v2.1 — icon + auto-XP + fullscreen ═══ -->
 <script>
 (function(){
-  var _openCats    = {};   // catId → true/false
-  var _activeChId  = null; // only one charger open at a time
-  var _xpDone      = {};   // chId → true once XP awarded
+  var _openCats   = {};   // catId → true/false
+  var _activeChId = null; // only one charger expanded at a time
+  var _xpDone     = {};   // chId → true once XP awarded
+  var _fsId       = null; // currently fullscreen charger id
 
   /* ── Stable charger ID ── */
   function _chId(c){
     return (c.id&&String(c.id).trim())||(c.name||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
   }
-
   /* ── HTML escape ── */
   function _e(s){return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});}
-
   /* ── Min words for XP ── */
   function _minW(xp){var x=parseInt(xp)||10;return x<=8?20:x<=12?30:50;}
 
   /* ══ RENDER ══ */
   function _render(searchVal){
-    var cats   = window.SHEETS_DATA.charger_categories||[];
-    var allCh  = (window.SHEETS_DATA.chargers||[]).filter(function(c){return String(c.active||'').toUpperCase()!=='FALSE';});
-    var q      = (searchVal||'').toLowerCase().trim();
+    var cats  = window.SHEETS_DATA.charger_categories||[];
+    var allCh = (window.SHEETS_DATA.chargers||[]).filter(function(c){return String(c.active||'').toUpperCase()!=='FALSE';});
+    var q     = (searchVal||'').toLowerCase().trim();
 
-    /* Search bar — lives inside scroll (Apple style: scrolls away on scroll-down) */
+    /* Search bar — inside scroll (Apple style: scrolls away when scrolling down) */
     var html = '<div class="cha-search-wrap">'
       +'<input type="text" class="cha-search" id="ch-search" placeholder="Search chargers…" '
       +'oninput="chSearch(this.value)" value="'+_e(searchVal||'')+'">'
       +'</div>';
 
     if(q){
-      /* ── Flat search results ── */
       var hits = allCh.filter(function(c){
         return (c.name||'').toLowerCase().includes(q)||(c.description||'').toLowerCase().includes(q);
       });
       html += hits.length
         ? '<div class="cha-result-lbl">'+hits.length+' result'+(hits.length!==1?'s':'')+'</div>'
-          + hits.map(function(c){return _chRowHTML(c);}).join('')
+          +hits.map(function(c){return _chRowHTML(c);}).join('')
         : '<div class="cha-empty">No chargers found for "'+_e(searchVal)+'"</div>';
     } else {
-      /* ── Two-level accordion ── */
-      cats.forEach(function(cat,ci){
+      cats.forEach(function(cat){
         var catCh = allCh.filter(function(c){return c.category_id===cat.id;});
         if(!catCh.length) return;
         var isOpen = !!_openCats[cat.id];
-        var cid    = _e(cat.id);
+        var cid = _e(cat.id);
 
-        /* Category row */
         html += '<div class="cha-cat-row" onclick="chCatToggle(\''+cid+'\')">'
           +'<div class="cha-cat-l">'
             +'<span class="cha-cat-ic">'+_e(cat.icon||'⚡')+'</span>'
@@ -4654,40 +4683,35 @@ window.toolSearch = function(val){
           +'</div>'
         +'</div>';
 
-        /* Category body (charger rows) */
         html += '<div class="cha-cat-body" id="cha-catbody-'+cid+'" style="'+(isOpen?'':'display:none')+'">';
         catCh.forEach(function(c){ html += _chRowHTML(c); });
         html += '</div>';
-
-        /* Hairline between categories */
         html += '<div class="cha-line"></div>';
       });
     }
 
-    html += '<div style="height:80px"></div>'; /* bottom breathing room */
+    html += '<div style="height:80px"></div>';
     document.getElementById('ch-main').innerHTML = html;
-
-    /* Restore active charger expansion after re-render */
     if(_activeChId) _applyExpand(_activeChId, true);
-
-    /* Refocus search if searching */
     if(q){var inp=document.getElementById('ch-search');if(inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}}
   }
 
   /* ── Single charger row HTML ── */
   function _chRowHTML(c){
-    var id   = _chId(c);
-    var isEx = (_activeChId===id);
-    var desc = (c.description||'').trim();
-    var minW = _minW(c.xp);
+    var id    = _chId(c);
+    var isEx  = (_activeChId===id);
+    var desc  = (c.description||'').trim();
+    var minW  = _minW(c.xp);
     var saved = (c.persist==='yes')?(localStorage.getItem('ch_'+id)||''):'';
     var rules = window.SHEETS_DATA.charger_rules||[];
+    var icon  = (c.icon||'').trim();
 
     var h = '<div class="cha-ch-wrap" id="cha-wrap-'+_e(id)+'">';
 
-    /* Charger header row */
+    /* ── Charger header row (icon + name + xp badge + chevron) ── */
     h += '<div class="cha-ch-hd'+(isEx?' open':'')+'" id="cha-ch-hd-'+_e(id)+'" onclick="chChargerToggle(\''+_e(id)+'\')">'
       +'<div class="cha-ch-l">'
+        +(icon?'<span class="cha-ch-row-ic">'+_e(icon)+'</span>':'')
         +'<span class="cha-ch-name">'+_e(c.name||'')+'</span>'
       +'</div>'
       +'<div class="cha-ch-r">'
@@ -4696,29 +4720,30 @@ window.toolSearch = function(val){
       +'</div>'
     +'</div>';
 
-    /* Expanded inline content */
+    /* ── Expanded inline body ── */
     h += '<div class="cha-ch-body" id="cha-ch-body-'+_e(id)+'" style="'+(isEx?'':'display:none')+'">';
     if(desc) h += '<p class="cha-ch-desc">'+_e(desc)+'</p>';
     h += '<textarea class="cha-ch-ta" id="cha-ta-'+_e(id)+'"'
       +' placeholder="'+_e(c.placeholder||'Start writing…')+'"'
       +' oninput="chAccWrite(\''+_e(id)+'\','+_e(String(c.xp||10))+',this)"'
       +'>'+_e(saved)+'</textarea>';
+    /* Footer: word count (auto-XP) + fullscreen button */
     h += '<div class="cha-ch-foot">'
       +'<span class="cha-ch-wc" id="cha-wc-'+_e(id)+'">0 / '+minW+' words</span>'
-      +'<button class="cha-ch-btn" id="cha-btn-'+_e(id)+'" onclick="chAccComplete(\''+_e(id)+'\','+_e(String(c.xp||10))+')">I\'m Charged ✦</button>'
+      +'<button class="cha-ch-fs-btn" id="cha-fs-'+_e(id)+'" onclick="chAccFs(\''+_e(id)+'\')" title="Fullscreen">⛶</button>'
     +'</div>';
+    /* Rules */
     if(rules.length){
       h += '<div class="cha-rules-toggle" onclick="chAccRulesToggle(\''+_e(id)+'\')">Show Rules</div>'
         +'<div class="cha-rules-body" id="cha-rules-'+_e(id)+'" style="display:none">'
         +rules.map(function(r){return '<div class="ch-rule-item">'+_e(r.rule)+'</div>';}).join('')
         +'</div>';
     }
-    h += '</div>'; /* close body */
-    h += '</div>'; /* close wrap */
+    h += '</div></div>';
     return h;
   }
 
-  /* ── Apply expand state to DOM (without re-render) ── */
+  /* ── Apply expand/collapse to DOM ── */
   function _applyExpand(id, open){
     var body = document.getElementById('cha-ch-body-'+id);
     var hd   = document.getElementById('cha-ch-hd-'+id);
@@ -4737,91 +4762,85 @@ window.toolSearch = function(val){
     if(chev) chev.classList.toggle('open', !!_openCats[catId]);
   };
 
-  /* ── Charger toggle (only one open at a time) ── */
+  /* ── Charger toggle (single open at a time) ── */
   window.chChargerToggle = function(id){
     var prev = _activeChId;
-    /* Collapse previous */
-    if(prev && prev!==id){ _applyExpand(prev, false); }
-    /* Toggle current */
+    if(prev&&prev!==id) _applyExpand(prev, false);
     if(prev===id){
-      _activeChId = null;
-      _applyExpand(id, false);
+      _activeChId=null; _applyExpand(id,false);
     } else {
-      _activeChId = id;
-      _applyExpand(id, true);
-      /* Focus textarea & seed word count */
+      _activeChId=id; _applyExpand(id,true);
       setTimeout(function(){
-        var ta = document.getElementById('cha-ta-'+id);
-        if(ta){ ta.focus(); chAccWrite(id, null, ta); }
-      }, 80);
-      /* Smooth scroll into view */
+        var ta=document.getElementById('cha-ta-'+id);
+        if(ta){ta.focus();chAccWrite(id,null,ta);}
+      },80);
       setTimeout(function(){
-        var wrap = document.getElementById('cha-wrap-'+id);
-        if(wrap) wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
-      }, 120);
+        var wrap=document.getElementById('cha-wrap-'+id);
+        if(wrap) wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+      },120);
     }
   };
 
-  /* ── Writing check + persist ── */
+  /* ── Writing check → AUTO XP when condition met ── */
   window.chAccWrite = function(id, xp, ta){
-    if(!ta) ta = document.getElementById('cha-ta-'+id);
+    if(!ta) ta=document.getElementById('cha-ta-'+id);
     if(!ta) return;
-    var charger = (window.SHEETS_DATA.chargers||[]).find(function(c){return _chId(c)===id;});
-    var xpVal   = parseInt(xp)||(charger?parseInt(charger.xp)||10:10);
-    var minW    = _minW(xpVal);
-    var words   = ta.value.trim()?ta.value.trim().split(/\s+/).length:0;
-    var wc      = document.getElementById('cha-wc-'+id);
-    var btn     = document.getElementById('cha-btn-'+id);
+    var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return _chId(c)===id;});
+    var xpVal=parseInt(xp)||(charger?parseInt(charger.xp)||10:10);
+    var minW=_minW(xpVal);
+    var words=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;
+    var wc=document.getElementById('cha-wc-'+id);
     if(charger&&charger.persist==='yes') localStorage.setItem('ch_'+id, ta.value);
-    if(words>=minW){
-      if(wc){wc.textContent='✓ Ready to charge!';wc.style.color='var(--green,#22c55e)';}
-      if(btn) btn.classList.add('ready');
-    } else {
+    if(words>=minW&&!_xpDone[id]){
+      /* ✅ Auto-award XP the moment condition is met */
+      _xpDone[id]=true;
+      if(typeof window.xpAdd==='function') window.xpAdd(xpVal);
+      if(typeof window.dqComplete==='function') window.dqComplete(id);
+      if(wc){wc.textContent='⚡ +'+xpVal+' XP earned!';wc.style.color='var(--green,#22c55e)';}
+    } else if(!_xpDone[id]){
       if(wc){wc.textContent=words+' / '+minW+' words';wc.style.color='';}
-      if(btn) btn.classList.remove('ready');
     }
   };
 
-  /* ── Complete + award XP ── */
-  window.chAccComplete = function(id, xp){
-    if(_xpDone[id]) return;
-    var ta  = document.getElementById('cha-ta-'+id);
-    var btn = document.getElementById('cha-btn-'+id);
-    var wc  = document.getElementById('cha-wc-'+id);
-    if(!ta||!ta.value.trim()){
-      if(ta){ta.style.borderColor='var(--danger,#ef4444)';setTimeout(function(){ta.style.borderColor='';},1000);}
-      return;
-    }
-    _xpDone[id] = true;
-    var xpVal = parseInt(xp)||10;
-    if(typeof window.xpAdd==='function') window.xpAdd(xpVal);
-    if(typeof window.dqComplete==='function') window.dqComplete(id);
-    if(btn){btn.textContent='⚡ Charged! +'+xpVal+' XP';btn.classList.add('done');btn.disabled=true;}
-    if(wc){wc.textContent='+'+xpVal+' XP earned!';wc.style.color='var(--green,#22c55e)';}
-    var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return _chId(c)===id;});
-    if(charger&&charger.persist==='yes') localStorage.setItem('ch_'+id, ta.value);
+  /* ── Fullscreen toggle ── */
+  window.chAccFs = function(id){
+    var body=document.getElementById('cha-ch-body-'+id);
+    var btn=document.getElementById('cha-fs-'+id);
+    if(!body) return;
+    var isFs=body.classList.contains('cha-fs');
+    /* Close any other fullscreen first */
+    document.querySelectorAll('.cha-ch-body.cha-fs').forEach(function(el){
+      el.classList.remove('cha-fs');
+      var bid=el.id.replace('cha-ch-body-','');
+      var b=document.getElementById('cha-fs-'+bid);
+      if(b) b.textContent='⛶';
+    });
+    if(!isFs){
+      body.classList.add('cha-fs'); _fsId=id;
+      if(btn) btn.textContent='✕';
+      setTimeout(function(){var ta=document.getElementById('cha-ta-'+id);if(ta)ta.focus();},80);
+    } else { _fsId=null; }
   };
 
   /* ── Rules toggle ── */
   window.chAccRulesToggle = function(id){
-    var panel  = document.getElementById('cha-rules-'+id);
-    var toggle = document.getElementById('cha-ch-body-'+id)&&document.querySelector('#cha-ch-body-'+id+' .cha-rules-toggle');
+    var panel=document.getElementById('cha-rules-'+id);
     if(!panel) return;
-    var open = panel.style.display!=='none';
-    panel.style.display = open?'none':'';
-    if(toggle) toggle.textContent = open?'Show Rules':'Hide Rules';
+    var open=panel.style.display!=='none';
+    panel.style.display=open?'none':'';
+    var tog=panel.previousElementSibling;
+    if(tog) tog.textContent=open?'Show Rules':'Hide Rules';
   };
 
   /* ── Search ── */
   window.chSearch = function(val){ _render(val); };
 
-  /* ── Clar AI compat: open a specific charger by id ── */
+  /* ── Clar AI compat ── */
   window.chOpenWriter = function(chId){
     var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return _chId(c)===chId;});
     if(!charger) return;
     if(charger.category_id) _openCats[charger.category_id]=true;
-    _activeChId = chId;
-    _render();
+    _activeChId=chId; _render();
     setTimeout(function(){
       var wrap=document.getElementById('cha-wrap-'+chId);
       if(wrap) wrap.scrollIntoView({behavior:'smooth',block:'start'});
@@ -4830,7 +4849,7 @@ window.toolSearch = function(val){
 
   /* ── Entry point ── */
   window.renderChargers = function(){
-    var main = document.getElementById('ch-main');
+    var main=document.getElementById('ch-main');
     if(!window.SHEETS_READY){
       if(main) main.innerHTML='<div class="cha-empty" style="padding-top:40px">Loading…</div>';
       document.addEventListener('sheetsDataReady',function(){window.renderChargers();},{once:true});
