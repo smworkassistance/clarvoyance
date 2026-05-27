@@ -2601,14 +2601,22 @@ function delNNTab(i){
   function _e(s){return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});}
   function _minW(xp){var x=parseInt(xp)||10;return x<=8?20:x<=12?30:50;}
   function _fmt(s){var m=Math.floor(s/60),sc=s%60;return(m<10?'0':'')+m+':'+(sc<10?'0':'')+sc;}
+  function _parseSecs(val){
+    var s=String(val||'').toLowerCase().trim();
+    if(s==='30sec'||s==='30s'||s==='30') return 30;
+    if(s==='1min'||s==='1m'||s==='60')  return 60;
+    if(s==='2min'||s==='2m'||s==='120') return 120;
+    var n=parseInt(s); return n>0?n:60;
+  }
 
   function _tlRowHTML(t){
     var id   = _tlId(t);
     var isEx = (_activeTlId===id);
     var icon = (t.emoji||t.icon||'🛠').trim();
     var desc = (t.description||t.tagline||'').trim();
-    var isPractice = String(t.type||'').toLowerCase()==='practice';
-    var timerSecs = parseInt(t.timer)||60;
+    var isPractice = (t.category||'').toLowerCase().includes('physical');
+    var timerSecs = _parseSecs(t.timer);
+    var steps = (t.placeholder||'').trim(); /* practice tools: steps from placeholder col */
     var minW = _minW(t.xp);
     var saved= (!isPractice&&t.persist==='yes')?(localStorage.getItem('clar_dtool_'+id)||''):'';
 
@@ -2630,8 +2638,8 @@ function delNNTab(i){
     h += '<div class="cha-ch-body" id="tla-body-'+_e(id)+'" style="'+(isEx?'':'display:none')+'">';
 
     if(isPractice){
-      /* PRACTICE — description (steps) + timer, no textarea, no fullscreen */
-      if(desc) h += '<p class="cha-ch-desc tl-steps">'+_e(desc).replace(/\n/g,'<br>')+'</p>';
+      /* PRACTICE — steps (from placeholder col) + timer, no textarea, no fullscreen */
+      if(steps) h += '<p class="cha-ch-desc tl-steps">'+_e(steps).replace(/\n/g,'<br>')+'</p>';
       var state = _tlTimers[id];
       var remaining = (state&&state.remaining!==undefined) ? state.remaining : timerSecs;
       var isRunning = state&&state.running;
