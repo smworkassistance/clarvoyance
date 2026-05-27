@@ -2491,8 +2491,8 @@ window.addEventListener('load',async ()=>{
   drawGraph();
   updNNBadge();renderNNTab();renderHomeWidget();renderMyQuotes();
   if(typeof Notification!=='undefined'&&Notification.permission==='default')Notification.requestPermission().catch(()=>{});
-  const vibeTab=document.querySelector('.bnav-tab[data-tab="vibe"]');
-  if(vibeTab)bnavSwitch(vibeTab);
+  const startTab=document.querySelector('.bnav-tab[data-tab="chat"]');
+  if(startTab)bnavSwitch(startTab);
 });
 window.addEventListener('resize',drawGraph);
 
