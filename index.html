@@ -4654,12 +4654,9 @@ window.toolSearch = function(val){
   var _fsId       = null; // currently fullscreen charger id
   var _cidSeq     = 0;    // auto-increment for unique IDs
 
-  /* ── Stable charger ID — tags object on first call, guaranteed unique ── */
+  /* ── Stable charger ID — counter-based, guaranteed unique per object ── */
   function _chId(c){
-    if(!c.__cid){
-      var slug=(c.id&&String(c.id).trim())||(c.name||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
-      c.__cid = slug || ('ch-'+(++_cidSeq));
-    }
+    if(!c.__cid) c.__cid = 'ch-'+(++_cidSeq);
     return c.__cid;
   }
   /* ── HTML escape ── */
