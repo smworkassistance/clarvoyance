@@ -953,14 +953,33 @@ body{
 .cha-ch-body.cha-fs{
   position:fixed;inset:0;z-index:900;
   background:var(--su,var(--bg));
-  padding:20px 16px 16px;
+  padding:16px 16px 16px;
   overflow-y:auto;
   display:block!important;
   box-sizing:border-box;
 }
 .cha-ch-body.cha-fs .cha-ch-ta{
-  height:calc(100dvh - 140px);
+  height:calc(100dvh - 170px);
   min-height:unset;
+}
+/* ── Fullscreen header (name + back btn) ── */
+.cha-fs-hdr{display:none;}
+.cha-ch-body.cha-fs .cha-fs-hdr{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:14px;padding-bottom:12px;
+  border-bottom:1px solid color-mix(in oklab,var(--line-uni,var(--bo)) 25%,transparent);
+}
+.cha-fs-back-btn{
+  background:none;border:none;padding:4px 10px 4px 4px;
+  font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:700;
+  color:var(--gold-uni,var(--acc));cursor:pointer;border-radius:6px;
+  -webkit-tap-highlight-color:transparent;flex-shrink:0;
+}
+.cha-fs-back-btn:active{background:color-mix(in oklab,var(--gold-uni,var(--acc)) 10%,transparent);}
+.cha-fs-title{
+  font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;
+  color:var(--ink-uni,var(--tx));flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 </style>
   <script src="tools/registry.js"></script>
@@ -4635,7 +4654,9 @@ window.toolSearch = function(val){
 
   /* ── Stable charger ID ── */
   function _chId(c){
-    return (c.id&&String(c.id).trim())||(c.name||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    var id=(c.id&&String(c.id).trim())||(c.name||'').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+    if(!id){var idx=(window.SHEETS_DATA&&window.SHEETS_DATA.chargers||[]).indexOf(c);id='ch-'+(idx>=0?idx:Math.random().toString(36).slice(2,8));}
+    return id;
   }
   /* ── HTML escape ── */
   function _e(s){return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];});}
@@ -4722,6 +4743,11 @@ window.toolSearch = function(val){
 
     /* ── Expanded inline body ── */
     h += '<div class="cha-ch-body" id="cha-ch-body-'+_e(id)+'" style="'+(isEx?'':'display:none')+'">';
+    /* Fullscreen header (hidden until .cha-fs applied) */
+    h += '<div class="cha-fs-hdr">'
+      +'<button class="cha-fs-back-btn" onclick="chAccFs(\''+_e(id)+'\')" aria-label="Back">‹ Back</button>'
+      +'<span class="cha-fs-title">'+_e(c.name||'')+'</span>'
+    +'</div>';
     if(desc) h += '<p class="cha-ch-desc">'+_e(desc)+'</p>';
     h += '<textarea class="cha-ch-ta" id="cha-ta-'+_e(id)+'"'
       +' placeholder="'+_e(c.placeholder||'Start writing…')+'"'
