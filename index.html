@@ -2883,10 +2883,18 @@ function delNNTab(i){
   window.tlSearch=function(val){_render(val);};
 
   window.renderToolsAccordion=function(){
+    var el=document.getElementById('tl-main');
     if(!window.SHEETS_READY){
-      var el=document.getElementById('tl-main');
-      if(el) el.innerHTML='<div class="cha-empty" style="padding-top:40px">Loading…</div>';
-      document.addEventListener('sheetsDataReady',function(){_render('');},{once:true});
+      if(window.SHEETS_FAILED){
+        if(el && window._sheetsShowRetry) window._sheetsShowRetry(el);
+      } else {
+        if(el) el.innerHTML='<div class="cha-empty" style="padding-top:40px">Loading…</div>';
+        document.addEventListener('sheetsDataReady',function(){_render('');},{once:true});
+        document.addEventListener('sheetsDataFailed',function(){
+          var e2=document.getElementById('tl-main');
+          if(e2&&window._sheetsShowRetry)window._sheetsShowRetry(e2);
+        },{once:true});
+      }
       return;
     }
     _render('');
@@ -5043,8 +5051,16 @@ function bnavSwitch(el){
   window.renderChargers = function(){
     var main=document.getElementById('ch-main');
     if(!window.SHEETS_READY){
-      if(main) main.innerHTML='<div class="cha-empty" style="padding-top:40px">Loading…</div>';
-      document.addEventListener('sheetsDataReady',function(){window.renderChargers();},{once:true});
+      if(window.SHEETS_FAILED){
+        if(main && window._sheetsShowRetry) window._sheetsShowRetry(main);
+      } else {
+        if(main) main.innerHTML='<div class="cha-empty" style="padding-top:40px">Loading…</div>';
+        document.addEventListener('sheetsDataReady',function(){window.renderChargers();},{once:true});
+        document.addEventListener('sheetsDataFailed',function(){
+          var m2=document.getElementById('ch-main');
+          if(m2&&window._sheetsShowRetry)window._sheetsShowRetry(m2);
+        },{once:true});
+      }
       return;
     }
     _render();
@@ -5058,30 +5074,38 @@ function bnavSwitch(el){
 (function(){
   var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
   var CACHE_KEY  = 'clv_sheets_cache';
-  var CACHE_TTL  = 60 * 1000; // 60 seconds — matches Apps Script server cache
-  var FETCH_TIMEOUT = 20000;  // 20s — abort if Apps Script cold start hangs
+  var CACHE_TTL  = 60 * 1000;
+  var FETCH_TIMEOUT = 30000; // 30s — Apps Script cold starts can be slow
 
   window.SHEETS_DATA  = null;
   window.SHEETS_READY = false;
+  window.SHEETS_FAILED = false; // flag so late-rendering tabs can react
+
+  var RETRY_HTML = '<div class="cha-empty" style="padding-top:40px;text-align:center;line-height:2.5">'
+    + '⚠️ Could not load content.<br>'
+    + '<button onclick="window._sheetsRetry()" '
+    + 'style="background:var(--acc,#b8961e);color:#fff;border:none;border-radius:20px;'
+    + 'padding:7px 22px;font-size:.85rem;font-weight:700;cursor:pointer;margin-top:4px">↻ Retry</button>'
+    + '</div>';
 
   function fireReady(data){
-    window.SHEETS_DATA  = data;
-    window.SHEETS_READY = true;
+    window.SHEETS_DATA   = data;
+    window.SHEETS_READY  = true;
+    window.SHEETS_FAILED = false;
     document.dispatchEvent(new CustomEvent('sheetsDataReady', { detail: data }));
   }
 
-  /* Show retry button in all "Loading…" placeholders */
-  function _showRetry(){
-    var msg = 'Could not load content. <button onclick="window._sheetsRetry()" '
-      + 'style="background:var(--acc,#b8961e);color:#fff;border:none;border-radius:20px;'
-      + 'padding:6px 18px;font-size:.85rem;font-weight:700;cursor:pointer;margin-top:8px">↻ Retry</button>';
-    ['ch-main','tl-main'].forEach(function(id){
-      var el = document.getElementById(id);
-      if(el && el.innerHTML.indexOf('Loading') !== -1){
-        el.innerHTML = '<div class="cha-empty" style="padding-top:40px;text-align:center;line-height:2.2">'+msg+'</div>';
-      }
-    });
+  function fireFailed(){
+    window.SHEETS_FAILED = true;
+    document.dispatchEvent(new CustomEvent('sheetsDataFailed'));
   }
+
+  function _showRetryInEl(el){
+    if(el) el.innerHTML = RETRY_HTML;
+  }
+
+  /* Called by renderChargers / renderToolsAccordion when they find SHEETS_FAILED=true */
+  window._sheetsShowRetry = _showRetryInEl;
 
   async function fetchAndCache(){
     var ctrl = new AbortController();
@@ -5095,42 +5119,45 @@ function bnavSwitch(el){
       return data;
     } catch(e){
       clearTimeout(timer);
-      console.warn('[Sheets] Fetch failed:', e.message);
+      console.warn('[Sheets] Fetch failed:', e.name, e.message);
       return null;
     }
   }
 
   async function init(){
-    // Try localStorage cache first — instant load
+    window.SHEETS_FAILED = false;
+    // Cache-first
     try {
       var raw = localStorage.getItem(CACHE_KEY);
       if(raw){
         var cached = JSON.parse(raw);
         if(cached && cached.data){
-          fireReady(cached.data); // immediate — no wait
-          // If cache is stale, refresh silently in background
+          fireReady(cached.data);
           if(Date.now() - cached.ts > CACHE_TTL){
-            fetchAndCache().then(function(fresh){
-              if(fresh) fireReady(fresh);
-            });
+            fetchAndCache().then(function(fresh){ if(fresh) fireReady(fresh); });
           }
           return;
         }
       }
     } catch(e){}
 
-    // No cache — fetch fresh (first load or after localStorage clear)
+    // Fresh fetch
     var data = await fetchAndCache();
     if(data){
       fireReady(data);
     } else {
-      // Fetch failed or timed out — show retry button
-      _showRetry();
+      fireFailed();
+      // Directly update visible loading placeholders
+      ['ch-main','tl-main'].forEach(function(id){
+        var el = document.getElementById(id);
+        if(el) _showRetryInEl(el);
+      });
     }
   }
 
-  // Global retry function — re-runs init from scratch
+  // Global retry — resets flags, re-fetches
   window._sheetsRetry = function(){
+    window.SHEETS_FAILED = false;
     ['ch-main','tl-main'].forEach(function(id){
       var el = document.getElementById(id);
       if(el) el.innerHTML = '<div class="cha-empty" style="padding-top:40px">Loading…</div>';
