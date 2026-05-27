@@ -4654,9 +4654,9 @@ window.toolSearch = function(val){
   var _fsId       = null; // currently fullscreen charger id
   var _cidSeq     = 0;    // auto-increment for unique IDs
 
-  /* ── Stable charger ID — counter-based, guaranteed unique per object ── */
+  /* ── Stable charger ID — Sheets id primary, counter fallback ── */
   function _chId(c){
-    if(!c.__cid) c.__cid = 'ch-'+(++_cidSeq);
+    if(!c.__cid) c.__cid = String(c.id||'').trim() || ('ch-'+(++_cidSeq));
     return c.__cid;
   }
   /* ── HTML escape ── */
@@ -4864,14 +4864,12 @@ window.toolSearch = function(val){
 
   /* ── Clar AI compat ── */
   window.chOpenWriter = function(chId){
-    /* chId here is the raw Sheets id — look up by that, not by __cid */
-    var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return String(c.id||'').trim()===String(chId);});
+    var charger=(window.SHEETS_DATA.chargers||[]).find(function(c){return _chId(c)===String(chId);});
     if(!charger) return;
-    var domId=_chId(charger); /* tag it so __cid is set */
     if(charger.category_id) _openCats[charger.category_id]=true;
-    _activeChId=domId; _render();
+    _activeChId=chId; _render();
     setTimeout(function(){
-      var wrap=document.getElementById('cha-wrap-'+domId);
+      var wrap=document.getElementById('cha-wrap-'+chId);
       if(wrap) wrap.scrollIntoView({behavior:'smooth',block:'start'});
     },150);
   };
