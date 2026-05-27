@@ -1004,6 +1004,24 @@ body{
 }
 /* ── Practice timer ── */
 .tl-steps{white-space:pre-line;line-height:1.7;}
+.tl-dur-chips{
+  display:flex;flex-wrap:wrap;gap:7px;justify-content:center;
+  padding:6px 0 14px;
+}
+.tl-dur-chip{
+  background:none;
+  border:1.5px solid color-mix(in oklab,var(--gold-uni,var(--acc)) 35%,transparent);
+  color:var(--ink-muted,var(--sub));border-radius:20px;
+  padding:5px 13px;font-family:'DM Sans',sans-serif;
+  font-size:.78rem;font-weight:600;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:all .15s;
+}
+.tl-dur-chip.active{
+  background:var(--gold-uni,var(--acc));color:#fff;
+  border-color:var(--gold-uni,var(--acc));
+}
+.tl-dur-chip:disabled{opacity:.45;cursor:default;}
 .tl-timer-wrap{
   display:flex;flex-direction:column;align-items:center;
   gap:14px;padding:18px 0 10px;
@@ -2606,8 +2624,12 @@ function delNNTab(i){
     if(s==='30sec'||s==='30s'||s==='30') return 30;
     if(s==='1min'||s==='1m'||s==='60')  return 60;
     if(s==='2min'||s==='2m'||s==='120') return 120;
+    if(s==='3min'||s==='3m'||s==='180') return 180;
+    if(s==='5min'||s==='5m'||s==='300') return 300;
+    if(s==='10min'||s==='10m'||s==='600') return 600;
     var n=parseInt(s); return n>0?n:60;
   }
+  var _TL_DURS=[{l:'30s',s:30},{l:'1 min',s:60},{l:'2 min',s:120},{l:'3 min',s:180},{l:'5 min',s:300},{l:'10 min',s:600}];
 
   function _tlRowHTML(t){
     var id   = _tlId(t);
@@ -2637,16 +2659,26 @@ function delNNTab(i){
     h += '<div class="cha-ch-body" id="tla-body-'+_e(id)+'" style="'+(isEx?'':'display:none')+'">';
 
     if(isPractice){
-      /* PRACTICE — description (steps) read-only + timer, no textarea */
+      /* PRACTICE — description (steps) read-only + duration chips + timer */
       if(desc) h += '<p class="cha-ch-desc tl-steps">'+_e(desc).replace(/\n/g,'<br>')+'</p>';
-      var state = _tlTimers[id];
-      var remaining = (state&&state.remaining!==undefined) ? state.remaining : timerSecs;
-      var isRunning = state&&state.running;
-      var isDone    = _xpDone[id];
+      var state    = _tlTimers[id];
+      var curSecs  = (state&&state.selected!==undefined)?state.selected:timerSecs;
+      var remaining= (state&&state.remaining!==undefined)?state.remaining:curSecs;
+      var isRunning= !!(state&&state.running);
+      var isDone   = !!_xpDone[id];
+      var xpEid    = _e(String(t.xp||8));
+      /* Duration chips */
+      h += '<div class="tl-dur-chips">';
+      _TL_DURS.forEach(function(d){
+        h += '<button class="tl-dur-chip'+(d.s===curSecs?' active':'')+'" data-secs="'+d.s+'"'
+          +(isRunning||isDone?' disabled':'')+' onclick="tlTimerSelect(\''+_e(id)+'\','+d.s+')">'+d.l+'</button>';
+      });
+      h += '</div>';
+      /* Timer + start/pause */
       h += '<div class="tl-timer-wrap">'
         +'<div class="tl-timer-display" id="tla-timer-'+_e(id)+'">'+_fmt(remaining)+'</div>'
         +'<button class="tl-timer-btn'+(isDone?' done':'')+'" id="tla-tbtn-'+_e(id)+'"'
-          +(isDone?' disabled':'')+' onclick="tlTimerToggle(\''+_e(id)+'\','+timerSecs+','+_e(String(t.xp||8))+')">'
+          +(isDone?' disabled':'')+' onclick="tlTimerToggle(\''+_e(id)+'\','+xpEid+')">'
           +(isDone?'✓ Done':isRunning?'⏸ Pause':'▶ Start')
         +'</button>'
         +'<div class="cha-ch-wc" id="tla-wc-'+_e(id)+'">'+(isDone?'⚡ +'+(parseInt(t.xp)||8)+' XP earned!':'')+'</div>'
@@ -2756,8 +2788,8 @@ function delNNTab(i){
     }
   };
 
-  window.tlTimerToggle=function(id,totalSecs,xp){
-    if(!_tlTimers[id]) _tlTimers[id]={remaining:totalSecs,running:false};
+  window.tlTimerToggle=function(id,xp){
+    if(!_tlTimers[id]) _tlTimers[id]={selected:60,remaining:60,running:false};
     var state=_tlTimers[id];
     if(state.running){
       /* Pause */
@@ -2788,6 +2820,21 @@ function delNNTab(i){
         }
       },1000);
     }
+  };
+
+  window.tlTimerSelect=function(id,secs){
+    if(_tlTimers[id]&&_tlTimers[id].running) return; /* can't change while running */
+    if(_xpDone[id]) return;
+    if(!_tlTimers[id]) _tlTimers[id]={};
+    _tlTimers[id].selected=secs;
+    _tlTimers[id].remaining=secs;
+    var disp=document.getElementById('tla-timer-'+id);
+    if(disp)disp.textContent=_fmt(secs);
+    /* update chip active state */
+    var wrap=document.getElementById('tla-wrap-'+id);
+    if(wrap)wrap.querySelectorAll('.tl-dur-chip').forEach(function(chip){
+      chip.classList.toggle('active',parseInt(chip.dataset.secs)===secs);
+    });
   };
 
   window.tlAccWrite=function(id,xp,ta){
