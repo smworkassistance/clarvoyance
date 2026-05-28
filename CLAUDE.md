@@ -75,6 +75,7 @@ STATUS: TESTING | STABLE
 | v74 | Offline bar UI — Clar gold theme (var(--acc)), minimal "✦ Offline" text, uppercase
 | v75 | Profile App section — always shows version (v75) + status + Check/Reload button; _setUpdateStatus() exposed globally |
 | v76 | Transparent offline bar (frosted glass, gold tint) + Connect card in Profile (WhatsApp +917387400467, Instagram @beyond._thought) with official SVG brand icons |
+| v77 | Profile redesigned with 4 tabs: Identity (photo upload via file picker → base64 localStorage, name/gender/age/city), Clar (persona + context merged), Updates (v77 version + check), Contact Us (WhatsApp/Instagram) |
 
 ---
 
@@ -382,4 +383,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v76: Transparent offline bar + Connect section (WhatsApp & Instagram)*
+*Last updated: 2026-05-29 — v77: Profile tabbed (Identity, Clar, Updates, Contact Us) + real photo upload*
