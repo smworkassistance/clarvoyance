@@ -1,0 +1,18 @@
+{
+  "name": "Clarvoyance",
+  "short_name": "Clarvoyance",
+  "description": "Your daily mood and mindset companion",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a0800",
+  "theme_color": "#1a0800",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "clar-logo.jpg.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
