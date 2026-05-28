@@ -66,6 +66,7 @@ STATUS: TESTING | STABLE
 | v67 | PWA UX — Later button replaces ✕ dismiss, persistent Install row in Profile tab, CSS fix (#pwa-prompt → #pwa-card), pwaInstallFromProfile() |
 | v68 | PWA UX polish — pwa-card display:none on load (no flash), update toast removed, Profile App section: Install row + Updates row (Check / Up to date / Tap to update) |
 | v69 | PWA fixes — how-to sheet proper UI (handle, numbered steps, styled), install card only on home/chat tab, red dot on profile chip when update ready |
+| v70 | PWA clean — manual Check button removed, prof-update-row appears only on SW_UPDATED, app section auto-hides when installed+no-update |
 
 ---
 
@@ -345,4 +346,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v69: PWA how-to UI, tab check for install card, update dot badge*
+*Last updated: 2026-05-29 — v70: PWA — no manual check button, update row on demand only*
