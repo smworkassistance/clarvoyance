@@ -74,6 +74,7 @@ STATUS: TESTING | STABLE
 | v73 | Offline notifications — bar slides in on network loss, hides on reconnect + Sheets auto-refresh; Clar shows inline offline message instead of failed API call |
 | v74 | Offline bar UI — Clar gold theme (var(--acc)), minimal "✦ Offline" text, uppercase
 | v75 | Profile App section — always shows version (v75) + status + Check/Reload button; _setUpdateStatus() exposed globally |
+| v76 | Transparent offline bar (frosted glass, gold tint) + Connect card in Profile (WhatsApp +917387400467, Instagram @beyond._thought) with official SVG brand icons |
 
 ---
 
@@ -381,4 +382,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v75: Profile shows version + Check/Reload, offline gold bar*
+*Last updated: 2026-05-29 — v76: Transparent offline bar + Connect section (WhatsApp & Instagram)*
