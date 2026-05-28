@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v67), manifest.json, beforeinstallprompt |
+| PWA | sw.js (cache version clv-v68), manifest.json, beforeinstallprompt |
 
 ---
 
@@ -70,6 +70,7 @@ STATUS: TESTING | STABLE
 | v69 | PWA fixes — how-to sheet proper UI (handle, numbered steps, styled), install card only on home/chat tab, red dot on profile chip when update ready |
 | v70 | PWA clean — manual Check button removed, prof-update-row appears only on SW_UPDATED, app section auto-hides when installed+no-update |
 | v71 | Analytics — GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn). Events: app_open, tab_view, vibe_card_complete/skip, xp_gained, clar_session_start, clar_message_sent, tool_open, charger_open, pwa_install_tapped/later |
+| v72 | Offline support — sw.js v68 caches Sheets Worker response; 3-layer fallback: localStorage → SW cache → retry button; offline bar shown when serving stale data |
 
 ---
 
@@ -377,4 +378,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v71: GA4 + Clarity analytics, 9 custom event types*
+*Last updated: 2026-05-29 — v72: offline support, SW caches Sheets API, 3-layer fallback*
