@@ -7,7 +7,7 @@
 ---
 
 ## What is Clarvoyance?
-A mood-based self-development app (mobile-first PWA). Core idea: the user opens it daily, logs their mood, gets a personalised Vibe Feed of micro-exercises, and builds a streak. Tools, chargers, goals, quotes, and modules are layered on top.
+A self-development app (mobile-first PWA). Core idea: the user opens it daily, chats with Clar AI companion, gets a personalised Vibe Feed of micro-exercises, and builds a streak. Tools, chargers, goals, quotes, and modules are layered on top. Mood is handled naturally through Clar conversation (not a separate UI element).
 
 Hosted on GitHub Pages. Single HTML file. No build system.
 Repo: https://github.com/smworkassistance/clarvoyance
@@ -24,6 +24,8 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Backend / Content | Google Sheets + Apps Script Web App (JSON API) |
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
+| Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
+| PWA | sw.js (cache version clv-v67), manifest.json, beforeinstallprompt |
 
 ---
 
@@ -115,6 +117,34 @@ id | type | title | content | placeholder | timer | xp | icon | category | activ
 - `icon`: emoji for MOVEMENT cards
 - `category`: for CHARGER cards
 - `active`: FALSE = row ignored by Apps Script
+
+---
+
+## Analytics
+
+### GA4 — G-BZZMW9B8SN
+Account: Clar | Property: Clar App | Stream: Clar PWA
+Custom dimensions registered (Event scope): `tab_name`, `card_type`, `streak`, `amount`, `persona`, `intent`, `tool_name`, `charger_name`, `is_pwa`
+
+**Custom events tracked (v71+):**
+| Event | Parameters | When |
+|-------|-----------|------|
+| `app_open` | `is_pwa` | Every app load |
+| `tab_view` | `tab_name` | Every tab switch |
+| `vibe_card_complete` | `card_type`, `streak` | Card XP unlocked |
+| `vibe_card_skip` | `card_type` | Next tapped before complete |
+| `xp_gained` | `amount` | Any XP award |
+| `clar_session_start` | `persona`, `intent` | initChat() called |
+| `clar_message_sent` | — | User sends message |
+| `tool_open` | `tool_name` | Tool row expanded |
+| `charger_open` | `charger_name` | Charger row expanded |
+| `pwa_install_tapped` | — | Install button tapped |
+| `pwa_install_later` | — | Later button tapped |
+
+### Microsoft Clarity — wydll6jrxn
+Project: Clar | URL: smworkassistance.github.io/clarvoyance
+Auto-captures: session recordings, heatmaps, rage clicks, dead clicks, scroll depth.
+Data appears 24-48h after first traffic.
 
 ---
 
