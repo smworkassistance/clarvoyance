@@ -64,6 +64,7 @@ STATUS: TESTING | STABLE
 | v65 | Type scale fix — charger/tool category and item names use Inter Tight (matching daily quest font) instead of Cormorant Garamond |
 | v66 | PWA install prompt + service worker auto-update (sw.js v66 → v67 isGenuineUpdate fix) |
 | v67 | PWA UX — Later button replaces ✕ dismiss, persistent Install row in Profile tab, CSS fix (#pwa-prompt → #pwa-card), pwaInstallFromProfile() |
+| v68 | PWA UX polish — pwa-card display:none on load (no flash), update toast removed, Profile App section: Install row + Updates row (Check / Up to date / Tap to update) |
 
 ---
 
@@ -343,4 +344,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-28 — v67: PWA Later button, Profile install row, CSS fix*
+*Last updated: 2026-05-28 — v68: PWA no-flash load, update toast removed, Check for Updates in Profile*
