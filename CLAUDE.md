@@ -72,6 +72,8 @@ STATUS: TESTING | STABLE
 | v71 | Analytics — GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn). Events: app_open, tab_view, vibe_card_complete/skip, xp_gained, clar_session_start, clar_message_sent, tool_open, charger_open, pwa_install_tapped/later |
 | v72 | Offline support — sw.js v68 caches Sheets Worker response; 3-layer fallback: localStorage → SW cache → retry button; offline bar shown when serving stale data |
 | v73 | Offline notifications — bar slides in on network loss, hides on reconnect + Sheets auto-refresh; Clar shows inline offline message instead of failed API call |
+| v74 | Offline bar UI — Clar gold theme (var(--acc)), minimal "✦ Offline" text, uppercase
+| v75 | Profile App section — always shows version (v75) + status + Check/Reload button; _setUpdateStatus() exposed globally |
 
 ---
 
@@ -379,4 +381,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v73: offline bar + Clar offline guard*
+*Last updated: 2026-05-29 — v75: Profile shows version + Check/Reload, offline gold bar*
