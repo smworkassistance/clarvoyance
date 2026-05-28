@@ -59,6 +59,11 @@ STATUS: TESTING | STABLE
 | v60 | Tools tab same accordion layout as chargers — categories from `category` column in tools sheet (no new Sheets tab), fullscreen heading highlight (gold), old grid/writer/toolSearch removed |
 | v61 | Physical practice tools — read-only steps, duration chips (30s/1m/2m/3m/5m/10m), countdown timer, XP on completion. Default start tab → Clar AI |
 | v62 | Sheets fetch: 30s timeout + retry button + SHEETS_FAILED flag + sheetsDataFailed event. New Apps Script URL (CORS fix via redeploy) |
+| v63 | Fix blank vibe feed on start (vfInit re-run after sheetsDataReady), enforce Clar AI as start tab, updNNBadge null check |
+| v64 | Mood UI removed — feeling chip, XP chip, emotion ribbon, mood start screen all gone. Clar AI handles mood naturally in conversation |
+| v65 | Type scale fix — charger/tool category and item names use Inter Tight (matching daily quest font) instead of Cormorant Garamond |
+| v66 | PWA install prompt + service worker auto-update (sw.js v66 → v67 isGenuineUpdate fix) |
+| v67 | PWA UX — Later button replaces ✕ dismiss, persistent Install row in Profile tab, CSS fix (#pwa-prompt → #pwa-card), pwaInstallFromProfile() |
 
 ---
 
@@ -338,4 +343,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-27 — v60: tools accordion (charger-style), fullscreen heading highlight*
+*Last updated: 2026-05-28 — v67: PWA Later button, Profile install row, CSS fix*
