@@ -67,6 +67,7 @@ STATUS: TESTING | STABLE
 | v68 | PWA UX polish — pwa-card display:none on load (no flash), update toast removed, Profile App section: Install row + Updates row (Check / Up to date / Tap to update) |
 | v69 | PWA fixes — how-to sheet proper UI (handle, numbered steps, styled), install card only on home/chat tab, red dot on profile chip when update ready |
 | v70 | PWA clean — manual Check button removed, prof-update-row appears only on SW_UPDATED, app section auto-hides when installed+no-update |
+| v71 | Analytics — GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn). Events: app_open, tab_view, vibe_card_complete/skip, xp_gained, clar_session_start, clar_message_sent, tool_open, charger_open, pwa_install_tapped/later |
 
 ---
 
@@ -346,4 +347,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v70: PWA — no manual check button, update row on demand only*
+*Last updated: 2026-05-29 — v71: GA4 + Clarity analytics, 9 custom event types*
