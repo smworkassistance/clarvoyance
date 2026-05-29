@@ -88,6 +88,7 @@ STATUS: TESTING | STABLE
 | v87 | Bubble color swap (user=white+shadow, Clar=full persona color+white text); input box border-radius:24px forced on :focus so shape stays pill after keyboard opens; profile-section made position:fixed full-screen overlay (z-index:200) so it covers any tab cleanly |
 | v88 | Send button white (background:var(--su), persona-colored icon); Clar AI nav tab icon changed from 💬 → ✦ serif; profile tab bar fixed to 4 equal 25% tabs (flex:0 0 25%, font-size:.72rem, "Contact Us" → "Contact") |
 | v89 | Profile overlay z-index fix — bumped from 200 → 1000 so it correctly covers the global header (z-index:500) when opened from Home/Goal/any non-chat tab |
+| v90 | Profile section redesigned as normal tab — removed position:fixed overlay; header + bnav stay visible when profile is open; content scrolls naturally between them |
 
 ---
 
@@ -395,4 +396,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v89: Profile overlay z-index 200→1000 (covers global header)*
+*Last updated: 2026-05-30 — v90: Profile as normal tab (header + bnav stay visible)*
