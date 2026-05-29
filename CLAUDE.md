@@ -80,6 +80,7 @@ STATUS: TESTING | STABLE
 | v79 | Fix update detection — sw.js CACHE_VERSION clv-v68→clv-v79 (root cause: browser never saw a changed sw.js so SW_UPDATED was never sent); pwaCheckForUpdate now checks reg.waiting first, listens to updatefound event, 5s timeout |
 | v80 | Home redesign: mood chips + goal prompt removed; Clar Commitment card (expandable, 200 words=+100XP); Chargers/Tools/Revise embedded on home via CSS flex ordering; quest moved to bottom; bottom nav → 4 tabs (Home/Vibe/Goal/Clar AI); Goal tab: Short Term Goals + Issues & Resolutions sections |
 | v81 | Home fix: Chargers/Tools/Revise shown as nav card shortcuts on home (not full content); NN progress bar removed from home-widget (XP only); visibility leak fixes — clv-commitment/home-nav-cards/short-goals/issues-section added to bnavSwitch all[] array; Chargers/Tools/Revise restored as proper bottom nav tabs (7 tabs); sw.js CACHE_VERSION bumped every release |
+| v82 | Greeting redesign — two-line layout (✦ LABEL small-caps + Name 2.4rem Cormorant serif, solid ink color, no invisible gradient clip); Chargers/Tools/Revise removed from bottom nav (display:none + removed from MODULE_TAB_MAP so applyModules can't un-hide them); NN section removed from home tab; Short Term Goals + Issues use goal-row card style; Curated Quotes in Revise = single container with hairline separators |
 
 ---
 
@@ -387,4 +388,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v81: Home nav cards + visibility fixes + 7-tab nav restored*
+*Last updated: 2026-05-30 — v82: Greeting redesign + nav cleanup + goal-row cards + curated quotes hairline*
