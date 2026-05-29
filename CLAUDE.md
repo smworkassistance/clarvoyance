@@ -85,6 +85,7 @@ STATUS: TESTING | STABLE
 | v84 | Chat UI redesign — WhatsApp-inspired: persona avatar header (✦ circle + "Clar" serif italic + persona label e.g. "your best friend"), warm-tinted message area, borderless assistant bubbles (white + micro-shadow), pill input + circular send button, tight 4px gap with auto 10px gap on sender switch, typing dots match bubble style |
 | v85 | Chat full-screen (global header hidden on chat tab); Persona color system — Sienna Coral/bestfriend, Viridian/guide, Cobalt/coach, Amethyst/nurturer — applied to avatar gradient + user bubbles + persona chip active colors; Clar header tappable → opens Clar AI settings pane with ← Back to Clar button; body[data-persona] attribute updated on persona select + initChat |
 | v86 | Chat fixes — (1) blank white space removed (padding-top:60px→0 since header hidden); (2) persona color moved to Clar's bubble (light tint + left accent stripe), user bubble back to consistent gold; (3) keyboard fix — on chat input focus: bottom nav hidden + chat extends to bottom:0, restores on blur |
+| v87 | Bubble color swap (user=white+shadow, Clar=full persona color+white text); input box border-radius:24px forced on :focus so shape stays pill after keyboard opens; profile-section made position:fixed full-screen overlay (z-index:200) so it covers any tab cleanly |
 
 ---
 
@@ -392,4 +393,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v86: Chat blank space + bubble color swap + keyboard fix*
+*Last updated: 2026-05-30 — v87: Bubble swap + input pill fix + profile fixed overlay*
