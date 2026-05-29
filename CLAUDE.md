@@ -79,6 +79,7 @@ STATUS: TESTING | STABLE
 | v78 | Profile tab labels: Identity→Profile, Clar→Clar AI; Tools category names (Mental Reset/Physical Reset) text color changed from gold to ink (matching charger rows) |
 | v79 | Fix update detection — sw.js CACHE_VERSION clv-v68→clv-v79 (root cause: browser never saw a changed sw.js so SW_UPDATED was never sent); pwaCheckForUpdate now checks reg.waiting first, listens to updatefound event, 5s timeout |
 | v80 | Home redesign: mood chips + goal prompt removed; Clar Commitment card (expandable, 200 words=+100XP); Chargers/Tools/Revise embedded on home via CSS flex ordering; quest moved to bottom; bottom nav → 4 tabs (Home/Vibe/Goal/Clar AI); Goal tab: Short Term Goals + Issues & Resolutions sections |
+| v81 | Home fix: Chargers/Tools/Revise shown as nav card shortcuts on home (not full content); NN progress bar removed from home-widget (XP only); visibility leak fixes — clv-commitment/home-nav-cards/short-goals/issues-section added to bnavSwitch all[] array; Chargers/Tools/Revise restored as proper bottom nav tabs (7 tabs); sw.js CACHE_VERSION bumped every release |
 
 ---
 
@@ -386,4 +387,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v80: Home redesign + Goal tab extensions + 4-tab nav*
+*Last updated: 2026-05-29 — v81: Home nav cards + visibility fixes + 7-tab nav restored*
