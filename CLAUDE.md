@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v68), manifest.json, beforeinstallprompt |
+| PWA | sw.js (cache version clv-v79), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 
@@ -77,6 +77,7 @@ STATUS: TESTING | STABLE
 | v76 | Transparent offline bar (frosted glass, gold tint) + Connect card in Profile (WhatsApp +917387400467, Instagram @beyond._thought) with official SVG brand icons |
 | v77 | Profile redesigned with 4 tabs: Identity (photo upload via file picker → base64 localStorage, name/gender/age/city), Clar (persona + context merged), Updates (v77 version + check), Contact Us (WhatsApp/Instagram) |
 | v78 | Profile tab labels: Identity→Profile, Clar→Clar AI; Tools category names (Mental Reset/Physical Reset) text color changed from gold to ink (matching charger rows) |
+| v79 | Fix update detection — sw.js CACHE_VERSION clv-v68→clv-v79 (root cause: browser never saw a changed sw.js so SW_UPDATED was never sent); pwaCheckForUpdate now checks reg.waiting first, listens to updatefound event, 5s timeout |
 
 ---
 
@@ -384,4 +385,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v78: Profile tab renames + tools category text fix*
+*Last updated: 2026-05-29 — v79: Fix SW update detection (CACHE_VERSION bump + improved pwaCheckForUpdate)*
