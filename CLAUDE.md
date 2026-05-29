@@ -82,6 +82,7 @@ STATUS: TESTING | STABLE
 | v81 | Home fix: Chargers/Tools/Revise shown as nav card shortcuts on home (not full content); NN progress bar removed from home-widget (XP only); visibility leak fixes — clv-commitment/home-nav-cards/short-goals/issues-section added to bnavSwitch all[] array; Chargers/Tools/Revise restored as proper bottom nav tabs (7 tabs); sw.js CACHE_VERSION bumped every release |
 | v82 | Greeting redesign — two-line layout (✦ LABEL small-caps + Name 2.4rem Cormorant serif, solid ink color, no invisible gradient clip); Chargers/Tools/Revise removed from bottom nav (display:none + removed from MODULE_TAB_MAP so applyModules can't un-hide them); NN section removed from home tab; Short Term Goals + Issues use goal-row card style; Curated Quotes in Revise = single container with hairline separators |
 | v83 | Home reorder — Vibration Score widget removed from home; Clar Commitment → top (order:2 below greeting); Non-Negotiables → bottom of home (nnTabSec added to map.home, order:10); Greeting → single line inline ("✦ QUIET HOURS, Videh" flex-row align-items:baseline, name 1.9rem serif italic) |
+| v84 | Chat UI redesign — WhatsApp-inspired: persona avatar header (✦ circle + "Clar" serif italic + persona label e.g. "your best friend"), warm-tinted message area, borderless assistant bubbles (white + micro-shadow), pill input + circular send button, tight 4px gap with auto 10px gap on sender switch, typing dots match bubble style |
 
 ---
 
@@ -389,4 +390,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v83: Home reorder + greeting inline*
+*Last updated: 2026-05-30 — v84: Chat UI redesign — WhatsApp-inspired*
