@@ -89,6 +89,7 @@ STATUS: TESTING | STABLE
 | v88 | Send button white (background:var(--su), persona-colored icon); Clar AI nav tab icon changed from 💬 → ✦ serif; profile tab bar fixed to 4 equal 25% tabs (flex:0 0 25%, font-size:.72rem, "Contact Us" → "Contact") |
 | v89 | Profile overlay z-index fix — bumped from 200 → 1000 so it correctly covers the global header (z-index:500) when opened from Home/Goal/any non-chat tab |
 | v90 | Profile section redesigned as normal tab — removed position:fixed overlay; header + bnav stay visible when profile is open; content scrolls naturally between them |
+| v91 | Profile added to bnavSwitch system — openProfileTab() routes through bnavSwitch(fakeEl); _doOpenProfile() handles data loading; map.profile=[profSec] ensures only profile content shows, no stray home/goal elements |
 
 ---
 
@@ -396,4 +397,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v90: Profile as normal tab (header + bnav stay visible)*
+*Last updated: 2026-05-30 — v91: Profile proper bnavSwitch tab (no stray elements)*
