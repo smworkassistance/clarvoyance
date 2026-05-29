@@ -90,6 +90,7 @@ STATUS: TESTING | STABLE
 | v89 | Profile overlay z-index fix — bumped from 200 → 1000 so it correctly covers the global header (z-index:500) when opened from Home/Goal/any non-chat tab |
 | v90 | Profile section redesigned as normal tab — removed position:fixed overlay; header + bnav stay visible when profile is open; content scrolls naturally between them |
 | v91 | Profile added to bnavSwitch system — openProfileTab() routes through bnavSwitch(fakeEl); _doOpenProfile() handles data loading; map.profile=[profSec] ensures only profile content shows, no stray home/goal elements |
+| v92 | One-time user registration form in onboarding (after nickname, before persona) — fields: name, email*, purpose* (chips), gender, age group, phone. Saves to clv_user_identity so profile auto-fills. clv_registered flag prevents re-showing. Fire-and-forget POST to Sheets Worker. |
 
 ---
 
@@ -397,4 +398,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v91: Profile proper bnavSwitch tab (no stray elements)*
+*Last updated: 2026-05-30 — v92: One-time user registration form in onboarding*
