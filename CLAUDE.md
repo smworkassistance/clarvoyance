@@ -76,6 +76,7 @@ STATUS: TESTING | STABLE
 | v75 | Profile App section — always shows version (v75) + status + Check/Reload button; _setUpdateStatus() exposed globally |
 | v76 | Transparent offline bar (frosted glass, gold tint) + Connect card in Profile (WhatsApp +917387400467, Instagram @beyond._thought) with official SVG brand icons |
 | v77 | Profile redesigned with 4 tabs: Identity (photo upload via file picker → base64 localStorage, name/gender/age/city), Clar (persona + context merged), Updates (v77 version + check), Contact Us (WhatsApp/Instagram) |
+| v78 | Profile tab labels: Identity→Profile, Clar→Clar AI; Tools category names (Mental Reset/Physical Reset) text color changed from gold to ink (matching charger rows) |
 
 ---
 
@@ -383,4 +384,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-29 — v77: Profile tabbed (Identity, Clar, Updates, Contact Us) + real photo upload*
+*Last updated: 2026-05-29 — v78: Profile tab renames + tools category text fix*
