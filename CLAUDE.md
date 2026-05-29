@@ -399,4 +399,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v93: Reg form — proper email, country code dropdown, country field*
+*Last updated: 2026-05-30 — v94: Reg form blur validation — email red/green highlight, phone digit check*
