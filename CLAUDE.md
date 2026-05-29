@@ -86,6 +86,8 @@ STATUS: TESTING | STABLE
 | v85 | Chat full-screen (global header hidden on chat tab); Persona color system — Sienna Coral/bestfriend, Viridian/guide, Cobalt/coach, Amethyst/nurturer — applied to avatar gradient + user bubbles + persona chip active colors; Clar header tappable → opens Clar AI settings pane with ← Back to Clar button; body[data-persona] attribute updated on persona select + initChat |
 | v86 | Chat fixes — (1) blank white space removed (padding-top:60px→0 since header hidden); (2) persona color moved to Clar's bubble (light tint + left accent stripe), user bubble back to consistent gold; (3) keyboard fix — on chat input focus: bottom nav hidden + chat extends to bottom:0, restores on blur |
 | v87 | Bubble color swap (user=white+shadow, Clar=full persona color+white text); input box border-radius:24px forced on :focus so shape stays pill after keyboard opens; profile-section made position:fixed full-screen overlay (z-index:200) so it covers any tab cleanly |
+| v88 | Send button white (background:var(--su), persona-colored icon); Clar AI nav tab icon changed from 💬 → ✦ serif; profile tab bar fixed to 4 equal 25% tabs (flex:0 0 25%, font-size:.72rem, "Contact Us" → "Contact") |
+| v89 | Profile overlay z-index fix — bumped from 200 → 1000 so it correctly covers the global header (z-index:500) when opened from Home/Goal/any non-chat tab |
 
 ---
 
@@ -393,4 +395,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v87: Bubble swap + input pill fix + profile fixed overlay*
+*Last updated: 2026-05-30 — v89: Profile overlay z-index 200→1000 (covers global header)*
