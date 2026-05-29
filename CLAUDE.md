@@ -91,6 +91,7 @@ STATUS: TESTING | STABLE
 | v90 | Profile section redesigned as normal tab — removed position:fixed overlay; header + bnav stay visible when profile is open; content scrolls naturally between them |
 | v91 | Profile added to bnavSwitch system — openProfileTab() routes through bnavSwitch(fakeEl); _doOpenProfile() handles data loading; map.profile=[profSec] ensures only profile content shows, no stray home/goal elements |
 | v92 | One-time user registration form in onboarding (after nickname, before persona) — fields: name, email*, purpose* (chips), gender, age group, phone. Saves to clv_user_identity so profile auto-fills. clv_registered flag prevents re-showing. Fire-and-forget POST to Sheets Worker. |
+| v93 | Reg form fixes — proper email regex (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/), country code dropdown (16 countries, +91 default) + phone input side by side, country text field added; all saved to clv_user_identity |
 
 ---
 
@@ -398,4 +399,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v92: One-time user registration form in onboarding*
+*Last updated: 2026-05-30 — v93: Reg form — proper email, country code dropdown, country field*
