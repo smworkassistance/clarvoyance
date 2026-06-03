@@ -3068,6 +3068,8 @@ function closeLB(){
   document.getElementById('lb-img').src='';
   const ta=document.getElementById('lb-write');if(ta)ta.style.bottom='';
   lbArr=null;
+  /* Hide manifest button whenever lightbox closes */
+  const mb=document.getElementById('lb-manifest-btn');if(mb)mb.style.display='none';
 }
 
 /* ═══ RR ZOOM ═══ */
