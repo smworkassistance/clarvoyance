@@ -891,6 +891,15 @@ html[data-theme="dark"] .chat-msgs{
 .pys-ta:focus{border-color:var(--acc)}
 .pys-ta-footer{display:flex;align-items:center;justify-content:space-between;margin-top:6px;font-size:.74rem;color:var(--lt);font-family:'Inter Tight',sans-serif}
 .pys-ta-xp{color:var(--acc);font-weight:700}
+/* Peak State card (v106) */
+.pkstate-tagline{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-style:italic;font-weight:600;color:var(--acc);margin-bottom:6px;letter-spacing:.01em}
+.pkstate-ta{font-size:.96rem;line-height:1.7}
+.pkstate-timer-row{display:flex;align-items:center;gap:12px;margin-top:12px}
+.pkstate-timer-btn{flex:1;padding:10px 14px;background:transparent;border:1.5px solid var(--acc);border-radius:24px;font-family:'Inter Tight',sans-serif;font-size:.82rem;font-weight:700;color:var(--acc);letter-spacing:.04em;cursor:pointer;transition:background .15s,color .15s;-webkit-tap-highlight-color:transparent}
+.pkstate-timer-btn:active,.pkstate-timer-btn.running{background:var(--acc);color:#fff}
+.pkstate-timer-ring{position:relative;width:44px;height:44px;flex-shrink:0}
+.pkstate-ring-svg{width:44px;height:44px}
+.pkstate-ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Inter Tight',sans-serif;font-size:.74rem;font-weight:700;color:var(--acc)}
 /* Practice timers */
 .pt-dur-row{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .pt-dur-lbl{font-family:'Inter Tight',sans-serif;font-size:.72rem;font-weight:700;color:var(--lt);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
@@ -1851,7 +1860,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:.88rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v88</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:.88rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v107</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -1930,6 +1939,36 @@ html[data-theme="dark"] .chat-msgs{
 
     <!-- Accordion card — all other sections -->
     <div class="self-acc">
+
+      <!-- Peak State — I Am That I Am (v106) -->
+      <div class="sacc-row" onclick="selfToggle('pkstate')">
+        <span class="sacc-sym" style="font-size:1.1rem">✦</span>
+        <span class="sacc-title">Peak State</span>
+        <span class="sacc-chev" id="self-chev-pkstate">›</span>
+      </div>
+      <div class="sacc-body" id="self-body-pkstate" style="display:none">
+        <div class="pkstate-tagline">I Am That I Am</div>
+        <div class="pys-desc">Activate the feeling of almighty. Write your rampage — flood your mind with this feeling and hold it.</div>
+        <textarea class="pys-ta pkstate-ta" id="pkstate-ta" rows="5"
+          placeholder="Maintain this feeling for 68+ seconds — feel almighty, all-powerful, powerful beyond measure...&#10;&#10;I Am That I Am. I am the source. I am infinite. Everything I touch turns to gold..."
+          oninput="pkstateInput()"></textarea>
+        <div class="pys-ta-footer">
+          <span id="pkstate-wc">0 words</span>
+          <span class="pys-ta-xp" id="pkstate-xp-lbl"></span>
+        </div>
+        <div class="pkstate-timer-row">
+          <button class="pkstate-timer-btn" id="pkstate-timer-btn" onclick="pkstateTimerToggle()">Hold 68 seconds →</button>
+          <div class="pkstate-timer-ring" id="pkstate-timer-ring" style="display:none">
+            <svg viewBox="0 0 44 44" class="pkstate-ring-svg">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--bo)" stroke-width="3.5"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--acc)" stroke-width="3.5"
+                stroke-dasharray="113.1" stroke-dashoffset="113.1" id="pkstate-ring-arc"
+                stroke-linecap="round" transform="rotate(-90 22 22)"/>
+            </svg>
+            <span class="pkstate-ring-num" id="pkstate-ring-num">68</span>
+          </div>
+        </div>
+      </div>
 
       <!-- Slow Soft Swift -->
       <div class="sacc-row" onclick="selfToggle('ssw')">
@@ -3192,18 +3231,10 @@ window.addEventListener('load',async ()=>{
   drawGraph();
   updNNBadge();renderNNTab();renderHomeWidget();renderMyQuotes();
   if(typeof Notification!=='undefined'&&Notification.permission==='default')Notification.requestPermission().catch(()=>{});
+  /* v105: open Clar AI on load, but only if user hasn't tapped a tab yet */
+  window._userNavigated = false;
   const startTab=document.querySelector('.bnav-tab[data-tab="chat"]');
   if(startTab)bnavSwitch(startTab);
-  /* Robust start tab — runs after sheetsDataReady+applyModules settle */
-  function _enforceStartTab(){
-    var active=document.querySelector('.bnav-tab.active');
-    if(active&&active.dataset.tab!=='chat'){
-      var chatBtn=document.querySelector('.bnav-tab[data-tab="chat"]');
-      if(chatBtn&&window.bnavSwitch)window.bnavSwitch(chatBtn);
-    }
-  }
-  setTimeout(_enforceStartTab,600);
-  setTimeout(_enforceStartTab,1500);
 });
 window.addEventListener('resize',drawGraph);
 
@@ -4205,6 +4236,7 @@ function renderHomeWidget(){
 
 /* ═══ BOTTOM NAV ═══ */
 function bnavSwitch(el){
+  window._userNavigated = true; /* v105: mark that a tab switch happened so start-tab logic doesn't override */
   document.querySelectorAll('.bnav-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
   const tab=el.dataset.tab;
@@ -4494,6 +4526,63 @@ function renderKillDistractions(){
 }
 
 /* ---- No Others ---- */
+/* ---- Peak State — I Am That I Am (v106) ---- */
+var _pkTimer=null, _pkRunning=false;
+
+function pkstateInput(){
+  var ta=document.getElementById('pkstate-ta');
+  var wc=document.getElementById('pkstate-wc');
+  if(!ta||!wc)return;
+  var words=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;
+  wc.textContent=words+' words';
+}
+
+function pkstateTimerToggle(){
+  if(_pkRunning){ _pkStop(false); return; }
+  _pkRunning=true;
+  var btn=document.getElementById('pkstate-timer-btn');
+  var ring=document.getElementById('pkstate-timer-ring');
+  var arc=document.getElementById('pkstate-ring-arc');
+  var num=document.getElementById('pkstate-ring-num');
+  if(btn){ btn.textContent='Stop'; btn.classList.add('running'); }
+  if(ring) ring.style.display='flex';
+  var total=68, elapsed=0;
+  var circumference=113.1;
+  _pkTimer=setInterval(function(){
+    elapsed++;
+    var remaining=total-elapsed;
+    if(num) num.textContent=remaining;
+    /* fill arc proportionally */
+    if(arc) arc.style.strokeDashoffset=(circumference*(1-elapsed/total)).toFixed(2);
+    if(elapsed>=total){ _pkStop(true); }
+  },1000);
+}
+
+function _pkStop(completed){
+  _pkRunning=false;
+  if(_pkTimer){ clearInterval(_pkTimer); _pkTimer=null; }
+  var btn=document.getElementById('pkstate-timer-btn');
+  var ring=document.getElementById('pkstate-timer-ring');
+  var arc=document.getElementById('pkstate-ring-arc');
+  var num=document.getElementById('pkstate-ring-num');
+  if(btn){ btn.textContent='Hold 68 seconds →'; btn.classList.remove('running'); }
+  if(ring) ring.style.display='none';
+  if(arc) arc.style.strokeDashoffset='113.1';
+  if(num) num.textContent='68';
+  if(completed){
+    /* Award XP once per day for completing the 68-second hold */
+    var today=new Date().toISOString().slice(0,10),key='clv_pkstate_xp_'+today;
+    var xpEl=document.getElementById('pkstate-xp-lbl');
+    if(!localStorage.getItem(key)){
+      localStorage.setItem(key,'1');
+      if(window.xpAdd) xpAdd(15);
+      if(xpEl){ xpEl.textContent='+15 XP ✦'; setTimeout(function(){if(xpEl)xpEl.textContent='';},3000); }
+    } else {
+      if(xpEl){ xpEl.textContent='Peak State held ✦'; setTimeout(function(){if(xpEl)xpEl.textContent='';},2000); }
+    }
+  }
+}
+
 function noOthersInput(ta){
   var words=ta.value.trim()?ta.value.trim().split(/\s+/).length:0;
   var wc=document.getElementById('no-others-wc'),xpEl=document.getElementById('no-others-xp');
@@ -10019,6 +10108,18 @@ body.home-tab #nn-tab-section{order:10;}
     var chargersList=(sd.chargers||[]).filter(function(c){return String(c.active).toUpperCase()!=='FALSE';}).map(function(c){
       return '- '+c.name+' [id:'+c.id+']'+(c.ai_best_for?' — '+c.ai_best_for:'');
     }).join('\n')||'No chargers yet.';
+    /* v107: manifestation steps — title + why from Sheets */
+    var manifestSteps=(sd.manifestation_steps||[])
+      .filter(function(s){return String(s.active).toUpperCase()!=='FALSE';})
+      .sort(function(a,b){return parseInt(a.order||0)-parseInt(b.order||0);})
+      .map(function(s){return '  Step '+s.phase+': '+s.title+(s.why?' — '+s.why:'');})
+      .join('\n');
+    /* v107: Self tab practices — hardcoded WHY + WHEN so Clar can suggest convincingly */
+    var selfPractices='- Peak State "I Am That I Am": The user writes a rampage flooding the mind with almighty feeling and holds it for 68 seconds. Based on Abraham Hicks 68-second rule — a pure positive feeling held without contradiction for 68s locks in the vibration and the Law of Attraction cannot ignore it. Suggest when: user doubts themselves, feels small vs a goal, wants to activate the feeling of a desire already being real, or needs to anchor a breakthrough moment.\n'
+      +'- Slow Soft Swift (SSW): Three principles to carry through the day — Slow (move deliberately, time expands), Soft (speak gently, strength without force), Swift (decisive when the moment calls). Suggest when: user is rushing, reactive, stressed, scattered, or being harsh with themselves.\n'
+      +'- Non-Doing Timer: Structured stillness — wu wei — doing absolutely nothing for 30 seconds to 3 hours. No phone, no thinking. The nervous system resets, insights surface on their own, solutions arise in silence not in more thinking. Suggest when: overthinking loops, decision fatigue, mental congestion, exhausted, "I don\'t know what to do".\n'
+      +'- Walk & Talk: Timed movement practice. Rhythmic walking breaks physical stagnation and shifts brain state — the simplest pattern interrupt. Suggest when: stuck in head, physically heavy or low energy, needs to process something but sitting isn\'t working.\n'
+      +'- Protect Yourself: Three layers — Kill Distractions (name and commit to avoid), No Others (write what others are doing that drains energy so it leaves the mind), No Overindulgence (name habits being overused). Suggest when: drained by other people, energy leaking to distraction or escapism, can\'t focus, feeling scattered.';
     return identity+'\n\n'
       +(philosophy?'APP PHILOSOPHY:\n'+philosophy+'\n\n':'')
       +'USER CONTEXT:\n'
@@ -10032,7 +10133,7 @@ body.home-tab #nn-tab-section{order:10;}
       +(profile.goal?'- Goal: '+profile.goal+'\n':'')
       +(profile.intention?'- Daily intention: '+profile.intention+'\n':'')
       +'\nPAST 7-DAY CONTEXT:\n'+summaryText+'\n\n'
-      +'PERSONALITY:\n- Warm, brief, real. Never lecture. Max 2-3 sentences per reply — like texting a best friend.\n- ALWAYS use the user\'s name ('+nick+') naturally — especially in the opening greeting and occasionally through the conversation.\n- Listen first, suggest second. Validate before redirecting.\n- Mirror the user\'s language — Hindi→Hindi, Hinglish→Hinglish, English→English.\n\n'
+      +'PERSONALITY:\n- Warm, brief, real. Never lecture. Max 2-3 sentences per reply — like texting a best friend.\n- ALWAYS use the user\'s name ('+nick+') naturally — especially in the opening greeting and occasionally through the conversation.\n- Listen first, suggest second. Validate before redirecting.\n- ALWAYS respond in English regardless of what language the user writes in.\n\n'
       +'CONVERSATION FLOW:\n'+flow+(intentNote?'\n'+intentNote:'')+'\n\n'
       +'ACTIVITY CARDS YOU CAN SUGGEST (1 per message, in "cards" array):\n'
       +'Generic types — app picks content randomly:\n'
@@ -10042,13 +10143,17 @@ body.home-tab #nn-tab-section{order:10;}
       +'  {"type":"WRITING"} — reflective writing prompt\n'
       +'  {"type":"QUOTE"} — inspiring quote\n'
       +'Specific tools (by id):\n'+toolsList+'\n'
-      +'Specific chargers (by id):\n'+chargersList+'\n\n'
+      +'Specific chargers (by id):\n'+chargersList+'\n'
+      +(manifestSteps?'Manifestation Protocol — suggest as {"type":"MANIFEST","reason":"..."} when user is working toward a goal, feeling resistance to a desire, or wants to activate the feeling of something already being real. It is a guided writing practice — each step prompts the user to write against their goal and progressively shifts their vibration:\n'+manifestSteps+'\n':'')
+      +'\nSELF TAB PRACTICES — mention these by name in your message text when relevant. Do NOT put them in cards[]. Explain why it fits their specific situation:\n'
+      +selfPractices+'\n\n'
       +'IMPORTANT: '+disclaimer+'\n\n'
       +'CRITICAL — RESPOND WITH VALID JSON ONLY. No markdown, no extra text.\n'
       +'Format: {"message":"your reply","cards":[],"profile_update":{}}\n'
-      +'With card: {"message":"...","cards":[{"type":"BREATHING","reason":"1-sentence personal reason why this card right now"}],"profile_update":{}}\n'
+      +'With generic card: {"message":"...","cards":[{"type":"BREATHING","reason":"1-sentence personal reason why this card right now"}],"profile_update":{}}\n'
       +'With tool: {"message":"...","cards":[{"type":"tool","id":"t1","reason":"1-sentence personal reason"}],"profile_update":{}}\n'
-      +'reason field: REQUIRED when suggesting a card in Talk mode. Must reference something specific from this conversation — not generic.\n'
+      +'With manifest: {"message":"...","cards":[{"type":"MANIFEST","reason":"1-sentence personal reason"}],"profile_update":{}}\n'
+      +'reason field: REQUIRED. Must reference something specific from this conversation — not generic.\n'
       +'profile_update: if you can infer user\'s present challenge, set {"present_challenge":"..."}. Otherwise {}.';
   }
 
@@ -10219,6 +10324,34 @@ body.home-tab #nn-tab-section{order:10;}
   function _addCardEl(card){
     var sd=window.SHEETS_DATA;if(!sd)return;
     var cardType=(card.type||'').toUpperCase();
+    /* v107: MANIFEST card — opens the Manifestation Protocol overlay */
+    if(cardType==='MANIFEST'){
+      var userGoal='';
+      try{var _p=JSON.parse(localStorage.getItem('clv_user_profile')||'{}');userGoal=_p.goal||'';}catch(e){}
+      var container=document.getElementById('chat-messages');
+      var wrap=document.createElement('div');
+      wrap.style.cssText='align-self:flex-start;width:100%;margin:2px 0';
+      if(card.reason){
+        var reasonEl=document.createElement('div');
+        reasonEl.className='card-reason';
+        reasonEl.textContent='✦ '+card.reason;
+        wrap.appendChild(reasonEl);
+      }
+      var chipDiv=document.createElement('div');
+      chipDiv.style.cssText='background:var(--ca);border:1.5px solid var(--acc);border-radius:14px;padding:14px 16px';
+      chipDiv.innerHTML='<div style="font-family:\'Inter Tight\',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--acc);margin-bottom:5px">Manifestation Protocol</div>'
+        +'<div style="font-family:\'Cormorant Garamond\',serif;font-size:.92rem;color:var(--lt);line-height:1.5;margin-bottom:10px">A guided writing practice to activate the feeling of your desire already being real.</div>';
+      var mBtn=document.createElement('button');
+      mBtn.className='manifest-trigger';
+      mBtn.style.cssText='width:100%';
+      mBtn.textContent='✦ Start Protocol';
+      mBtn.onclick=function(){if(window.manifestOpen)manifestOpen(userGoal||'My Goal',undefined,mBtn);};
+      chipDiv.appendChild(mBtn);
+      wrap.appendChild(chipDiv);
+      container.appendChild(wrap);
+      container.scrollTop=container.scrollHeight;
+      return;
+    }
     var d=null;
     var bgMap={BREATHING:'vf-bg-breathing',MOVEMENT:'vf-bg-movement',AFFIRMATION:'vf-bg-affirmation',WRITING:'vf-bg-writing',QUOTE:'vf-bg-quote',TOOL:'vf-bg-tool',CHARGER:'vf-bg-charger'};
     var labelMap={BREATHING:'Breathe',MOVEMENT:'Move',AFFIRMATION:'Affirm',WRITING:'Journal',QUOTE:'Quote',TOOL:'Tool',CHARGER:'Charger'};
