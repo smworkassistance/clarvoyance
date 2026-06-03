@@ -92,6 +92,9 @@ STATUS: TESTING | STABLE
 | v91 | Profile added to bnavSwitch system — openProfileTab() routes through bnavSwitch(fakeEl); _doOpenProfile() handles data loading; map.profile=[profSec] ensures only profile content shows, no stray home/goal elements |
 | v92 | One-time user registration form in onboarding (after nickname, before persona) — fields: name, email*, purpose* (chips), gender, age group, phone. Saves to clv_user_identity so profile auto-fills. clv_registered flag prevents re-showing. Fire-and-forget POST to Sheets Worker. |
 | v93 | Reg form fixes — proper email regex (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/), country code dropdown (16 countries, +91 default) + phone input side by side, country text field added; all saved to clv_user_identity |
+| v105 | Fix Clar AI snapping back — removed _enforceStartTab 600ms/1500ms timers that kicked users back to chat tab after navigating away |
+| v106 | Peak State card added to Self tab (first accordion item) — "I Am That I Am" tagline, rampage textarea, 68-second hold timer with SVG ring, +15 XP on completion (once/day) |
+| v107 | Clar AI context expanded — Self tab practices with full WHY+WHEN descriptions injected into system prompt; manifestation_steps sheet injected (title+why per step); new MANIFEST card type Clar can suggest that opens the Manifestation Protocol overlay |
 
 ---
 
@@ -399,4 +402,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-05-30 — v94: Reg form blur validation — email red/green highlight, phone digit check*
+*Last updated: 2026-06-04 — v107: Clar AI knows Self practices + Manifestation Protocol card*

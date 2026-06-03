@@ -65,6 +65,40 @@ A lightweight notepad for spontaneous inspired ideas that come to mind at any mo
 
 ---
 
+## Self Tab — Presence & State Practices
+
+The Self tab contains practices for entering and maintaining the SELF state — a place of inner stillness, presence, and power. Unlike tools (which help process thoughts) or chargers (which shift mood), Self practices work at the level of identity and state of being.
+
+### Check-In (Where Are You Right Now?)
+Not a practice but a daily awareness anchor. The user taps whether they feel "In SELF", "Neutral", or "Distracted". This sets the tone for the session and builds the habit of self-awareness.
+
+### Peak State — I Am That I Am
+Based on the Abraham Hicks 68-second rule: holding a pure positive thought without contradiction for 68 seconds activates a deep shift in vibration — the Law of Attraction cannot ignore a sustained signal. The user writes a "rampage" (flooding the mind with "I Am That I Am, I am infinite, I am the source, I am almighty...") and holds the feeling for 68 seconds.
+**When to suggest:** User is doubting themselves, feeling small relative to a goal, stuck in resistance, or just had a breakthrough moment that needs to be anchored. Also when they want to activate the feeling of their desire already being real.
+**Why it works:** Feeling IS the signal. 68 seconds of uncontradicted feeling = vibrational lock-in.
+
+### Slow, Soft & Swift (SSW)
+Three principles for moving through the day with power and presence: Slow (move deliberately, time expands), Soft (speak gently, hold loosely — softness is strength without force), Swift (when the moment calls, act fully — no hesitation).
+**When to suggest:** User is rushing, reactive, stressed, scattered, or overwhelmed. Also when they are being harsh with themselves or others.
+**Why it works:** SSW removes the friction state (rushing/forcing) that blocks both flow and manifestation.
+
+### Non-Doing Timer
+Structured wu wei — doing absolutely nothing for a chosen duration (30 seconds to 3 hours). No phone, no thinking, no output. The nervous system resets, the subconscious surfaces insights, the body recovers from constant doing.
+**When to suggest:** Mental congestion, overthinking loops, decision fatigue, exhaustion, "I don't know what to do" states.
+**Why it works:** Most solutions arise in stillness, not in more thinking. The mind needs space to integrate.
+
+### Walk & Talk
+A timed movement practice — the user sets a duration and walks, ideally speaking their intentions or thoughts aloud. Movement breaks physical stagnation and the rhythmic motion helps processing.
+**When to suggest:** User is stuck in their head, needs an energy shift, feels physically heavy or low, needs to process something but journaling isn't landing.
+**Why it works:** Body movement changes brain state. Walking is the simplest pattern interrupt.
+
+### Protect Yourself
+Three layers of inner protection: Kill Distractions (naming and committing to avoid specific distractions), No Others (writing out what others are doing that is draining energy — externalising it so it leaves the mind), No Overindulgence (naming habits or substances being overused).
+**When to suggest:** User is drained by other people, distracted and can't focus, engaging in escapist behaviour, or feeling like their energy is being consumed externally.
+**Why it works:** You cannot maintain a high vibration while constantly leaking energy through distraction, others' drama, or overindulgence.
+
+---
+
 ## Notes for Future Development
 - Whenever new tools are added, their context and purpose will be documented here.
 - All quests, vibe cards, and features should align with the core philosophy: **feeling is everything.**
