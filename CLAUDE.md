@@ -34,8 +34,9 @@ Repo: https://github.com/smworkassistance/clarvoyance
 clarvoyance_v[MAJOR].[MINOR]_[description]_[STATUS].html
 STATUS: TESTING | STABLE
 ```
-- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages)
+- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v107**
 - Never edit old version files — always create a new version
+- After pushing a new version, always copy it to index.html and push that too
 
 **Version history:**
 | Version | What was added |
@@ -402,4 +403,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-04 — v107: Clar AI knows Self practices + Manifestation Protocol card*
+*Last updated: 2026-06-04 — v107 live on index.html. Always copy new version to index.html after pushing.*
