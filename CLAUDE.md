@@ -98,6 +98,7 @@ STATUS: TESTING | STABLE
 | v107 | Clar AI context expanded — Self tab practices with full WHY+WHEN descriptions injected into system prompt; manifestation_steps sheet injected (title+why per step); new MANIFEST card type Clar can suggest that opens the Manifestation Protocol overlay |
 | v112 | My Foundation overlay — "✦ Foundation" button next to Manifest in Goal header; bottom-sheet overlay with "Why I Started" textarea + "My Tribe" multi-entry inspirations (name, category, @handle, link); saved to clv_my_why + clv_my_tribe in localStorage |
 | v113 | My Personal Space — free-flow writing accordion at top of Self tab (above Peak State); charger-style layout with fullscreen button; text persists to clv_myspace_text in localStorage |
+| v114 | True View Chart — perspective shifter / thought mold in Self tab; two colored zones (Story 1 pink=Illusion, Story 2 green=Pure Abundance) with annotation chips; vertical frequency bar animates as Story 2 fills; 68-second Truth Lock (+20 XP); saves to clv_tv_story1 + clv_tv_story2 |
 
 ---
 
@@ -405,4 +406,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-05 — v113 live on index.html. Always copy new version to index.html after pushing.*
+*Last updated: 2026-06-06 — v114 built, not yet pushed. Always copy new version to index.html after pushing.*
