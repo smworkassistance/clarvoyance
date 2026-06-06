@@ -2132,90 +2132,12 @@ html[data-theme="dark"] .chat-msgs{
     <!-- Accordion card — all other sections -->
     <div class="self-acc">
 
-      <!-- True View Chart (v114) — Perspective Shifter / Thought Mold -->
-      <div class="sacc-row" onclick="selfToggle('trueview')">
+      <!-- True View Chart — opens as full-screen overlay, not accordion -->
+      <div class="sacc-row pa-nav-row" onclick="openTrueview()">
         <span class="sacc-sym" style="font-family:'Inter Tight',sans-serif;font-size:.55rem;font-weight:900;letter-spacing:.04em;color:var(--acc)">TV</span>
         <span class="sacc-title">True View Chart</span>
-        <span class="sacc-chev" id="self-chev-trueview">›</span>
+        <span class="sacc-chev" style="font-size:1rem;color:var(--sub)">→</span>
       </div>
-      <div class="sacc-body tv-chart-body" id="self-body-trueview" style="display:none">
-        <div class="tv-wrap">
-
-          <!-- Frequency bar — right side, spans both zones -->
-          <div class="tv-freq-outer">
-            <span class="tv-freq-lbl-hi">HIGH</span>
-            <div class="tv-freq-track">
-              <div class="tv-freq-fill" id="tv-freq-fill"></div>
-            </div>
-            <span class="tv-freq-lbl-lo">LOW</span>
-          </div>
-
-          <!-- STORY 2 — Pure Abundance (Top) -->
-          <div class="tv-zone tv-zone-top">
-            <div class="tv-main-heading">PURE ABUNDANCE — pure positive energy</div>
-            <div class="tv-ann-row">
-              <span class="tv-ann tv-ann-teal">Reality is malleable — only our Imagination</span>
-              <span class="tv-ann tv-ann-green">Source's View ✦</span>
-              <span class="tv-ann tv-ann-teal">Basis of life is freedom and abundance</span>
-              <span class="tv-ann tv-ann-green">What you want is already created</span>
-            </div>
-            <div class="tv-zone-label">Story 2 — Pure Abundance</div>
-            <div class="tv-zone-sub">Start to think from here →</div>
-            <textarea class="tv-ta" id="tv-ta-top" rows="4"
-              placeholder="State it as already true… write the abundance version of your situation…"
-              oninput="tvUpdate()"></textarea>
-            <div class="tv-bblock">Building blocks of life</div>
-            <div class="tv-tags">
-              <span class="tv-tag">Grace</span>
-              <span class="tv-tag">Well-being</span>
-              <span class="tv-tag">Imagination</span>
-              <span class="tv-tag">Abundance</span>
-              <span class="tv-tag">Love</span>
-            </div>
-          </div>
-
-          <!-- Perspective Shift divider -->
-          <div class="tv-shift-row">
-            <span class="tv-shift-arr a1">↑</span>
-            <span class="tv-shift-lbl">Perspective Shift</span>
-            <span class="tv-shift-arr a2">↑</span>
-          </div>
-
-          <!-- STORY 1 — Illusion (Bottom) -->
-          <div class="tv-zone tv-zone-bot">
-            <div class="tv-zone-label">Story 1 — Illusion</div>
-            <div class="tv-zone-sub">Stop thinking from here ✕</div>
-            <textarea class="tv-ta" id="tv-ta-bot" rows="4"
-              placeholder="Write your complaint, problem, worry… what's the lack story in your mind?"
-              oninput="tvUpdate()"></textarea>
-            <div class="tv-ann-row">
-              <span class="tv-ann tv-ann-purple">Lack is a non-existential fact</span>
-              <span class="tv-ann tv-ann-orange">Your explanation of problem is creating and sustaining the problem</span>
-              <span class="tv-ann tv-ann-rose">There is no lack — only lack mindset</span>
-              <span class="tv-ann tv-ann-muted">The very first step got wrong</span>
-              <span class="tv-ann tv-ann-muted">It is a confusion of your own mind</span>
-              <span class="tv-ann tv-ann-rose">Stop thinking from here — it's a wrong view</span>
-            </div>
-            <div class="tv-lack-heading">LACK MINDSET</div>
-          </div>
-
-          <!-- 68-second Truth Lock — appears when Story 2 has content -->
-          <div class="tv-lock-wrap" id="tv-lock-wrap" style="display:none">
-            <div class="tv-lock-msg">✦ What you want is already manifested — hold it for 68 seconds</div>
-            <button class="tv-lock-btn" id="tv-lock-btn" onclick="tvLockToggle()">Hold 68 seconds →</button>
-            <div class="tv-lock-ring-inner" id="tv-lock-ring" style="display:none">
-              <svg viewBox="0 0 44 44" class="tv-ring-svg">
-                <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(46,125,50,.15)" stroke-width="3.5"/>
-                <circle cx="22" cy="22" r="18" fill="none" stroke="#4caf50" stroke-width="3.5"
-                  stroke-dasharray="113.1" stroke-dashoffset="113.1" id="tv-ring-arc"
-                  stroke-linecap="round" transform="rotate(-90 22 22)"/>
-              </svg>
-              <span class="tv-ring-num" id="tv-ring-num">68</span>
-            </div>
-          </div>
-
-        </div><!-- /tv-wrap -->
-      </div><!-- /tv-chart-body -->
 
       <!-- Pure Abundance (v115) — opens as full-screen overlay, not accordion -->
       <div class="sacc-row pa-nav-row" onclick="openPureab()">
@@ -5110,6 +5032,18 @@ window.tvLockToggle=function(){
   },1000);
 };
 
+/* ── True View Chart — overlay open/close (v115 moved from accordion) ── */
+window.openTrueview=function(){
+  var ov=document.getElementById('trueview-overlay');
+  if(!ov) return;
+  ov.style.display='flex';
+  _restoreTv(); /* restore saved stories whenever opened */
+};
+window.closeTrueview=function(){
+  var ov=document.getElementById('trueview-overlay');
+  if(ov) ov.style.display='none';
+};
+
 /* ── Pure Abundance (v115) — overlay open/close + save/restore/timer ── */
 window.openPureab=function(){
   var ov=document.getElementById('pureab-overlay');
@@ -5183,8 +5117,8 @@ window.renderSelfTab=function(){
   renderKillDistractions();
   renderNoOverindulgence();
   _restoreMyspace();  /* v113 */
-  _restoreTv();      /* v114 */
-  _restorePureab();  /* v115 */
+  /* _restoreTv() called in openTrueview() — overlay restores on open */
+  _restorePureab();  /* v115 — overlay restores on open */
   if(typeof renderNNTab==='function')renderNNTab();
 };
 
@@ -12219,6 +12153,95 @@ body.home-tab #nn-tab-section{order:10;}
 <button id="lb-manifest-btn" onclick="lbManifest()" style="display:none;position:fixed;bottom:130px;left:16px;z-index:9000;background:rgba(0,0,0,.52);color:#fff;border:1.5px solid rgba(255,255,255,.4);border-radius:22px;padding:9px 18px;font-family:'Inter Tight',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);-webkit-tap-highlight-color:transparent">✦ Manifest</button>
 <!-- Foundation button in lightbox — v112 -->
 <button id="lb-foundation-btn" onclick="foundationOpen('vision','Vision Board')" style="display:none;position:fixed;bottom:130px;right:16px;z-index:9000;background:linear-gradient(135deg,#5a7a6a,#3d5c50);color:#fff;border:1.5px solid rgba(255,255,255,.3);border-radius:22px;padding:9px 18px;font-family:'Inter Tight',sans-serif;font-size:.78rem;font-weight:700;letter-spacing:.06em;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);-webkit-tap-highlight-color:transparent">✦ Foundation</button>
+
+<!-- True View Chart Overlay (v115) — full-screen page with back button -->
+<div id="trueview-overlay" style="display:none;position:fixed;inset:0;z-index:2500;flex-direction:column;overflow:hidden;background:var(--bg)">
+
+  <div class="pureab-hdr">
+    <button class="pureab-back-btn" onclick="closeTrueview()">‹ Back</button>
+    <span class="pureab-hdr-title">True View Chart</span>
+    <span class="pureab-hdr-spacer"></span>
+  </div>
+
+  <div class="pureab-scroll">
+    <div class="tv-wrap">
+
+      <!-- Frequency bar — right side, spans both zones -->
+      <div class="tv-freq-outer">
+        <span class="tv-freq-lbl-hi">HIGH</span>
+        <div class="tv-freq-track">
+          <div class="tv-freq-fill" id="tv-freq-fill"></div>
+        </div>
+        <span class="tv-freq-lbl-lo">LOW</span>
+      </div>
+
+      <!-- STORY 2 — Pure Abundance (Top) -->
+      <div class="tv-zone tv-zone-top">
+        <div class="tv-main-heading">PURE ABUNDANCE — pure positive energy</div>
+        <div class="tv-ann-row">
+          <span class="tv-ann tv-ann-teal">Reality is malleable — only our Imagination</span>
+          <span class="tv-ann tv-ann-green">Source's View ✦</span>
+          <span class="tv-ann tv-ann-teal">Basis of life is freedom and abundance</span>
+          <span class="tv-ann tv-ann-green">What you want is already created</span>
+        </div>
+        <div class="tv-zone-label">Story 2 — Pure Abundance</div>
+        <div class="tv-zone-sub">Start to think from here →</div>
+        <textarea class="tv-ta" id="tv-ta-top" rows="4"
+          placeholder="State it as already true… write the abundance version of your situation…"
+          oninput="tvUpdate()"></textarea>
+        <div class="tv-bblock">Building blocks of life</div>
+        <div class="tv-tags">
+          <span class="tv-tag">Grace</span>
+          <span class="tv-tag">Well-being</span>
+          <span class="tv-tag">Imagination</span>
+          <span class="tv-tag">Abundance</span>
+          <span class="tv-tag">Love</span>
+        </div>
+      </div>
+
+      <!-- Perspective Shift divider -->
+      <div class="tv-shift-row">
+        <span class="tv-shift-arr a1">↑</span>
+        <span class="tv-shift-lbl">Perspective Shift</span>
+        <span class="tv-shift-arr a2">↑</span>
+      </div>
+
+      <!-- STORY 1 — Illusion (Bottom) -->
+      <div class="tv-zone tv-zone-bot">
+        <div class="tv-zone-label">Story 1 — Illusion</div>
+        <div class="tv-zone-sub">Stop thinking from here ✕</div>
+        <textarea class="tv-ta" id="tv-ta-bot" rows="4"
+          placeholder="Write your complaint, problem, worry… what's the lack story in your mind?"
+          oninput="tvUpdate()"></textarea>
+        <div class="tv-ann-row">
+          <span class="tv-ann tv-ann-purple">Lack is a non-existential fact</span>
+          <span class="tv-ann tv-ann-orange">Your explanation of problem is creating and sustaining the problem</span>
+          <span class="tv-ann tv-ann-rose">There is no lack — only lack mindset</span>
+          <span class="tv-ann tv-ann-muted">The very first step got wrong</span>
+          <span class="tv-ann tv-ann-muted">It is a confusion of your own mind</span>
+          <span class="tv-ann tv-ann-rose">Stop thinking from here — it's a wrong view</span>
+        </div>
+        <div class="tv-lack-heading">LACK MINDSET</div>
+      </div>
+
+      <!-- 68-second Truth Lock — appears when Story 2 has content -->
+      <div class="tv-lock-wrap" id="tv-lock-wrap" style="display:none">
+        <div class="tv-lock-msg">✦ What you want is already manifested — hold it for 68 seconds</div>
+        <button class="tv-lock-btn" id="tv-lock-btn" onclick="tvLockToggle()">Hold 68 seconds →</button>
+        <div class="tv-lock-ring-inner" id="tv-lock-ring" style="display:none">
+          <svg viewBox="0 0 44 44" class="tv-ring-svg">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(46,125,50,.15)" stroke-width="3.5"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#4caf50" stroke-width="3.5"
+              stroke-dasharray="113.1" stroke-dashoffset="113.1" id="tv-ring-arc"
+              stroke-linecap="round" transform="rotate(-90 22 22)"/>
+          </svg>
+          <span class="tv-ring-num" id="tv-ring-num">68</span>
+        </div>
+      </div>
+
+    </div><!-- /tv-wrap -->
+  </div><!-- /pureab-scroll -->
+</div><!-- /trueview-overlay -->
 
 <!-- Pure Abundance Overlay (v115) — full-screen page, three concentric color zones -->
 <div id="pureab-overlay" style="display:none;position:fixed;inset:0;z-index:2500;flex-direction:column;overflow:hidden">
