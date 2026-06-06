@@ -4971,19 +4971,13 @@ window.myspaceFs=function(){
 
 /* ── True View Chart (v114) — save / restore / frequency / 68-sec lock ── */
 function _restoreTv(){
-  var taTop=document.getElementById('tv-ta-top');
-  var taBot=document.getElementById('tv-ta-bot');
-  if(taTop) taTop.value=localStorage.getItem('clv_tv_story2')||'';
-  if(taBot) taBot.value=localStorage.getItem('clv_tv_story1')||'';
+  /* no persistence — text clears each session */
   tvUpdate();
 }
 window.tvUpdate=function(){
   var taTop=document.getElementById('tv-ta-top');
   var taBot=document.getElementById('tv-ta-bot');
   if(!taTop||!taBot) return;
-  /* persist both stories */
-  localStorage.setItem('clv_tv_story2',taTop.value);
-  localStorage.setItem('clv_tv_story1',taBot.value);
   /* frequency bar: rises as Story 2 content grows relative to Story 1 */
   var w1=taBot.value.trim()?taBot.value.trim().split(/\s+/).length:0;
   var w2=taTop.value.trim()?taTop.value.trim().split(/\s+/).length:0;
@@ -5037,7 +5031,7 @@ window.openTrueview=function(){
   var ov=document.getElementById('trueview-overlay');
   if(!ov) return;
   ov.style.display='flex';
-  _restoreTv(); /* restore saved stories whenever opened */
+  tvUpdate(); /* reset frequency bar on open */
 };
 window.closeTrueview=function(){
   var ov=document.getElementById('trueview-overlay');
@@ -5047,30 +5041,13 @@ window.closeTrueview=function(){
 /* ── Pure Abundance (v115) — overlay open/close + save/restore/timer ── */
 window.openPureab=function(){
   var ov=document.getElementById('pureab-overlay');
-  if(!ov) return;
-  ov.style.display='flex';
-  _restorePureab(); /* restore saved text whenever opened */
+  if(ov) ov.style.display='flex';
 };
 window.closePureab=function(){
   var ov=document.getElementById('pureab-overlay');
   if(ov) ov.style.display='none';
 };
-function _restorePureab(){
-  /* restore both zone textareas from localStorage */
-  var map={'pa-field-ta':'clv_pa_field','pa-ring-ta':'clv_pa_ring'};
-  Object.keys(map).forEach(function(id){
-    var el=document.getElementById(id);
-    if(el) el.value=localStorage.getItem(map[id])||'';
-  });
-}
-window.paSave=function(){
-  /* persist both zone textareas */
-  var map={'pa-field-ta':'clv_pa_field','pa-ring-ta':'clv_pa_ring'};
-  Object.keys(map).forEach(function(id){
-    var el=document.getElementById(id);
-    if(el) localStorage.setItem(map[id],el.value);
-  });
-};
+window.paSave=function(){}; /* no persistence — text clears each session */
 var _paTimerInt=null, _paTimerSec=68;
 window.paLockToggle=function(){
   var btn=document.getElementById('pa-lock-btn');
@@ -5117,8 +5094,7 @@ window.renderSelfTab=function(){
   renderKillDistractions();
   renderNoOverindulgence();
   _restoreMyspace();  /* v113 */
-  /* _restoreTv() called in openTrueview() — overlay restores on open */
-  _restorePureab();  /* v115 — overlay restores on open */
+  /* True View + Pure Abundance: no persistence, text clears each session */
   if(typeof renderNNTab==='function')renderNNTab();
 };
 
