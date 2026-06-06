@@ -1819,59 +1819,60 @@ html[data-theme="dark"] .chat-msgs{
     </div>
   </div>
 
-  <!-- GOAL ACCORDION (v118) — same self-acc pattern, three sections hairline separated -->
-  <!-- goal-row class kept so JS selectors (.goal-row .vis-lbl etc.) still resolve -->
-  <div class="self-acc goal-row" id="goal-row" style="margin-bottom:16px">
-
-    <!-- Major Definite Goal -->
-    <div class="sacc-row" onclick="goalToggle('major')">
-      <span class="sacc-sym">🎯</span>
-      <span class="sacc-title">Major Definite Goal</span>
-      <span class="sacc-chev" id="goal-chev-major">›</span>
-    </div>
-    <div class="sacc-body" id="goal-body-major" style="display:none">
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-        <button class="manifest-trigger" onclick="manifestOpen(document.getElementById('goal-ta').value||'My Major Goal',undefined,this)" title="Manifest this goal">✦ Manifest</button>
-        <button class="fnd-trigger" onclick="foundationOpen('major_goal','Major Goal')" title="My Foundation">✦ Foundation</button>
-        <button class="btn" id="goal-edit-btn" onclick="toggleGoalEdit()">✏️ Edit</button>
-        <button class="btn pr hidden" id="goal-save-btn" onclick="saveGoal()">Save</button>
+  <!-- MAJOR DEFINITE GOAL + VISION -->
+  <div class="goal-row" id="goal-row">
+    <div class="goal-sec">
+      <div class="goal-hdr">
+        <div class="goal-lbl"><span>🎯</span> Major Definite Goal</div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <!-- Manifest button reads goal text from the textarea at click time -->
+          <button class="manifest-trigger" onclick="manifestOpen(document.getElementById('goal-ta').value||'My Major Goal',undefined,this)" title="Manifest this goal">✦ Manifest</button>
+          <!-- Foundation button (v112) — own class to avoid goal-row !important override -->
+          <button class="fnd-trigger" onclick="foundationOpen('major_goal','Major Goal')" title="My Foundation">✦ Foundation</button>
+          <button class="btn" id="goal-edit-btn" onclick="toggleGoalEdit()">✏️ Edit</button>
+          <button class="btn pr hidden" id="goal-save-btn" onclick="saveGoal()">Save</button>
+        </div>
       </div>
       <textarea class="goal-ta" id="goal-ta" readonly placeholder="🌟 What is your one major, burning, definite goal? Write it as if it's already happening — step into the feeling of achieving it right now."></textarea>
-      <!-- Vision images — flush separator below textarea; vis-sec class kept for CSS targeting -->
-      <div class="vis-sec" style="border-left:none;background:var(--ca);margin:12px -18px -16px;padding:14px 18px 16px;border-top:1px solid var(--bo)">
-        <div class="vis-lbl">📸 Vision Images</div>
-        <div class="vis-grid" id="vis-grid"></div>
+      <!-- Audio/video/link chips for goal -->
+      <div class="media-chips" id="goal-chips"></div>
+      <div class="media-add-row">
+        <button class="btn" style="font-size:.80rem;padding:4px 9px" onclick="showMediaAdd('goal')">🔗 Add Link</button>
       </div>
     </div>
-
-    <!-- Issues & Resolutions -->
-    <div class="sacc-row" onclick="goalToggle('issues')">
-      <span class="sacc-sym">🔍</span>
-      <span class="sacc-title">Issues &amp; Resolutions</span>
-      <span class="sacc-chev" id="goal-chev-issues">›</span>
+    <div class="vis-sec">
+      <div class="vis-lbl">📸 Vision Images</div>
+      <div class="vis-grid" id="vis-grid"></div>
     </div>
-    <div class="sacc-body" id="goal-body-issues" style="display:none">
+  </div>
+
+
+  <!-- ISSUES & RESOLUTIONS (v82 — goal-row card style) -->
+  <div id="issues-section" class="goal-row" style="display:block;margin-top:16px">
+    <div class="goal-sec">
+      <div class="goal-hdr">
+        <div class="goal-lbl"><span>🔍</span> Issues &amp; Resolutions</div>
+      </div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-        <input class="minp" id="issue-inp" type="text" placeholder="Name an issue you're working through…" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')issueAdd()">
-        <button class="btn pr" style="font-size:.80rem;padding:9px 14px;flex-shrink:0" onclick="issueAdd()">+ Add</button>
+        <input class="goal-ta" id="issue-inp" type="text" placeholder="Name an issue you're working through…" style="flex:1;min-height:auto;font-size:1rem;padding:8px 10px;border:1.5px solid var(--bo);border-radius:9px;margin:0;box-sizing:border-box" onkeydown="if(event.key==='Enter')issueAdd()">
+        <button class="btn pr" style="font-size:.75rem;padding:8px 14px;flex-shrink:0" onclick="issueAdd()">+ Add</button>
       </div>
       <div id="issues-list"></div>
     </div>
+  </div>
 
-    <!-- General Manifestation -->
-    <div class="sacc-row sacc-row-last" onclick="goalToggle('gmanifest')">
-      <span class="sacc-sym">✦</span>
-      <span class="sacc-title">General Manifestation</span>
-      <span class="sacc-chev" id="goal-chev-gmanifest">›</span>
-    </div>
-    <div class="sacc-body sacc-body-last" id="goal-body-gmanifest" style="display:none">
+  <!-- GENERAL MANIFESTATION (v112 — same structure as Issues) -->
+  <div id="gen-manifest-section" class="goal-row" style="display:block;margin-top:16px">
+    <div class="goal-sec">
+      <div class="goal-hdr">
+        <div class="goal-lbl"><span>✦</span> General Manifestation</div>
+      </div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-        <input class="minp" id="gm-inp" type="text" placeholder="Write a manifestation…" style="flex:1;margin:0" onkeydown="if(event.key==='Enter')gmAdd()">
-        <button class="btn pr" style="font-size:.80rem;padding:9px 14px;flex-shrink:0" onclick="gmAdd()">+ Add</button>
+        <input class="goal-ta" id="gm-inp" type="text" placeholder="Write a manifestation…" style="flex:1;min-height:auto;font-size:1rem;padding:8px 10px;border:1.5px solid var(--bo);border-radius:9px;margin:0;box-sizing:border-box" onkeydown="if(event.key==='Enter')gmAdd()">
+        <button class="btn pr" style="font-size:.75rem;padding:8px 14px;flex-shrink:0" onclick="gmAdd()">+ Add</button>
       </div>
       <div id="gm-list"></div>
     </div>
-
   </div>
 
   <!-- MY QUOTES AND THOUGHTS -->
@@ -2060,7 +2061,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v118</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v117</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -2085,7 +2086,17 @@ html[data-theme="dark"] .chat-msgs{
           <!-- English colour grid — rendered by initThemeSwitcher() -->
           <div id="english-color-grid" style="display:flex;flex-wrap:wrap;gap:8px"></div>
         </div>
-
+        <!-- Where are you right now — moved from Self tab (v117) -->
+        <div style="padding-top:14px;border-top:1px solid var(--bo);margin-top:14px">
+          <div style="font-weight:600;font-size:1rem;color:var(--tx);margin-bottom:4px">Where are you right now?</div>
+          <div style="font-size:.82rem;color:var(--sub);margin-bottom:12px">One honest tap — XP awarded once per day</div>
+          <div class="self-checkin-row" style="flex-wrap:nowrap">
+            <button class="self-ci-btn self-ci-in" id="sci-in" onclick="selfCheckin('in')">In SELF</button>
+            <button class="self-ci-btn self-ci-neutral" id="sci-neutral" onclick="selfCheckin('neutral')">Neutral</button>
+            <button class="self-ci-btn self-ci-dis" id="sci-dis" onclick="selfCheckin('distracted')">Distracted</button>
+          </div>
+          <div class="self-ci-msg" id="self-ci-msg" style="display:none">Return to SELF — slow down, breathe, be still.</div>
+        </div>
     </div>
 
     <!-- ── Contact Us pane ── -->
@@ -4932,15 +4943,6 @@ function _selfRestoreCheckin(){
 function selfToggle(id){
   var body=document.getElementById('self-body-'+id);
   var chev=document.getElementById('self-chev-'+id);
-  if(!body)return;
-  var isOpen=body.style.display!=='none';
-  body.style.display=isOpen?'none':'';
-  if(chev)chev.style.transform=isOpen?'':'rotate(90deg)';
-}
-
-function goalToggle(id){
-  var body=document.getElementById('goal-body-'+id);
-  var chev=document.getElementById('goal-chev-'+id);
   if(!body)return;
   var isOpen=body.style.display!=='none';
   body.style.display=isOpen?'none':'';
@@ -10221,18 +10223,17 @@ body.home-tab #nn-tab-section{order:10;}
 .manifest-next-btn{padding:10px 20px;background:var(--acc);border:none;border-radius:10px;font-family:'Inter Tight',sans-serif;font-size:1.05rem;font-weight:700;color:#fff;cursor:pointer;transition:opacity .15s;-webkit-tap-highlight-color:transparent}
 .manifest-next-btn:active{opacity:.82}
 /* Issue accordion items */
-.issue-card{border:none;border-bottom:1px solid var(--bo);border-radius:0;overflow:visible;margin:0;background:transparent;}
-.issue-card:last-child{border-bottom:none;}
+.issue-card{border:1px solid var(--bo);border-radius:11px;overflow:hidden;margin-bottom:8px;background:var(--bg);}
 .issue-hdr{
-  display:flex;align-items:center;gap:10px;padding:12px 0;
+  display:flex;align-items:center;gap:10px;padding:11px 13px;
   cursor:pointer;-webkit-tap-highlight-color:transparent;
 }
-.issue-hdr:active{opacity:.7;}
+.issue-hdr:active{background:color-mix(in oklab,var(--acc) 5%,transparent);}
 .issue-title-txt{flex:1;font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1rem;color:var(--tx);}
 .issue-chev{font-size:1rem;color:var(--sub);transition:transform .2s;}
 .issue-card.open .issue-chev{transform:rotate(90deg);}
 .issue-del{background:none;border:none;color:var(--sub);font-size:.85rem;cursor:pointer;padding:2px 6px;-webkit-tap-highlight-color:transparent;opacity:.7;}
-.issue-body{display:none;padding:0 0 12px;}
+.issue-body{display:none;padding:0 13px 13px;}
 .issue-card.open .issue-body{display:block;}
 .issue-ta{
   width:100%;box-sizing:border-box;border:1.5px solid var(--bo);border-radius:9px;

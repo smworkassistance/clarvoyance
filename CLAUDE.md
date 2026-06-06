@@ -100,7 +100,9 @@ STATUS: TESTING | STABLE
 | v113 | My Personal Space — free-flow writing accordion at top of Self tab (above Peak State); charger-style layout with fullscreen button; text persists to clv_myspace_text in localStorage |
 | v114 | True View Chart — perspective shifter / thought mold in Self tab; two colored zones (Story 1 pink=Illusion, Story 2 green=Pure Abundance) with annotation chips; vertical frequency bar animates as Story 2 fills; 68-second Truth Lock (+20 XP); saves to clv_tv_story1 + clv_tv_story2 |
 | v115 | Pure Abundance — full-screen overlay in Self tab (opens with Back button, not accordion); two concentric zones: Cerulean outer (Infinite Intelligence — I Am the Infinite) + Silver Grey inner ring (Resistance, 50% smaller via 22% margin); English named colors with emotional associations as color tags; 68-sec absorption lock (+20 XP once/day); saves to clv_pa_field + clv_pa_ring |
-| v116 | Visual skin overhaul — Apple-inspired design (SF Pro system font stack, bigger font sizes throughout, frosted glass bottom nav, Apple light gray/white surfaces); 6 swappable colour themes (Classic warm gold, Dark, Celadon, Sage, Eton, Viridian) via data-theme on html; all italic/Cormorant fonts removed from card content; theme switcher in Profile → Updates tab; theme saved to clv_theme in localStorage |
+| v116 | Visual skin overhaul — Apple-inspired design (SF Pro system font stack, bigger font sizes, frosted glass bottom nav); full English colour palette: 24 named colours (Racing Green → Stone) + Classic & Dark presets; accent selection auto-generates tint variants via JS colour math (_applyAccent); XP/streak elements use var(--acc) not hardcoded amber; all italic/Cormorant fonts removed from card content; theme saved to clv_theme in localStorage |
+| v117 | "Where are you right now?" check-in moved from Self tab → Profile Updates tab (above Contact); Goal tab dark-canvas colors replaced with theme-consistent surface (color-mix acc+su); dark preset still restores immersive dark look for goal-row |
+| v118 | "Where are you right now?" removed entirely; Goal tab: 3 sections (Major Definite Goal, Issues & Resolutions, General Manifestation) converted to single self-acc accordion with hairline separators + click-to-expand; issue/GM list items changed to hairline-separated rows (no card boxes); Add Link removed from Major Definite Goal; goalToggle() function added |
 
 ---
 
@@ -408,4 +410,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-07 — v116 pushed. index.html = v116. Always copy new version to index.html after pushing.*
+*Last updated: 2026-06-07 — v118 in progress (not yet pushed). index.html = v115. Always copy new version to index.html after pushing.*

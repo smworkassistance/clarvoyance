@@ -552,7 +552,7 @@ body[data-persona="nurturer"]  {--persona-col:#7556a4}  /* Amethyst — gentle, 
 .vf-breath-orb{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle,rgba(80,200,255,.25),rgba(30,100,200,.08));border:2px solid rgba(80,200,255,.38);margin:14px auto 6px;animation:vfBreathe 4s ease-in-out infinite;display:flex;align-items:center;justify-content:center;font-size:.87rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(160,220,255,.8);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','DM Sans',sans-serif;text-align:center;line-height:1.4}
 .vf-breath-label{text-align:center;font-size:.93rem;color:rgba(255,255,255,.4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;min-height:18px}
 /* Streak badge in topbar */
-.vf-streak{font-size:.89rem;font-weight:700;color:#f59e0b;padding:4px 11px;border-radius:20px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.22);letter-spacing:.02em;transition:all .3s}
+.vf-streak{font-size:.89rem;font-weight:700;color:var(--acc);padding:4px 11px;border-radius:20px;background:color-mix(in oklab,var(--acc) 12%,transparent);border:1px solid color-mix(in oklab,var(--acc) 28%,transparent);letter-spacing:.02em;transition:all .3s}
 /* Skip button — visually dangerous */
 .vf-skip-btn{background:rgba(150,15,15,.2);border:1px solid rgba(190,35,35,.32);color:rgba(255,90,90,.82);border-radius:9px;padding:9px 15px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','DM Sans',sans-serif;font-size:.83rem;font-weight:700;cursor:pointer;touch-action:manipulation;letter-spacing:.07em;transition:background .15s}
 .vf-skip-btn:active{background:rgba(150,15,15,.45)}
@@ -562,7 +562,7 @@ body[data-persona="nurturer"]  {--persona-col:#7556a4}  /* Amethyst — gentle, 
 @keyframes vfClaimPulse{0%,100%{box-shadow:0 0 0 rgba(248,208,128,0)}50%{box-shadow:0 0 16px rgba(248,208,128,.3)}}
 .vf-claim-btn.done{background:rgba(248,208,128,.06);border-color:rgba(248,208,128,.12);color:rgba(248,208,128,.3);cursor:default;animation:none}
 /* Multiplier badge */
-.vf-mult-badge{font-size:.80rem;font-weight:700;color:#f59e0b;letter-spacing:.06em;line-height:1;text-align:right}
+.vf-mult-badge{font-size:.80rem;font-weight:700;color:var(--acc);letter-spacing:.06em;line-height:1;text-align:right}
 /* Big italic text for affirmation / charger */
 .vf-big-text{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','DM Sans',sans-serif;font-size:1.48rem;font-style:normal;font-weight:600;color:rgba(255,255,255,.94);line-height:1.65;margin-bottom:16px}
 /* Writing char counter */
@@ -1170,7 +1170,7 @@ html[data-theme="dark"] .chat-msgs{
 #dq-card{background:var(--su);border:1.5px solid var(--bo);border-radius:14px;padding:16px 18px;margin-bottom:16px;transition:background .4s,border-color .4s;position:relative;overflow:hidden}
 #dq-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .dq-lbl{font-size:.93rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
-#dq-streak-badge{font-size:.85rem;font-weight:700;color:#e87020}
+#dq-streak-badge{font-size:.85rem;font-weight:700;color:var(--acc)}
 #dq-progress-wrap{height:4px;background:var(--ca);border-radius:2px;margin-bottom:14px;overflow:hidden}
 #dq-progress-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acl));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
 .dq-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--ca);cursor:pointer}
@@ -2075,17 +2075,16 @@ html[data-theme="dark"] .chat-msgs{
           <button class="pwa-install-btn" style="flex:0 0 auto;padding:9px 16px" onclick="pwaInstallFromProfile()">Install</button>
         </div>
       </div>
-              <!-- Theme switcher row -->
-        <div class="theme-swatch-row" style="margin-top:4px">
-          <span style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-weight:600;font-size:1rem;color:var(--tx);flex:1">App Theme</span>
-          <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end">
-            <button class="theme-swatch" data-theme="classic"  onclick="setAppTheme('classic')"  title="Classic"></button>
-            <button class="theme-swatch" data-theme="dark"     onclick="setAppTheme('dark')"     title="Dark"></button>
-            <button class="theme-swatch" data-theme="celadon"  onclick="setAppTheme('celadon')"  title="Celadon"></button>
-            <button class="theme-swatch" data-theme="sage"     onclick="setAppTheme('sage')"     title="Sage"></button>
-            <button class="theme-swatch" data-theme="eton"     onclick="setAppTheme('eton')"     title="Eton Blue"></button>
-            <button class="theme-swatch" data-theme="viridian" onclick="setAppTheme('viridian')" title="Viridian"></button>
+              <!-- Theme switcher — full English colour palette -->
+        <div style="padding-top:14px;border-top:1px solid var(--bo)">
+          <div style="font-weight:600;font-size:1rem;color:var(--tx);margin-bottom:10px">App Theme</div>
+          <!-- Presets row: Classic + Dark -->
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button class="theme-preset-btn" id="preset-classic" onclick="setAppTheme('classic')" title="Classic">Classic</button>
+            <button class="theme-preset-btn" id="preset-dark"    onclick="setAppTheme('dark')"    title="Dark">Dark</button>
           </div>
+          <!-- English colour grid — rendered by initThemeSwitcher() -->
+          <div id="english-color-grid" style="display:flex;flex-wrap:wrap;gap:8px"></div>
         </div>
     </div>
 
@@ -6513,7 +6512,7 @@ function renderNoOverindulgence(){
 #dq-card{background:var(--su);border:1.5px solid var(--bo);border-radius:14px;padding:16px 18px;margin-bottom:16px;transition:background .4s,border-color .4s;position:relative;overflow:hidden}
 #dq-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .dq-lbl{font-size:.93rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
-#dq-streak-badge{font-size:.85rem;font-weight:700;color:#e87020}
+#dq-streak-badge{font-size:.85rem;font-weight:700;color:var(--acc)}
 #dq-progress-wrap{height:4px;background:var(--ca);border-radius:2px;margin-bottom:14px;overflow:hidden}
 #dq-progress-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acl));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
 .dq-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--ca);cursor:pointer}
@@ -8072,9 +8071,13 @@ body{
   filter:drop-shadow(0 0 14px rgba(241,195,118,.5));
 }
 .vf-claim-btn.ready{
-  background:linear-gradient(135deg,rgba(241,195,118,.2),rgba(232,199,158,.12));
-  border-color:rgba(241,195,118,.55);
+  background:color-mix(in oklab,var(--acc) 16%,transparent);
+  border-color:color-mix(in oklab,var(--acc) 50%,transparent);
   color:var(--gold-l);
+}
+/* tour + walkthrough buttons follow accent */
+.tour-btn.next,.tw-start,.tour-btn.go{
+  background:var(--acc)!important;color:#fff!important;
 }
 
 /* ─── ALARM, MODAL, OVERLAYS ─────────────────────────────────── */
@@ -12502,43 +12505,167 @@ body.home-tab #nn-tab-section{order:10;}
 }
 
 /* ── THEME SWITCHER SWATCHES ── */
-.theme-swatch-row { display:flex; align-items:center; gap:10px; padding:12px 0; }
-.theme-swatch-row:first-child { padding-top:14px; border-top:1px solid var(--bo); }
-.theme-swatch {
-  width:30px; height:30px; border-radius:50%;
-  border:3px solid transparent;
+/* ── English colour grid swatches ── */
+.eng-swatch {
+  width:28px; height:28px; border-radius:50%;
+  border:2.5px solid transparent;
   cursor:pointer; flex-shrink:0;
   -webkit-tap-highlight-color:transparent;
-  transition:transform .15s, border-color .2s;
-  outline:none;
+  transition:transform .15s, border-color .18s, box-shadow .18s;
+  outline:none; position:relative;
 }
-.theme-swatch:active { transform:scale(.88); }
-.theme-swatch.active { border-color: #1C1C1E; }
-.theme-swatch[data-theme="celadon"]  { background:#2E8B57; }
-.theme-swatch[data-theme="sage"]     { background:#5F8F50; }
-.theme-swatch[data-theme="eton"]     { background:#3A8B7C; }
-.theme-swatch[data-theme="viridian"] { background:#40826D; }
-.theme-swatch-label { font-size:.75rem; color:var(--lt); font-weight:500; flex:1; }
-.theme-swatch[data-theme="classic"] { background: linear-gradient(135deg, #d4a060, #8b5e2a); }
-.theme-swatch[data-theme="dark"]    { background: linear-gradient(135deg, #3a2c18, #14110c); border:3px solid rgba(212,160,96,.4); }
+.eng-swatch:active { transform:scale(.86); }
+.eng-swatch.active {
+  border-color:var(--tx);
+  box-shadow:0 0 0 3px color-mix(in oklab,var(--acc) 22%,transparent);
+}
+/* Preset buttons: Classic / Dark */
+.theme-preset-btn {
+  flex:1; padding:8px 14px; border-radius:10px;
+  border:1.5px solid var(--bo); background:var(--ca);
+  font-size:.85rem; font-weight:600; color:var(--tx);
+  cursor:pointer; transition:all .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.theme-preset-btn:active { opacity:.75; }
+.theme-preset-btn.active {
+  background:var(--acc); color:#fff;
+  border-color:var(--acc);
+}
+[data-theme="dark"] .theme-swatch.active,
+[data-theme="dark"] .eng-swatch.active { border-color:#f5ead4 !important; }
 </style>
 
 <script>
+/* ── English Colour Palette ── */
+var ENGLISH_COLORS = [
+  {name:'Racing Green',  acc:'#00472A'},
+  {name:'Bottle Green',  acc:'#006A4E'},
+  {name:'Sage',          acc:'#5F8F50'},
+  {name:'Moss',          acc:'#4A7041'},
+  {name:'Fern',          acc:'#4F7942'},
+  {name:'Celadon',       acc:'#2E8B57'},
+  {name:'Viridian',      acc:'#40826D'},
+  {name:'Teal',          acc:'#007B7B'},
+  {name:'Eton Blue',     acc:'#5BA0A0'},
+  {name:'Cambridge',     acc:'#4E92A0'},
+  {name:'Peacock',       acc:'#006994'},
+  {name:'Oxford Blue',   acc:'#002F6C'},
+  {name:'Navy',          acc:'#001F5B'},
+  {name:'Cobalt',        acc:'#0047AB'},
+  {name:'Wedgwood',      acc:'#4E7FA6'},
+  {name:'Slate',         acc:'#5A7A8A'},
+  {name:'Lavender',      acc:'#7B6BAA'},
+  {name:'Mauve',         acc:'#9C5E8C'},
+  {name:'Rose',          acc:'#A0526A'},
+  {name:'Claret',        acc:'#7B1C3B'},
+  {name:'Terracotta',    acc:'#A85632'},
+  {name:'Amber',         acc:'#B8860B'},
+  {name:'Gold',          acc:'#C9A84C'},
+  {name:'Stone',         acc:'#8A7360'},
+];
+
+/* Colour math helpers */
+function _h2r(hex){
+  var n=parseInt(hex.replace('#',''),16);
+  return[(n>>16)&255,(n>>8)&255,n&255];
+}
+function _r2h(r,g,b){
+  return'#'+[r,g,b].map(function(v){
+    return Math.min(255,Math.max(0,Math.round(v))).toString(16).padStart(2,'0');
+  }).join('');
+}
+function _blend(hex,w){ // blend with white: w=0→pure accent, w=1→pure white
+  var c=_h2r(hex);
+  return _r2h(c[0]+(255-c[0])*w, c[1]+(255-c[1])*w, c[2]+(255-c[2])*w);
+}
+function _dark(hex,f){ // darken by factor 0-1
+  var c=_h2r(hex);
+  return _r2h(c[0]*(1-f), c[1]*(1-f), c[2]*(1-f));
+}
+function _applyAccent(acc){
+  var root=document.documentElement;
+  root.style.setProperty('--t-acc', acc);
+  root.style.setProperty('--t-lt',  _blend(acc,.50));
+  root.style.setProperty('--t-xlt', _blend(acc,.78));
+  root.style.setProperty('--t-dk',  _dark(acc,.25));
+  /* Also update legacy gold tokens directly so cv-v51 remnants use the new color */
+  root.style.setProperty('--gold-uni',    acc);
+  root.style.setProperty('--gold-warm',   _blend(acc,.50));
+  root.style.setProperty('--gold-bright', _blend(acc,.78));
+}
+function _clearAccent(){
+  var root=document.documentElement;
+  ['--t-acc','--t-lt','--t-xlt','--t-dk','--gold-uni','--gold-warm','--gold-bright']
+    .forEach(function(p){ root.style.removeProperty(p); });
+}
+
 /* ── Theme switcher ── */
 function setAppTheme(t){
-  document.documentElement.setAttribute('data-theme', t||'celadon');
+  var root=document.documentElement;
+  var isPreset = (t==='classic'||t==='dark');
+  if(isPreset){
+    _clearAccent(); // let CSS vars take over for presets
+    root.setAttribute('data-theme', t);
+  } else {
+    /* English colour accent */
+    root.setAttribute('data-theme','celadon'); // use green template structure
+    _applyAccent(t);
+  }
   localStorage.setItem('clv_theme', t);
-  document.querySelectorAll('.theme-swatch').forEach(function(s){
-    s.classList.toggle('active', s.dataset.theme === t);
+  /* Update active states */
+  document.querySelectorAll('.eng-swatch').forEach(function(s){
+    s.classList.toggle('active', s.dataset.accent===t);
+  });
+  document.querySelectorAll('.theme-preset-btn').forEach(function(b){
+    b.classList.toggle('active', b.id==='preset-'+t);
   });
 }
-/* Load saved theme immediately */
+
+/* Render the English colour grid */
+function initThemeSwitcher(){
+  var grid=document.getElementById('english-color-grid');
+  if(!grid) return;
+  var saved=localStorage.getItem('clv_theme')||'#2E8B57';
+  grid.innerHTML='';
+  ENGLISH_COLORS.forEach(function(col){
+    var btn=document.createElement('button');
+    btn.className='eng-swatch'+(saved===col.acc?' active':'');
+    btn.dataset.accent=col.acc;
+    btn.title=col.name;
+    btn.style.background=col.acc;
+    btn.setAttribute('aria-label',col.name);
+    btn.onclick=function(){ setAppTheme(col.acc); };
+    grid.appendChild(btn);
+  });
+  /* Mark preset active */
+  document.querySelectorAll('.theme-preset-btn').forEach(function(b){
+    b.classList.toggle('active', b.id==='preset-'+saved);
+  });
+}
+
+/* Load saved theme immediately (before DOMContentLoaded for colours) */
 (function(){
-  var saved = localStorage.getItem('clv_theme') || 'celadon';
-  document.documentElement.setAttribute('data-theme', saved);
+  var saved=localStorage.getItem('clv_theme')||'#2E8B57';
+  /* migrate old named-theme strings to hex */
+  var _legacy={celadon:'#2E8B57',sage:'#5F8F50',eton:'#3A8B7C',viridian:'#40826D'};
+  if(_legacy[saved]){saved=_legacy[saved];localStorage.setItem('clv_theme',saved);}
+  var root=document.documentElement;
+  var isPreset=(saved==='classic'||saved==='dark');
+  if(isPreset){
+    root.setAttribute('data-theme',saved);
+  } else {
+    root.setAttribute('data-theme','celadon');
+    _applyAccent(saved);
+  }
   document.addEventListener('DOMContentLoaded', function(){
-    var s = document.querySelector('.theme-swatch[data-theme="'+saved+'"]');
-    if(s) s.classList.add('active');
+    initThemeSwitcher();
+    /* Also hook into profile tab open to re-render grid */
+    var origOpen=window._doOpenProfile;
+    if(origOpen) window._doOpenProfile=function(){
+      origOpen.apply(this,arguments);
+      initThemeSwitcher();
+    };
   });
 })();
 </script>
