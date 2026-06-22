@@ -7580,9 +7580,10 @@ function renderNoOverindulgence(){
 
   window._signOutGoogle = async function(){
     var sb = _getSb();
-    await sb.auth.signOut();
+    _clearUserLocalStorage(); // wipe old user's data from screen immediately
     _uid = null;
     _updateAuthUI(null);
+    await sb.auth.signOut();
   };
 
   // ── Auth UI update ────────────────────────────────────────────
