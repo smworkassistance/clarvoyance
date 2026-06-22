@@ -7544,6 +7544,19 @@ function renderNoOverindulgence(){
   window._syncPushClar    = function(){ _sbPush('user_clar',     _buildClarPayload()); };
   window._syncPushRevise  = function(){ _sbPush('user_revise',   _buildRevisePayload()); };
 
+  // clear all user-specific localStorage keys before loading a new user's data
+  function _clearUserLocalStorage(){
+    var keys = [
+      'clv_nick','clv_user_identity','clv_clar_persona','clar_lang','clv_theme',
+      'clar_xp','clar_streak','c9_goal','c9_goallinks','clv_issues','clv_gen_manifest',
+      'c9_vis','c9_nn','c9_nnhist','clv_chat_session','clv_user_profile',
+      'clv_chat_summaries','c9_rrdocs','c9_rrlinks','clv_prof_photo',
+      'clv_google_nudge_shown'
+    ];
+    keys.forEach(function(k){ localStorage.removeItem(k); });
+    console.log('[Sync] cleared user localStorage for new sign-in');
+  }
+
   // push all 6 tables at once — used after Google sign-in to migrate local data
   function _pushAllUserData(){
     _sbPush('user_profile',  _buildProfilePayload());
@@ -7618,7 +7631,9 @@ function renderNoOverindulgence(){
         if(_uid){
           var isGoogle = session && !session.user.is_anonymous;
           if(isGoogle){
-            // New Google sign-in — pull first, then push all local data up
+            // Clear previous user's local data, then pull this user's Supabase data
+            // If new user (empty Supabase row) → app shows blank. If returning user → their data loads.
+            _clearUserLocalStorage();
             _pullUserData().then(function(){ _pushAllUserData(); });
           } else {
             _pullUserData();
