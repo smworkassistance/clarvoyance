@@ -7544,6 +7544,17 @@ function renderNoOverindulgence(){
   window._syncPushClar    = function(){ _sbPush('user_clar',     _buildClarPayload()); };
   window._syncPushRevise  = function(){ _sbPush('user_revise',   _buildRevisePayload()); };
 
+  // push all 6 tables at once — used after Google sign-in to migrate local data
+  function _pushAllUserData(){
+    _sbPush('user_profile',  _buildProfilePayload());
+    _sbPush('user_progress', _buildProgressPayload());
+    _sbPush('user_goals',    _buildGoalsPayload());
+    _sbPush('user_nn',       _buildNNPayload());
+    _sbPush('user_clar',     _buildClarPayload());
+    _sbPush('user_revise',   _buildRevisePayload());
+    console.log('[Sync] pushed all local data to Supabase');
+  }
+
   // ── Google OAuth ─────────────────────────────────────────────
   var REDIRECT_URL = 'https://smworkassistance.github.io/clarvoyance/';
 
@@ -7600,10 +7611,22 @@ function renderNoOverindulgence(){
   function _setupAuthListener(){
     var sb = _getSb();
     sb.auth.onAuthStateChange(function(event, session){
-      if(event === 'SIGNED_IN' || event === 'USER_UPDATED'){
+      if(event === 'SIGNED_IN'){
+        var prevUid = _uid;
         _uid = session ? session.user.id : null;
         _updateAuthUI(session);
-        if(_uid) _pullUserData();
+        if(_uid){
+          var isGoogle = session && !session.user.is_anonymous;
+          if(isGoogle){
+            // New Google sign-in — pull first, then push all local data up
+            _pullUserData().then(function(){ _pushAllUserData(); });
+          } else {
+            _pullUserData();
+          }
+        }
+      } else if(event === 'USER_UPDATED'){
+        _uid = session ? session.user.id : null;
+        _updateAuthUI(session);
       } else if(event === 'SIGNED_OUT'){
         _uid = null;
         _updateAuthUI(null);
