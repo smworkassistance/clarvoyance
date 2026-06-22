@@ -103,6 +103,10 @@ STATUS: TESTING | STABLE
 | v116 | Visual skin overhaul — Apple-inspired design (SF Pro system font stack, bigger font sizes, frosted glass bottom nav); full English colour palette: 24 named colours (Racing Green → Stone) + Classic & Dark presets; accent selection auto-generates tint variants via JS colour math (_applyAccent); XP/streak elements use var(--acc) not hardcoded amber; all italic/Cormorant fonts removed from card content; theme saved to clv_theme in localStorage |
 | v117 | "Where are you right now?" check-in moved from Self tab → Profile Updates tab (above Contact); Goal tab dark-canvas colors replaced with theme-consistent surface (color-mix acc+su); dark preset still restores immersive dark look for goal-row |
 | v118 | "Where are you right now?" removed entirely; Goal tab: 3 sections (Major Definite Goal, Issues & Resolutions, General Manifestation) converted to single self-acc accordion with hairline separators + click-to-expand; issue/GM list items changed to hairline-separated rows (no card boxes); Add Link removed from Major Definite Goal; goalToggle() function added |
+| v119 | PWA mobile overflow fixes — html+body overflow-x:hidden prevents horizontal page scroll; bnav overflow:hidden stops nav from being scrollable/pannable; header timer (tmr) scaled down so profile chip stays visible; vibe feed topbar score-wrap margin-left:auto so XP number always stays on right |
+| v120 | Supabase data layer — Supabase JS CDN + anon auth; `_fetchFromSupabase()` queries all 11 content tables in parallel; `_fetchContentData()` single entry point (Supabase primary → Sheets Worker fallback, isolated for easy removal); `db/schema_v120.sql` contains full CREATE TABLE + RLS + INSERT for all 11 tables |
+| v121 | User data sync — 6 Supabase user tables (user_profile, user_progress, user_goals, user_nn, user_clar, user_revise); anonymous auth; pull on load, push on every save; hooks into xpAdd, sv(), issSave, gmSave, profile save, chat save, persona + theme change; `db/schema_v121.sql` |
+| v122 | Google OAuth — "Continue with Google" button in Profile Identity tab; anonymous → Google upgrade via linkIdentity (preserves user_id, no migration); auth state listener updates UI; one-time nudge after first Clar exchange; sign-out; Google name + photo shown when signed in |
 
 ---
 
@@ -410,4 +414,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-07 — v118 in progress (not yet pushed). index.html = v115. Always copy new version to index.html after pushing.*
+*Last updated: 2026-06-23 — v122 saved. index.html = v122. Always copy new version to index.html after pushing.*

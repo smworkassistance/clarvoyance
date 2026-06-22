@@ -2024,28 +2024,6 @@ html[data-theme="dark"] .chat-msgs{
       </div>
       <button class="prof-save-btn" onclick="saveProfile()">Save</button>
       <div class="prof-saved-flash">✓ Saved</div>
-
-      <!-- Sync across devices -->
-      <div class="prof-card" id="sync-card" style="margin-top:4px">
-        <div class="prof-section-hdr">Sync Across Devices</div>
-        <!-- before sign-in -->
-        <div id="sync-signin-row" style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
-          <p style="font-size:.88rem;color:var(--sub);line-height:1.5;margin:0">Your data is saved on this device only. Sign in to sync across all your devices.</p>
-          <button id="google-signin-btn" onclick="window._signInWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#fff;color:#3c4043;border:1.5px solid #dadce0;border-radius:24px;padding:10px 20px;font-size:.93rem;font-weight:600;cursor:pointer;width:100%;box-shadow:0 1px 3px rgba(0,0,0,.12)">
-            <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-            Continue with Google
-          </button>
-        </div>
-        <!-- after sign-in -->
-        <div id="sync-status-row" style="display:none;align-items:center;gap:12px;margin-top:8px">
-          <img id="sync-google-photo" src="" width="36" height="36" style="border-radius:50%;object-fit:cover;display:none">
-          <div style="flex:1">
-            <div id="sync-google-name" style="font-size:.93rem;font-weight:600;color:var(--ink)"></div>
-            <div style="font-size:.79rem;color:var(--sub);margin-top:2px">✓ Syncing across devices</div>
-          </div>
-          <button onclick="window._signOutGoogle()" style="background:none;border:1px solid var(--line-uni);border-radius:20px;padding:5px 12px;font-size:.78rem;color:var(--sub);cursor:pointer">Sign out</button>
-        </div>
-      </div>
     </div>
 
     <!-- ── Clar pane ── -->
@@ -2701,14 +2679,10 @@ async function load(){
   S.rrItems=await loadImgArr(K.rr);
 }
 function sv(k){
-  if(k==='v'){saveImgArr(K.v,S.visImgs);if(window._syncPushGoals)window._syncPushGoals();return;}
+  if(k==='v'){saveImgArr(K.v,S.visImgs);return;}
   if(k==='rr'){saveImgArr(K.rr,S.rrItems);return;}
   const m={e:[K.e,S.emo],i:[K.i,S.ideas],cv:[K.cv,S.collV],cd:[K.cd,S.collD],n:[K.n,S.nn],nh:[K.nh,S.nnHist],g:[K.g,S.goal],gl:[K.gl,S.goalLinks],q:[K.q,S.quotes],ct:[K.ct,S.customTools],rd:[K.rd,S.rrDocs],rl:[K.rl,S.rrLinks]};
   const e=m[k]; if(e) put(e[0],e[1]);
-  // push relevant tables after save
-  if(k==='n'||k==='nh') { if(window._syncPushNN)     window._syncPushNN(); }
-  if(k==='g'||k==='gl') { if(window._syncPushGoals)  window._syncPushGoals(); }
-  if(k==='rd'||k==='rl'){ if(window._syncPushRevise) window._syncPushRevise(); }
 }
 
 /* ═══ MOOD THEMING ═══ */
@@ -5509,7 +5483,6 @@ function renderNoOverindulgence(){
     var nextLi=_lvlIdx(next);
     xpRefreshAll(next);
     if(nextLi>prevLi)_showLevelUp(LEVELS[nextLi].name,nextLi+1);
-    if(window._syncPushProgress) window._syncPushProgress();
   };
   function _showLevelUp(name,num){
     var ov=document.getElementById('xp-levelup');if(!ov)return;
@@ -7216,7 +7189,6 @@ function renderNoOverindulgence(){
     if(!_sb){
       if(!window.supabase) throw new Error('Supabase SDK not loaded');
       _sb = window.supabase.createClient(SB_URL, SB_KEY);
-      window._sbShared = _sb; // expose for sync block to reuse
     }
     return _sb;
   }
@@ -7355,287 +7327,6 @@ function renderNoOverindulgence(){
   document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
-
-<!-- ═══ USER DATA SYNC v121 — Supabase user tables ═══ -->
-<script>
-(function(){
-  var SB_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co';
-  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk';
-
-  var _sb  = null;
-  var _uid = null;  // anon user_id, set after auth
-
-  function _getSb(){
-    if(!_sb) _sb = window._sbShared || window.supabase.createClient(SB_URL, SB_KEY);
-    return _sb;
-  }
-
-  // ── Auth ─────────────────────────────────────────────────────
-  async function _ensureAuth(){
-    var sb = _getSb();
-    var { data: { session } } = await sb.auth.getSession();
-    if(!session){
-      var result = await sb.auth.signInAnonymously();
-      if(result.error){
-        console.warn('[Sync] anon sign-in failed:', result.error.message, result.error.status);
-        _uid = null;
-        return null;
-      }
-      session = result.data.session;
-    }
-    _uid = session ? session.user.id : null;
-    return _uid;
-  }
-
-  // ── Push one table row (upsert) ───────────────────────────────
-  async function _sbPush(table, payload){
-    if(!_uid) return;
-    try {
-      var sb = _getSb();
-      await sb.from(table).upsert(
-        Object.assign({ user_id: _uid, updated_at: new Date().toISOString() }, payload),
-        { onConflict: 'user_id' }
-      );
-    } catch(e){ console.warn('[Sync] push failed:', table, e.message); }
-  }
-
-  // ── Pull all user tables → merge into localStorage ────────────
-  async function _pullUserData(){
-    if(!_uid) return;
-    var sb  = _getSb();
-    var tbls = ['user_profile','user_progress','user_goals','user_nn','user_clar','user_revise'];
-    var results = await Promise.all(
-      tbls.map(function(t){ return sb.from(t).select('*').eq('user_id', _uid).maybeSingle(); })
-    );
-
-    // user_profile → clv_nick + clv_user_identity + clv_clar_persona + clar_lang + clv_theme
-    var prof = results[0].data;
-    if(prof){
-      if(prof.nick)    localStorage.setItem('clv_nick', prof.nick);
-      if(prof.persona) localStorage.setItem('clv_clar_persona', prof.persona);
-      if(prof.lang)    localStorage.setItem('clar_lang', prof.lang);
-      if(prof.theme)   localStorage.setItem('clv_theme', prof.theme);
-      var id = {};
-      ['name','email','gender','age','city','phone','country','purpose'].forEach(function(k){
-        if(prof[k] != null) id[k] = prof[k];
-      });
-      if(Object.keys(id).length){
-        var existing = {};
-        try{ existing = JSON.parse(localStorage.getItem('clv_user_identity')||'{}'); }catch(e){}
-        localStorage.setItem('clv_user_identity', JSON.stringify(Object.assign({}, existing, id)));
-      }
-    }
-
-    // user_progress → clar_xp + clar_streak
-    var prog = results[1].data;
-    if(prog){
-      if(prog.xp     != null) localStorage.setItem('clar_xp',     String(prog.xp));
-      if(prog.streak != null) localStorage.setItem('clar_streak',  String(prog.streak));
-    }
-
-    // user_goals → c9_goal + c9_goallinks + vis notes + issues + gen_manifest
-    var goals = results[2].data;
-    if(goals){
-      if(goals.goal)         localStorage.setItem('c9_goal', goals.goal);
-      if(goals.goal_links)   localStorage.setItem('c9_goallinks',    JSON.stringify(goals.goal_links));
-      if(goals.issues)       localStorage.setItem('clv_issues',      JSON.stringify(goals.issues));
-      if(goals.gen_manifest) localStorage.setItem('clv_gen_manifest',JSON.stringify(goals.gen_manifest));
-      if(goals.vis_notes){
-        try {
-          var vis = JSON.parse(localStorage.getItem('c9_vis')||'[]');
-          var notes = goals.vis_notes;
-          vis = vis.map(function(img, i){ return Object.assign({}, img, { note: notes[i] || img.note }); });
-          localStorage.setItem('c9_vis', JSON.stringify(vis));
-        } catch(e){}
-      }
-    }
-
-    // user_nn → c9_nn + c9_nnhist
-    var nn = results[3].data;
-    if(nn){
-      if(nn.nn_list) localStorage.setItem('c9_nn',     JSON.stringify(nn.nn_list));
-      if(nn.nn_hist) localStorage.setItem('c9_nnhist', JSON.stringify(nn.nn_hist));
-    }
-
-    // user_clar → clv_chat_session + clv_user_profile + clv_chat_summaries
-    var clar = results[4].data;
-    if(clar){
-      if(clar.chat_session)   localStorage.setItem('clv_chat_session',   JSON.stringify(clar.chat_session));
-      if(clar.user_profile)   localStorage.setItem('clv_user_profile',   JSON.stringify(clar.user_profile));
-      if(clar.chat_summaries) localStorage.setItem('clv_chat_summaries', JSON.stringify(clar.chat_summaries));
-    }
-
-    // user_revise → c9_rrdocs + c9_rrlinks
-    var rev = results[5].data;
-    if(rev){
-      if(rev.rr_docs)  localStorage.setItem('c9_rrdocs',  JSON.stringify(rev.rr_docs));
-      if(rev.rr_links) localStorage.setItem('c9_rrlinks', JSON.stringify(rev.rr_links));
-    }
-
-    console.log('[Sync] pulled user data from Supabase');
-  }
-
-  // ── Build push payloads from localStorage ─────────────────────
-  function _buildProfilePayload(){
-    var id = {};
-    try{ id = JSON.parse(localStorage.getItem('clv_user_identity')||'{}'); }catch(e){}
-    return {
-      nick:    localStorage.getItem('clv_nick')        || null,
-      persona: localStorage.getItem('clv_clar_persona')|| null,
-      lang:    localStorage.getItem('clar_lang')       || null,
-      theme:   localStorage.getItem('clv_theme')       || null,
-      name:    id.name    || null,
-      email:   id.email   || null,
-      gender:  id.gender  || null,
-      age:     id.age     || null,
-      city:    id.city    || null,
-      phone:   id.phone   || null,
-      country: id.country || null,
-      purpose: id.purpose || null
-    };
-  }
-
-  function _buildProgressPayload(){
-    return {
-      xp:     parseInt(localStorage.getItem('clar_xp')    ||'0', 10),
-      streak: parseInt(localStorage.getItem('clar_streak')||'0', 10)
-    };
-  }
-
-  function _buildGoalsPayload(){
-    var vis = [];
-    try{ vis = JSON.parse(localStorage.getItem('c9_vis')||'[]'); }catch(e){}
-    return {
-      goal:         localStorage.getItem('c9_goal') || null,
-      goal_links:   JSON.parse(localStorage.getItem('c9_goallinks')    ||'null'),
-      issues:       JSON.parse(localStorage.getItem('clv_issues')      ||'null'),
-      gen_manifest: JSON.parse(localStorage.getItem('clv_gen_manifest')||'null'),
-      vis_notes:    vis.map(function(img){ return img.note || ''; })
-    };
-  }
-
-  function _buildNNPayload(){
-    return {
-      nn_list: JSON.parse(localStorage.getItem('c9_nn')    ||'null'),
-      nn_hist: JSON.parse(localStorage.getItem('c9_nnhist')||'null')
-    };
-  }
-
-  function _buildClarPayload(){
-    return {
-      chat_session:   JSON.parse(localStorage.getItem('clv_chat_session')   ||'null'),
-      user_profile:   JSON.parse(localStorage.getItem('clv_user_profile')   ||'null'),
-      chat_summaries: JSON.parse(localStorage.getItem('clv_chat_summaries') ||'null')
-    };
-  }
-
-  function _buildRevisePayload(){
-    return {
-      rr_docs:  JSON.parse(localStorage.getItem('c9_rrdocs') ||'null'),
-      rr_links: JSON.parse(localStorage.getItem('c9_rrlinks')||'null')
-    };
-  }
-
-  // ── Public push functions (called by app on data change) ───────
-  window._syncPushProfile = function(){ _sbPush('user_profile',  _buildProfilePayload()); };
-  window._syncPushProgress= function(){ _sbPush('user_progress', _buildProgressPayload()); };
-  window._syncPushGoals   = function(){ _sbPush('user_goals',    _buildGoalsPayload()); };
-  window._syncPushNN      = function(){ _sbPush('user_nn',       _buildNNPayload()); };
-  window._syncPushClar    = function(){ _sbPush('user_clar',     _buildClarPayload()); };
-  window._syncPushRevise  = function(){ _sbPush('user_revise',   _buildRevisePayload()); };
-
-  // ── Google OAuth ─────────────────────────────────────────────
-  var REDIRECT_URL = 'https://smworkassistance.github.io/clarvoyance/';
-
-  window._signInWithGoogle = async function(){
-    var sb = _getSb();
-    try {
-      var { data: { session } } = await sb.auth.getSession();
-      if(session && session.user.is_anonymous){
-        // Upgrade anonymous → Google (keeps same user_id, no data migration needed)
-        await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: REDIRECT_URL } });
-      } else {
-        await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: REDIRECT_URL } });
-      }
-    } catch(e){ console.warn('[Auth] Google sign-in error:', e.message); }
-  };
-
-  window._signOutGoogle = async function(){
-    var sb = _getSb();
-    await sb.auth.signOut();
-    _uid = null;
-    _updateAuthUI(null);
-  };
-
-  // ── Auth UI update ────────────────────────────────────────────
-  function _updateAuthUI(session){
-    var signinRow  = document.getElementById('sync-signin-row');
-    var statusRow  = document.getElementById('sync-status-row');
-    if(!signinRow || !statusRow) return;
-    var isGoogle = session && !session.user.is_anonymous;
-    signinRow.style.display  = isGoogle ? 'none' : 'flex';
-    statusRow.style.display  = isGoogle ? 'flex' : 'none';
-    if(isGoogle){
-      var meta = session.user.user_metadata || {};
-      var nameEl  = document.getElementById('sync-google-name');
-      var photoEl = document.getElementById('sync-google-photo');
-      if(nameEl)  nameEl.textContent = meta.full_name || meta.name || session.user.email || 'Google User';
-      if(photoEl && meta.avatar_url){ photoEl.src = meta.avatar_url; photoEl.style.display = 'block'; }
-    }
-  }
-
-  // ── One-time nudge after first Clar exchange ──────────────────
-  var NUDGE_KEY = 'clv_google_nudge_shown';
-  window._maybeShowNudge = function(){
-    var sb = _getSb();
-    sb.auth.getSession().then(function(r){
-      var session = r.data.session;
-      var isGoogle = session && !session.user.is_anonymous;
-      if(isGoogle) return; // already signed in
-      if(localStorage.getItem(NUDGE_KEY)) return; // already shown
-      var nudge = document.getElementById('google-nudge');
-      if(nudge){ nudge.style.display = 'block'; localStorage.setItem(NUDGE_KEY,'1'); }
-    });
-  };
-  window._dismissNudge = function(){
-    var nudge = document.getElementById('google-nudge');
-    if(nudge) nudge.style.display = 'none';
-  };
-
-  // ── Auth state listener ───────────────────────────────────────
-  function _setupAuthListener(){
-    var sb = _getSb();
-    sb.auth.onAuthStateChange(function(event, session){
-      if(event === 'SIGNED_IN' || event === 'USER_UPDATED'){
-        _uid = session ? session.user.id : null;
-        _updateAuthUI(session);
-        if(_uid) _pullUserData();
-      } else if(event === 'SIGNED_OUT'){
-        _uid = null;
-        _updateAuthUI(null);
-      }
-    });
-  }
-
-  // ── Init ──────────────────────────────────────────────────────
-  async function initSync(){
-    try {
-      await _ensureAuth();
-      if(!_uid){ console.warn('[Sync] no user_id, skipping sync'); return; }
-      var sb = _getSb();
-      var { data: { session } } = await sb.auth.getSession();
-      _updateAuthUI(session);
-      await _pullUserData();
-      _setupAuthListener();
-    } catch(e){ console.warn('[Sync] init failed:', e.message); }
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(initSync, 1000);
-  });
-})();
-</script>
-<!-- ═══ END USER DATA SYNC v122 ═══ -->
 
 
 
@@ -10836,7 +10527,7 @@ body.home-tab #nn-tab-section{order:10;}
   /* ── Issues & Resolutions ── */
   var ISS_KEY = 'clv_issues';
   function issLoad(){ try{ return JSON.parse(localStorage.getItem(ISS_KEY)||'[]'); }catch(e){ return []; } }
-  function issSave(arr){ try{ localStorage.setItem(ISS_KEY, JSON.stringify(arr)); }catch(e){} if(window._syncPushGoals) window._syncPushGoals(); }
+  function issSave(arr){ try{ localStorage.setItem(ISS_KEY, JSON.stringify(arr)); }catch(e){} }
   function _esc(s){ return String(s||'').replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
 
   window.issueRender = function(){
@@ -10895,7 +10586,7 @@ body.home-tab #nn-tab-section{order:10;}
   var GM_KEY = 'clv_gen_manifest';
 
   function gmLoad(){ try{ return JSON.parse(localStorage.getItem(GM_KEY)||'[]'); }catch(e){ return []; } }
-  function gmSave(arr){ try{ localStorage.setItem(GM_KEY, JSON.stringify(arr)); }catch(e){} if(window._syncPushGoals) window._syncPushGoals(); }
+  function gmSave(arr){ try{ localStorage.setItem(GM_KEY, JSON.stringify(arr)); }catch(e){} }
   function _esc(s){ return String(s||'').replace(/[<>&"]/g,function(c){return{'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c];}); }
 
   window.gmRender = function(){
@@ -11507,8 +11198,6 @@ body.home-tab #nn-tab-section{order:10;}
       _addBubble('assistant',entry.content,entry._ts);
       if(entry._cards)entry._cards.forEach(function(c){_addCardEl(c);});
       _save();
-      // show Google nudge after first real exchange
-      if(chatHistory.length>=2 && window._maybeShowNudge) window._maybeShowNudge();
       if(_pendingUserMsg){_pendingUserMsg=false;_sendToAI();}
     })
     .catch(function(err){
@@ -11663,7 +11352,7 @@ body.home-tab #nn-tab-section{order:10;}
     if(container){var all=container.querySelectorAll('.chat-typing');for(var i=all.length-1;i>=0;i--)all[i].remove();}
     typingEl=null;
   }
-  function _save(){try{localStorage.setItem(STORE_KEY,JSON.stringify({date:new Date().toDateString(),history:chatHistory,intent:chatIntent}));}catch(e){}if(window._syncPushClar)window._syncPushClar();}
+  function _save(){try{localStorage.setItem(STORE_KEY,JSON.stringify({date:new Date().toDateString(),history:chatHistory,intent:chatIntent}));}catch(e){}}
 })();
 </script>
 
@@ -11741,7 +11430,6 @@ body.home-tab #nn-tab-section{order:10;}
   window.profSelectPersona=function(key){
     localStorage.setItem('clv_clar_persona',key);
     _refreshPersonaChips();
-    if(window._syncPushProfile) window._syncPushProfile();
   };
 
   function _showAvatarBig(photo,nameHint){
@@ -11787,7 +11475,6 @@ body.home-tab #nn-tab-section{order:10;}
       intention:document.getElementById('prof-intention').value.trim()
     };
     try{localStorage.setItem(PROFILE_KEY,JSON.stringify(context));}catch(e){}
-    if(window._syncPushProfile) window._syncPushProfile();
     updateHeaderChip();
     var flash=document.querySelector('.prof-tab-pane.active .prof-saved-flash');
     if(flash){flash.style.opacity='1';setTimeout(function(){flash.style.opacity='0';},2000);}
@@ -12931,7 +12618,6 @@ function setAppTheme(t){
     _applyAccent(t);
   }
   localStorage.setItem('clv_theme', t);
-  if(window._syncPushProfile) window._syncPushProfile();
   /* Update active states */
   document.querySelectorAll('.eng-swatch').forEach(function(s){
     s.classList.toggle('active', s.dataset.accent===t);
@@ -12989,19 +12675,6 @@ function initThemeSwitcher(){
   });
 })();
 </script>
-
-<!-- Google sign-in nudge (one-time, shown after first Clar exchange) -->
-<div id="google-nudge" style="display:none;position:fixed;bottom:72px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--su);border:1px solid color-mix(in oklab,var(--acc) 30%,transparent);border-radius:16px;padding:14px 16px;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:900;animation:nudge-in .3s ease">
-  <div style="font-size:.88rem;color:var(--ink);font-weight:600;margin-bottom:4px">Sync across your devices</div>
-  <div style="font-size:.83rem;color:var(--sub);margin-bottom:12px;line-height:1.4">Your data is saved locally. Sign in with Google to access it on any device.</div>
-  <div style="display:flex;gap:8px">
-    <button onclick="window._signInWithGoogle()" style="flex:1;background:var(--acc);color:#fff;border:none;border-radius:20px;padding:9px;font-size:.85rem;font-weight:700;cursor:pointer">Sign in with Google</button>
-    <button onclick="window._dismissNudge()" style="background:none;border:1px solid var(--line-uni);border-radius:20px;padding:9px 16px;font-size:.85rem;color:var(--sub);cursor:pointer">Later</button>
-  </div>
-</div>
-<style>
-@keyframes nudge-in{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-</style>
 </body>
 </html>
 
