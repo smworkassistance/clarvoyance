@@ -7550,13 +7550,7 @@ function renderNoOverindulgence(){
   window._signInWithGoogle = async function(){
     var sb = _getSb();
     try {
-      var { data: { session } } = await sb.auth.getSession();
-      if(session && session.user.is_anonymous){
-        // Upgrade anonymous → Google (keeps same user_id, no data migration needed)
-        await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: REDIRECT_URL } });
-      } else {
-        await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: REDIRECT_URL } });
-      }
+      await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: REDIRECT_URL } });
     } catch(e){ console.warn('[Auth] Google sign-in error:', e.message); }
   };
 
