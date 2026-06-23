@@ -8269,8 +8269,8 @@ function renderNoOverindulgence(){
       +' achievement: under 12 words. Their single biggest win this week. For a shareable card.'
       +' recommendation: 1 sentence. The single most impactful thing they should do right now today.';
     var payload={
-      model:'gemini-2.5-flash',
-      systemInstruction:{parts:[{text:sysPrompt}]},
+      _model:'gemini-2.5-flash',
+      system_instruction:{parts:[{text:sysPrompt}]},
       contents:[{role:'user',parts:[{text:'Recent Clar session summaries: '+recentSummaries}]}],
       generationConfig:{maxOutputTokens:600,temperature:0.85}
     };
@@ -8597,8 +8597,8 @@ function renderNoOverindulgence(){
     var dailies=[];try{dailies=JSON.parse(localStorage.getItem('clv_chat_summaries')||'[]');}catch(e){}
     if(dailies.length<10){cb(monthlies);return;}
     var monthlyPayload={
-      model:'gemini-2.5-flash',
-      systemInstruction:{parts:[{text:'You compress daily conversation summaries into one concise monthly pattern paragraph. Focus on recurring emotional themes, what the person kept returning to, and any visible growth or stagnation. 3-4 sentences max. No greetings, no preamble — just the paragraph.'}]},
+      _model:'gemini-2.5-flash',
+      system_instruction:{parts:[{text:'You compress daily conversation summaries into one concise monthly pattern paragraph. Focus on recurring emotional themes, what the person kept returning to, and any visible growth or stagnation. 3-4 sentences max. No greetings, no preamble — just the paragraph.'}]},
       contents:[{role:'user',parts:[{text:'Daily summaries from this month:\n'+dailies.slice(-30).map(function(s){return (s.date||'')+'  '+( s.summary||s);}).join('\n')}]}],
       generationConfig:{maxOutputTokens:180,temperature:0.7}
     };
@@ -8669,8 +8669,8 @@ function renderNoOverindulgence(){
     var timeoutId=setTimeout(function(){ctrl.abort();_showError();},20000); /* 20s hard timeout */
 
     var payload={
-      model:'gemini-2.5-flash',
-      systemInstruction:{parts:[{text:sysPrompt}]},
+      _model:'gemini-2.5-flash',
+      system_instruction:{parts:[{text:sysPrompt}]},
       contents:[{role:'user',parts:[{text:'Recent sessions: '+recentSummaries}]}],
       generationConfig:{maxOutputTokens:500,temperature:0.88}
     };
