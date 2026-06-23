@@ -7427,14 +7427,11 @@ function renderNoOverindulgence(){
   // ── Pull all user tables → merge into localStorage ────────────
   async function _pullUserData(){
     if(!_uid) return;
-    var uidSnap = _uid; // capture uid — if sign-out runs while this is awaiting, discard results
     var sb  = _getSb();
     var tbls = ['user_profile','user_progress','user_goals','user_nn','user_clar','user_revise'];
     var results = await Promise.all(
-      tbls.map(function(t){ return sb.from(t).select('*').eq('user_id', uidSnap).maybeSingle(); })
+      tbls.map(function(t){ return sb.from(t).select('*').eq('user_id', _uid).maybeSingle(); })
     );
-    // user changed (signed out) while request was in-flight — don't write stale data
-    if(_uid !== uidSnap){ console.warn('[Sync] pull discarded: user changed mid-flight'); return; }
 
     // user_profile → clv_nick + clv_user_identity + clv_clar_persona + clar_lang + clv_theme
     var prof = results[0].data;
@@ -7608,12 +7605,9 @@ function renderNoOverindulgence(){
 
   window._signOutGoogle = async function(){
     var sb = _getSb();
-    _clearUserLocalStorage(); // wipe localStorage immediately
-    _uid = null;              // prevent any in-flight _pullUserData from writing back
+    _clearUserLocalStorage(); // wipe old user's data from screen immediately
+    _uid = null;
     _updateAuthUI(null);
-    // refresh profile form to empty and reset XP display
-    if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
-    if(typeof window.xpRefreshAll   === 'function') window.xpRefreshAll(0);
     await sb.auth.signOut();
   };
 
@@ -7675,19 +7669,9 @@ function renderNoOverindulgence(){
             // Clear previous user's local data, then pull this user's Supabase data
             // If new user (empty Supabase row) → app shows blank. If returning user → their data loads.
             _clearUserLocalStorage();
-            _pullUserData().then(function(){
-              _pushAllUserData();
-              // refresh profile form so it shows new user's data immediately
-              if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
-              if(typeof window.xpRefreshAll   === 'function'){
-                var xp = parseInt(localStorage.getItem('clar_xp')||'0',10);
-                window.xpRefreshAll(xp);
-              }
-            });
+            _pullUserData().then(function(){ _pushAllUserData(); });
           } else {
-            _pullUserData().then(function(){
-              if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
-            });
+            _pullUserData();
           }
         }
       } else if(event === 'USER_UPDATED'){

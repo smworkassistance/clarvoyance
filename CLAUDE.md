@@ -107,6 +107,8 @@ STATUS: TESTING | STABLE
 | v120 | Supabase data layer — Supabase JS CDN + anon auth; `_fetchFromSupabase()` queries all 11 content tables in parallel; `_fetchContentData()` single entry point (Supabase primary → Sheets Worker fallback, isolated for easy removal); `db/schema_v120.sql` contains full CREATE TABLE + RLS + INSERT for all 11 tables |
 | v121 | User data sync — 6 Supabase user tables (user_profile, user_progress, user_goals, user_nn, user_clar, user_revise); anonymous auth; pull on load, push on every save; hooks into xpAdd, sv(), issSave, gmSave, profile save, chat save, persona + theme change; `db/schema_v121.sql` |
 | v122 | Google OAuth — "Continue with Google" button in Profile Identity tab; anonymous → Google upgrade via linkIdentity (preserves user_id, no migration); auth state listener updates UI; one-time nudge after first Clar exchange; sign-out; Google name + photo shown when signed in |
+| v123 | Profile account section redesign — standard app-style (iOS Settings pattern) at top of Identity pane: avatar circle + name + green sync dot when signed in, person icon + "Continue with Google" button when signed out; old sync-card removed; profile tab overflow-x fixed (screen no longer pans horizontally in PWA) |
+| v124 | Sign-out data race fix — `_pullUserData()` snapshots uid before await and discards results if user signed out mid-flight (prevents 30-second slow clear); sign-out now calls `_doOpenProfile()` + `xpRefreshAll(0)` immediately so form empties instantly; sign-in calls `_doOpenProfile()` after pull so new user's data appears without navigating away |
 
 ---
 
@@ -414,4 +416,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-23 — v122 saved. index.html = v122. Always copy new version to index.html after pushing.*
+*Last updated: 2026-06-23 — v124 saved. index.html = v122. Always copy new version to index.html after pushing.*
