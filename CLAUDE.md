@@ -109,6 +109,7 @@ STATUS: TESTING | STABLE
 | v122 | Google OAuth — "Continue with Google" button in Profile Identity tab; anonymous → Google upgrade via linkIdentity (preserves user_id, no migration); auth state listener updates UI; one-time nudge after first Clar exchange; sign-out; Google name + photo shown when signed in |
 | v123 | Profile account section redesign — standard app-style (iOS Settings pattern) at top of Identity pane: avatar circle + name + green sync dot when signed in, person icon + "Continue with Google" button when signed out; old sync-card removed; profile tab overflow-x fixed (screen no longer pans horizontally in PWA) |
 | v124 | Sign-out data race fix — `_pullUserData()` snapshots uid before await and discards results if user signed out mid-flight (prevents 30-second slow clear); sign-out now calls `_doOpenProfile()` + `xpRefreshAll(0)` immediately so form empties instantly; sign-in calls `_doOpenProfile()` after pull so new user's data appears without navigating away |
+| v125 | Streak upgrade — `clar_streak` (int, hard-reset) replaced by `clv_momentum` (float, 5%/day decay); 1 weekly freeze (user-prompt toast on miss); Clar time ≥20 min = no decay, ≥10 min = half decay; 7/14/21-day MILESTONE vibe cards (+20 XP, injected once per threshold); Clar daily usage tracked per-tab via focus events in `clv_clar_times`; time label shown in chat header; `#xp-streak-num` fixed (was always showing 0 in v124); `db/schema_v125.sql` adds `momentum`, `freeze_week`, `freeze_used`, `clar_daily_min` to `user_progress` |
 
 ---
 
@@ -416,4 +417,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-23 — v124 saved. index.html = v122. Always copy new version to index.html after pushing.*
+*Last updated: 2026-06-23 — v125 saved. index.html = v125. Always copy new version to index.html after pushing.*
