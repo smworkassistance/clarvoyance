@@ -8573,7 +8573,7 @@ function renderNoOverindulgence(){
 
       /* Build ai_context keys */
       var ctx={};
-      (((window.SHEETS_DATA||{}).ai_context)||[]).forEach(function(row){if(row.key)ctx[row.key]=row.value||'';});
+      (((window.SHEETS_DATA||{}).ai_context)||[]).forEach(function(row){if(row.key)ctx[row.key]=row.content||row.value||'';});
       var fortunePhil=ctx['fortuneteller_philosophy']||'Feelings — not thoughts — are the primary creative force. What someone genuinely feels is what they are attracting. Present emotional trajectory = near future reality.';
       var emotionalScale=ctx['emotional_guidance_system']||'Emotional states range from powerlessness (lowest) through fear, anger, doubt, frustration, optimism, enthusiasm, to joy/love (highest). Guide one step upward at a time.';
       var signals=ctx['manifestation_signals']||'Read Clar time, NN completion, momentum, and goal engagement as feeling-state proxies.';
@@ -12449,7 +12449,7 @@ body.home-tab #nn-tab-section{order:10;}
   function _buildSystemPrompt(){
     var sd=window.SHEETS_DATA||{};
     var ctx={};
-    (sd.ai_context||[]).forEach(function(row){if(row.key)ctx[row.key]=row.value||'';});
+    (sd.ai_context||[]).forEach(function(row){if(row.key)ctx[row.key]=row.content||row.value||'';});
     var identity=ctx['identity']||'You are Clar — a warm, emotionally intelligent companion inside the Clarvoyance self-development app. You are the user\'s closest friend: present, non-judgmental, always on their side.';
     var _personaKey=localStorage.getItem('clv_clar_persona')||'bestfriend';
     var _pm={
