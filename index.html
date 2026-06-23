@@ -8682,22 +8682,6 @@ function renderNoOverindulgence(){
         .catch(function(){_showError();});
     });
   }
-    var payload={
-      model:'gemini-2.5-flash',
-      systemInstruction:{parts:[{text:sysPrompt}]},
-      contents:[{role:'user',parts:[{text:recentSummaries?'Recent inner sessions: '+recentSummaries:'No sessions yet — read from the energy signal and streak data alone.'}]}],
-      generationConfig:{maxOutputTokens:520,temperature:0.92}
-    };
-    fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-      .then(function(r){return r.json();})
-      .then(function(resp){
-        var text='';try{text=resp.candidates[0].content.parts[0].text;}catch(e){}
-        var data=_extractJSON(text);
-        if(data&&data.near_prediction){_setCache(data);_render(data);}
-        else{_showError();}
-      })
-      .catch(function(){_showError();});
-  }
 
   /* Robust JSON extraction */
   function _extractJSON(text){
