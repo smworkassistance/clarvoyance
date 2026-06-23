@@ -8863,7 +8863,7 @@ function renderNoOverindulgence(){
     } else {
       if(concernCard)concernCard.style.display='none';
     }
-    var ct=document.getElementById('ft-content');if(ct)ct.style.display='';
+    var ct=document.getElementById('ft-content');if(ct)ct.style.display='block';
     /* Date stamp */
     var dl=document.getElementById('ft-date');
     if(dl){var d=new Date();dl.textContent='Reading from '+d.toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'});}
