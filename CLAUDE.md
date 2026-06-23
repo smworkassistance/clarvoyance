@@ -111,6 +111,7 @@ STATUS: TESTING | STABLE
 | v124 | Sign-out data race fix — `_pullUserData()` snapshots uid before await and discards results if user signed out mid-flight (prevents 30-second slow clear); sign-out now calls `_doOpenProfile()` + `xpRefreshAll(0)` immediately so form empties instantly; sign-in calls `_doOpenProfile()` after pull so new user's data appears without navigating away |
 | v125 | Streak upgrade — `clar_streak` (int, hard-reset) replaced by `clv_momentum` (float, 5%/day decay); 1 weekly freeze (user-prompt toast on miss); Clar time ≥20 min = no decay, ≥10 min = half decay; 7/14/21-day MILESTONE vibe cards (+20 XP, injected once per threshold); Clar daily usage tracked per-tab via focus events in `clv_clar_times`; time label shown in chat header; `#xp-streak-num` fixed (was always showing 0 in v124); `db/schema_v125.sql` adds `momentum`, `freeze_week`, `freeze_used`, `clar_daily_min` to `user_progress` |
 | v126 | Mirror section on Home — weekly AI reflection via Gemini (same Cloudflare Worker); shows after ≥2 Clar summaries; collapsible card with personal reflection, two-path prediction (keep going / pause), auto-cached per day in `clv_mirror_cache`; ✦ Share your journey: Canvas 540×540 achievement card (streak, XP level, AI achievement line, watermark) with Save Image + native share sheet; daily log: `user_daily_log` Supabase table (`db/schema_v126.sql`) inserted once/day on app open |
+| v127 | Mirror renamed → **Pulse** (AI Progress Tracker); fixes: Gemini `systemInstruction` format corrected, `responseMimeType` removed, robust JSON extraction (handles markdown fences + raw JSON), threshold lowered to ≥1 summary; new features: instant mood chip (Thriving/Building/Steady/Check in) computed from Clar time + momentum trend + quest done — no AI needed; 3 metric cards (Clar min, Streak, NN Done) with 7-day sparkline graphs (bar + line canvas); AI response expanded to include `recommendation` field → "💡 Right now" card; momentum history stored in `clv_momentum_history` (30-day rolling) for trend graphs; error message changed to "Tap ↺ to retry" |
 
 ---
 
@@ -418,4 +419,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-23 — v126 saved. index.html = v126. Always copy new version to index.html after pushing.*
+*Last updated: 2026-06-23 — v127 saved. index.html = v127. Always copy new version to index.html after pushing.*
