@@ -2274,7 +2274,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v146</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v144</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -6209,7 +6209,6 @@ function renderNoOverindulgence(){
     if(entry){entry.value=r;}else{hist.push({date:today,value:r});}
     if(hist.length>30)hist=hist.slice(-30);
     localStorage.setItem('clv_momentum_history',JSON.stringify(hist));
-    if(window._syncPushProgress)window._syncPushProgress(); /* sync to Supabase on every momentum update */
   }
   /* ISO week string e.g. "2026-W26" — used to reset freeze each week */
   function _isoWeek(d){var u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));u.setUTCDate(u.getUTCDate()+4-(u.getUTCDay()||7));var ys=new Date(Date.UTC(u.getUTCFullYear(),0,1));return u.getUTCFullYear()+'-W'+Math.ceil((((u-ys)/86400000)+1)/7);}
@@ -7813,7 +7812,7 @@ function renderNoOverindulgence(){
       }
     }
 
-    // user_progress → clar_xp + clar_streak + momentum + freeze + clar_times + momentum_history
+    // user_progress → clar_xp + clar_streak + momentum + freeze
     var prog = results[1].data;
     if(prog){
       if(prog.xp       != null) localStorage.setItem('clar_xp',       String(prog.xp));
@@ -7821,8 +7820,6 @@ function renderNoOverindulgence(){
       if(prog.momentum != null) localStorage.setItem('clv_momentum',   String(prog.momentum));
       if(prog.freeze_week != null) localStorage.setItem('clv_freeze_week', String(prog.freeze_week));
       if(prog.freeze_used != null) localStorage.setItem('clv_freeze_used', prog.freeze_used ? '1' : '');
-      if(prog.clar_times)       localStorage.setItem('clv_clar_times',       JSON.stringify(prog.clar_times));
-      if(prog.momentum_history) localStorage.setItem('clv_momentum_history', JSON.stringify(prog.momentum_history));
     }
 
     // user_goals → c9_goal + c9_goallinks + vis notes + issues + gen_manifest
@@ -7850,13 +7847,12 @@ function renderNoOverindulgence(){
       if(nn.nn_hist) localStorage.setItem('c9_nnhist', JSON.stringify(nn.nn_hist));
     }
 
-    // user_clar → clv_chat_session + clv_user_profile + clv_chat_summaries + clv_monthly_summaries
+    // user_clar → clv_chat_session + clv_user_profile + clv_chat_summaries
     var clar = results[4].data;
     if(clar){
-      if(clar.chat_session)      localStorage.setItem('clv_chat_session',      JSON.stringify(clar.chat_session));
-      if(clar.user_profile)      localStorage.setItem('clv_user_profile',      JSON.stringify(clar.user_profile));
-      if(clar.chat_summaries)    localStorage.setItem('clv_chat_summaries',    JSON.stringify(clar.chat_summaries));
-      if(clar.monthly_summaries) localStorage.setItem('clv_monthly_summaries', JSON.stringify(clar.monthly_summaries));
+      if(clar.chat_session)   localStorage.setItem('clv_chat_session',   JSON.stringify(clar.chat_session));
+      if(clar.user_profile)   localStorage.setItem('clv_user_profile',   JSON.stringify(clar.user_profile));
+      if(clar.chat_summaries) localStorage.setItem('clv_chat_summaries', JSON.stringify(clar.chat_summaries));
     }
 
     // user_revise → c9_rrdocs + c9_rrlinks
@@ -7898,9 +7894,7 @@ function renderNoOverindulgence(){
       momentum:    parseFloat(localStorage.getItem('clv_momentum')||'0'),
       freeze_week: localStorage.getItem('clv_freeze_week') || '',
       freeze_used: localStorage.getItem('clv_freeze_used') === '1',
-      clar_daily_min: clarMin,
-      clar_times:       JSON.parse(localStorage.getItem('clv_clar_times')       ||'null'),
-      momentum_history: JSON.parse(localStorage.getItem('clv_momentum_history') ||'null')
+      clar_daily_min: clarMin
     };
   }
 
@@ -7926,10 +7920,9 @@ function renderNoOverindulgence(){
 
   function _buildClarPayload(){
     return {
-      chat_session:      JSON.parse(localStorage.getItem('clv_chat_session')      ||'null'),
-      user_profile:      JSON.parse(localStorage.getItem('clv_user_profile')      ||'null'),
-      chat_summaries:    JSON.parse(localStorage.getItem('clv_chat_summaries')    ||'null'),
-      monthly_summaries: JSON.parse(localStorage.getItem('clv_monthly_summaries') ||'null')
+      chat_session:   JSON.parse(localStorage.getItem('clv_chat_session')   ||'null'),
+      user_profile:   JSON.parse(localStorage.getItem('clv_user_profile')   ||'null'),
+      chat_summaries: JSON.parse(localStorage.getItem('clv_chat_summaries') ||'null')
     };
   }
 
@@ -7970,7 +7963,7 @@ function renderNoOverindulgence(){
       'clv_chat_summaries','c9_rrdocs','c9_rrlinks','clv_prof_photo',
       'clv_google_nudge_shown',
       'clv_momentum','clv_freeze_week','clv_freeze_used','clv_milestones_shown',
-      'clv_milestone_pending','clv_clar_times','clv_momentum_history','clv_monthly_summaries'
+      'clv_milestone_pending','clv_clar_times'
     ];
     keys.forEach(function(k){ localStorage.removeItem(k); });
     console.log('[Sync] cleared user localStorage for new sign-in');
@@ -8245,7 +8238,7 @@ function renderNoOverindulgence(){
     var clarMin=0;clarTimes.forEach(function(t){if(t.date===today)clarMin+=(t.minutes||0);});
     var mom=Math.round(parseFloat(localStorage.getItem('clv_momentum')||'0'));
     var nnToday=nnHist[todayISO]||{};
-    var nnDone=Object.keys(nnToday).filter(function(k){return /^\d+$/.test(k)&&nnToday[k]===true;}).length;
+    var nnDone=Object.keys(nnToday).filter(function(k){return nnToday[k];}).length;
 
     /* Update number displays */
     var cv=document.getElementById('pm-clar-val');if(cv)cv.textContent=clarMin;
@@ -8260,7 +8253,7 @@ function renderNoOverindulgence(){
     var nnData=[];for(var i=6;i>=0;i--){
       var d=new Date();d.setDate(d.getDate()-i);
       var dk=d.toISOString().slice(0,10);var ds=d.toDateString();
-      var dayNN=nnHist[dk]||{};var cnt=Object.keys(dayNN).filter(function(k){return /^\d+$/.test(k)&&dayNN[k]===true;}).length;
+      var dayNN=nnHist[dk]||{};var cnt=Object.keys(dayNN).filter(function(k){return dayNN[k];}).length;
       nnData.push({date:ds,value:cnt});
     }
 
@@ -8702,7 +8695,7 @@ function renderNoOverindulgence(){
       .then(function(r){return r.json();})
       .then(function(resp){
         var text='';try{text=resp.candidates[0].content.parts[0].text.trim();}catch(e){}
-        if(text){monthlies.push({month:thisMonth,summary:text});if(monthlies.length>6)monthlies=monthlies.slice(-6);localStorage.setItem('clv_monthly_summaries',JSON.stringify(monthlies));if(window._syncPushClar)window._syncPushClar();}
+        if(text){monthlies.push({month:thisMonth,summary:text});if(monthlies.length>6)monthlies=monthlies.slice(-6);localStorage.setItem('clv_monthly_summaries',JSON.stringify(monthlies));}
         cb(monthlies);
       })
       .catch(function(){cb(monthlies);});
@@ -9010,7 +9003,7 @@ function renderNoOverindulgence(){
   /* Save elapsed minutes since _startedAt to rolling 7-day log */
   function _stop(){
     if(!_startedAt)return;
-    var elapsed=Math.round((Date.now()-_startedAt)/60000); /* round so 30s = 1 min, not 0 */
+    var elapsed=Math.floor((Date.now()-_startedAt)/60000);
     _startedAt=0;
     if(elapsed<=0)return;
     var today=new Date().toDateString();
