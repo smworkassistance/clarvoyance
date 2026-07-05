@@ -6486,12 +6486,11 @@ function renderNoOverindulgence(){
 .destiny-btn:active{background:rgba(255,255,255,.16)}
 .destiny-btn-secondary{background:transparent;opacity:.7}
 .destiny-later{margin-top:2px;font-size:.89rem;color:var(--dksub);text-decoration:underline;cursor:pointer;display:block;opacity:.6}
-/* ── v148/v149: Daily ritual — swipe reveal (first open of the day) ── */
+/* ── v148: Daily ritual — swipe reveal (first open of the day) ── */
 #ritual-swipe-screen{position:fixed;inset:0;z-index:9600;overflow:hidden;-webkit-user-select:none;user-select:none}
 #ritual-swipe-screen.hidden{display:none}
 .ritual-layer{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 #ritual-layer-struggle{background:#0a0a0d;z-index:2;transition:transform .32s cubic-bezier(.22,.61,.36,1)}
-#ritual-layer-struggle::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,transparent 40%,rgba(0,0,0,.55) 100%);pointer-events:none}
 #ritual-layer-glow{background:linear-gradient(160deg,#3a2a0a,#1c1204 70%);z-index:1}
 .ritual-word{position:absolute;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','DM Sans',sans-serif;font-weight:600;letter-spacing:.04em;font-size:1.02rem;opacity:.45;animation:ritualFloat 5s ease-in-out infinite}
 #ritual-layer-struggle .ritual-word{color:rgba(255,255,255,.55)}
@@ -6500,23 +6499,13 @@ function renderNoOverindulgence(){
 .rw2{top:22%;right:10%;animation-delay:.6s}
 .rw3{bottom:26%;left:16%;animation-delay:1.1s}
 .rw4{bottom:16%;right:14%;animation-delay:1.6s}
-.rw5{top:9%;left:44%;animation-delay:2.1s}
-.rw6{bottom:9%;right:38%;animation-delay:2.6s}
 @keyframes ritualFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .ritual-center{position:relative;z-index:3;text-align:center}
-.ritual-glow-orb{position:absolute;top:50%;left:50%;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 70%);animation:ritualPulse 3.4s ease-in-out infinite;pointer-events:none}
-@keyframes ritualPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.5}50%{transform:translate(-50%,-50%) scale(1.18);opacity:.9}}
-.ritual-or{position:relative;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:.3em;color:rgba(255,255,255,.55);margin-bottom:10px;animation:ritualOrBreathe 2.8s ease-in-out infinite}
-@keyframes ritualOrBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-.ritual-arrow{position:relative;font-size:1.6rem;color:rgba(255,255,255,.45);animation:ritualArrow 1.4s ease-in-out infinite}
+.ritual-or{font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:1.3rem;font-weight:700;letter-spacing:.3em;color:rgba(255,255,255,.55);margin-bottom:10px}
+.ritual-arrow{font-size:1.6rem;color:rgba(255,255,255,.45);animation:ritualArrow 1.4s ease-in-out infinite}
 @keyframes ritualArrow{0%,100%{transform:translateX(0);opacity:.4}50%{transform:translateX(-10px);opacity:.9}}
-.ritual-track{position:relative;width:120px;height:3px;background:rgba(255,255,255,.15);border-radius:99px;margin:14px auto 0;overflow:hidden}
-.ritual-track-fill{height:100%;width:0%;background:rgba(255,255,255,.7);border-radius:99px}
-.ritual-hint{position:relative;margin-top:14px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.32)}
-.ritual-bottom{position:absolute;bottom:12%;left:0;right:0;text-align:center;padding:0 30px;opacity:0;transition:opacity .5s .2s}
-.ritual-bottom-text{font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:1.05rem;color:#f0c987;margin-bottom:18px}
-.ritual-continue-btn{padding:12px 30px;background:rgba(240,201,135,.15);border:1.5px solid rgba(240,201,135,.5);border-radius:99px;color:#f0c987;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:.92rem;font-weight:700;letter-spacing:.05em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .18s}
-.ritual-continue-btn:active{background:rgba(240,201,135,.28)}
+.ritual-hint{margin-top:16px;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.32)}
+.ritual-bottom{position:absolute;bottom:14%;left:0;right:0;text-align:center;font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:1.05rem;color:#f0c987;padding:0 30px;opacity:0;transition:opacity .5s .2s}
 #ritual-swipe-screen.revealed .ritual-bottom{opacity:1}
 /* ── v148: Daily ritual — one-line jhatka (re-opens same day) ── */
 #ritual-jhatka-screen{position:fixed;inset:0;z-index:9600;background:rgba(8,6,4,.92);display:flex;align-items:center;justify-content:center;padding:40px;cursor:pointer}
@@ -6716,47 +6705,37 @@ function renderNoOverindulgence(){
   </div>
 </div>
 
-<!-- v149: Daily ritual — first open of the day: swipe struggle → clarity -->
+<!-- v148: Daily ritual — first open of the day: swipe struggle → clarity -->
 <div id="ritual-swipe-screen" class="hidden">
   <div class="ritual-layer" id="ritual-layer-glow">
     <span class="ritual-word rw1">clarity</span>
     <span class="ritual-word rw2">flow</span>
     <span class="ritual-word rw3">ease</span>
     <span class="ritual-word rw4">power</span>
-    <span class="ritual-word rw5">peace</span>
-    <span class="ritual-word rw6">light</span>
-    <div class="ritual-bottom">
-      <div class="ritual-bottom-text">Which one are you living today?</div>
-      <button type="button" class="ritual-continue-btn" onclick="ritualDismissSwipe()">Continue ✦</button>
-    </div>
+    <div class="ritual-bottom">Which one are you living today?</div>
   </div>
   <div class="ritual-layer" id="ritual-layer-struggle">
     <span class="ritual-word rw1">struggle</span>
     <span class="ritual-word rw2">confusion</span>
     <span class="ritual-word rw3">doubt</span>
     <span class="ritual-word rw4">stuck</span>
-    <span class="ritual-word rw5">heavy</span>
-    <span class="ritual-word rw6">noise</span>
     <div class="ritual-center">
-      <div class="ritual-glow-orb"></div>
       <div class="ritual-or">OR</div>
       <div class="ritual-arrow">←</div>
-      <div class="ritual-track"><div class="ritual-track-fill" id="ritual-track-fill"></div></div>
       <div class="ritual-hint">Swipe to reveal</div>
     </div>
   </div>
 </div>
 
-<!-- v149: Daily ritual — re-opens same day: one-line jhatka -->
+<!-- v148: Daily ritual — re-opens same day: one-line jhatka -->
 <div id="ritual-jhatka-screen" class="hidden" onclick="ritualDismissJhatka()">
-  <p>Has destiny grasped you, or have you grasped your destiny?<br>Be religious in your practices — all else will be taken care.</p>
+  <p>Has destiny grasped you, or have you grasped your destiny?</p>
 </div>
 
 <script>
 (function(){
   var LANG_KEY='clar_lang', MOOD_DATE_KEY='clar_mood_date', NICK_KEY='clv_nick', PERSONA_KEY='clv_clar_persona', REG_KEY='clv_registered', IDENTITY_KEY_OB='clv_user_identity';
   var DESTINY_SEEN_KEY='clv_destiny_seen', DESTINY_CHOICE_KEY='clv_life_choice', RITUAL_DATE_KEY='clv_ritual_date';
-  var _swipeDismissFn=null;
 
   function _today(){return new Date().toDateString();}
 
@@ -6950,14 +6929,14 @@ function renderNoOverindulgence(){
       document.getElementById('persona-screen').classList.remove('hidden');
     } else {
       if(window.dqRenderPublic)dqRenderPublic();
-      /* v149: ritual now triggered from langInit() directly for testing — see note there */
+      _checkDailyRitual();
     }
   }
   window.selectPersona=function(key){
     localStorage.setItem(PERSONA_KEY,key||'bestfriend');
     document.getElementById('persona-screen').classList.add('hidden');
     if(window.dqRenderPublic)dqRenderPublic();
-    /* v149: ritual now triggered from langInit() directly for testing — see note there */
+    _checkDailyRitual();
   };
 
   /* ── v148: Destiny / Free Will — first screen, before nickname ── */
@@ -7003,15 +6982,12 @@ function renderNoOverindulgence(){
   function _showRitualSwipe(){
     var scr=document.getElementById('ritual-swipe-screen');
     var layer=document.getElementById('ritual-layer-struggle');
-    var fill=document.getElementById('ritual-track-fill');
     if(!scr||!layer)return;
     scr.classList.remove('hidden');
     scr.classList.remove('revealed');
     layer.style.transform='';
-    if(fill)fill.style.width='0%';
     var startX=0,curX=0,dragging=false,revealed=false;
     var W=window.innerWidth;
-    var thresh=Math.min(90,W*0.22);
     function _pt(e){return e.touches?e.touches[0].clientX:e.clientX;}
     function _down(e){ if(revealed)return; dragging=true; startX=_pt(e); curX=startX; layer.style.transition='none'; }
     function _move(e){
@@ -7019,20 +6995,19 @@ function renderNoOverindulgence(){
       curX=_pt(e);
       var dx=Math.min(0,curX-startX);
       layer.style.transform='translateX('+dx+'px)';
-      if(fill)fill.style.width=Math.min(100,Math.abs(dx)/thresh*100)+'%';
     }
     function _up(){
       if(!dragging||revealed)return;
       dragging=false;
       layer.style.transition='';
       var dx=curX-startX;
-      if(dx<-thresh){
+      if(dx<-Math.min(90,W*0.22)){
         revealed=true;
         layer.style.transform='translateX(-100%)';
         scr.classList.add('revealed');
+        setTimeout(function(){ scr.addEventListener('click',_dismiss,{once:true}); },400);
       } else {
         layer.style.transform='translateX(0)';
-        if(fill)fill.style.width='0%';
       }
     }
     function _dismiss(){
@@ -7047,9 +7022,7 @@ function renderNoOverindulgence(){
       scr.removeEventListener('mousedown',_down);
       document.removeEventListener('mousemove',_move);
       document.removeEventListener('mouseup',_up);
-      _swipeDismissFn=null;
     }
-    _swipeDismissFn=_dismiss;
     scr.addEventListener('touchstart',_down,{passive:true});
     scr.addEventListener('touchmove',_move,{passive:true});
     scr.addEventListener('touchend',_up);
@@ -7057,12 +7030,6 @@ function renderNoOverindulgence(){
     document.addEventListener('mousemove',_move);
     document.addEventListener('mouseup',_up);
   }
-  /* v149: explicit Continue button on the golden reveal screen replaces the old tap-anywhere dismiss */
-  window.ritualDismissSwipe=function(){
-    if(_swipeDismissFn){_swipeDismissFn();return;}
-    var scr=document.getElementById('ritual-swipe-screen');
-    if(scr){scr.classList.add('hidden');scr.classList.remove('revealed');}
-  };
   function _showRitualJhatka(){
     var scr=document.getElementById('ritual-jhatka-screen');
     if(scr)scr.classList.remove('hidden');
@@ -7077,12 +7044,6 @@ function renderNoOverindulgence(){
     // Language selection screen removed — default new users to 'en'
     // Existing users who previously chose hi/hinglish keep their saved preference
     if(!localStorage.getItem(LANG_KEY)) localStorage.setItem(LANG_KEY,'en');
-    /* TESTING ONLY (v149) — daily ritual shown on every app start regardless of onboarding
-       progress, so it can be reviewed without completing the full flow each time.
-       Revert once testing is done: remove this line and restore the _checkDailyRitual()
-       calls inside _checkPersona()/selectPersona() (see v149 comments there) so it's
-       gated behind onboarding completion again. */
-    _checkDailyRitual();
     _checkDestiny();
   }
   document.addEventListener('DOMContentLoaded',langInit);

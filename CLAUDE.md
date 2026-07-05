@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v80), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
+| PWA | sw.js (cache version clv-v149), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 
@@ -34,7 +34,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 clarvoyance_v[MAJOR].[MINOR]_[description]_[STATUS].html
 STATUS: TESTING | STABLE
 ```
-- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v113**
+- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v149**
 - Never edit old version files — always create a new version
 - After pushing a new version, always copy it to index.html and push that too
 
@@ -120,6 +120,9 @@ STATUS: TESTING | STABLE
 | v143 | Startup flash fix — root causes: (1) home bnav button had `class="active"` hardcoded in HTML so it appeared highlighted before JS ran; (2) `bnavSwitch(chat)` only fired at DOMContentLoaded which is blocked by `defer` supabase-js download (2-3s on mobile). Fix: chat button now has `active` in HTML; chat-section starts with full `position:fixed` CSS (not display:none) so it's visible from first paint; synchronous inline script at end of `<body>` calls `bnavSwitch(chat)` immediately (before defer scripts) to activate chat tab and deactivate home button |
 | v144 | Icon/wordmark flash fix — `swapNavIcons()` and `swapWordmark()` only ran at DOMContentLoaded so emoji icons (🏠🎯etc.) flashed before SVG icons replaced them. Fix: both calls added to the end-of-body early script (v143) so icons render correctly from first paint; colour theme was already handled by existing early IIFE |
 | v146 | Supabase sync for Pulse data — `clv_clar_times` (7-day session array) + `clv_momentum_history` (30-day) added to `user_progress` as JSONB; `clv_monthly_summaries` (Fortune 6-month AI meta) added to `user_clar`; push hooks: `_syncPushProgress()` called from `_saveMomentum()`, `_syncPushClar()` called when monthly summary saved; pull restores all three; `_clearUserLocalStorage()` now correctly clears them (restorable); `db/schema_v146.sql` has the 3 ALTER TABLE statements |
+| v147 | Vision image cross-device sync — uploaded photos go to Supabase Storage bucket `vision-images` (`{uid}/{timestamp}.jpg`), URL replaces base64; pasted URLs stored directly; `vis_images` JSONB column in `user_goals` stores `[{src, note}]`; pull merges remote images not already on device; delete removes from Storage too; migration auto-runs on first launch (uploads any existing base64 photos); `db/schema_v147.sql` has ALTER TABLE + bucket + RLS |
+| v148 | Destiny/Free Will onboarding screen — new first screen shown before nickname (once ever, key `clv_destiny_seen`): "Destiny or Free Will?" with two choices. Free Will → commitment text ("practice religiously... no shortcuts") + "I'm in" → saves `clv_life_choice=freewill`. Destiny → "That's fine, most people do" + two options: "I change my mind" (switches to Free Will commitment panel) or "I'll come back later" (saves `clv_life_choice=destiny`, continues normally). Daily re-engagement ritual added: first app-open of each day (tracked via `clv_ritual_date`) shows a full-screen swipe visual — dark "struggle/confusion/doubt/stuck" layer swipes away (drag gesture) to reveal a golden "clarity/flow/ease/power" layer with "Which one are you living today?"; every re-open later the same day instead shows a one-line tap-to-dismiss jhatka: "Has destiny grasped you, or have you grasped your destiny?" No push notifications involved — purely triggered by organic app opens. Hooks added in `_checkPersona()`/`selectPersona()` only; no other onboarding/init logic touched |
+| v149 | Ritual polish + testing mode — (1) jhatka line now ends with "Be religious in your practices — all else will be taken care."; (2) swipe screen richer: 6 floating words per layer (was 4), pulsing glow orb + breathing "OR" behind center content, vignette on the struggle layer, and a drag-progress fill bar under the swipe arrow; (3) golden reveal screen now has an explicit "Continue ✦" button (`ritualDismissSwipe()`) instead of relying on invisible tap-anywhere; (4) **TESTING ONLY** — `_checkDailyRitual()` moved from the onboarding-gated call sites (`_checkPersona()`/`selectPersona()`, now just comments) to fire directly in `langInit()` on every app start, so the ritual can be reviewed without completing the full onboarding flow each time — revert before general release |
 | v145 | Pulse clarMin + NN done fixes — (1) `_stop()` changed `Math.floor`→`Math.round` so sessions of 30+ seconds save as 1 min instead of 0 (was the main reason clarMin always showed 0 after short sessions); (2) NN done now counts only numeric main-item keys (`/^\d+$/.test(k) && val===true`), not subpoint keys like `s0_1` — fixes overcounting and inconsistency with nnTotal; (3) `clv_clar_times` removed from `_clearUserLocalStorage()` — Supabase only stores the scalar `clar_daily_min` so the full date-keyed array cannot be restored after clearing, making retention safer |
 | v136 | Fortuneteller redesign — (1) notice above orb fills gap: "Every session with Clar purifies your field…"; (2) prediction cards redesigned: open oracle style, no boxy glass cards, hairline separator between sections, larger flowing italic text; (3) orb enhanced: richer gradient + inner rotating nebula (::before conic-gradient mix-blend-mode:screen + ftNebula keyframe); (4) energy field tap tooltip: explains why constellation looks like it does (Clar time, momentum, field density description) |
 | v134 | Fortuneteller energy field redesign — replaced faint floating dots with: (1) aurora blobs: 5 large slow-drifting radialGradient colour clouds (purple/gold/teal) that breathe and shift; (2) constellation network: particles connected by fading lines when < 75-130px apart (distance based on energy state), constantly reforming as particles drift; (3) particle glow done via large dim halo + bright core (no expensive shadowBlur); energy state controls speed/density/link-distance/brightness |
@@ -436,4 +439,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-06-26 — v146 saved. index.html = v146. Always copy new version to index.html after pushing.*
+*Last updated: 2026-07-05 — v149 saved. index.html = v149. Always copy new version to index.html after pushing.*
