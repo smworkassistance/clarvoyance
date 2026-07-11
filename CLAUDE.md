@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v151), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
+| PWA | sw.js (cache version clv-v152), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 
@@ -34,7 +34,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 clarvoyance_v[MAJOR].[MINOR]_[description]_[STATUS].html
 STATUS: TESTING | STABLE
 ```
-- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v151**
+- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v152**
 - Never edit old version files — always create a new version
 - After pushing a new version, always copy it to index.html and push that too
 
@@ -125,6 +125,7 @@ STATUS: TESTING | STABLE
 | v149 | Ritual polish + testing mode — (1) jhatka line now ends with "Be religious in your practices — all else will be taken care."; (2) swipe screen richer: 6 floating words per layer (was 4), pulsing glow orb + breathing "OR" behind center content, vignette on the struggle layer, and a drag-progress fill bar under the swipe arrow; (3) golden reveal screen now has an explicit "Continue ✦" button (`ritualDismissSwipe()`) instead of relying on invisible tap-anywhere; (4) **TESTING ONLY** — `_checkDailyRitual()` moved from the onboarding-gated call sites (`_checkPersona()`/`selectPersona()`, now just comments) to fire directly in `langInit()` on every app start, so the ritual can be reviewed without completing the full onboarding flow each time — revert before general release |
 | v150 | Fix cross-device data loss on Google sign-in — root cause: `_signInWithGoogle` called plain `signInWithOAuth()`, which does not preserve the current anonymous `user_id`; it either creates a brand-new Supabase user (orphaning everything saved anonymously, e.g. goal vision images) or switches to a different existing row, so two devices signing into the *same* Google account ended up as different, disconnected accounts (confirmed via Supabase Table Editor showing 5 separate `user_id` rows in `user_goals`, several with their own independent `vis_images`). Fixed by using `sb.auth.linkIdentity()` first, which attaches the Google identity to the current session's user_id instead of starting a fresh sign-in; falls back to `signInWithOAuth()` only when that Google account is already linked to a different user (e.g. a second device), so it correctly joins that existing account instead of staying orphaned. New `_handleAuthRedirectError()` catches the "already linked" conflict on the post-redirect return URL and retries with plain sign-in. Note: the 5 pre-existing orphaned rows in `user_goals` are not auto-merged — only sign-ins going forward are fixed |
 | v151 | Revise & Repeat tab reorder — the `.rr-row` images/media block (upload, image URL, doc links, image grid) moved above `#rr-quotes-section` (My Quotes & Thoughts) and `#sheets-revise-section` (Philosophy/curated quotes/learning channels), so images now show first. Pure DOM reorder — no CSS/JS logic touched, `map.revise` membership unchanged |
+| v152 | Revise & Repeat image cross-device sync — mirrors the v147 vision-image pattern exactly: new `revise-images` Supabase Storage bucket (`{uid}/{timestamp}.jpg` per-user folders, same RLS as vision-images); new `rr_images` JSONB column on `user_revise`; `_uploadRRToStorage`/`_syncRRImagesToStorage`/`_deleteRRFromStorage` added alongside the existing vision equivalents; `sv('rr')` now pushes via `_syncPushRevise()`, `delRRItem()` deletes from Storage, `handleUpload()`'s rr branch triggers the base64→Storage upload, `_buildRevisePayload()` includes `rr_images`, and `_pullUserData()` merges remote `rr_images` into `S.rrItems` on load; migration for pre-existing base64 RR images runs the same way as vision images (2s after pull). `db/schema_v152.sql` has the ALTER TABLE + bucket + RLS — **must be run in the Supabase SQL editor for this to work** |
 | v145 | Pulse clarMin + NN done fixes — (1) `_stop()` changed `Math.floor`→`Math.round` so sessions of 30+ seconds save as 1 min instead of 0 (was the main reason clarMin always showed 0 after short sessions); (2) NN done now counts only numeric main-item keys (`/^\d+$/.test(k) && val===true`), not subpoint keys like `s0_1` — fixes overcounting and inconsistency with nnTotal; (3) `clv_clar_times` removed from `_clearUserLocalStorage()` — Supabase only stores the scalar `clar_daily_min` so the full date-keyed array cannot be restored after clearing, making retention safer |
 | v136 | Fortuneteller redesign — (1) notice above orb fills gap: "Every session with Clar purifies your field…"; (2) prediction cards redesigned: open oracle style, no boxy glass cards, hairline separator between sections, larger flowing italic text; (3) orb enhanced: richer gradient + inner rotating nebula (::before conic-gradient mix-blend-mode:screen + ftNebula keyframe); (4) energy field tap tooltip: explains why constellation looks like it does (Clar time, momentum, field density description) |
 | v134 | Fortuneteller energy field redesign — replaced faint floating dots with: (1) aurora blobs: 5 large slow-drifting radialGradient colour clouds (purple/gold/teal) that breathe and shift; (2) constellation network: particles connected by fading lines when < 75-130px apart (distance based on energy state), constantly reforming as particles drift; (3) particle glow done via large dim halo + bright core (no expensive shadowBlur); energy state controls speed/density/link-distance/brightness |
@@ -441,4 +442,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-07-11 — v151 saved. index.html = v151. Always copy new version to index.html after pushing.*
+*Last updated: 2026-07-11 — v152 saved. index.html = v152. Always copy new version to index.html after pushing.*
