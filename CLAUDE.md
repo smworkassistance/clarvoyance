@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v157), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
+| PWA | sw.js (cache version clv-v158), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 
@@ -34,7 +34,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 clarvoyance_v[MAJOR].[MINOR]_[description]_[STATUS].html
 STATUS: TESTING | STABLE
 ```
-- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v157**
+- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v158**
 - Never edit old version files — always create a new version
 - After pushing a new version, always copy it to index.html and push that too
 
@@ -131,6 +131,7 @@ STATUS: TESTING | STABLE
 | v155 | Fix vision image strip still not looping — root cause found: the strip lives inside the "Major Definite Goal" accordion body (`#goal-body-major`), which starts `display:none`; the strip is built once at load time while hidden, so `offsetWidth` reads 0 and all of `_wireEndlessScroll`'s distance math (added in v153/v154) was permanently miscalibrated since `goalToggle()` never re-rendered on open. Fix: `goalToggle('major')` now calls `renderVisGrid()` when opening, rebuilding the strip with correct, visible measurements |
 | v156 | Global Search — search icon added to header (between logo and profile chip, `openGlobalSearch()`); opens a full-screen overlay indexing Tools, Chargers, Self-tab practices (Peak State/SSW/Non-Doing Timer/Walk & Talk/Protect Yourself/Personal Space), Revise & Repeat (philosophy, curated quotes, learning channels, My Quotes & Thoughts), and Goal content (Major Goal, Issues & Resolutions, General Manifestation) — plain substring match across name/description/`ai_best_for` fields (mid-phrase matching, no library needed at this content volume). Tapping a result switches tabs via the existing `bnavSwitch` fake-element pattern and auto-expands the right accordion section (`goalToggle`/`selfToggle`) or prefills the Chargers tab's own search (`chSearch`). Also added "Ask Clar" — a separate one-shot intent search (e.g. "I need to feel better badly") that calls the same Cloudflare Worker but with its own independent prompt (`_buildSearchAskPrompt`, module `cv-global-search`) — **does not read or modify `_buildSystemPrompt`/the chat script in any way**, by design, per explicit request not to risk Clar AI's conversational behavior |
 | v157 | Self tab gets two new quick-access rows at the top ("Revise & Repeat" via new `_goRevise()` helper that jumps tabs, "My Foundation" via `foundationOpen()` with the default context) above True View Chart/Pure Abundance/Personal Space etc. Also: Pulse moved out of Home entirely into the Fortune tab — relocated the `#pulse-card` DOM block to sit right after Fortune's energy-reading divider (before the AI prediction cards), restyled every var()-based color to Fortune's fixed dark-cosmic palette (`rgba(180,130,255,..)` purple / `#f0c987` gold / `rgba(255,255,255,..)` text) since it no longer needs to support the light/dark home theme; `mirrorCard` moved from `map.home` to `map.fortune` and the `pulseLoad()` call moved from the home tab handler to the fortune tab handler |
+| v158 | Removed the "Revise & Repeat" shortcut row from Home's nav cards (`#home-nav-cards`) — redundant now that it's in the Self tab (v157). Fixed image delete on Revise & Repeat: `renderRRGrid()`'s delete button shares the `.ss-del` CSS class with the old (pre-v153) vision slideshow renderer, which was hover/`:active`-gated and therefore effectively unusable on touch — same root cause as the Goal vision strip bug fixed in v153, now fixed at the shared CSS class level so it covers both call sites |
 | v145 | Pulse clarMin + NN done fixes — (1) `_stop()` changed `Math.floor`→`Math.round` so sessions of 30+ seconds save as 1 min instead of 0 (was the main reason clarMin always showed 0 after short sessions); (2) NN done now counts only numeric main-item keys (`/^\d+$/.test(k) && val===true`), not subpoint keys like `s0_1` — fixes overcounting and inconsistency with nnTotal; (3) `clv_clar_times` removed from `_clearUserLocalStorage()` — Supabase only stores the scalar `clar_daily_min` so the full date-keyed array cannot be restored after clearing, making retention safer |
 | v136 | Fortuneteller redesign — (1) notice above orb fills gap: "Every session with Clar purifies your field…"; (2) prediction cards redesigned: open oracle style, no boxy glass cards, hairline separator between sections, larger flowing italic text; (3) orb enhanced: richer gradient + inner rotating nebula (::before conic-gradient mix-blend-mode:screen + ftNebula keyframe); (4) energy field tap tooltip: explains why constellation looks like it does (Clar time, momentum, field density description) |
 | v134 | Fortuneteller energy field redesign — replaced faint floating dots with: (1) aurora blobs: 5 large slow-drifting radialGradient colour clouds (purple/gold/teal) that breathe and shift; (2) constellation network: particles connected by fading lines when < 75-130px apart (distance based on energy state), constantly reforming as particles drift; (3) particle glow done via large dim halo + bright core (no expensive shadowBlur); energy state controls speed/density/link-distance/brightness |
@@ -447,4 +448,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-07-12 — v157 saved. index.html = v157. Always copy new version to index.html after pushing.*
+*Last updated: 2026-07-15 — v158 saved. index.html = v158. Always copy new version to index.html after pushing.*
