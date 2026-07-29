@@ -1417,7 +1417,12 @@ function _buildConsultantPrompt() {
     + 'FULL AI CONFIGURATION (every Chart + AI Context entry currently live):\n' + allEntries + '\n\n'
     + 'RECENT STATE-READ DISTRIBUTION (last ' + _conDebugRows.length + ' logged turns): ' + stateSummary + '\n\n'
     + 'RECENT SAMPLE INTERACTIONS:\n' + recentSamples + '\n\n'
-    + 'Respond conversationally, in plain text (not JSON). Keep answers focused and concrete.';
+    + 'FORMAT — this is displayed as plain text (no markdown rendering), so structure it with line breaks only, never ** or # or _ symbols:\n'
+    + '1. Open with one short sentence stating your overall read — no preamble, no "Okay, I have reviewed...".\n'
+    + '2. Then a blank line, then your points as a short numbered or dash-prefixed list — one clear point per line, each point 1-2 sentences max.\n'
+    + '3. If you reference a specific chart/context entry or a logged interaction, name it exactly (its display name or key) so the owner knows exactly what to go edit.\n'
+    + '4. End with the single most important next action, on its own line starting with "Next:".\n'
+    + 'Be direct and professional — no filler, no restating the question, no generic advice. If you don\'t have enough log data yet to answer confidently, say that plainly instead of padding.';
 }
 
 function conReset() {
@@ -1433,7 +1438,7 @@ function _conAppend(role, text) {
   div.className = 'ic';
   div.innerHTML = `<div class="ic-head"><div class="ic-body">
     <div class="ic-name" style="white-space:normal">${role==='user'?'🧑 You':'🧭 Consultant'}</div>
-    <div class="ic-sub" style="white-space:normal">${x(text)}</div>
+    <div class="dbg-msg" style="white-space:pre-line;font-size:13.5px;line-height:1.55;margin-top:6px">${x(text)}</div>
   </div></div>`;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
