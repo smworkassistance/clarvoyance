@@ -171,6 +171,12 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 .bst-high{background:#D1FAE5;color:#059669}
 .dbg-msg{font-size:12.5px;color:#374151;background:#FAFAFA;border-radius:10px;padding:9px 11px;margin-top:4px;line-height:1.4}
 .dbg-msg b{color:#9CA3AF;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:2px}
+.con-save-btn{display:inline-block;margin-top:5px;color:#7C3AED;font-weight:700;font-size:12px;cursor:pointer;text-decoration:underline}
+.con-save-btn:active{opacity:.6}
+.con-reply{font-size:13.5px;line-height:1.6;color:#374151;background:#FAFAFA;border-radius:10px;padding:11px 13px;margin-top:6px}
+.con-reply b{color:#1E1B4B;font-weight:700}
+.con-reply u{text-decoration-color:#7C3AED}
+.con-reply mark{background:#FDE68A;padding:1px 3px;border-radius:3px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -298,6 +304,15 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
   <!-- CONSULTANT: separate AI that sees the full config + recent debug log, gives improvement suggestions -->
   <div id="pane-consultant" class="pane">
     <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">A different AI — not Clar — that can see your entire config (every Chart + AI Context entry) and the last 30 real interactions. Ask it things like "where are we being inefficient" or "is this chart's wording clear enough for an LLM to follow."</p>
+
+    <div class="sec-lbl">⚙️ System Commands <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#C4C4D4">— standing rules the Consultant always follows</span></div>
+    <button class="add-btn" onclick="openCmdForm('rule')">＋ Add Command</button>
+    <div id="cmd-rules-list"><div class="s-load">Loading...</div></div>
+
+    <div class="sec-lbl">✅ Saved Suggestions <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#C4C4D4">— saved from Consultant replies below</span></div>
+    <div id="cmd-sugg-list"><div class="s-load">Loading...</div></div>
+
+    <div class="sec-lbl">💬 Ask</div>
     <div id="con-log" style="max-height:50vh;overflow-y:auto;margin-bottom:12px"></div>
     <div class="fld"><textarea id="con-input" placeholder="e.g. Is the emotional_guidance_system chart being applied consistently?" style="min-height:60px"></textarea></div>
     <div class="fld-2">
@@ -451,6 +466,7 @@ async function loadData() {
   loadAiContext();
   loadDebugLog();
   loadConsultantContext();
+  loadCommands();
 }
 
 async function api(params) {
@@ -1386,6 +1402,102 @@ async function sbxSend() {
 }
 
 /* ══════════════════════════════════════════════════════
+   SYSTEM COMMANDS + SAVED SUGGESTIONS (v161)
+   admin_commands, split by type: 'rule' (standing instructions fed into
+   the Consultant's own prompt every time) and 'suggestion' (saved from
+   a Consultant reply via its inline Save link).
+   ══════════════════════════════════════════════════════ */
+let CMD_ROWS = [];
+
+async function loadCommands() {
+  try {
+    const { data, error } = await getSb().from('admin_commands').select('*').order('id',{ascending:false});
+    if (error) throw error;
+    CMD_ROWS = data || [];
+    renderCmdRules(CMD_ROWS.filter(r=>r.type==='rule'));
+    renderCmdSuggestions(CMD_ROWS.filter(r=>r.type==='suggestion'));
+  } catch(e) {
+    const msg = empty('⚠️','Could not load — run db/schema_v161.sql in Supabase first');
+    const a = document.getElementById('cmd-rules-list'), b = document.getElementById('cmd-sugg-list');
+    if (a) a.innerHTML = msg;
+    if (b) b.innerHTML = msg;
+  }
+}
+
+function renderCmdRules(rows) {
+  const el = document.getElementById('cmd-rules-list');
+  if (!el) return;
+  if (!rows.length) { el.innerHTML = empty('⚙️','No standing commands yet'); return; }
+  el.innerHTML = rows.map(r => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body"><div class="ic-name" style="white-space:normal">${x(r.text)}</div></div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openCmdForm('rule','${r.id}')">Edit</button>
+          <button class="ab a-del"  onclick="delCmd(${r.id})">Del</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function renderCmdSuggestions(rows) {
+  const el = document.getElementById('cmd-sugg-list');
+  if (!el) return;
+  if (!rows.length) { el.innerHTML = empty('✅','No saved suggestions yet — click Save under a Consultant reply below'); return; }
+  el.innerHTML = rows.map(r => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name" style="white-space:normal;text-decoration:${r.done?'line-through':'none'};opacity:${r.done?.55:1}">${x(r.text)}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="toggleCmdDone(${r.id},${!r.done})">${r.done?'Undo':'Done'}</button>
+          <button class="ab a-del"  onclick="delCmd(${r.id})">Del</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openCmdForm(type, id) {
+  const isEdit = !!id;
+  const r = isEdit ? (CMD_ROWS.find(row=>String(row.id)===String(id)) || {}) : {};
+  openSheet(
+    (isEdit?'Edit ':'Add ') + (type==='rule'?'Command':'Suggestion'),
+    fA(type==='rule'?'Command *':'Suggestion *','cmd-text',r.text,type==='rule'?'e.g. Always flag entries with empty applies_to':'...'),
+    async () => {
+      const text = v('cmd-text');
+      if (!text) { toast('Text is required','err'); return; }
+      let error;
+      if (isEdit) ({ error } = await getSb().from('admin_commands').update({text}).eq('id', r.id));
+      else ({ error } = await getSb().from('admin_commands').insert({type, text}));
+      if (error) throw new Error(error.message);
+      toast(isEdit?'Updated ✓':'Added ✓','ok'); closeSheet(); await loadCommands();
+    }
+  );
+}
+
+async function toggleCmdDone(id, done) {
+  const { error } = await getSb().from('admin_commands').update({done}).eq('id', id);
+  if (error) { toast('Error: '+error.message,'err'); return; }
+  loadCommands();
+}
+
+async function delCmd(id) {
+  showConfirm('Delete this?', async () => {
+    const { error } = await getSb().from('admin_commands').delete().eq('id', id);
+    if (error) { toast('Error: '+error.message,'err'); return; }
+    toast('Deleted ✓','ok'); loadCommands();
+  });
+}
+
+async function saveSuggestion(text) {
+  const { error } = await getSb().from('admin_commands').insert({type:'suggestion', text});
+  if (error) { toast('Error: '+error.message,'err'); return; }
+  toast('Suggestion saved ✓','ok');
+  loadCommands();
+}
+
+/* ══════════════════════════════════════════════════════
    CONSULTANT — separate AI, sees the full config + recent
    admin_insights, gives improvement suggestions (v160)
    ══════════════════════════════════════════════════════ */
@@ -1399,6 +1511,16 @@ async function loadConsultantContext() {
   } catch(e) { _conDebugRows = []; }
 }
 
+/* v161: safe lightweight inline markup — escapes first, so only these exact
+   patterns can ever produce real tags. Used inside Consultant JSON fields. */
+function mdLite(s) {
+  let t = x(s);
+  t = t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  t = t.replace(/__(.+?)__/g, '<u>$1</u>');
+  t = t.replace(/==(.+?)==/g, '<mark>$1</mark>');
+  return t;
+}
+
 function _buildConsultantPrompt() {
   const allEntries = (AI_ROWS||[]).map(r =>
     '[' + (r.category||'context') + '] ' + (r.display_name||r.key) + ' (applies_to: ' + ((r.applies_to||[]).join(',')||'none') + '):\n' + (r.content||'')
@@ -1410,19 +1532,19 @@ function _buildConsultantPrompt() {
     const v = row.value || {};
     return '- [' + row.insight_key + ', state=' + (v.state_read||'?') + '] user: "' + (v.user_msg||'').slice(0,120) + '" -> clar: "' + (v.ai_msg||'').slice(0,120) + '"';
   }).join('\n') || 'No interactions logged yet.';
+  const rules = (CMD_ROWS||[]).filter(r=>r.type==='rule').map(r=>'- '+r.text).join('\n') || 'None set.';
   return 'You are an AI configuration consultant reviewing "Clar" — an AI companion inside a self-development app called Clarvoyance. '
     + 'You can see its full configuration and recent real interaction logs below. The app\'s owner will ask how Clar is performing and how to improve it. '
     + 'Be direct and specific — reference the actual configuration text and actual logged interactions in your answers, never speak generically. '
     + 'If something looks redundant, contradictory, too vague for an LLM to reliably follow, or missing, say so plainly and suggest concrete rewording.\n\n'
+    + 'STANDING COMMANDS FROM THE OWNER — always follow these when analyzing and replying:\n' + rules + '\n\n'
     + 'FULL AI CONFIGURATION (every Chart + AI Context entry currently live):\n' + allEntries + '\n\n'
     + 'RECENT STATE-READ DISTRIBUTION (last ' + _conDebugRows.length + ' logged turns): ' + stateSummary + '\n\n'
     + 'RECENT SAMPLE INTERACTIONS:\n' + recentSamples + '\n\n'
-    + 'FORMAT — this is displayed as plain text (no markdown rendering), so structure it with line breaks only, never ** or # or _ symbols:\n'
-    + '1. Open with one short sentence stating your overall read — no preamble, no "Okay, I have reviewed...".\n'
-    + '2. Then a blank line, then your points as a short numbered or dash-prefixed list — one clear point per line, each point 1-2 sentences max.\n'
-    + '3. If you reference a specific chart/context entry or a logged interaction, name it exactly (its display name or key) so the owner knows exactly what to go edit.\n'
-    + '4. End with the single most important next action, on its own line starting with "Next:".\n'
-    + 'Be direct and professional — no filler, no restating the question, no generic advice. If you don\'t have enough log data yet to answer confidently, say that plainly instead of padding.';
+    + 'CRITICAL — RESPOND WITH VALID JSON ONLY, no markdown fences, no extra text.\n'
+    + 'Format: {"summary":"one short sentence, your overall read — no preamble like Okay I have reviewed...","points":[{"label":"short bold-worthy label naming what you found","detail":"1-2 sentences, name the exact chart/key if relevant"}],"next_action":"the single most important next step, one sentence"}\n'
+    + 'Inside any text field you may use **word** for bold, __word__ for underline, ==word== for highlight — sparingly, only on the 1-2 most important words per field.\n'
+    + 'points: 2-5 items max, each genuinely distinct — no filler, no restating the question, no generic advice. If you don\'t have enough log data yet to answer confidently, say that plainly in summary instead of padding points.';
 }
 
 function conReset() {
@@ -1431,17 +1553,53 @@ function conReset() {
   const inp = document.getElementById('con-input'); if (inp) inp.value = '';
 }
 
-function _conAppend(role, text) {
+function _conAppendUser(text) {
   const log = document.getElementById('con-log');
   if (!log) return;
   const div = document.createElement('div');
   div.className = 'ic';
   div.innerHTML = `<div class="ic-head"><div class="ic-body">
-    <div class="ic-name" style="white-space:normal">${role==='user'?'🧑 You':'🧭 Consultant'}</div>
+    <div class="ic-name" style="white-space:normal">🧑 You</div>
     <div class="dbg-msg" style="white-space:pre-line;font-size:13.5px;line-height:1.55;margin-top:6px">${x(text)}</div>
   </div></div>`;
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
+}
+
+function _conAppendReply(rawText) {
+  const log = document.getElementById('con-log');
+  if (!log) return;
+  let parsed = null; try { parsed = JSON.parse(rawText); } catch(e) {}
+  const div = document.createElement('div');
+  div.className = 'ic';
+  let body;
+  if (parsed && parsed.summary) {
+    const points = (parsed.points||[]).map(p => `
+      <div style="margin-top:10px;padding-top:10px;border-top:1px solid #F3F4F6">
+        <div><b>${mdLite(p.label||'')}</b></div>
+        <div style="margin-top:2px">${mdLite(p.detail||'')}</div>
+        <span class="con-save-btn" data-text="${x((p.label||'')+': '+(p.detail||''))}" onclick="saveSuggestionFromBtn(this)">💾 Save</span>
+      </div>`).join('');
+    body = `<div style="font-weight:700">${mdLite(parsed.summary)}</div>`
+      + points
+      + (parsed.next_action ? `<div style="margin-top:12px;padding:9px 11px;background:#FEF3C7;border-radius:10px"><b>➡ Next:</b> ${mdLite(parsed.next_action)}</div>` : '');
+  } else {
+    body = x(rawText || '(no response — check console)').replace(/\n/g,'<br>');
+  }
+  div.innerHTML = `<div class="ic-head"><div class="ic-body">
+    <div class="ic-name" style="white-space:normal">🧭 Consultant</div>
+    <div class="con-reply">${body}</div>
+  </div></div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+function saveSuggestionFromBtn(btn) {
+  saveSuggestion(btn.dataset.text);
+  btn.textContent = '✓ Saved';
+  btn.onclick = null;
+  btn.style.opacity = '.55';
+  btn.style.cursor = 'default';
 }
 
 async function conSend() {
@@ -1449,7 +1607,7 @@ async function conSend() {
   const text = inp.value.trim();
   if (!text) return;
   _conHistory.push({role:'user',content:text});
-  _conAppend('user', text);
+  _conAppendUser(text);
   inp.value = '';
   const btn = document.getElementById('con-send');
   btn.disabled = true; btn.textContent = '...';
@@ -1461,15 +1619,14 @@ async function conSend() {
        before any visible reply text — confirmed via curl (finishReason:MAX_TOKENS
        even at 3000 tokens with thinking on, vs finishReason:STOP with it off).
        thinkingBudget:0 fixes this the same way it already does for chat/Sandbox. */
-    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, generationConfig:{maxOutputTokens:2000,thinkingConfig:{thinkingBudget:0}} };
+    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, generationConfig:{maxOutputTokens:2000,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}} };
     const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data = await res.json();
     let reply = ''; try { reply = data.candidates[0].content.parts[0].text; } catch(e) {}
-    reply = reply || '(no response — check console)';
-    _conHistory.push({role:'assistant',content:reply});
-    _conAppend('assistant', reply);
+    _conHistory.push({role:'assistant',content:reply||''});
+    _conAppendReply(reply);
   } catch(e) {
-    _conAppend('assistant', 'Error: ' + e.message);
+    _conAppendReply(JSON.stringify({summary:'Error: '+e.message,points:[],next_action:''}));
   }
   btn.disabled = false; btn.textContent = 'Ask';
 }
