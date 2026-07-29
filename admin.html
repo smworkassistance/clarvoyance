@@ -363,6 +363,14 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 let _sb = null;
 function getSb(){ if(!_sb) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
 const AI_TAGS = [{v:'chat',l:'💬 Chat'},{v:'fortuneteller',l:'🔮 Fortuneteller'}];
+/* These 8 keys are pulled by exact name in index.html's _buildSystemPrompt() /
+   Fortuneteller prompt builder — always on regardless of applies_to. The
+   checkbox UI can't actually control them, so we lock it instead of lying. */
+const AI_HARDCODED_KEYS = {
+  identity:'chat', philosophy:'chat', conversation_flow:'chat', disclaimer:'chat',
+  fortuneteller_philosophy:'fortuneteller', emotional_guidance_system:'fortuneteller',
+  manifestation_signals:'fortuneteller', prediction_language:'fortuneteller'
+};
 
 /* Full module list — hardcoded because API only returns active ones */
 const MOD_DEFS = [
@@ -1153,10 +1161,13 @@ function renderAiSection(elId, rows, isChart) {
   if (!rows.length) { el.innerHTML = empty(isChart?'📊':'🧭', isChart?'No charts yet':'No context entries yet'); return; }
   el.innerHTML = rows.map(r => {
     const img = (r.image_urls||[])[0];
-    const tags = (r.applies_to||[]).map(t => {
-      const found = AI_TAGS.find(a=>a.v===t);
-      return `<span class="bdg bapp">${x(found?found.l:t)}</span>`;
-    }).join(' ');
+    const hardTag = AI_HARDCODED_KEYS[r.key];
+    const tags = hardTag
+      ? `<span class="bdg bapp">🔒 Always on — ${x(AI_TAGS.find(a=>a.v===hardTag).l)}</span>`
+      : (r.applies_to||[]).map(t => {
+          const found = AI_TAGS.find(a=>a.v===t);
+          return `<span class="bdg bapp">${x(found?found.l:t)}</span>`;
+        }).join(' ');
     return `
     <div class="ic">
       <div class="ic-head">
@@ -1183,9 +1194,17 @@ function openAiForm(kind, key) {
   const isEdit = !!key;
   const r = isEdit ? (AI_ROWS.find(row=>row.key===key) || {}) : {};
   _aiImages = (r.image_urls||[]).slice();
-  const tagsHtml = AI_TAGS.map(t =>
-    `<label class="tag-chk"><input type="checkbox" value="${t.v}" class="ai-tag-cb"${(r.applies_to||[]).includes(t.v)?' checked':''}>${t.l}</label>`
-  ).join('');
+  const hardTag = isEdit ? AI_HARDCODED_KEYS[r.key] : null;
+  const tagsHtml = hardTag
+    ? AI_TAGS.map(t =>
+        `<label class="tag-chk" style="opacity:.55;cursor:not-allowed"><input type="checkbox" value="${t.v}" class="ai-tag-cb-locked" disabled${t.v===hardTag?' checked':''}>${t.l}</label>`
+      ).join('')
+    : AI_TAGS.map(t =>
+        `<label class="tag-chk"><input type="checkbox" value="${t.v}" class="ai-tag-cb"${(r.applies_to||[]).includes(t.v)?' checked':''}>${t.l}</label>`
+      ).join('');
+  const tagsHint = hardTag
+    ? `<div class="fld-hint" style="margin-bottom:10px">🔒 This is a core key read directly by name in the app's code — it is always active for <b>${x(AI_TAGS.find(a=>a.v===hardTag).l)}</b> no matter what's ticked here, so the tag can't be changed from this screen.</div>`
+    : '';
   const imgHtml = kind === 'chart'
     ? fSep('Reference Images (your own memory aid — never sent to the AI)') + `<div class="img-up-row" id="ai-img-row">${_aiImgRowHtml()}</div>`
     : '';
@@ -1197,13 +1216,14 @@ function openAiForm(kind, key) {
     fSep('AI Logic') +
     fA('Full logic *','ai-content',r.content,'Write out the complete logic / meaning here — plain paragraphs are fine, this is exactly what Clar reads.') +
     fSep('Applies To') +
+    tagsHint +
     `<div class="tag-row">${tagsHtml}</div>`,
     async () => {
       const display_name = v('ai-name');
       const content = v('ai-content');
       if (!display_name || !content) { toast('Name and logic are required','err'); return; }
       const key = isEdit ? r.key : (v('ai-key') || slug(display_name));
-      const applies_to = Array.from(document.querySelectorAll('.ai-tag-cb:checked')).map(c=>c.value);
+      const applies_to = hardTag ? [hardTag] : Array.from(document.querySelectorAll('.ai-tag-cb:checked')).map(c=>c.value);
       const payload = { key, display_name, content, category: kind, applies_to, image_urls: _aiImages };
       const { error } = await getSb().from('ai_context').upsert(payload, {onConflict:'key'});
       if (error) throw new Error(error.message);
@@ -1351,7 +1371,7 @@ async function sbxSend() {
       _model:'gemini-2.5-flash',
       system_instruction:{parts:[{text:systemPrompt}]},
       contents:geminiMsgs,
-      generationConfig:{maxOutputTokens:400,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
+      generationConfig:{maxOutputTokens:600,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
     };
     const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data = await res.json();
@@ -1432,7 +1452,11 @@ async function conSend() {
     await loadConsultantContext(); // refresh so it sees the latest logged interactions
     const sys = _buildConsultantPrompt();
     const msgs = _conHistory.slice(-10).map(m => ({role:m.role==='assistant'?'model':'user',parts:[{text:String(m.content).slice(0,800)}]}));
-    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, generationConfig:{maxOutputTokens:700} };
+    /* v160 fix: uncapped "thinking" tokens were silently eating the whole budget
+       before any visible reply text — confirmed via curl (finishReason:MAX_TOKENS
+       even at 3000 tokens with thinking on, vs finishReason:STOP with it off).
+       thinkingBudget:0 fixes this the same way it already does for chat/Sandbox. */
+    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, generationConfig:{maxOutputTokens:2000,thinkingConfig:{thinkingBudget:0}} };
     const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data = await res.json();
     let reply = ''; try { reply = data.candidates[0].content.parts[0].text; } catch(e) {}
