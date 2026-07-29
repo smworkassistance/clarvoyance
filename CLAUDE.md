@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v159), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
+| PWA | sw.js (cache version clv-v160), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 
@@ -34,7 +34,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 clarvoyance_v[MAJOR].[MINOR]_[description]_[STATUS].html
 STATUS: TESTING | STABLE
 ```
-- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v159**
+- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v160**
 - Never edit old version files — always create a new version
 - After pushing a new version, always copy it to index.html and push that too
 
@@ -133,6 +133,7 @@ STATUS: TESTING | STABLE
 | v157 | Self tab gets two new quick-access rows at the top ("Revise & Repeat" via new `_goRevise()` helper that jumps tabs, "My Foundation" via `foundationOpen()` with the default context) above True View Chart/Pure Abundance/Personal Space etc. Also: Pulse moved out of Home entirely into the Fortune tab — relocated the `#pulse-card` DOM block to sit right after Fortune's energy-reading divider (before the AI prediction cards), restyled every var()-based color to Fortune's fixed dark-cosmic palette (`rgba(180,130,255,..)` purple / `#f0c987` gold / `rgba(255,255,255,..)` text) since it no longer needs to support the light/dark home theme; `mirrorCard` moved from `map.home` to `map.fortune` and the `pulseLoad()` call moved from the home tab handler to the fortune tab handler |
 | v158 | Removed the "Revise & Repeat" shortcut row from Home's nav cards (`#home-nav-cards`) — redundant now that it's in the Self tab (v157). Fixed image delete on Revise & Repeat: `renderRRGrid()`'s delete button shares the `.ss-del` CSS class with the old (pre-v153) vision slideshow renderer, which was hover/`:active`-gated and therefore effectively unusable on touch — same root cause as the Goal vision strip bug fixed in v153, now fixed at the shared CSS class level so it covers both call sites |
 | v159 | Harden Google sign-in account consolidation — root cause found for accounts still fragmenting across devices even after v150: the "identity already linked to another user" conflict doesn't always surface as a parseable error in the post-redirect URL, so `_handleAuthRedirectError()` sometimes missed it and the device silently stayed anonymous instead of falling back to a plain sign-in. New `_checkLinkFallback()` sets a `clv_google_link_pending` flag right before calling `linkIdentity()`; on the next load, if that flag is set and the session is still anonymous, it means the link silently failed, so it retries with a plain `signInWithOAuth()` instead of relying on error-text parsing alone |
+| v160 | **AI Logic Console** (Phase 1) — new "🧠 AI Logic" tab in `admin.html`, Supabase-native (bypasses the old Sheets/Apps Script path entirely). `ai_context` table extended with `display_name`, `image_urls` (admin's own reference images — a "chart" upload, never sent to the AI), `category` ('chart'\|'context'), `applies_to` (text[] tag — which AI surface reads the row: 'chat', 'fortuneteller'). Two admin sections: Charts (named personal frameworks with 0-2 reference images + full transcribed logic) and AI Context (general philosophy entries), both editable without touching code. `_buildSystemPrompt()` (chat) and the Fortuneteller prompt builder both now pull any `ai_context` row tagged for them via a generic loop (`_dynamicChartsFor`/inline equivalent) in addition to the 4 hardcoded keys each already used — so a new Chart/Context row added via admin.html is live on the next AI call with zero code changes. AI response format on both surfaces gained a required `state_read` field ("low"\|"neutral"\|"high", never shown to the user) — a coarse read of the user's state that the model must commit to before replying, meant to make chart logic apply more consistently (reuses the same low/mid/high tiering already used by `tools`/`chargers` mood/quest fields). Every reply fire-and-forget logs `{state_read, charts_live, user_msg, ai_msg}` to `admin_insights` (a v129 stub table, previously unused) via `insight_key` = 'chat' or 'fortuneteller'. `admin.html` also gained 🔍 Debug Log (reads that log back), 🧪 Sandbox (test-chat against live Charts/Context without logging a real session), and 🧭 Consultant (a separate Gemini call given the full config + recent log as context, for "where are we inefficient"-type questions) tabs. `db/schema_v160.sql` has the migration — **must be run in the Supabase SQL editor**. **Security note (deliberate, temporary):** `admin.html`'s password gate was removed at the user's request for faster iteration, and `ai_context`/`admin_insights` were opened to the `anon` role (RLS policies + GRANTs) so admin.html can write directly with the same public anon key the main app already uses client-side. This means anyone with the anon key (already extractable from the public app) could currently rewrite Clar's live prompts. Must be tightened — e.g. a token-gated Cloudflare Worker relay (same pattern already used to hide the Gemini and Sheets keys) — before wider launch |
 | v145 | Pulse clarMin + NN done fixes — (1) `_stop()` changed `Math.floor`→`Math.round` so sessions of 30+ seconds save as 1 min instead of 0 (was the main reason clarMin always showed 0 after short sessions); (2) NN done now counts only numeric main-item keys (`/^\d+$/.test(k) && val===true`), not subpoint keys like `s0_1` — fixes overcounting and inconsistency with nnTotal; (3) `clv_clar_times` removed from `_clearUserLocalStorage()` — Supabase only stores the scalar `clar_daily_min` so the full date-keyed array cannot be restored after clearing, making retention safer |
 | v136 | Fortuneteller redesign — (1) notice above orb fills gap: "Every session with Clar purifies your field…"; (2) prediction cards redesigned: open oracle style, no boxy glass cards, hairline separator between sections, larger flowing italic text; (3) orb enhanced: richer gradient + inner rotating nebula (::before conic-gradient mix-blend-mode:screen + ftNebula keyframe); (4) energy field tap tooltip: explains why constellation looks like it does (Clar time, momentum, field density description) |
 | v134 | Fortuneteller energy field redesign — replaced faint floating dots with: (1) aurora blobs: 5 large slow-drifting radialGradient colour clouds (purple/gold/teal) that breathe and shift; (2) constellation network: particles connected by fading lines when < 75-130px apart (distance based on energy state), constantly reforming as particles drift; (3) particle glow done via large dim halo + bright core (no expensive shadowBlur); energy state controls speed/density/link-distance/brightness |
@@ -430,6 +431,40 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
+## AI Logic Console (`admin.html`, v160+)
+
+The owner's private tool for editing what Clar actually thinks — separate file, not linked from the main app, talks directly to Supabase (not the Sheets/Apps Script path the rest of `admin.html`'s tabs still use).
+
+**Why it exists:** the owner reasons about self-development through hand-drawn "charts" (personal frameworks, e.g. an emotional-frequency ladder derived from Abraham-Hicks-style theory + his own tested conclusions). Feeding these to Clar means transcribing each chart's logic into text — an image alone isn't reliable input for an LLM, so images are kept only as the owner's own reference, never sent to the AI. See `emotional_guidance_system` in `ai_context` (added v129, originally Fortuneteller-only) for the reference example of what a well-transcribed chart looks like: numbered states, explicit "do this / not that" rules, and a closing instruction on how to detect which state applies.
+
+**Data model — `ai_context` table (Supabase), extended in v160:**
+| Column | What |
+|--------|------|
+| `key` | machine id, primary key (e.g. `emotional_guidance_system`) |
+| `content` | the full logic paragraph(s) — exactly what gets fed to the AI |
+| `display_name` | friendly name shown in admin (e.g. "Board Chart") |
+| `image_urls` | 0-2 reference image URLs (Supabase Storage bucket `chart-images`) — admin's own memory aid, **never read by the AI** |
+| `category` | `'chart'` or `'context'` — splits the admin console into two sections |
+| `applies_to` | text[] tag — which AI surface reads this row: `'chat'`, `'fortuneteller'` |
+
+**How a new chart goes live:** add it in `admin.html` → 🧠 AI Logic tab (name, optional image(s), full logic text, tick which surface(s) it applies to) → Save. Both `_buildSystemPrompt()` (chat) and the Fortuneteller prompt builder loop over all `ai_context` rows tagged for them (excluding the 4 keys each already injects by name — `identity`/`philosophy`/`conversation_flow`/`disclaimer` for chat; `fortuneteller_philosophy`/`emotional_guidance_system`/`manifestation_signals`/`prediction_language` for Fortuneteller) and append them as a "PERSONAL FRAMEWORKS" block. No code change or deploy needed for new entries — only for changing *which* surfaces exist to tag against.
+
+**State reading:** both AI response formats now require a `state_read` field (`"low"|"neutral"|"high"`, internal only, never shown to the user) — the model must commit to a coarse read of the user's state before replying, reusing the same low/mid/high tiering `tools`/`chargers` already use for `mood`/`quest_low/mid/high`. Intent: make chart logic apply consistently turn-to-turn rather than only sometimes.
+
+**Observability:** every chat and Fortuneteller reply fire-and-forget logs `{state_read, charts_live, user_msg, ai_msg, ts}` to `admin_insights` (`insight_key`='chat'\|'fortuneteller') — a table stubbed in v129 and unused until now.
+
+**Four tabs in `admin.html`, all Supabase-native:**
+| Tab | What |
+|-----|------|
+| 🧠 AI Logic | Charts + AI Context CRUD described above |
+| 🔍 Debug Log | Read-only feed of `admin_insights` — most recent turns first, filterable by chat/fortuneteller, shows state_read + which charts were live + message snippets |
+| 🧪 Sandbox | Talk to a test instance of Clar (`_buildTestPrompt()` — a simplified rebuild of `_buildSystemPrompt()` using live `AI_ROWS`, same Worker/model) to check a chart's wording actually works — never logged to `admin_insights`, never a real session |
+| 🧭 Consultant | A *separate* Gemini call (`_buildConsultantPrompt()`) given the full AI config + last 30 `admin_insights` rows as context; the owner can ask it things like "where are we inefficient" and get config-review answers grounded in the actual live text and actual logged interactions |
+
+**⚠️ Security — deliberate, temporary, must revisit before wider launch:** `admin.html`'s password gate was removed at the owner's request to iterate faster (see `db/schema_v160.sql` comments). To let it write directly with the same public anon key the main app already ships client-side, `ai_context` (RLS policies added) and `admin_insights` (GRANTs added) were opened to the `anon` role. Practically: anyone who extracts the anon key from the public app — trivial, it's already client-side — can currently read/write Clar's live prompts and the debug log, not just whoever has the `admin.html` URL. Fix path already decided when it's prioritized: a small token-gated Cloudflare Worker relay holding the real write credential server-side, mirroring how the Gemini and Sheets API keys are already hidden from the browser.
+
+---
+
 ## Deliberately Deferred (not built yet)
 - Challenges sheet (40 research-backed challenges) — Apps Script SHEET_NAMES needs `challenges` added
 - Quest system linked to challenges sheet
@@ -449,4 +484,4 @@ Accessible via 👤 button in chat header. 4 fields: present_challenge, permanen
 
 ---
 
-*Last updated: 2026-07-15 — v159 saved. index.html = v159. Always copy new version to index.html after pushing.*
+*Last updated: 2026-07-28 — v160 saved. index.html = v160. Always copy new version to index.html after pushing.*

@@ -155,7 +155,24 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 #toast.ok{background:#059669}
 #toast.err{background:#DC2626}
 
+/* ══ AI LOGIC TAB ═══════════════════════════════════════ */
+.chart-thumb{width:44px;height:44px;border-radius:12px;object-fit:cover;flex-shrink:0;background:#EEF2FF}
+.tag-row{display:flex;flex-wrap:wrap;gap:8px}
+.tag-chk{display:flex;align-items:center;gap:6px;padding:9px 13px;background:#FAFAFA;border:2px solid #E5E7EB;border-radius:20px;font-size:13px;color:#374151;cursor:pointer}
+.tag-chk input{margin:0}
+.img-up-row{display:flex;gap:10px;flex-wrap:wrap}
+.img-up-item{position:relative;width:72px;height:72px}
+.img-up-item img{width:100%;height:100%;object-fit:cover;border-radius:12px;border:2px solid #E5E7EB}
+.img-up-del{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#DC2626;color:#fff;border:none;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.img-up-add{width:72px;height:72px;border-radius:12px;border:2px dashed #E5E7EB;background:#FAFAFA;display:flex;align-items:center;justify-content:center;font-size:22px;color:#9CA3AF;cursor:pointer}
+.bapp{background:#EDE9FE;color:#6D28D9}
+.bst-low{background:#FEE2E2;color:#DC2626}
+.bst-neutral{background:#F3F4F6;color:#6B7280}
+.bst-high{background:#D1FAE5;color:#059669}
+.dbg-msg{font-size:12.5px;color:#374151;background:#FAFAFA;border-radius:10px;padding:9px 11px;margin-top:4px;line-height:1.4}
+.dbg-msg b{color:#9CA3AF;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:2px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -191,6 +208,10 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="revise"   onclick="switchTab(this)">📚 Revise</button>
     <button class="tab"    data-p="channels" onclick="switchTab(this)">📺 Channels</button>
     <button class="tab"    data-p="modules"  onclick="switchTab(this)">📦 Modules</button>
+    <button class="tab"    data-p="ailogic" onclick="switchTab(this)">🧠 AI Logic</button>
+    <button class="tab"    data-p="debug"   onclick="switchTab(this)">🔍 Debug Log</button>
+    <button class="tab"    data-p="sandbox" onclick="switchTab(this)">🧪 Sandbox</button>
+    <button class="tab"    data-p="consultant" onclick="switchTab(this)">🧭 Consultant</button>
   </div>
 
   <!-- TOOLS -->
@@ -240,6 +261,49 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
   <div id="pane-modules" class="pane">
     <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Toggle tabs on or off. Changes appear in the app within 60 seconds (server cache TTL).</p>
     <div id="modules-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- AI LOGIC: Charts (reference images + full logic) + AI Context (general philosophy) -->
+  <div id="pane-ailogic" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Charts are your personal frameworks — an image for your own reference, and the full logic written out for Clar to actually use. AI Context is general philosophy/tone (identity, conversation flow, etc). Tag each entry with where it should apply — that's what makes it live without touching code.</p>
+    <div class="sec-lbl">📊 Charts</div>
+    <button class="add-btn" onclick="openAiForm('chart')">＋ Add Chart</button>
+    <div id="charts2-list"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl">🧭 AI Context</div>
+    <button class="add-btn" onclick="openAiForm('context')">＋ Add Context</button>
+    <div id="context-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- DEBUG LOG: live feed of state_read + which charts were used, per real interaction -->
+  <div id="pane-debug" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Real chat + Fortuneteller turns, most recent first — what state Clar read the user as, and which charts/context were live at the time. Nothing here is used for suggestions, it's read-only observability.</p>
+    <div class="fld-2" style="margin-bottom:14px">
+      <select id="dbg-filter" onchange="loadDebugLog()"><option value="">All</option><option value="chat">💬 Chat only</option><option value="fortuneteller">🔮 Fortuneteller only</option></select>
+      <button class="add-btn" style="margin:0" onclick="loadDebugLog()">↻ Refresh</button>
+    </div>
+    <div id="debug-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- SANDBOX TESTER: talk to a test Clar using live AI Context/Charts, never logged as a real session -->
+  <div id="pane-sandbox" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Test how your Charts/AI Context actually shape Clar's replies — uses the same logic and same model as the real app, but this conversation is never saved or logged anywhere. Best way to check a chart's wording actually works before trusting it.</p>
+    <div id="sbx-log" style="max-height:50vh;overflow-y:auto;margin-bottom:12px"></div>
+    <div class="fld"><textarea id="sbx-input" placeholder="Type a test message, e.g. 'aaj bahut bura lag raha hai'" style="min-height:60px"></textarea></div>
+    <div class="fld-2">
+      <button class="btn-cx" style="border-radius:14px" onclick="sbxReset()">↺ Reset session</button>
+      <button class="add-btn" id="sbx-send" style="margin:0" onclick="sbxSend()">Send</button>
+    </div>
+  </div>
+
+  <!-- CONSULTANT: separate AI that sees the full config + recent debug log, gives improvement suggestions -->
+  <div id="pane-consultant" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">A different AI — not Clar — that can see your entire config (every Chart + AI Context entry) and the last 30 real interactions. Ask it things like "where are we being inefficient" or "is this chart's wording clear enough for an LLM to follow."</p>
+    <div id="con-log" style="max-height:50vh;overflow-y:auto;margin-bottom:12px"></div>
+    <div class="fld"><textarea id="con-input" placeholder="e.g. Is the emotional_guidance_system chart being applied consistently?" style="min-height:60px"></textarea></div>
+    <div class="fld-2">
+      <button class="btn-cx" style="border-radius:14px" onclick="conReset()">↺ Reset</button>
+      <button class="add-btn" id="con-send" style="margin:0" onclick="conSend()">Ask</button>
+    </div>
   </div>
 </div>
 
@@ -292,6 +356,13 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 const PASS  = 'clv2024';
 const TOKEN = 'clv_admin_2024'; // Must match ADMIN_TOKEN in Apps Script
 const API   = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
+
+/* AI Logic tab talks directly to Supabase (v160) — same project as the live app */
+const SB_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk';
+let _sb = null;
+function getSb(){ if(!_sb) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
+const AI_TAGS = [{v:'chat',l:'💬 Chat'},{v:'fortuneteller',l:'🔮 Fortuneteller'}];
 
 /* Full module list — hardcoded because API only returns active ones */
 const MOD_DEFS = [
@@ -369,6 +440,9 @@ async function loadData() {
     renderModules  (SD.modules            || []);
     toast('Data refreshed ✓', 'ok');
   } catch(e) { toast('Load failed — check connection', 'err'); }
+  loadAiContext();
+  loadDebugLog();
+  loadConsultantContext();
 }
 
 async function api(params) {
@@ -1051,6 +1125,327 @@ async function toggleMod(id, active, cb) {
 }
 
 /* ══════════════════════════════════════════════════════
+   AI LOGIC — Charts + AI Context (Supabase-native, v160)
+   Charts: display_name, image_urls (admin reference only, never sent to AI),
+   category, content (full logic), applies_to (which AI surfaces read it).
+   ══════════════════════════════════════════════════════ */
+let AI_ROWS = [];
+let _aiImages = [];
+
+async function loadAiContext() {
+  try {
+    const { data, error } = await getSb().from('ai_context').select('*').order('key');
+    if (error) throw error;
+    AI_ROWS = data || [];
+    renderAiSection('charts2-list', AI_ROWS.filter(r => r.category === 'chart'), true);
+    renderAiSection('context-list', AI_ROWS.filter(r => r.category !== 'chart'), false);
+  } catch(e) {
+    const msg = empty('⚠️', 'Could not load — run db/schema_v160.sql in Supabase first');
+    const c1 = document.getElementById('charts2-list'), c2 = document.getElementById('context-list');
+    if (c1) c1.innerHTML = msg;
+    if (c2) c2.innerHTML = msg;
+  }
+}
+
+function renderAiSection(elId, rows, isChart) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!rows.length) { el.innerHTML = empty(isChart?'📊':'🧭', isChart?'No charts yet':'No context entries yet'); return; }
+  el.innerHTML = rows.map(r => {
+    const img = (r.image_urls||[])[0];
+    const tags = (r.applies_to||[]).map(t => {
+      const found = AI_TAGS.find(a=>a.v===t);
+      return `<span class="bdg bapp">${x(found?found.l:t)}</span>`;
+    }).join(' ');
+    return `
+    <div class="ic">
+      <div class="ic-head">
+        ${img ? `<img class="chart-thumb" src="${x(img)}">` : `<div class="ic-emo">${isChart?'📊':'🧭'}</div>`}
+        <div class="ic-body">
+          <div class="ic-name">${x(r.display_name||r.key)}</div>
+          <div class="ic-sub">${x((r.content||'').slice(0,70))}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openAiForm('${isChart?'chart':'context'}','${x(r.key)}')">Edit</button>
+          <button class="ab a-del"  onclick="delAi('${x(r.key)}')">Del</button>
+        </div>
+      </div>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">Key</span><span class="dv">${x(r.key)}</span></div>
+        <div class="dr"><span class="dl">Applies to</span><span class="dv">${tags||'— (not wired to any AI surface yet)'}</span></div>
+        <div class="dr"><span class="dl">Full logic</span><span class="dv">${x((r.content||'').slice(0,300))}${(r.content||'').length>300?'…':''}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openAiForm(kind, key) {
+  const isEdit = !!key;
+  const r = isEdit ? (AI_ROWS.find(row=>row.key===key) || {}) : {};
+  _aiImages = (r.image_urls||[]).slice();
+  const tagsHtml = AI_TAGS.map(t =>
+    `<label class="tag-chk"><input type="checkbox" value="${t.v}" class="ai-tag-cb"${(r.applies_to||[]).includes(t.v)?' checked':''}>${t.l}</label>`
+  ).join('');
+  const imgHtml = kind === 'chart'
+    ? fSep('Reference Images (your own memory aid — never sent to the AI)') + `<div class="img-up-row" id="ai-img-row">${_aiImgRowHtml()}</div>`
+    : '';
+  openSheet(
+    (isEdit?'Edit ':'Add ') + (kind==='chart'?'Chart':'Context'),
+    fT('Name *','ai-name',r.display_name,kind==='chart'?'e.g. Board Chart':'e.g. Conversation Flow') +
+    fT('Key (id)','ai-key',r.key,'auto-generated from name','Internal id — leave blank to auto-generate. Cannot be changed after saving.') +
+    imgHtml +
+    fSep('AI Logic') +
+    fA('Full logic *','ai-content',r.content,'Write out the complete logic / meaning here — plain paragraphs are fine, this is exactly what Clar reads.') +
+    fSep('Applies To') +
+    `<div class="tag-row">${tagsHtml}</div>`,
+    async () => {
+      const display_name = v('ai-name');
+      const content = v('ai-content');
+      if (!display_name || !content) { toast('Name and logic are required','err'); return; }
+      const key = isEdit ? r.key : (v('ai-key') || slug(display_name));
+      const applies_to = Array.from(document.querySelectorAll('.ai-tag-cb:checked')).map(c=>c.value);
+      const payload = { key, display_name, content, category: kind, applies_to, image_urls: _aiImages };
+      const { error } = await getSb().from('ai_context').upsert(payload, {onConflict:'key'});
+      if (error) throw new Error(error.message);
+      toast(isEdit?'Updated ✓':'Added ✓','ok'); closeSheet(); await loadAiContext();
+    }
+  );
+  if (isEdit) { const kf = document.getElementById('ai-key'); if (kf) kf.disabled = true; }
+}
+
+function _aiImgRowHtml() {
+  return _aiImages.map((u,i)=>`<div class="img-up-item"><img src="${x(u)}"><button class="img-up-del" type="button" onclick="aiRemoveImg(${i})">×</button></div>`).join('')
+    + (_aiImages.length < 2 ? `<label class="img-up-add">＋<input type="file" accept="image/*" style="display:none" onchange="aiUploadImg(event)"></label>` : '');
+}
+function refreshAiImgRow() {
+  const el = document.getElementById('ai-img-row');
+  if (el) el.innerHTML = _aiImgRowHtml();
+}
+async function aiUploadImg(ev) {
+  const file = ev.target.files && ev.target.files[0];
+  if (!file) return;
+  const path = 'admin/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g,'');
+  try {
+    const { error } = await getSb().storage.from('chart-images').upload(path, file);
+    if (error) throw error;
+    const { data } = getSb().storage.from('chart-images').getPublicUrl(path);
+    _aiImages.push(data.publicUrl);
+    refreshAiImgRow();
+  } catch(e) { toast('Image upload failed: ' + e.message, 'err'); }
+}
+function aiRemoveImg(i) { _aiImages.splice(i,1); refreshAiImgRow(); }
+
+async function delAi(key) {
+  showConfirm('Delete this entry? This cannot be undone.', async () => {
+    const { error } = await getSb().from('ai_context').delete().eq('key', key);
+    if (error) { toast('Error: ' + error.message, 'err'); return; }
+    toast('Deleted ✓', 'ok'); loadAiContext();
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   DEBUG LOG — read-only feed of admin_insights (v160)
+   ══════════════════════════════════════════════════════ */
+async function loadDebugLog() {
+  const el = document.getElementById('debug-list');
+  if (!el) return; // pane not in DOM yet on first call, fine
+  try {
+    const feat = document.getElementById('dbg-filter') ? document.getElementById('dbg-filter').value : '';
+    let q = getSb().from('admin_insights').select('*').order('id',{ascending:false}).limit(50);
+    if (feat) q = q.eq('insight_key', feat);
+    const { data, error } = await q;
+    if (error) throw error;
+    renderDebugLog(data || []);
+  } catch(e) {
+    el.innerHTML = empty('⚠️', 'Could not load — run db/schema_v160.sql in Supabase first');
+  }
+}
+function renderDebugLog(rows) {
+  const el = document.getElementById('debug-list');
+  if (!rows.length) { el.innerHTML = empty('🔍','No interactions logged yet — talk to Clar or open Fortuneteller in the app'); return; }
+  el.innerHTML = rows.map(row => {
+    const val = row.value || {};
+    const st = (val.state_read||'').toLowerCase();
+    const stBadge = st ? `<span class="bdg bst-${st}">${x(st)}</span>` : `<span class="bdg boff">no state_read</span>`;
+    const featBadge = row.insight_key === 'fortuneteller' ? '<span class="bdg btype">🔮 Fortuneteller</span>' : '<span class="bdg btype">💬 Chat</span>';
+    const charts = (val.charts_live||[]).map(c=>`<span class="bdg bapp">${x(c)}</span>`).join(' ') || '<span style="color:#D1D5DB;font-size:12px">none tagged live</span>';
+    const when = row.created_at ? new Date(row.created_at).toLocaleString() : '';
+    return `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name" style="white-space:normal">${featBadge} ${stBadge}</div>
+          <div class="ic-sub">${x(when)}</div>
+        </div>
+      </div>
+      <div class="ic-det">
+        <div class="dr"><span class="dl">Charts live</span><span class="dv">${charts}</span></div>
+        ${val.user_msg?`<div class="dbg-msg"><b>User</b>${x(val.user_msg)}</div>`:''}
+        ${val.ai_msg?`<div class="dbg-msg"><b>${row.insight_key==='fortuneteller'?'Reading':'Clar'}</b>${x(val.ai_msg)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   SANDBOX TESTER — test chart/context wording against the real
+   Worker + model, without it counting as a logged session (v160)
+   ══════════════════════════════════════════════════════ */
+const WORKER_URL = 'https://cold-frog-d555.smworkassistance.workers.dev/';
+let _sbxHistory = [];
+
+function _buildTestPrompt() {
+  const ctx = {};
+  (AI_ROWS||[]).forEach(r => { if (r.key) ctx[r.key] = r.content || ''; });
+  const identity   = ctx['identity']   || 'You are Clar — a warm, emotionally intelligent companion inside the Clarvoyance self-development app.';
+  const philosophy = ctx['philosophy'] || '';
+  const flow       = ctx['conversation_flow'] || 'Reflect back what the user shares, ask one deeper follow-up. Only suggest something after at least 2-3 exchanges, once their tone has genuinely lightened.';
+  const special = ['identity','philosophy','conversation_flow','disclaimer'];
+  const charts = (AI_ROWS||[]).filter(r => r.key && special.indexOf(r.key)===-1 && (r.applies_to||[]).indexOf('chat')!==-1 && r.content)
+    .map(r => '— ' + (r.display_name||r.key) + ' —\n' + r.content).join('\n\n');
+  return identity + '\n\n'
+    + (philosophy ? 'APP PHILOSOPHY:\n'+philosophy+'\n\n' : '')
+    + (charts ? 'YOUR PERSONAL FRAMEWORKS — use these to decide how to read and respond. Use whichever part fits the moment:\n'+charts+'\n\n' : '')
+    + 'CONVERSATION FLOW:\n' + flow + '\n\n'
+    + 'This is a SANDBOX TEST session run from the admin console — respond exactly as you would to a real user.\n\n'
+    + 'CRITICAL — RESPOND WITH VALID JSON ONLY. No markdown, no extra text.\n'
+    + 'Format: {"message":"your reply","state_read":"low|neutral|high"}\n'
+    + 'state_read: REQUIRED. Your honest one-word read of the user\'s current state, based on which framework/part above fits.';
+}
+
+function sbxReset() {
+  _sbxHistory = [];
+  const log = document.getElementById('sbx-log');
+  if (log) log.innerHTML = '';
+  const inp = document.getElementById('sbx-input');
+  if (inp) inp.value = '';
+}
+
+function _sbxAppend(role, text, stateRead) {
+  const log = document.getElementById('sbx-log');
+  if (!log) return;
+  const st = stateRead ? `<span class="bdg bst-${x(stateRead)}">${x(stateRead)}</span>` : '';
+  const div = document.createElement('div');
+  div.className = 'ic';
+  div.innerHTML = `<div class="ic-head"><div class="ic-body">
+    <div class="ic-name" style="white-space:normal">${role==='user'?'🧑 You (test)':'✦ Clar'} ${st}</div>
+    <div class="ic-sub" style="white-space:normal">${x(text)}</div>
+  </div></div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sbxSend() {
+  const inp = document.getElementById('sbx-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  _sbxHistory.push({role:'user',content:text});
+  _sbxAppend('user', text, null);
+  inp.value = '';
+  const btn = document.getElementById('sbx-send');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const systemPrompt = _buildTestPrompt();
+    const geminiMsgs = _sbxHistory.slice(-6).map(m => ({role:m.role==='assistant'?'model':'user',parts:[{text:String(m.content).slice(0,400)}]}));
+    const payload = {
+      _model:'gemini-2.5-flash',
+      system_instruction:{parts:[{text:systemPrompt}]},
+      contents:geminiMsgs,
+      generationConfig:{maxOutputTokens:400,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
+    };
+    const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await res.json();
+    let raw = ''; try { raw = data.candidates[0].content.parts[0].text; } catch(e) {}
+    let parsed; try { parsed = JSON.parse(raw); } catch(e) { parsed = {message: raw || '(no response — check console)', state_read:''}; }
+    _sbxHistory.push({role:'assistant',content:parsed.message||''});
+    _sbxAppend('assistant', parsed.message || '(empty reply)', parsed.state_read);
+  } catch(e) {
+    _sbxAppend('assistant', 'Error: ' + e.message, null);
+  }
+  btn.disabled = false; btn.textContent = 'Send';
+}
+
+/* ══════════════════════════════════════════════════════
+   CONSULTANT — separate AI, sees the full config + recent
+   admin_insights, gives improvement suggestions (v160)
+   ══════════════════════════════════════════════════════ */
+let _conDebugRows = [];
+let _conHistory   = [];
+
+async function loadConsultantContext() {
+  try {
+    const { data } = await getSb().from('admin_insights').select('*').order('id',{ascending:false}).limit(30);
+    _conDebugRows = data || [];
+  } catch(e) { _conDebugRows = []; }
+}
+
+function _buildConsultantPrompt() {
+  const allEntries = (AI_ROWS||[]).map(r =>
+    '[' + (r.category||'context') + '] ' + (r.display_name||r.key) + ' (applies_to: ' + ((r.applies_to||[]).join(',')||'none') + '):\n' + (r.content||'')
+  ).join('\n\n---\n\n') || 'No entries configured yet.';
+  const stateCounts = {};
+  _conDebugRows.forEach(row => { const st=(row.value&&row.value.state_read)||'unknown'; stateCounts[st]=(stateCounts[st]||0)+1; });
+  const stateSummary = Object.keys(stateCounts).map(k=>k+': '+stateCounts[k]).join(', ') || 'no data yet';
+  const recentSamples = _conDebugRows.slice(0,10).map(row => {
+    const v = row.value || {};
+    return '- [' + row.insight_key + ', state=' + (v.state_read||'?') + '] user: "' + (v.user_msg||'').slice(0,120) + '" -> clar: "' + (v.ai_msg||'').slice(0,120) + '"';
+  }).join('\n') || 'No interactions logged yet.';
+  return 'You are an AI configuration consultant reviewing "Clar" — an AI companion inside a self-development app called Clarvoyance. '
+    + 'You can see its full configuration and recent real interaction logs below. The app\'s owner will ask how Clar is performing and how to improve it. '
+    + 'Be direct and specific — reference the actual configuration text and actual logged interactions in your answers, never speak generically. '
+    + 'If something looks redundant, contradictory, too vague for an LLM to reliably follow, or missing, say so plainly and suggest concrete rewording.\n\n'
+    + 'FULL AI CONFIGURATION (every Chart + AI Context entry currently live):\n' + allEntries + '\n\n'
+    + 'RECENT STATE-READ DISTRIBUTION (last ' + _conDebugRows.length + ' logged turns): ' + stateSummary + '\n\n'
+    + 'RECENT SAMPLE INTERACTIONS:\n' + recentSamples + '\n\n'
+    + 'Respond conversationally, in plain text (not JSON). Keep answers focused and concrete.';
+}
+
+function conReset() {
+  _conHistory = [];
+  const log = document.getElementById('con-log'); if (log) log.innerHTML = '';
+  const inp = document.getElementById('con-input'); if (inp) inp.value = '';
+}
+
+function _conAppend(role, text) {
+  const log = document.getElementById('con-log');
+  if (!log) return;
+  const div = document.createElement('div');
+  div.className = 'ic';
+  div.innerHTML = `<div class="ic-head"><div class="ic-body">
+    <div class="ic-name" style="white-space:normal">${role==='user'?'🧑 You':'🧭 Consultant'}</div>
+    <div class="ic-sub" style="white-space:normal">${x(text)}</div>
+  </div></div>`;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function conSend() {
+  const inp = document.getElementById('con-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  _conHistory.push({role:'user',content:text});
+  _conAppend('user', text);
+  inp.value = '';
+  const btn = document.getElementById('con-send');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    await loadConsultantContext(); // refresh so it sees the latest logged interactions
+    const sys = _buildConsultantPrompt();
+    const msgs = _conHistory.slice(-10).map(m => ({role:m.role==='assistant'?'model':'user',parts:[{text:String(m.content).slice(0,800)}]}));
+    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, generationConfig:{maxOutputTokens:700} };
+    const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data = await res.json();
+    let reply = ''; try { reply = data.candidates[0].content.parts[0].text; } catch(e) {}
+    reply = reply || '(no response — check console)';
+    _conHistory.push({role:'assistant',content:reply});
+    _conAppend('assistant', reply);
+  } catch(e) {
+    _conAppend('assistant', 'Error: ' + e.message);
+  }
+  btn.disabled = false; btn.textContent = 'Ask';
+}
+
+/* ══════════════════════════════════════════════════════
    UTILITIES
    ══════════════════════════════════════════════════════ */
 const v   = id => { const e=document.getElementById(id); return e?e.value.trim():''; };
@@ -1069,6 +1464,11 @@ function toast(msg, type) {
   clearTimeout(_tt);
   _tt = setTimeout(()=>{ el.className=''; }, 3200);
 }
+
+/* Password gate temporarily bypassed — real auth to be added later */
+document.getElementById('login').style.display = 'none';
+document.getElementById('app').style.cssText = 'display:flex;flex-direction:column';
+loadData();
 
 </script>
 </body>
