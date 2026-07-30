@@ -177,6 +177,24 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 .con-reply b{color:#1E1B4B;font-weight:700}
 .con-reply u{text-decoration-color:#7C3AED}
 .con-reply mark{background:#FDE68A;padding:1px 3px;border-radius:3px}
+
+/* ══ MAP TAB ═════════════════════════════════════════ */
+.map-stats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.map-stat{background:#fff;border:1px solid #F3F4F6;border-radius:12px;padding:8px 13px;font-size:12px;color:#6B7280;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.map-stat b{color:#1E1B4B;font-size:15px;display:block}
+.map-legend{display:flex;flex-wrap:wrap;gap:14px;align-items:center;font-size:11.5px;color:#6B7280;margin-bottom:14px;padding:9px 13px;background:#fff;border-radius:12px;border:1px solid #F3F4F6}
+.map-legend span{display:flex;align-items:center;gap:5px}
+.map-dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0}
+.map-scroll{width:100%;overflow-x:auto;background:#fff;border-radius:16px;border:1px solid #F3F4F6;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+#map-svg{display:block;width:100%;height:auto;min-width:640px}
+.map-node{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:transform .15s}
+.map-node:hover{transform:scale(1.18)}
+.map-node-label{font-size:10.5px;fill:#374151;text-anchor:middle;pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.map-hub-label{font-size:13px;font-weight:800;fill:#fff;text-anchor:middle;pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.map-edge{stroke:#D1D5DB;stroke-width:1.4;fill:none;opacity:.7}
+.map-edge-hard{stroke:#4338CA;stroke-width:2.2;opacity:.55}
+.map-hub-circle{animation:mapPulse 3s ease-in-out infinite}
+@keyframes mapPulse{0%,100%{opacity:1}50%{opacity:.82}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -215,6 +233,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="channels" onclick="switchTab(this)">📺 Channels</button>
     <button class="tab"    data-p="modules"  onclick="switchTab(this)">📦 Modules</button>
     <button class="tab"    data-p="ailogic" onclick="switchTab(this)">🧠 AI Logic</button>
+    <button class="tab"    data-p="map"     onclick="switchTab(this)">🗺️ Map</button>
     <button class="tab"    data-p="debug"   onclick="switchTab(this)">🔍 Debug Log</button>
     <button class="tab"    data-p="sandbox" onclick="switchTab(this)">🧪 Sandbox</button>
     <button class="tab"    data-p="consultant" onclick="switchTab(this)">🧭 Consultant</button>
@@ -278,6 +297,20 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <div class="sec-lbl">🧭 AI Context</div>
     <button class="add-btn" onclick="openAiForm('context')">＋ Add Context</button>
     <div id="context-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- MAP: live interconnection view — every Chart/Context/Command node, which AI surface it feeds, click to edit -->
+  <div id="pane-map" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:12px;line-height:1.5">Everything that feeds Clar's brain, and where it actually goes. Updates automatically whenever you add/edit/delete anything. Click any node to edit it.</p>
+    <div id="map-stats" class="map-stats"></div>
+    <div class="map-legend">
+      <span><i class="map-dot" style="background:#EC4899"></i>Chart</span>
+      <span><i class="map-dot" style="background:#6366F1"></i>Context</span>
+      <span><i class="map-dot" style="background:#D97706"></i>Standing Command</span>
+      <span><i class="map-dot" style="background:#D1D5DB"></i>Not connected</span>
+      <span>🔒 = always on (hardcoded), can't be untagged from here</span>
+    </div>
+    <div class="map-scroll"><svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
   </div>
 
   <!-- DEBUG LOG: live feed of state_read + which charts were used, per real interaction -->
@@ -1169,6 +1202,7 @@ async function loadAiContext() {
     if (c1) c1.innerHTML = msg;
     if (c2) c2.innerHTML = msg;
   }
+  renderMap(); // v161.2: keep the Map tab live — refresh on every data change, not just tab switch
 }
 
 function renderAiSection(elId, rows, isChart) {
@@ -1422,6 +1456,7 @@ async function loadCommands() {
     if (a) a.innerHTML = msg;
     if (b) b.innerHTML = msg;
   }
+  renderMap();
 }
 
 function renderCmdRules(rows) {
@@ -1495,6 +1530,156 @@ async function saveSuggestion(text) {
   if (error) { toast('Error: '+error.message,'err'); return; }
   toast('Suggestion saved ✓','ok');
   loadCommands();
+}
+
+/* ══════════════════════════════════════════════════════
+   MAP — live SVG interconnection view (v161.2). Every Chart/Context
+   entry + standing Command as a node, an edge to whichever AI surface
+   it actually feeds (or none, if orphaned). Click a node to edit it.
+   Pure hand-rolled layout (no charting lib) so it stays consistent with
+   the rest of this file and has zero extra dependencies.
+   ══════════════════════════════════════════════════════ */
+const MAP_COLORS = { chart:'#EC4899', context:'#6366F1', rule:'#D97706' };
+
+function renderMap() {
+  const svg = document.getElementById('map-svg');
+  const statsEl = document.getElementById('map-stats');
+  if (!svg) return; // pane not in DOM yet on very first call
+
+  // 1) Build the flat node list from live data — this is the single source
+  //    of truth, so the map can never drift out of sync with the lists above.
+  const items = [];
+  (AI_ROWS||[]).forEach(r => {
+    const hard = AI_HARDCODED_KEYS[r.key];
+    const hubs = hard ? [hard] : (r.applies_to||[]).filter(t => t==='chat' || t==='fortuneteller');
+    items.push({
+      kind: r.category==='chart' ? 'chart' : 'context',
+      label: r.display_name || r.key,
+      hubs, hard: !!hard,
+      dataAttrs: `data-kind="${r.category==='chart'?'chart':'context'}" data-key="${x(r.key)}"`
+    });
+  });
+  (CMD_ROWS||[]).filter(r => r.type==='rule').forEach(r => {
+    items.push({
+      kind: 'rule', label: r.text, hubs: ['consultant'], hard: false,
+      dataAttrs: `data-kind="rule" data-cmdid="${r.id}"`
+    });
+  });
+
+  const connected = items.filter(i => i.hubs.length > 0);
+  const orphaned  = items.filter(i => i.hubs.length === 0);
+
+  const byHub = { chat:[], fortuneteller:[], consultant:[] };
+  connected.forEach(i => byHub[i.hubs[0]].push(i));
+
+  // 2) Radius per hub adapts to how many items it has, so a busy hub (many
+  //    charts tagged 'chat') spreads wider instead of nodes overlapping —
+  //    solved so adjacent node centers stay >=50px apart. The canvas itself
+  //    is then sized FROM the largest radius needed (rather than a fixed
+  //    canvas that radius has to be clamped into) — verified via a
+  //    standalone layout test against live data that this leaves zero
+  //    overlaps and zero off-canvas nodes, not assumed.
+  const MIN_CHORD = 50;
+  const hubGeo = {};
+  Object.keys(byHub).forEach(hk => {
+    const n = byHub[hk].length;
+    const arc = n <= 1 ? 0 : Math.min(2.9, 0.28*n); // widens with count, caps ~166°
+    const angStep = n <= 1 ? 0 : arc/(n-1);
+    const radius = angStep > 0 ? Math.max(150, (MIN_CHORD/2)/Math.sin(Math.max(angStep,0.02)/2)) : 150;
+    hubGeo[hk] = { n, arc, radius };
+  });
+  const maxRadius = Math.max(...Object.values(hubGeo).map(g=>g.radius));
+
+  // 3) Canvas size — wide enough that even the busiest hub's satellites fit
+  //    with margin, tall enough for the triangle; grows further downward
+  //    only if there are orphaned nodes needing extra rows below it.
+  const W = Math.max(1000, maxRadius*2 + 340);
+  const H_BASE = Math.max(760, maxRadius*2 + 260);
+  const PER_ROW = Math.max(1, Math.floor((W-80)/95));
+  const orphanRows = orphaned.length ? Math.ceil(orphaned.length/PER_ROW) : 0;
+  const H = H_BASE + (orphaned.length ? 50 + orphanRows*70 : 0);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  // 4) Hubs in a wide triangle, positioned at least maxRadius+70 from every
+  //    edge so satellites never need clamping; each hub's satellites fan
+  //    out along the ray from the triangle's centroid through the hub, so
+  //    they always point outward and never overlap the triangle interior.
+  const M = maxRadius + 70; // margin from each edge
+  const HUBS = {
+    chat:          { x: M, y: M, label:'💬 Chat',          color:'#4338CA' },
+    fortuneteller: { x: W-M, y: M, label:'🔮 Fortuneteller', color:'#7C3AED' },
+    consultant:    { x: W/2, y: H_BASE-M, label:'🧭 Consultant', color:'#DB2777' }
+  };
+  const cx = (HUBS.chat.x + HUBS.fortuneteller.x + HUBS.consultant.x) / 3;
+  const cy = (HUBS.chat.y + HUBS.fortuneteller.y + HUBS.consultant.y) / 3;
+  Object.values(HUBS).forEach(h => { h.angle = Math.atan2(h.y-cy, h.x-cx); });
+
+  Object.keys(byHub).forEach(hk => {
+    const list = byHub[hk], hub = HUBS[hk], geo = hubGeo[hk], n = geo.n;
+    list.forEach((item, idx) => {
+      const t = n <= 1 ? 0 : (idx/(n-1) - 0.5);
+      const angle = hub.angle + t*geo.arc;
+      item.x = hub.x + geo.radius*Math.cos(angle);
+      item.y = hub.y + geo.radius*Math.sin(angle);
+    });
+  });
+
+  orphaned.forEach((item, idx) => {
+    const row = Math.floor(idx/PER_ROW), col = idx%PER_ROW;
+    item.x = 70 + col*95;
+    item.y = H_BASE + 50 + row*70;
+  });
+
+  // 4) Build SVG markup — edges first so nodes sit visually on top of them.
+  let out = '';
+  connected.forEach(item => {
+    item.hubs.forEach(hk => {
+      const hub = HUBS[hk];
+      out += `<line class="${item.hard?'map-edge-hard':'map-edge'}" x1="${hub.x}" y1="${hub.y}" x2="${item.x}" y2="${item.y}"></line>`;
+    });
+  });
+  if (orphaned.length) {
+    out += `<text x="16" y="${H_BASE+30}" style="font-size:11px;font-weight:800;fill:#DC2626;text-transform:uppercase;letter-spacing:.4px">⚠ Not connected — feeding nothing right now</text>`;
+  }
+  Object.values(HUBS).forEach(h => {
+    out += `<circle class="map-hub-circle" cx="${h.x}" cy="${h.y}" r="46" fill="${h.color}"></circle>`;
+    out += `<text class="map-hub-label" x="${h.x}" y="${h.y+5}">${x(h.label)}</text>`;
+  });
+  [...connected, ...orphaned].forEach(item => {
+    const r = item.kind==='rule' ? 15 : 17;
+    const fill = item.hubs.length===0 ? '#D1D5DB' : MAP_COLORS[item.kind];
+    const full = (item.hard?'🔒 ':'') + item.label;
+    const short = full.length > 15 ? full.slice(0,15)+'…' : full;
+    out += `<g class="map-node" ${item.dataAttrs}>
+      <title>${x(full)}</title>
+      <circle cx="${item.x}" cy="${item.y}" r="${r}" fill="${fill}"></circle>
+      <text class="map-node-label" x="${item.x}" y="${item.y+r+13}">${x(short)}</text>
+    </g>`;
+  });
+  svg.innerHTML = out;
+
+  // 5) Single delegated click handler — reuses the exact same edit forms
+  //    already used elsewhere, so editing from the map is never a special case.
+  svg.onclick = function(e) {
+    const g = e.target.closest('.map-node');
+    if (!g) return;
+    const kind = g.getAttribute('data-kind');
+    if (kind === 'rule') openCmdForm('rule', g.getAttribute('data-cmdid'));
+    else openAiForm(kind, g.getAttribute('data-key'));
+  };
+
+  // 6) Stats strip
+  if (statsEl) {
+    const cChat = items.filter(i=>i.hubs.includes('chat')).length;
+    const cFt   = items.filter(i=>i.hubs.includes('fortuneteller')).length;
+    const cCon  = items.filter(i=>i.hubs.includes('consultant')).length;
+    statsEl.innerHTML =
+      `<div class="map-stat"><b>${items.length}</b>Total entries</div>`
+      + `<div class="map-stat"><b>${cChat}</b>Feed Chat</div>`
+      + `<div class="map-stat"><b>${cFt}</b>Feed Fortuneteller</div>`
+      + `<div class="map-stat"><b>${cCon}</b>Feed Consultant</div>`
+      + `<div class="map-stat"${orphaned.length?' style="border-color:#FCA5A5;background:#FEF2F2"':''}><b${orphaned.length?' style="color:#DC2626"':''}>${orphaned.length}</b>Not connected</div>`;
+  }
 }
 
 /* ══════════════════════════════════════════════════════
