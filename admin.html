@@ -1521,6 +1521,19 @@ function mdLite(s) {
   return t;
 }
 
+/* v161.1: fallback renderer for when the model writes a full markdown report
+   instead of the requested JSON — headings/bullets/bold, still safe (escaped
+   first via x() inside mdLite, so only these exact patterns become tags). */
+function mdFallback(s) {
+  let t = x(s);
+  t = t.replace(/^#{1,6}\s+(.+)$/gm, '<div style="font-weight:700;margin-top:10px">$1</div>');
+  t = t.replace(/^[*-]\s+(.+)$/gm, '<div style="margin:3px 0 3px 14px">• $1</div>');
+  t = t.replace(/^\d+\.\s+(.+)$/gm, '<div style="margin:3px 0 3px 14px">$1</div>');
+  t = t.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  t = t.replace(/\n{2,}/g, '<br><br>').replace(/\n/g, '<br>');
+  return t;
+}
+
 function _buildConsultantPrompt() {
   const allEntries = (AI_ROWS||[]).map(r =>
     '[' + (r.category||'context') + '] ' + (r.display_name||r.key) + ' (applies_to: ' + ((r.applies_to||[]).join(',')||'none') + '):\n' + (r.content||'')
@@ -1537,11 +1550,12 @@ function _buildConsultantPrompt() {
     + 'You can see its full configuration and recent real interaction logs below. The app\'s owner will ask how Clar is performing and how to improve it. '
     + 'Be direct and specific — reference the actual configuration text and actual logged interactions in your answers, never speak generically. '
     + 'If something looks redundant, contradictory, too vague for an LLM to reliably follow, or missing, say so plainly and suggest concrete rewording.\n\n'
+    + 'You have web search access. Use it when a question would genuinely benefit from outside research — established psychological/self-help frameworks, recent research, how other products handle something similar — but your core analysis must stay grounded in the actual config and logs below, not generic internet opinion. Do not use inline citation markers like [cite: 1] or [1] in your text — write clean prose; sources are shown separately.\n\n'
     + 'STANDING COMMANDS FROM THE OWNER — always follow these when analyzing and replying:\n' + rules + '\n\n'
     + 'FULL AI CONFIGURATION (every Chart + AI Context entry currently live):\n' + allEntries + '\n\n'
     + 'RECENT STATE-READ DISTRIBUTION (last ' + _conDebugRows.length + ' logged turns): ' + stateSummary + '\n\n'
     + 'RECENT SAMPLE INTERACTIONS:\n' + recentSamples + '\n\n'
-    + 'CRITICAL — RESPOND WITH VALID JSON ONLY, no markdown fences, no extra text.\n'
+    + 'CRITICAL — RESPOND WITH VALID JSON ONLY, no markdown fences, no extra text, no inline citation brackets, no headings, no bullet lists outside the JSON structure. Even after using search, your ENTIRE reply must be a single JSON object and nothing else.\n'
     + 'Format: {"summary":"one short sentence, your overall read — no preamble like Okay I have reviewed...","points":[{"label":"short bold-worthy label naming what you found","detail":"1-2 sentences, name the exact chart/key if relevant"}],"next_action":"the single most important next step, one sentence"}\n'
     + 'Inside any text field you may use **word** for bold, __word__ for underline, ==word== for highlight — sparingly, only on the 1-2 most important words per field.\n'
     + 'points: 2-5 items max, each genuinely distinct — no filler, no restating the question, no generic advice. If you don\'t have enough log data yet to answer confidently, say that plainly in summary instead of padding points.';
@@ -1566,7 +1580,7 @@ function _conAppendUser(text) {
   log.scrollTop = log.scrollHeight;
 }
 
-function _conAppendReply(rawText) {
+function _conAppendReply(rawText, sources) {
   const log = document.getElementById('con-log');
   if (!log) return;
   let parsed = null; try { parsed = JSON.parse(rawText); } catch(e) {}
@@ -1580,11 +1594,25 @@ function _conAppendReply(rawText) {
         <div style="margin-top:2px">${mdLite(p.detail||'')}</div>
         <span class="con-save-btn" data-text="${x((p.label||'')+': '+(p.detail||''))}" onclick="saveSuggestionFromBtn(this)">💾 Save</span>
       </div>`).join('');
+    /* v161.1: real source links from Gemini's grounding metadata — not
+       trusted from the model's own JSON (it garbled a "sources" array when
+       asked to produce one itself, confirmed via curl). */
+    const srcHtml = (sources && sources.length)
+      ? `<div style="margin-top:12px;padding-top:10px;border-top:1px solid #F3F4F6;font-size:12px">
+          <b style="color:#9CA3AF;text-transform:uppercase;letter-spacing:.4px;font-size:10px">Sources</b><br>
+          ${sources.slice(0,6).map(s=>`<a href="${x(s.uri||'#')}" target="_blank" rel="noopener" style="color:#4338CA;display:block;margin-top:3px;text-decoration:underline">${x(s.title||s.uri||'source')}</a>`).join('')}
+        </div>`
+      : '';
     body = `<div style="font-weight:700">${mdLite(parsed.summary)}</div>`
       + points
-      + (parsed.next_action ? `<div style="margin-top:12px;padding:9px 11px;background:#FEF3C7;border-radius:10px"><b>➡ Next:</b> ${mdLite(parsed.next_action)}</div>` : '');
+      + (parsed.next_action ? `<div style="margin-top:12px;padding:9px 11px;background:#FEF3C7;border-radius:10px"><b>➡ Next:</b> ${mdLite(parsed.next_action)}</div>` : '')
+      + srcHtml;
   } else {
-    body = x(rawText || '(no response — check console)').replace(/\n/g,'<br>');
+    /* v161.1: safety net for when the model ignores the JSON contract (seen
+       with complex grounded queries) and writes a markdown report instead —
+       render the headings, bullets and bold it tends to use, don't show
+       the raw symbols as literal text. */
+    body = rawText ? mdFallback(rawText) : '(no response — check console)';
   }
   div.innerHTML = `<div class="ic-head"><div class="ic-body">
     <div class="ic-name" style="white-space:normal">🧭 Consultant</div>
@@ -1618,13 +1646,20 @@ async function conSend() {
     /* v160 fix: uncapped "thinking" tokens were silently eating the whole budget
        before any visible reply text — confirmed via curl (finishReason:MAX_TOKENS
        even at 3000 tokens with thinking on, vs finishReason:STOP with it off).
-       thinkingBudget:0 fixes this the same way it already does for chat/Sandbox. */
-    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, generationConfig:{maxOutputTokens:2000,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}} };
+       thinkingBudget:0 fixes this the same way it already does for chat/Sandbox.
+       v161.1: google_search tool added for external research — Gemini rejects
+       responseMimeType:'application/json' combined with tools (confirmed via
+       curl, HTTP 400 INVALID_ARGUMENT), so JSON-ness now relies on the prompt
+       instruction alone; grounded replies also run longer, hence 3000 tokens. */
+    const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, tools:[{google_search:{}}], generationConfig:{maxOutputTokens:3000,thinkingConfig:{thinkingBudget:0}} };
     const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     const data = await res.json();
-    let reply = ''; try { reply = data.candidates[0].content.parts[0].text; } catch(e) {}
+    const cand = data.candidates && data.candidates[0];
+    let reply = ''; try { reply = cand.content.parts[0].text; } catch(e) {}
+    const sources = (cand && cand.groundingMetadata && cand.groundingMetadata.groundingChunks || [])
+      .map(c => c.web).filter(Boolean);
     _conHistory.push({role:'assistant',content:reply||''});
-    _conAppendReply(reply);
+    _conAppendReply(reply, sources);
   } catch(e) {
     _conAppendReply(JSON.stringify({summary:'Error: '+e.message,points:[],next_action:''}));
   }
