@@ -1339,6 +1339,14 @@ function renderDebugLog(rows) {
     const stBadge = st ? `<span class="bdg bst-${st}">${x(st)}</span>` : `<span class="bdg boff">no state_read</span>`;
     const featBadge = row.insight_key === 'fortuneteller' ? '<span class="bdg btype">🔮 Fortuneteller</span>' : '<span class="bdg btype">💬 Chat</span>';
     const charts = (val.charts_live||[]).map(c=>`<span class="bdg bapp">${x(c)}</span>`).join(' ') || '<span style="color:#D1D5DB;font-size:12px">none tagged live</span>';
+    /* v161.3: frameworks_used (what the model says it actually leaned on)
+       shown separately from charts_live (what was merely available) — this
+       is the whole point: seeing the gap between the two tells you which
+       tagged entries are being ignored, not just which ones are present. */
+    const hasUsedField = Array.isArray(val.frameworks_used);
+    const used = hasUsedField
+      ? ((val.frameworks_used.length ? val.frameworks_used.map(c=>`<span class="bdg bon">${x(c)}</span>`).join(' ') : '<span style="color:#D1D5DB;font-size:12px">none — general reply, no framework applied</span>'))
+      : '<span style="color:#D1D5DB;font-size:12px">not tracked (older entry)</span>';
     const when = row.created_at ? new Date(row.created_at).toLocaleString() : '';
     return `
     <div class="ic">
@@ -1349,7 +1357,8 @@ function renderDebugLog(rows) {
         </div>
       </div>
       <div class="ic-det">
-        <div class="dr"><span class="dl">Charts live</span><span class="dv">${charts}</span></div>
+        <div class="dr"><span class="dl">Actually used</span><span class="dv">${used}</span></div>
+        <div class="dr"><span class="dl">Was available</span><span class="dv">${charts}</span></div>
         ${val.user_msg?`<div class="dbg-msg"><b>User</b>${x(val.user_msg)}</div>`:''}
         ${val.ai_msg?`<div class="dbg-msg"><b>${row.insight_key==='fortuneteller'?'Reading':'Clar'}</b>${x(val.ai_msg)}</div>`:''}
       </div>
