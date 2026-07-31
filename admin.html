@@ -723,7 +723,11 @@ function openToolForm(idx) {
     fSep('Quest Prompts') +
     fA('Quest — Low Mood','tf-qlo',t.quest_low,'Prompt for low mood...') +
     fA('Quest — Mid Mood','tf-qmi',t.quest_mid,'Prompt for mid mood...') +
-    fA('Quest — High Mood','tf-qhi',t.quest_high,'Prompt for high mood...'),
+    fA('Quest — High Mood','tf-qhi',t.quest_high,'Prompt for high mood...') +
+    fSep('AI Guidance for Clar') +
+    fA('When should Clar suggest this?','tf-aibest',t.ai_best_for,'e.g. Suggest when the user seems stuck between two options and needs to think out loud...') +
+    `<button type="button" class="add-btn" style="margin-top:-6px" onclick="saveContentAiBestFor('tools','${isEdit?x(t.id):''}','tf-aibest')">💾 Save AI Guidance</button>` +
+    `<div class="fld-hint">Saved separately, straight to the live database — independent of the Save button below. ${isEdit?'':'Save the tool first with the button below, then reopen it to add AI guidance.'}</div>`,
     async () => {
       const d = { action:isEdit?'editTool':'addTool',
         id:v('tf-id'), code:v('tf-code'), name:v('tf-name'), description:v('tf-desc'),
@@ -855,7 +859,11 @@ function openChargerForm(idx) {
     fSep('Quest Prompts') +
     fA('Quest — Low Mood','ch-qlo',c.quest_low,'Low mood prompt...') +
     fA('Quest — Mid Mood','ch-qmi',c.quest_mid,'Mid mood prompt...') +
-    fA('Quest — High Mood','ch-qhi',c.quest_high,'High mood prompt...'),
+    fA('Quest — High Mood','ch-qhi',c.quest_high,'High mood prompt...') +
+    fSep('AI Guidance for Clar') +
+    fA('When should Clar suggest this?','ch-aibest',c.ai_best_for,'e.g. Suggest when the user is being hard on themselves and needs to name what they are grateful for...') +
+    `<button type="button" class="add-btn" style="margin-top:-6px" onclick="saveContentAiBestFor('chargers','${isEdit?x(c.id):''}','ch-aibest')">💾 Save AI Guidance</button>` +
+    `<div class="fld-hint">Saved separately, straight to the live database — independent of the Save button below. ${isEdit?'':'Save the charger first with the button below, then reopen it to add AI guidance.'}</div>`,
     async () => {
       const d = { action:isEdit?'editCharger':'addCharger',
         id:v('ch-id'), category_id:v('ch-cat'), name:v('ch-name'), description:v('ch-desc'),
@@ -1183,6 +1191,25 @@ async function toggleMod(id, active, cb) {
     else { cb.checked = !active; throw new Error(r.error); }
   } catch(e) { toast('Error: '+e.message,'err'); }
   cb.disabled = false;
+}
+
+/* v170: tools/chargers CRUD still goes through the old Google Sheets/Apps
+   Script path (SD, api()) — writing ai_best_for through that path would
+   land in the Sheet, not Supabase, and the live app reads Supabase, so it
+   would never actually reach Clar. This one field gets its own narrow write
+   straight to Supabase instead, kept deliberately separate from the rest of
+   each form's existing save so nothing already working is touched. Needs
+   db/schema_v170_fix.sql run first (adds tools.ai_best_for + UPDATE grants
+   for both tables — confirmed via curl that UPDATE was rejected before it). */
+async function saveContentAiBestFor(table, id, fieldId) {
+  if (!id) { toast('Save this item first (button below), then reopen it to add AI guidance','err'); return; }
+  const text = v(fieldId);
+  try {
+    const { data, error } = await getSb().from(table).update({ai_best_for:text}).eq('id', id).select();
+    if (error) throw error;
+    if (!data || !data.length) { toast('No matching row in the live database yet for this id — it may only exist in the Sheet still','err'); return; }
+    toast('AI guidance saved ✓','ok');
+  } catch(e) { toast('Error: '+e.message,'err'); }
 }
 
 /* ══════════════════════════════════════════════════════
