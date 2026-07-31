@@ -1338,6 +1338,11 @@ function renderDebugLog(rows) {
     const st = (val.state_read||'').toLowerCase();
     const stBadge = st ? `<span class="bdg bst-${st}">${x(st)}</span>` : `<span class="bdg boff">no state_read</span>`;
     const featBadge = row.insight_key === 'fortuneteller' ? '<span class="bdg btype">🔮 Fortuneteller</span>' : '<span class="bdg btype">💬 Chat</span>';
+    /* v168: pace — read from the conversation itself (does the user's own
+       language show they follow Clar's terminology), not from stored
+       days/XP. Shown as its own badge so it's visible alongside state_read
+       without digging into the raw message content. */
+    const paceBadge = val.pace==='fast' ? '<span class="bdg bon">⚡ fast</span>' : val.pace==='slow' ? '<span class="bdg bst-neutral">🐢 slow</span>' : '';
     const charts = (val.charts_live||[]).map(c=>`<span class="bdg bapp">${x(c)}</span>`).join(' ') || '<span style="color:#D1D5DB;font-size:12px">none tagged live</span>';
     /* v161.3: frameworks_used (what the model says it actually leaned on)
        shown separately from charts_live (what was merely available) — this
@@ -1363,7 +1368,7 @@ function renderDebugLog(rows) {
     <div class="ic">
       <div class="ic-head">
         <div class="ic-body">
-          <div class="ic-name" style="white-space:normal">${featBadge} ${stBadge}</div>
+          <div class="ic-name" style="white-space:normal">${featBadge} ${stBadge} ${paceBadge}</div>
           <div class="ic-sub">${x(when)}</div>
         </div>
       </div>
