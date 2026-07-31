@@ -290,7 +290,11 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 
   <!-- AI LOGIC: Charts (reference images + full logic) + AI Context (general philosophy) -->
   <div id="pane-ailogic" class="pane">
-    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Charts are your personal frameworks — an image for your own reference, and the full logic written out for Clar to actually use. AI Context is general philosophy/tone (identity, conversation flow, etc). Tag each entry with where it should apply — that's what makes it live without touching code.</p>
+    <div class="sec-lbl">🧬 AI Features <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#C4C4D4">— every AI-behavior capability that's been built, so you always know what your AI is made of</span></div>
+    <button class="add-btn" onclick="openCmdForm('feature')">＋ Add Feature</button>
+    <div id="feat-list"><div class="s-load">Loading...</div></div>
+
+    <p style="font-size:13px;color:#9CA3AF;margin:20px 0 14px;line-height:1.5">Charts are your personal frameworks — an image for your own reference, and the full logic written out for Clar to actually use. AI Context is general philosophy/tone (identity, conversation flow, etc). Tag each entry with where it should apply — that's what makes it live without touching code.</p>
     <div class="sec-lbl">📊 Charts</div>
     <button class="add-btn" onclick="openAiForm('chart')">＋ Add Chart</button>
     <div id="charts2-list"><div class="s-load">Loading...</div></div>
@@ -1336,13 +1340,15 @@ function renderDebugLog(rows) {
   el.innerHTML = rows.map(row => {
     const val = row.value || {};
     const st = (val.state_read||'').toLowerCase();
-    const stBadge = st ? `<span class="bdg bst-${st}">${x(st)}</span>` : `<span class="bdg boff">no state_read</span>`;
+    const stBadge = st ? `<span class="bdg bst-${st}">STATE: ${x(st)}</span>` : `<span class="bdg boff">no state_read</span>`;
     const featBadge = row.insight_key === 'fortuneteller' ? '<span class="bdg btype">🔮 Fortuneteller</span>' : '<span class="bdg btype">💬 Chat</span>';
     /* v168: pace — read from the conversation itself (does the user's own
        language show they follow Clar's terminology), not from stored
        days/XP. Shown as its own badge so it's visible alongside state_read
-       without digging into the raw message content. */
-    const paceBadge = val.pace==='fast' ? '<span class="bdg bon">⚡ fast</span>' : val.pace==='slow' ? '<span class="bdg bst-neutral">🐢 slow</span>' : '';
+       without digging into the raw message content.
+       v169: labeled ("PACE:"/"STATE:") — a bare "fast"/"low" badge with no
+       label wasn't clear at a glance what it was reading. */
+    const paceBadge = val.pace==='fast' ? '<span class="bdg bon">PACE: ⚡ fast</span>' : val.pace==='slow' ? '<span class="bdg bst-neutral">PACE: 🐢 slow</span>' : '';
     const charts = (val.charts_live||[]).map(c=>`<span class="bdg bapp">${x(c)}</span>`).join(' ') || '<span style="color:#D1D5DB;font-size:12px">none tagged live</span>';
     /* v161.3: frameworks_used (what the model says it actually leaned on)
        shown separately from charts_live (what was merely available) — this
@@ -1475,13 +1481,43 @@ async function loadCommands() {
     CMD_ROWS = data || [];
     renderCmdRules(CMD_ROWS.filter(r=>r.type==='rule'));
     renderCmdSuggestions(CMD_ROWS.filter(r=>r.type==='suggestion'));
+    renderFeatures(CMD_ROWS.filter(r=>r.type==='feature'));
   } catch(e) {
     const msg = empty('⚠️','Could not load — run db/schema_v161.sql in Supabase first');
-    const a = document.getElementById('cmd-rules-list'), b = document.getElementById('cmd-sugg-list');
+    const a = document.getElementById('cmd-rules-list'), b = document.getElementById('cmd-sugg-list'), c = document.getElementById('feat-list');
     if (a) a.innerHTML = msg;
     if (b) b.innerHTML = msg;
+    if (c) c.innerHTML = msg;
   }
   renderMap();
+}
+
+/* v169: AI Features registry — a living list of every AI-behavior capability
+   built (state_read, frameworks_used, pace, Search grounding, etc.), so the
+   owner always has a single place to see what the AI is made of, instead of
+   this only living in CLAUDE.md/commit messages he doesn't see day-to-day.
+   Stored as text "Name — description"; name is bolded on render by
+   splitting on the first " — ", not a separate column (keeps admin_commands
+   as one simple table across rule/suggestion/feature). */
+function renderFeatures(rows) {
+  const el = document.getElementById('feat-list');
+  if (!el) return;
+  if (!rows.length) { el.innerHTML = empty('🧬','No features documented yet'); return; }
+  el.innerHTML = rows.map(r => {
+    const i = r.text.indexOf(' — ');
+    const name = i===-1 ? r.text : r.text.slice(0,i);
+    const desc = i===-1 ? '' : r.text.slice(i+3);
+    return `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body"><div class="ic-name" style="white-space:normal"><b>${x(name)}</b>${desc?' — '+x(desc):''}</div></div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openCmdForm('feature','${r.id}')">Edit</button>
+          <button class="ab a-del"  onclick="delCmd(${r.id})">Del</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderCmdRules(rows) {
@@ -1521,9 +1557,13 @@ function renderCmdSuggestions(rows) {
 function openCmdForm(type, id) {
   const isEdit = !!id;
   const r = isEdit ? (CMD_ROWS.find(row=>String(row.id)===String(id)) || {}) : {};
+  const label = type==='rule' ? 'Command' : type==='feature' ? 'Feature' : 'Suggestion';
+  const placeholder = type==='rule' ? 'e.g. Always flag entries with empty applies_to'
+    : type==='feature' ? 'e.g. Pace — Clar reads each turn whether the user follows its terminology and speeds up or slows down accordingly'
+    : '...';
   openSheet(
-    (isEdit?'Edit ':'Add ') + (type==='rule'?'Command':'Suggestion'),
-    fA(type==='rule'?'Command *':'Suggestion *','cmd-text',r.text,type==='rule'?'e.g. Always flag entries with empty applies_to':'...'),
+    (isEdit?'Edit ':'Add ') + label,
+    fA(label+' *','cmd-text',r.text,placeholder,type==='feature'?'Format: "Name — description" — the name (before the dash) gets bolded in the list.':''),
     async () => {
       const text = v('cmd-text');
       if (!text) { toast('Text is required','err'); return; }
