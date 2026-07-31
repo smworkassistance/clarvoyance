@@ -1342,10 +1342,21 @@ function renderDebugLog(rows) {
     /* v161.3: frameworks_used (what the model says it actually leaned on)
        shown separately from charts_live (what was merely available) — this
        is the whole point: seeing the gap between the two tells you which
-       tagged entries are being ignored, not just which ones are present. */
+       tagged entries are being ignored, not just which ones are present.
+       v164.1: found via real data that the model can fabricate a plausible-
+       sounding name here instead of leaving it empty (confirmed: it cited
+       "Infinite Identity Chart" and "Altitude chart", neither of which
+       exist — it had actually drawn on a Charger suggestion, not a listed
+       Personal Framework, and invented a name rather than reporting that).
+       Cross-check every cited name against charts_live and flag any that
+       don't match, instead of trusting the citation at face value. */
     const hasUsedField = Array.isArray(val.frameworks_used);
+    const liveSet = new Set((val.charts_live||[]).map(c=>String(c).toLowerCase()));
     const used = hasUsedField
-      ? ((val.frameworks_used.length ? val.frameworks_used.map(c=>`<span class="bdg bon">${x(c)}</span>`).join(' ') : '<span style="color:#D1D5DB;font-size:12px">none — general reply, no framework applied</span>'))
+      ? ((val.frameworks_used.length ? val.frameworks_used.map(c=>{
+          const real = liveSet.has(String(c).toLowerCase());
+          return real ? `<span class="bdg bon">${x(c)}</span>` : `<span class="bdg boff" title="Not found in charts_live for this turn — likely fabricated, not a real citation">⚠️ ${x(c)}</span>`;
+        }).join(' ') : '<span style="color:#D1D5DB;font-size:12px">none — general reply, no framework applied</span>'))
       : '<span style="color:#D1D5DB;font-size:12px">not tracked (older entry)</span>';
     const when = row.created_at ? new Date(row.created_at).toLocaleString() : '';
     return `
