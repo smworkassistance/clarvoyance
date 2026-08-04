@@ -426,20 +426,34 @@ function getSb(){ if(!_sb) _sb = window.supabase.createClient(SB_URL, SB_KEY); r
    tab (sessionStorage only — never written to this file or git, unlike
    SB_KEY above which is meant to be public). */
 const ADMIN_RELAY_URL = 'https://clarvoyance-admin-relay.smworkassistance.workers.dev/';
+/* v178-fix: page load fires loadAiContext/loadDebugLog/loadConsultantContext/
+   loadCommands back-to-back without waiting on each other — 3 of those call
+   adminApi() independently. _adminToken() used to re-check sessionStorage on
+   every call, so if the very first prompt() entry came out even slightly
+   wrong, that call's 401 handler cleared it again before the next of the
+   three calls ran, re-prompting — a race that could repeat 2-3 times before
+   one attempt lined up. Caching a single resolved token promise means only
+   the very first call ever actually prompts; every other call in the same
+   batch reuses that same result instead of independently re-checking. */
+let _adminTokenPromise = null;
 function _adminToken(){
-  var t = sessionStorage.getItem('clv_admin_token');
-  if(!t){ t = prompt('Admin token:') || ''; sessionStorage.setItem('clv_admin_token', t); }
-  return t;
+  if(!_adminTokenPromise){
+    var t = sessionStorage.getItem('clv_admin_token');
+    if(!t){ t = prompt('Admin token:') || ''; if(t) sessionStorage.setItem('clv_admin_token', t); }
+    _adminTokenPromise = Promise.resolve(t);
+  }
+  return _adminTokenPromise;
 }
 async function adminApi(action, payload){
+  const token = await _adminToken();
   const res = await fetch(ADMIN_RELAY_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _adminToken() },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
     body: JSON.stringify({ action, payload: payload || {} })
   });
   const body = await res.json();
   if(!res.ok){
-    if(res.status === 401) sessionStorage.removeItem('clv_admin_token'); // bad/stale token — re-prompt next call
+    if(res.status === 401){ sessionStorage.removeItem('clv_admin_token'); _adminTokenPromise = null; } // bad/stale token — re-prompt next call
     throw new Error(body.error || ('Worker error ' + res.status));
   }
   return body.data;
