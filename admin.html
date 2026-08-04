@@ -414,6 +414,36 @@ const SB_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk';
 let _sb = null;
 function getSb(){ if(!_sb) _sb = window.supabase.createClient(SB_URL, SB_KEY); return _sb; }
+
+/* v178: writes to ai_context/admin_commands/tools/chargers, and reads of
+   admin_commands/admin_insights, now go through admin-relay-worker.js
+   instead of straight to Supabase with the (public, extractable) anon
+   key above — see db/schema_v178_lockdown_admin_write.sql for the
+   matching grant revocation. Fill in ADMIN_RELAY_URL after deploying
+   workers/admin-relay-worker.js (kept distinct from the existing
+   WORKER_URL below, which is the unrelated Gemini worker used by
+   Sandbox/Consultant). The admin token is asked for once per browser
+   tab (sessionStorage only — never written to this file or git, unlike
+   SB_KEY above which is meant to be public). */
+const ADMIN_RELAY_URL = 'https://clarvoyance-admin-relay.smworkassistance.workers.dev/';
+function _adminToken(){
+  var t = sessionStorage.getItem('clv_admin_token');
+  if(!t){ t = prompt('Admin token:') || ''; sessionStorage.setItem('clv_admin_token', t); }
+  return t;
+}
+async function adminApi(action, payload){
+  const res = await fetch(ADMIN_RELAY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _adminToken() },
+    body: JSON.stringify({ action, payload: payload || {} })
+  });
+  const body = await res.json();
+  if(!res.ok){
+    if(res.status === 401) sessionStorage.removeItem('clv_admin_token'); // bad/stale token — re-prompt next call
+    throw new Error(body.error || ('Worker error ' + res.status));
+  }
+  return body.data;
+}
 const AI_TAGS = [{v:'chat',l:'💬 Chat'},{v:'fortuneteller',l:'🔮 Fortuneteller'}];
 /* These 8 keys are pulled by exact name in index.html's _buildSystemPrompt() /
    Fortuneteller prompt builder — always on regardless of applies_to. The
@@ -1205,8 +1235,7 @@ async function saveContentAiBestFor(table, id, fieldId) {
   if (!id) { toast('Save this item first (button below), then reopen it to add AI guidance','err'); return; }
   const text = v(fieldId);
   try {
-    const { data, error } = await getSb().from(table).update({ai_best_for:text}).eq('id', id).select();
-    if (error) throw error;
+    const data = await adminApi('content.updateAiBestFor', { table, id, text });
     if (!data || !data.length) { toast('No matching row in the live database yet for this id — it may only exist in the Sheet still','err'); return; }
     toast('AI guidance saved ✓','ok');
   } catch(e) { toast('Error: '+e.message,'err'); }
@@ -1306,8 +1335,7 @@ function openAiForm(kind, key) {
       const key = isEdit ? r.key : (v('ai-key') || slug(display_name));
       const applies_to = hardTag ? [hardTag] : Array.from(document.querySelectorAll('.ai-tag-cb:checked')).map(c=>c.value);
       const payload = { key, display_name, content, category: kind, applies_to, image_urls: _aiImages };
-      const { error } = await getSb().from('ai_context').upsert(payload, {onConflict:'key'});
-      if (error) throw new Error(error.message);
+      await adminApi('ai_context.upsert', payload);
       toast(isEdit?'Updated ✓':'Added ✓','ok'); closeSheet(); await loadAiContext();
     }
   );
@@ -1338,8 +1366,8 @@ function aiRemoveImg(i) { _aiImages.splice(i,1); refreshAiImgRow(); }
 
 async function delAi(key) {
   showConfirm('Delete this entry? This cannot be undone.', async () => {
-    const { error } = await getSb().from('ai_context').delete().eq('key', key);
-    if (error) { toast('Error: ' + error.message, 'err'); return; }
+    try { await adminApi('ai_context.delete', { key }); }
+    catch(e) { toast('Error: ' + e.message, 'err'); return; }
     toast('Deleted ✓', 'ok'); loadAiContext();
   });
 }
@@ -1352,10 +1380,7 @@ async function loadDebugLog() {
   if (!el) return; // pane not in DOM yet on first call, fine
   try {
     const feat = document.getElementById('dbg-filter') ? document.getElementById('dbg-filter').value : '';
-    let q = getSb().from('admin_insights').select('*').order('id',{ascending:false}).limit(50);
-    if (feat) q = q.eq('insight_key', feat);
-    const { data, error } = await q;
-    if (error) throw error;
+    const data = await adminApi('admin_insights.select', feat ? { limit: 50, insight_key: feat } : { limit: 50 });
     renderDebugLog(data || []);
   } catch(e) {
     el.innerHTML = empty('⚠️', 'Could not load — run db/schema_v160.sql in Supabase first');
@@ -1503,8 +1528,7 @@ let CMD_ROWS = [];
 
 async function loadCommands() {
   try {
-    const { data, error } = await getSb().from('admin_commands').select('*').order('id',{ascending:false});
-    if (error) throw error;
+    const data = await adminApi('admin_commands.select');
     CMD_ROWS = data || [];
     renderCmdRules(CMD_ROWS.filter(r=>r.type==='rule'));
     renderCmdSuggestions(CMD_ROWS.filter(r=>r.type==='suggestion'));
@@ -1594,32 +1618,30 @@ function openCmdForm(type, id) {
     async () => {
       const text = v('cmd-text');
       if (!text) { toast('Text is required','err'); return; }
-      let error;
-      if (isEdit) ({ error } = await getSb().from('admin_commands').update({text}).eq('id', r.id));
-      else ({ error } = await getSb().from('admin_commands').insert({type, text}));
-      if (error) throw new Error(error.message);
+      if (isEdit) await adminApi('admin_commands.update', { id: r.id, fields: { text } });
+      else await adminApi('admin_commands.insert', { type, text });
       toast(isEdit?'Updated ✓':'Added ✓','ok'); closeSheet(); await loadCommands();
     }
   );
 }
 
 async function toggleCmdDone(id, done) {
-  const { error } = await getSb().from('admin_commands').update({done}).eq('id', id);
-  if (error) { toast('Error: '+error.message,'err'); return; }
+  try { await adminApi('admin_commands.update', { id, fields: { done } }); }
+  catch(e) { toast('Error: '+e.message,'err'); return; }
   loadCommands();
 }
 
 async function delCmd(id) {
   showConfirm('Delete this?', async () => {
-    const { error } = await getSb().from('admin_commands').delete().eq('id', id);
-    if (error) { toast('Error: '+error.message,'err'); return; }
+    try { await adminApi('admin_commands.delete', { id }); }
+    catch(e) { toast('Error: '+e.message,'err'); return; }
     toast('Deleted ✓','ok'); loadCommands();
   });
 }
 
 async function saveSuggestion(text) {
-  const { error } = await getSb().from('admin_commands').insert({type:'suggestion', text});
-  if (error) { toast('Error: '+error.message,'err'); return; }
+  try { await adminApi('admin_commands.insert', { type:'suggestion', text }); }
+  catch(e) { toast('Error: '+e.message,'err'); return; }
   toast('Suggestion saved ✓','ok');
   loadCommands();
 }
@@ -1783,7 +1805,7 @@ let _conHistory   = [];
 
 async function loadConsultantContext() {
   try {
-    const { data } = await getSb().from('admin_insights').select('*').order('id',{ascending:false}).limit(30);
+    const data = await adminApi('admin_insights.select', { limit: 30 });
     _conDebugRows = data || [];
   } catch(e) { _conDebugRows = []; }
 }
