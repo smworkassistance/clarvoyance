@@ -1397,7 +1397,9 @@ async function loadDebugLog() {
     const data = await adminApi('admin_insights.select', feat ? { limit: 50, insight_key: feat } : { limit: 50 });
     renderDebugLog(data || []);
   } catch(e) {
-    el.innerHTML = empty('⚠️', 'Could not load — run db/schema_v160.sql in Supabase first');
+    el.innerHTML = /unauthorized/i.test(e.message)
+      ? empty('🔒', 'Invalid admin token — reload the page and re-enter it')
+      : empty('⚠️', 'Could not load: ' + e.message);
   }
 }
 function renderDebugLog(rows) {
@@ -1548,7 +1550,9 @@ async function loadCommands() {
     renderCmdSuggestions(CMD_ROWS.filter(r=>r.type==='suggestion'));
     renderFeatures(CMD_ROWS.filter(r=>r.type==='feature'));
   } catch(e) {
-    const msg = empty('⚠️','Could not load — run db/schema_v161.sql in Supabase first');
+    const msg = /unauthorized/i.test(e.message)
+      ? empty('🔒', 'Invalid admin token — reload the page and re-enter it')
+      : empty('⚠️', 'Could not load: ' + e.message);
     const a = document.getElementById('cmd-rules-list'), b = document.getElementById('cmd-sugg-list'), c = document.getElementById('feat-list');
     if (a) a.innerHTML = msg;
     if (b) b.innerHTML = msg;
