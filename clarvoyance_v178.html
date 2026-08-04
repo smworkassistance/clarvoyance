@@ -2069,7 +2069,7 @@ html[data-theme="dark"] .chat-msgs{
         </div>
         <span style="font-size:1.2rem;color:var(--bo);margin-right:2px">›</span>
       </div>
-      <div id="clar-time-lbl" style="display:none;font-size:.78rem;font-weight:600;color:var(--lt);letter-spacing:.04em;padding-left:8px;flex-shrink:0;text-align:right;white-space:nowrap"></div>
+      <div id="clar-time-lbl" style="display:none;font-size:.78rem;font-weight:600;color:var(--lt);letter-spacing:.04em;padding-left:8px;flex-shrink:0;white-space:nowrap"></div>
     </div>
     <div id="chat-messages" class="chat-msgs"></div>
     <div class="chat-input-wrap">
@@ -2217,7 +2217,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v179</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v178</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -5651,7 +5651,7 @@ function renderNoOverindulgence(){
       <!-- 3-column metric cards with sparklines -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
         <div style="background:rgba(255,255,255,.03);border:1px solid rgba(180,130,255,.15);border-radius:10px;padding:9px 10px 7px;overflow:hidden">
-          <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(180,130,255,.6);margin-bottom:3px">App Time</div>
+          <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(180,130,255,.6);margin-bottom:3px">Clar</div>
           <div style="font-size:1.3rem;font-weight:700;color:#f0c987;line-height:1;margin-bottom:5px"><span id="pm-clar-val">0</span><span style="font-size:.65rem;color:rgba(255,255,255,.45);margin-left:2px">min</span></div>
           <canvas id="pg-clar" style="display:block;width:100%;height:26px" height="52"></canvas>
         </div>
@@ -5664,6 +5664,14 @@ function renderNoOverindulgence(){
           <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(180,130,255,.6);margin-bottom:3px">NN Done</div>
           <div style="font-size:1.3rem;font-weight:700;color:#f0c987;line-height:1;margin-bottom:5px"><span id="pm-quest-val">0</span><span id="pm-quest-denom" style="font-size:.65rem;color:rgba(255,255,255,.45);margin-left:2px">/3</span></div>
           <canvas id="pg-nn" style="display:block;width:100%;height:26px" height="52"></canvas>
+        </div>
+      </div>
+      <!-- App Time — total time spent in the whole app (not just Clar chat), own row -->
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px">
+        <div style="background:rgba(255,255,255,.03);border:1px solid rgba(180,130,255,.15);border-radius:10px;padding:9px 10px 7px;overflow:hidden">
+          <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(180,130,255,.6);margin-bottom:3px">App Time Today</div>
+          <div style="font-size:1.3rem;font-weight:700;color:#f0c987;line-height:1;margin-bottom:5px"><span id="pm-app-val">0</span><span style="font-size:.65rem;color:rgba(255,255,255,.45);margin-left:2px">min in app</span></div>
+          <canvas id="pg-app" style="display:block;width:100%;height:26px" height="52"></canvas>
         </div>
       </div>
       <!-- AI loading -->
@@ -6350,13 +6358,10 @@ function renderNoOverindulgence(){
   /* ISO week string e.g. "2026-W26" — used to reset freeze each week */
   function _isoWeek(d){var u=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));u.setUTCDate(u.getUTCDate()+4-(u.getUTCDay()||7));var ys=new Date(Date.UTC(u.getUTCFullYear(),0,1));return u.getUTCFullYear()+'-W'+Math.ceil((((u-ys)/86400000)+1)/7);}
   function _freezeAvailable(){var wk=_isoWeek(new Date());return localStorage.getItem(FRZ_WK_KEY)!==wk||localStorage.getItem(FRZ_USED_KEY)!=='1';}
-  /* Minutes spent in the app today (any tab) — used to reduce decay rate.
-     v179: switched from clv_clar_times (Clar-chat-only) to clv_app_times
-     (whole app) — owner felt chat-only unfairly decayed streaks for users
-     doing real work in Goal/Chargers/Self tabs without opening Clar chat. */
-  function _appMinToday(){try{var t=JSON.parse(localStorage.getItem('clv_app_times')||'[]');var e=t.find(function(x){return x.date===new Date().toDateString();});return e?(e.minutes||0):0;}catch(e2){return 0;}}
-  /* Decay rate based on app usage: 20+ min = no decay, 10+ min = half decay, else full 5% */
-  function _decayRate(){var m=_appMinToday();return m>=20?0:m>=10?0.025:0.05;}
+  /* Minutes user spent in Clar today — used to reduce decay rate */
+  function _clarMinToday(){try{var t=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');var e=t.find(function(x){return x.date===new Date().toDateString();});return e?(e.minutes||0):0;}catch(e2){return 0;}}
+  /* Decay rate based on Clar usage: 20+ min = no decay, 10+ min = half decay, else full 5% */
+  function _decayRate(){var m=_clarMinToday();return m>=20?0:m>=10?0.025:0.05;}
   /* Main bump — accepts optional callback for async freeze prompt */
   function _bumpStreak(cb){
     var today=new Date().toDateString();
@@ -8766,10 +8771,9 @@ function renderNoOverindulgence(){
 
   /* ── Mood assessment (client-side, instant) ── */
   function _computeMood(){
-    /* v179: switched from clv_clar_times to clv_app_times — same signal now driving decay */
-    var appTimes=[];try{appTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(e){}
+    var clarTimes=[];try{clarTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(e){}
     var today=new Date().toDateString();
-    var clarMin=0;appTimes.forEach(function(t){if(t.date===today)clarMin+=(t.minutes||0);});
+    var clarMin=0;clarTimes.forEach(function(t){if(t.date===today)clarMin+=(t.minutes||0);});
     var mom=parseFloat(localStorage.getItem('clv_momentum')||'0');
     var hist=[];try{hist=JSON.parse(localStorage.getItem('clv_momentum_history')||'[]');}catch(e){}
     var prevMom=hist.length>=2?hist[hist.length-2].value:mom;
@@ -8844,8 +8848,7 @@ function renderNoOverindulgence(){
   }
 
   function _renderMetrics(){
-    /* v179: single app-wide time metric (clv_app_times) replaces the old
-       Clar-chat-only card — consolidated back to 3 cards */
+    var clarTimes=[];try{clarTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(e){}
     var appTimes=[];try{appTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(e){}
     var momHist=[];try{momHist=JSON.parse(localStorage.getItem('clv_momentum_history')||'[]');}catch(e){}
     var nnHist={};try{nnHist=JSON.parse(localStorage.getItem('c9_nnhist')||'{}');}catch(e){}
@@ -8855,18 +8858,21 @@ function renderNoOverindulgence(){
     /* Today values */
     var today=new Date().toDateString();
     var todayISO=new Date().toISOString().slice(0,10);
+    var clarMin=0;clarTimes.forEach(function(t){if(t.date===today)clarMin+=(t.minutes||0);});
     var appMin=0;appTimes.forEach(function(t){if(t.date===today)appMin+=(t.minutes||0);});
     var mom=Math.round(parseFloat(localStorage.getItem('clv_momentum')||'0'));
     var nnToday=nnHist[todayISO]||{};
     var nnDone=Object.keys(nnToday).filter(function(k){return /^\d+$/.test(k)&&nnToday[k]===true;}).length;
 
     /* Update number displays */
-    var cv=document.getElementById('pm-clar-val');if(cv)cv.textContent=appMin;
+    var cv=document.getElementById('pm-clar-val');if(cv)cv.textContent=clarMin;
+    var av=document.getElementById('pm-app-val');if(av)av.textContent=appMin;
     var mv=document.getElementById('pm-mom-val');if(mv)mv.textContent=mom;
     var qv=document.getElementById('pm-quest-val');if(qv)qv.textContent=nnDone;
     var qd=document.getElementById('pm-quest-denom');if(qd)qd.textContent='/'+nnTotal;
 
     /* 7-day data */
+    var clarData=_last7(clarTimes,'date','minutes',0);
     var appData=_last7(appTimes,'date','minutes',0);
     var momData=_last7(momHist,'date','value',0);
     /* NN: compute for each of last 7 days */
@@ -8879,7 +8885,8 @@ function renderNoOverindulgence(){
 
     /* Draw after transition completes so canvas width is resolved */
     setTimeout(function(){
-      _drawBar('pg-clar',appData);
+      _drawBar('pg-clar',clarData);
+      _drawBar('pg-app',appData);
       _drawLine('pg-mom',momData);
       _drawBar('pg-nn',nnData);
     },150);
@@ -8894,11 +8901,11 @@ function renderNoOverindulgence(){
     var nick=(localStorage.getItem('clv_nick')||'').trim()||'you';
     var mom=Math.round(parseFloat(localStorage.getItem('clv_momentum')||'0'));
     var xp=parseInt(localStorage.getItem('clar_xp')||'0',10);
-    var appTimes=[];try{appTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(e){}
-    var totalMin=appTimes.reduce(function(acc,t){return acc+(t.minutes||0);},0);
+    var clarTimes=[];try{clarTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(e){}
+    var totalMin=clarTimes.reduce(function(acc,t){return acc+(t.minutes||0);},0);
     var recentSummaries=summaries.slice(-30).map(function(s){return s.summary||s;}).join(' | ');
     var sysPrompt='You are Pulse — an AI progress tracker inside Clarvoyance, a self-development app.'
-      +' '+nick+' has a '+mom+'-day streak, '+xp+' XP, and spent '+totalMin+' min in the app this week.'
+      +' '+nick+' has a '+mom+'-day streak, '+xp+' XP, and spent '+totalMin+' min with Clar AI this week.'
       +' Write a personal weekly reflection based on their Clar conversation summaries.'
       +' Return ONLY a raw JSON object — no markdown, no code blocks, no extra text.'
       +' Shape: {"reflection":"...","if_continue":"...","if_stop":"...","achievement":"...","recommendation":"..."}'
@@ -9256,9 +9263,9 @@ function renderNoOverindulgence(){
 
   /* ── Behavioural energy reading (instant, no AI) ── */
   function _energySignal(){
-    var appTimes=[];try{appTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(e){}
+    var clarTimes=[];try{clarTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(e){}
     var today=new Date().toDateString();
-    var clarMin=0;appTimes.forEach(function(t){if(t.date===today)clarMin+=(t.minutes||0);});
+    var clarMin=0;clarTimes.forEach(function(t){if(t.date===today)clarMin+=(t.minutes||0);});
     var mom=parseFloat(localStorage.getItem('clv_momentum')||'0');
     var hist=[];try{hist=JSON.parse(localStorage.getItem('clv_momentum_history')||'[]');}catch(e){}
     var prev=hist.length>=2?hist[hist.length-2].value:mom;
@@ -9332,8 +9339,8 @@ function renderNoOverindulgence(){
     var nick=(localStorage.getItem('clv_nick')||'').trim()||'this person';
     var mom=Math.round(parseFloat(localStorage.getItem('clv_momentum')||'0'));
     var xp=parseInt(localStorage.getItem('clar_xp')||'0',10);
-    var appTimes=[];try{appTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(e){}
-    var totalMin=appTimes.reduce(function(acc,t){return acc+(t.minutes||0);},0);
+    var clarTimes=[];try{clarTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(e){}
+    var totalMin=clarTimes.reduce(function(acc,t){return acc+(t.minutes||0);},0);
     var energy=_energySignal();
 
     /* Goal staleness */
@@ -9357,7 +9364,7 @@ function renderNoOverindulgence(){
     (((window.SHEETS_DATA||{}).ai_context)||[]).forEach(function(row){if(row.key)ctx[row.key]=row.content||row.value||'';});
     var phil=(ctx['fortuneteller_philosophy']||'Feelings — not thoughts — are the creative signal. Present emotional trajectory = near future reality.').slice(0,800);
     var scale=(ctx['emotional_guidance_system']||'Emotional states from powerlessness to joy. Guide one step upward at a time.').slice(0,800);
-    var sigs=(ctx['manifestation_signals']||'App time, NN %, momentum, and goal engagement are feeling proxies.').slice(0,600);
+    var sigs=(ctx['manifestation_signals']||'Clar time, NN %, momentum, and goal engagement are feeling proxies.').slice(0,600);
     var lang=(ctx['prediction_language']||'Warm, specific, direct. No external philosophy names. No medical or life decisions.').slice(0,600);
     /* v160: admin's Charts/extra AI Context rows tagged applies_to=['fortuneteller'] */
     var _ftSpecialKeys=['fortuneteller_philosophy','emotional_guidance_system','manifestation_signals','prediction_language'];
@@ -9376,7 +9383,7 @@ function renderNoOverindulgence(){
       +'SIGNALS: '+sigs+'\n\n'
       +'VOICE: '+lang+'\n\n'
       +(chartsBlockFT?'PERSONAL FRAMEWORKS — use these to decide how to read the person, use whichever part fits:\n'+chartsBlockFT+'\n\n':'')
-      +'PERSON: '+nick+', '+mom+'-day streak, '+xp+' XP, '+totalMin+' min in the app this week. Energy: '+energy.label+'.\n'
+      +'PERSON: '+nick+', '+mom+'-day streak, '+xp+' XP, '+totalMin+' Clar min this week. Energy: '+energy.label+'.\n'
       +goalContext+'\n'+nnContext+'\n\n'
       +'Return ONLY raw JSON — no markdown, no fences:\n'
       +'{"energy_reading":"2-3 warm sentences about their current feeling state","near_prediction":"2-3 sentences, 7-14 days","far_prediction":"2-3 sentences, 30-90 days","watch_for":"1 sentence — specific outer-world sign","concern":"1-2 sentences if genuine concern, else empty string","state_read":"low|neutral|high — your honest internal read of their current state, never shown to the user","frameworks_used":["array, empty [] is fine — exact name(s) of any PERSONAL FRAMEWORKS entry above that genuinely shaped this reading, not just topically related ones. Copy the name character-for-character, never guess or invent one — if you cannot recall the exact name, leave this empty"]}';
@@ -9471,8 +9478,8 @@ function renderNoOverindulgence(){
     rDates.forEach(function(dk){var dy=nnH[dk]||{};tD+=Object.keys(dy).filter(function(k){return dy[k];}).length;});
     var dailyAction=tP>0?Math.min(1,tD/tP):0.08;
 
-    var aTimes=[];try{aTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(e){}
-    var wMin=aTimes.slice(-7).reduce(function(a,t){return a+(t.minutes||0);},0);
+    var cTimes=[];try{cTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(e){}
+    var wMin=cTimes.slice(-7).reduce(function(a,t){return a+(t.minutes||0);},0);
     var clarInvestment=Math.min(1,wMin/70);
 
     var mom=parseFloat(localStorage.getItem('clv_momentum')||'0');
@@ -9484,7 +9491,7 @@ function renderNoOverindulgence(){
     var resistance=Math.min(0.92,Math.max(0.08,1-avgA+0.12));
 
     var scores=[goalClarity,beliefAlign,dailyAction,clarInvestment,resistance];
-    var labels=['Goal\nClarity','Belief\nAlign','Daily\nAction','App\nTime','Resistance'];
+    var labels=['Goal\nClarity','Belief\nAlign','Daily\nAction','Clar\nTime','Resistance'];
     var dotColors=['#a0ffc0','#c8a0ff','#80c0ff','#d4a060','#ff8080'];
     var N=5,cx=sz/2*dpr,cy=sz/2*dpr,R=sz*0.34*dpr;
     var aOff=-Math.PI/2;
@@ -9623,15 +9630,15 @@ function renderNoOverindulgence(){
     if(tip.style.display==='block'){tip.style.display='none';if(hint)hint.style.display='';return;}
     var e=_energySignal();
     var isHigh=e.label.includes('High'),isMid=e.label.includes('Active'),isSteady=e.label.includes('Steady');
-    var appTimes=[];try{appTimes=JSON.parse(localStorage.getItem('clv_app_times')||'[]');}catch(ex){}
+    var clarTimes=[];try{clarTimes=JSON.parse(localStorage.getItem('clv_clar_times')||'[]');}catch(ex){}
     var today=new Date().toDateString();
-    var todayMin=0;appTimes.forEach(function(t){if(t.date===today)todayMin+=(t.minutes||0);});
+    var todayMin=0;clarTimes.forEach(function(t){if(t.date===today)todayMin+=(t.minutes||0);});
     var mom=Math.round(parseFloat(localStorage.getItem('clv_momentum')||'0'));
     var density=isHigh?'dense and bright — high vibrational field':isMid?'active and connected — building momentum':isSteady?'steady and grounded — a stable base':' sparse and seeking — the beginning of something';
-    var why=isHigh?'Your app time and daily practice are strong. The field reflects that.':isMid?'You are building. A few more consistent days and the field shifts significantly.':isSteady?'Your foundation is solid. The field holds its shape.':'You have just begun — or there has been a gap. The field is waiting for you.';
+    var why=isHigh?'Your Clar time and daily practice are strong. The field reflects that.':isMid?'You are building. A few more consistent days and the field shifts significantly.':isSteady?'Your foundation is solid. The field holds its shape.':'You have just begun — or there has been a gap. The field is waiting for you.';
     tip.innerHTML='<b>Why your field looks like this</b><br><br>'
       +'The constellation around you is <b>'+density+'</b>.<br><br>'
-      +'Today\'s app time: <b>'+(todayMin||0)+' min</b> · Momentum streak: <b>'+mom+' days</b><br><br>'
+      +'Today\'s Clar time: <b>'+(todayMin||0)+' min</b> · Momentum streak: <b>'+mom+' days</b><br><br>'
       +why+'<br><br>'
       +'<span style="color:rgba(180,130,255,.5);font-size:.75rem">The brighter and denser the field, the more aligned your inner state is with what you want to create.</span>';
     tip.style.display='block';
@@ -9675,11 +9682,7 @@ function renderNoOverindulgence(){
     var mins=(entry&&entry.minutes)||0;
     /* Add live in-session time */
     if(_startedAt)mins+=Math.floor((Date.now()-_startedAt)/60000);
-    /* v179: small recommendation nudge under the minute count while today's
-       chat time is still below the 10-min tier that halves streak decay */
-    var hint=mins<10?'<div style="font-size:.63rem;font-weight:500;color:var(--sub);letter-spacing:.02em;margin-top:1px">10 min recommended today</div>':'';
-    if(mins>=1){el.innerHTML=mins+' min today'+hint;el.style.display='';}
-    else if(hint){el.innerHTML=hint;el.style.display='';}
+    if(mins>=1){el.textContent=mins+' min today';el.style.display='';}
     else{el.style.display='none';}
   }
 
@@ -9722,9 +9725,8 @@ function renderNoOverindulgence(){
 <!-- ═══ APP TIME TRACKING v178 — total time app is open, any tab ═══ -->
 <script>
 (function(){
-  /* Separate from clv_clar_times (Clar-chat-tab-only — still shown in the chat
-     header timer). This one drives momentum decay + Fortuneteller + Pulse as of
-     v179, and tracks the whole app session regardless of which tab is active. */
+  /* Separate from clv_clar_times (Clar-chat-tab-only, drives momentum decay + Fortuneteller).
+     This tracks the whole app session regardless of which tab is active. */
   var _appStartedAt=0;
 
   function _appStop(){
