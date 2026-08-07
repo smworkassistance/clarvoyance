@@ -535,20 +535,52 @@ function switchTab(btn) {
    DATA & API
    ══════════════════════════════════════════════════════ */
 async function loadData() {
+  /* v181: tools/chargers/charger_categories/charger_rules now read straight
+     from Supabase (what the live app actually uses) instead of the Sheets
+     copy — the two used to silently diverge with nothing warning about it.
+     vibe_cards/quotes/revise_repeat/learning_channels/modules still come
+     from the Sheets endpoint. Kept as two independent try/catch blocks
+     (not one Promise.all) deliberately — the Sheets endpoint has a known
+     CORS/reliability issue on some origins, and a failure there must not
+     also take down Tools/Chargers, which no longer depend on it at all. */
+  SD = SD || {};
+  let sheetsOk = true;
   try {
     const res = await fetch(API + '?admin=1&token=' + TOKEN + '&t=' + Date.now());
     SD = await res.json();
-    renderTools    (SD.tools              || []);
-    renderCats     (SD.charger_categories || []);
-    renderChargers (SD.chargers           || []);
-    renderRules    (SD.charger_rules      || []);
-    renderVibeCards(SD.vibe_cards         || []);
-    renderQuotes   (SD.quotes             || []);
-    renderRevise   (SD.revise_repeat      || []);
-    renderChannels (SD.learning_channels  || []);
-    renderModules  (SD.modules            || []);
-    toast('Data refreshed ✓', 'ok');
-  } catch(e) { toast('Load failed — check connection', 'err'); }
+  } catch(e) { sheetsOk = false; console.warn('[Admin] Sheets fetch failed:', e.message); }
+
+  let contentOk = true;
+  try {
+    const [sbTools, sbCats, sbChargers, sbRules] = await Promise.all([
+      getSb().from('tools').select('*'),
+      getSb().from('charger_categories').select('*'),
+      getSb().from('chargers').select('*'),
+      getSb().from('charger_rules').select('*'),
+    ]);
+    if (sbTools.error) throw new Error('tools: ' + sbTools.error.message);
+    if (sbCats.error) throw new Error('charger_categories: ' + sbCats.error.message);
+    if (sbChargers.error) throw new Error('chargers: ' + sbChargers.error.message);
+    if (sbRules.error) throw new Error('charger_rules: ' + sbRules.error.message);
+    SD.tools              = sbTools.data || [];
+    SD.charger_categories = sbCats.data || [];
+    SD.chargers            = sbChargers.data || [];
+    SD.charger_rules       = sbRules.data || [];
+  } catch(e) { contentOk = false; console.warn('[Admin] Supabase content fetch failed:', e.message); }
+
+  renderTools    (SD.tools              || []);
+  renderCats     (SD.charger_categories || []);
+  renderChargers (SD.chargers           || []);
+  renderRules    (SD.charger_rules      || []);
+  renderVibeCards(SD.vibe_cards         || []);
+  renderQuotes   (SD.quotes             || []);
+  renderRevise   (SD.revise_repeat      || []);
+  renderChannels (SD.learning_channels  || []);
+  renderModules  (SD.modules            || []);
+
+  if (sheetsOk && contentOk) toast('Data refreshed ✓', 'ok');
+  else toast((!contentOk ? 'Tools/Chargers failed to load' : 'Sheets content (Vibe Cards/Quotes/etc) failed to load'), 'err');
+
   loadAiContext();
   loadDebugLog();
   loadConsultantContext();
@@ -778,24 +810,22 @@ function openToolForm(idx) {
     `<button type="button" class="add-btn" style="margin-top:-6px" onclick="saveContentAiBestFor('tools','${isEdit?x(t.id):''}','tf-aibest')">💾 Save AI Guidance</button>` +
     `<div class="fld-hint">Saved separately, straight to the live database — independent of the Save button below. ${isEdit?'':'Save the tool first with the button below, then reopen it to add AI guidance.'}</div>`,
     async () => {
-      const d = { action:isEdit?'editTool':'addTool',
+      const payload = {
         id:v('tf-id'), code:v('tf-code'), name:v('tf-name'), description:v('tf-desc'),
         icon:v('tf-ico-val'), type:v('tf-type')||'textarea', mood:v('tf-mood'),
         persist:yn('tf-persist'), placeholder:v('tf-ph'), fullscreen:yn('tf-full'),
-        xp:v('tf-xp'), quest_low:v('tf-qlo'), quest_mid:v('tf-qmi'), quest_high:v('tf-qhi'),
-        order:v('tf-order'), active:chk('tf-act') };
-      if (!d.name) { toast('Name is required','err'); return; }
-      if (isEdit) d.findId = t.id;
-      const r = await api(d);
-      if (r.success) { toast(isEdit?'Tool updated ✓':'Tool added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(r.error);
+        xp:parseInt(v('tf-xp'),10)||null, quest_low:v('tf-qlo'), quest_mid:v('tf-qmi'), quest_high:v('tf-qhi'),
+        order:parseInt(v('tf-order'),10)||null, active:chk('tf-act')==='TRUE' };
+      if (!payload.name) { toast('Name is required','err'); return; }
+      await adminApi('tools.upsert', payload);
+      toast(isEdit?'Tool updated ✓':'Tool added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delTool(i) {
   const t = (SD.tools||[])[i];
   showConfirm(`Delete tool "${t.name}"?`, async () => {
-    const r = await api({action:'deleteTool', findId:t.id});
-    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
+    try { await adminApi('tools.delete', {id:t.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -838,20 +868,18 @@ function openCatForm(idx) {
     async () => {
       const name = v('cc-name');
       if (!name) { toast('Name is required','err'); return; }
-      const d = { action:isEdit?'editChargerCategory':'addChargerCategory',
+      const payload = {
         id: v('cc-id')||slug(name), name, tagline:v('cc-tag'),
-        icon:v('cc-ico-val'), order:v('cc-order'), active:chk('cc-act') };
-      if (isEdit) d.findId = c.id;
-      const r = await api(d);
-      if (r.success) { toast(isEdit?'Category updated ✓':'Category added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(r.error);
+        icon:v('cc-ico-val'), order:parseInt(v('cc-order'),10)||null, active:chk('cc-act')==='TRUE' };
+      await adminApi('charger_categories.upsert', payload);
+      toast(isEdit?'Category updated ✓':'Category added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delCat(i) {
   const c = (SD.charger_categories||[])[i];
   showConfirm(`Delete category "${c.name}"? Chargers in this category may break.`, async () => {
-    const r = await api({action:'deleteChargerCategory', findId:c.id});
-    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
+    try { await adminApi('charger_categories.delete', {id:c.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -914,24 +942,22 @@ function openChargerForm(idx) {
     `<button type="button" class="add-btn" style="margin-top:-6px" onclick="saveContentAiBestFor('chargers','${isEdit?x(c.id):''}','ch-aibest')">💾 Save AI Guidance</button>` +
     `<div class="fld-hint">Saved separately, straight to the live database — independent of the Save button below. ${isEdit?'':'Save the charger first with the button below, then reopen it to add AI guidance.'}</div>`,
     async () => {
-      const d = { action:isEdit?'editCharger':'addCharger',
+      const payload = {
         id:v('ch-id'), category_id:v('ch-cat'), name:v('ch-name'), description:v('ch-desc'),
         icon:v('ch-ico-val'), type:v('ch-type')||'textarea', mood:v('ch-mood'),
         persist:yn('ch-persist'), placeholder:v('ch-ph'), fullscreen:yn('ch-full'),
-        xp:v('ch-xp'), quest_low:v('ch-qlo'), quest_mid:v('ch-qmi'), quest_high:v('ch-qhi'),
-        order:v('ch-order'), active:chk('ch-act') };
-      if (!d.name) { toast('Name is required','err'); return; }
-      if (isEdit) d.findId = c.id;
-      const r = await api(d);
-      if (r.success) { toast(isEdit?'Charger updated ✓':'Charger added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(r.error);
+        xp:parseInt(v('ch-xp'),10)||null, quest_low:v('ch-qlo'), quest_mid:v('ch-qmi'), quest_high:v('ch-qhi'),
+        order:v('ch-order'), active:chk('ch-act')==='TRUE' };
+      if (!payload.name) { toast('Name is required','err'); return; }
+      await adminApi('chargers.upsert', payload);
+      toast(isEdit?'Charger updated ✓':'Charger added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delCharger(i) {
   const c = (SD.chargers||[])[i];
   showConfirm(`Delete charger "${c.name}"?`, async () => {
-    const r = await api({action:'deleteCharger', findId:c.id});
-    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
+    try { await adminApi('chargers.delete', {id:c.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -966,21 +992,19 @@ function openRuleForm(idx) {
     fT('Order','rl-order',isEdit?r.order:nextOrder(SD.charger_rules),'1') +
     fActive('rl-act',isEdit?act(r):true),
     async () => {
-      const d = { action:isEdit?'editRule':'addRule',
+      const payload = {
         id:isEdit?r.id:nextNumId(SD.charger_rules),
-        rule:v('rl-rule'), order:v('rl-order'), active:chk('rl-act') };
-      if (!d.rule) { toast('Rule text is required','err'); return; }
-      if (isEdit) d.findRule = r.rule;
-      const res = await api(d);
-      if (res.success) { toast(isEdit?'Rule updated ✓':'Rule added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(res.error);
+        rule:v('rl-rule'), order:parseInt(v('rl-order'),10)||null, active:chk('rl-act')==='TRUE' };
+      if (!payload.rule) { toast('Rule text is required','err'); return; }
+      await adminApi('charger_rules.upsert', payload);
+      toast(isEdit?'Rule updated ✓':'Rule added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delRule(i) {
   const r = (SD.charger_rules||[])[i];
   showConfirm(`Delete rule "${(r.rule||'').slice(0,60)}..."?`, async () => {
-    const res = await api({action:'deleteRule', findRule:r.rule});
-    res.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+res.error,'err');
+    try { await adminApi('charger_rules.delete', {id:r.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 

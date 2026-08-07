@@ -111,6 +111,57 @@ const ACTIONS = {
     if (p && p.insight_key) q += '&insight_key=eq.' + encodeURIComponent(p.insight_key);
     return sbFetch(env, q);
   },
+
+  /* v181: chargers/charger_categories/charger_rules/tools CRUD from
+     admin.html — previously went to Google Sheets, which the live app
+     (index.html) no longer reads unless Supabase itself is down, so admin
+     edits were silently invisible to real users. Same upsert-by-id /
+     delete-by-id pattern as ai_context above, just one handler pair per
+     table (id is always the primary key text/int column on each table). */
+  async 'chargers.upsert'(env, p) {
+    return sbFetch(env, 'chargers?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'chargers.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'chargers?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'charger_categories.upsert'(env, p) {
+    return sbFetch(env, 'charger_categories?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'charger_categories.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'charger_categories?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'charger_rules.upsert'(env, p) {
+    return sbFetch(env, 'charger_rules?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'charger_rules.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'charger_rules?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'tools.upsert'(env, p) {
+    return sbFetch(env, 'tools?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'tools.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'tools?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
 };
 
 export default {
