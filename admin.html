@@ -627,7 +627,7 @@ function showConfirm(msg, fn) {
   document.getElementById('cf-ov').style.display = 'flex';
   _confirmFn = fn;
 }
-function doConfirm()    { closeConfirm(); if (_confirmFn) _confirmFn(); }
+function doConfirm()    { const fn = _confirmFn; closeConfirm(); if (fn) fn(); }
 function closeConfirm() { document.getElementById('cf-ov').style.display = 'none'; _confirmFn = null; }
 
 /* ══════════════════════════════════════════════════════
