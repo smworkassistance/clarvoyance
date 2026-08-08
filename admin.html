@@ -942,8 +942,14 @@ function openChargerForm(idx) {
     `<button type="button" class="add-btn" style="margin-top:-6px" onclick="saveContentAiBestFor('chargers','${isEdit?x(c.id):''}','ch-aibest')">💾 Save AI Guidance</button>` +
     `<div class="fld-hint">Saved separately, straight to the live database — independent of the Save button below. ${isEdit?'':'Save the charger first with the button below, then reopen it to add AI guidance.'}</div>`,
     async () => {
+      /* category_id read raw (not via v(), which .trim()s) — the live "Monk mode"
+         category's real id is "Monk " with a trailing space (a legacy data quirk
+         from the original migration); trimming it here silently created chargers
+         whose category_id matched no real category, so they rendered nowhere in
+         the app at all (found: 2 real chargers this way, "Accept yourself" and
+         "Death Awareness", category_id saved as "Monk" instead of "Monk "). */
       const payload = {
-        id:v('ch-id'), category_id:v('ch-cat'), name:v('ch-name'), description:v('ch-desc'),
+        id:v('ch-id'), category_id:document.getElementById('ch-cat').value, name:v('ch-name'), description:v('ch-desc'),
         icon:v('ch-ico-val'), type:v('ch-type')||'textarea', mood:v('ch-mood'),
         persist:yn('ch-persist'), placeholder:v('ch-ph'), fullscreen:yn('ch-full'),
         xp:parseInt(v('ch-xp'),10)||null, quest_low:v('ch-qlo'), quest_mid:v('ch-qmi'), quest_high:v('ch-qhi'),
