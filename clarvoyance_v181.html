@@ -3810,22 +3810,29 @@ document.addEventListener('click',e=>{
    defer on supabase-js + registry.js means both are ready by this point */
 document.addEventListener('DOMContentLoaded',async ()=>{
   window._userNavigated = false;
+  /* v181: capture the real last-active tab BEFORE this handler's own forced
+     chat-switch below overwrites clv_last_tab. Prefer window._bootLastTab —
+     captured even earlier, by the pre-DOMContentLoaded end-of-body IIFE,
+     before ITS forced chat-switch ran — since that's the truest "value
+     before any automatic switch" capture; falls back to reading localStorage
+     fresh here (still before this handler's own switch) if that IIFE didn't
+     run for some reason. */
+  const lastTab = (typeof window._bootLastTab!=='undefined') ? window._bootLastTab : localStorage.getItem('clv_last_tab');
   const startTab=document.querySelector('.bnav-tab[data-tab="chat"]');
   if(startTab)bnavSwitch(startTab);
-  /* v181: that bnavSwitch call itself flips _userNavigated to true (it's a
+  /* that bnavSwitch call itself flips _userNavigated to true (it's a
      generic flag set by bnavSwitch for any switch, automatic or not) — reset
      it right after so it accurately reflects a REAL tap, not this forced
      boot-time one, by the time the restore check below runs. */
   window._userNavigated = false;
 
   await load();
-  /* v181: chat is always shown first above (zero-flash — its content is
-     local, unlike Goal/Chargers/Tools/Self which need this data). Now that
-     content has loaded, restore whichever tab the user was actually on last
-     — unless they've already tapped somewhere themselves in the meantime,
+  /* Chat is always shown first above (zero-flash — its content is local,
+     unlike Goal/Chargers/Tools/Self which need this data). Now that content
+     has loaded, restore whichever tab the user was actually on last —
+     unless they've already tapped somewhere themselves in the meantime,
      which should win over this. */
   if(!window._userNavigated){
-    const lastTab=localStorage.getItem('clv_last_tab');
     if(lastTab && lastTab!=='chat'){
       const lastBtn=document.querySelector('.bnav-tab[data-tab="'+lastTab+'"]');
       if(lastBtn)bnavSwitch(lastBtn);
@@ -15680,6 +15687,12 @@ function initThemeSwitcher(){
    Swaps icons/wordmark and activates chat tab immediately so there is
    no flash of old emoji icons or wrong nav highlight. */
 (function(){
+  /* v181: capture the real last-active tab BEFORE the forced chat-switch
+     below overwrites clv_last_tab (bnavSwitch persists whichever tab it's
+     given, including this automatic one) — the DOMContentLoaded handler's
+     post-load restore reads window._bootLastTab instead of localStorage
+     directly, since by then localStorage would already say 'chat'. */
+  window._bootLastTab = localStorage.getItem('clv_last_tab');
   /* 1. Apply wordmark and nav icons right away (same as boot() but early) */
   if(window.swapWordmark) swapWordmark();
   if(window.swapNavIcons) swapNavIcons();
