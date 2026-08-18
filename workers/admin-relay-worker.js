@@ -162,6 +162,47 @@ const ACTIONS = {
     if (!p.id) throw new Error('id required');
     return sbFetch(env, 'tools?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
   },
+
+  /* v182: feature_gates — admin-adjustable AI usage limits (free vs
+     premium, per feature). Composite primary key (feature_key, tier),
+     so on_conflict names both columns. See db/schema_v182_feature_gates.sql. */
+  async 'feature_gates.select'(env) {
+    return sbFetch(env, 'feature_gates?select=*&order=feature_key.asc,tier.asc');
+  },
+  async 'feature_gates.upsert'(env, p) {
+    return sbFetch(env, 'feature_gates?on_conflict=feature_key,tier', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'feature_gates.delete'(env, p) {
+    if (!p.feature_key || !p.tier) throw new Error('feature_key and tier required');
+    return sbFetch(env, 'feature_gates?feature_key=eq.' + encodeURIComponent(p.feature_key)
+      + '&tier=eq.' + encodeURIComponent(p.tier), { method: 'DELETE' });
+  },
+
+  /* v182: manual tier assignment — no payment webhook exists yet, so the
+     owner grants/changes a specific account's tier by email from
+     admin.html until Razorpay integration lands. */
+  async 'user_profile.findByEmail'(env, p) {
+    if (!p.email) throw new Error('email required');
+    /* order by updated_at desc: when the same self-entered email matches
+       multiple accounts (a real, confirmed case — leftover fragmented
+       accounts from before the manual-linking fix), the most recently
+       active one sorts first, so the admin UI isn't guessing blind. */
+    return sbFetch(env, 'user_profile?select=user_id,email,nick,subscription_tier,updated_at&email=eq.'
+      + encodeURIComponent(p.email) + '&order=updated_at.desc');
+  },
+  async 'user_profile.setTier'(env, p) {
+    if (!p.user_id) throw new Error('user_id required');
+    if (!p.tier) throw new Error('tier required');
+    return sbFetch(env, 'user_profile?user_id=eq.' + encodeURIComponent(p.user_id), {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ subscription_tier: p.tier }),
+    });
+  },
 };
 
 export default {
