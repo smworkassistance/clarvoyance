@@ -762,9 +762,12 @@ const fActive = (id,checked) =>
 /* Yes/No toggle → outputs yes/no */
 const fYN = (lbl,id,val) => {
   const isY = val==='yes'||val==='Yes';
+  /* the checkbox's real .checked state was always read correctly on save —
+     this label text just never updated on click, so a toggle looked like
+     it silently did nothing even when it had actually flipped. */
   return `<div class="fld"><label>${lbl}</label><div class="tgl-row">
-    <span>${isY?'Yes':'No'}</span>
-    <label class="tgl"><input type="checkbox" id="${id}"${isY?' checked':''}><span class="tgl-sl"></span></label>
+    <span id="${id}-txt">${isY?'Yes':'No'}</span>
+    <label class="tgl"><input type="checkbox" id="${id}" onchange="document.getElementById('${id}-txt').textContent=this.checked?'Yes':'No'"${isY?' checked':''}><span class="tgl-sl"></span></label>
   </div></div>`;
 };
 
