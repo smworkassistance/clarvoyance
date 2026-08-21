@@ -512,6 +512,34 @@ const ACTIONS = {
     }
     return { sent_to_devices: subs.length, results };
   },
+
+  /* v186 — Engagement Engine config CRUD for admin.html's new "📊 Engagement"
+     tab. Both tables are public-SELECT for the main app (like feature_gates)
+     but writes still go through this relay, same lockdown pattern as
+     everything since v178. */
+  async 'section_engagement_targets.select'(env) {
+    return sbFetch(env, 'section_engagement_targets?select=*&order=section.asc');
+  },
+  async 'section_engagement_targets.upsert'(env, p) {
+    return sbFetch(env, 'section_engagement_targets?on_conflict=section', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  /* engagement_settings is a single-row table (id is always literally
+     `true`) — select just returns that one row, upsert always targets it. */
+  async 'engagement_settings.select'(env) {
+    return sbFetch(env, 'engagement_settings?select=*&limit=1');
+  },
+  async 'engagement_settings.upsert'(env, p) {
+    p.id = true;
+    return sbFetch(env, 'engagement_settings?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
 };
 
 export default {

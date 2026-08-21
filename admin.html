@@ -239,6 +239,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="consultant" onclick="switchTab(this)">🧭 Consultant</button>
     <button class="tab"    data-p="limits" onclick="switchTab(this)">💳 Limits</button>
     <button class="tab"    data-p="notifications" onclick="switchTab(this)">🔔 Notifications</button>
+    <button class="tab"    data-p="engagement" onclick="switchTab(this)">📊 Engagement</button>
   </div>
 
   <!-- TOOLS -->
@@ -366,6 +367,54 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 
     <div class="sec-lbl" style="margin-top:22px">🔍 Recent sends</div>
     <div id="notif-log-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- ENGAGEMENT: momentum growth/decay + Fortune gap-awareness config, v186 -->
+  <div id="pane-engagement" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Every number below feeds momentum growth/decay and Fortune's narrative — see the formulas at the bottom of this tab for exactly how they're used. Nothing here is hardcoded in the app; change a number and it takes effect on the next calculation, no redeploy.</p>
+
+    <div class="sec-lbl">🎯 Section targets — daily minutes + XP</div>
+    <div id="engagement-targets-list"><div class="s-load">Loading...</div></div>
+
+    <div class="sec-lbl" style="margin-top:22px">⚙️ Global settings</div>
+    <div class="fld-2">
+      <div class="fld"><label>Engaged-day threshold (%)</label><input type="text" id="eng-threshold"><div class="fld-hint">daily_score must reach this % to reset the decay clock</div></div>
+      <div class="fld"><label>Decay k</label><input type="text" id="eng-k"><div class="fld-hint">smaller = slower decay</div></div>
+    </div>
+    <div class="fld"><label>Decay exponent</label><input type="text" id="eng-exp"><div class="fld-hint">higher = decay accelerates faster the longer the gap runs</div></div>
+
+    <div class="sec-lbl" style="margin-top:14px;font-size:12px;color:#9CA3AF">Non-Negotiables multiplier tiers</div>
+    <div class="fld-2">
+      <div class="fld"><label>Full credit if NN% ≥</label><input type="text" id="eng-nn-full-th"></div>
+      <div class="fld"><label>Full multiplier</label><input type="text" id="eng-nn-full-mult"></div>
+    </div>
+    <div class="fld-2">
+      <div class="fld"><label>Partial credit if NN% ≥</label><input type="text" id="eng-nn-partial-th"></div>
+      <div class="fld"><label>Partial multiplier</label><input type="text" id="eng-nn-partial-mult"></div>
+    </div>
+    <div class="fld"><label>Below that — multiplier</label><input type="text" id="eng-nn-none-mult"></div>
+    <button class="add-btn" onclick="saveEngagementSettings()">Save settings</button>
+
+    <div class="sec-lbl" style="margin-top:22px">📐 Formulas <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#C4C4D4">— reference only, matches the code exactly, for understanding what the numbers above actually do</span></div>
+    <div style="background:#1A1A24;border:1px solid #2A2A38;border-radius:10px;padding:14px 16px;font-family:monospace;font-size:12px;color:#C4C4D4;line-height:1.9;white-space:pre-wrap;overflow-x:auto">per section (vibe / chat / fortune / goal / home / self):
+  time_ratio    = min(1, actual_minutes &divide; target_minutes)
+  xp_ratio      = min(1, actual_xp &divide; target_xp)
+  section_score = (time_ratio + xp_ratio) &divide; 2
+
+across all 6 sections, once per day:
+  avg_section   = average(6 section_scores)
+  nn_multiplier = full_multiplier     if NN% &ge; full_threshold
+                  partial_multiplier  if NN% &ge; partial_threshold
+                  none_multiplier     otherwise
+  daily_score   = avg_section &times; nn_multiplier          (0 to ~1)
+
+momentum growth (once per day, replaces the old flat "+1"):
+  momentum = momentum + daily_score
+
+momentum decay (continuous, real HOURS since the last day that
+crossed the engaged-day threshold — not whole calendar days):
+  pct_retained = exp(-decay_k &times; hours_since_engaged ^ decay_exponent)
+  momentum     = momentum &times; pct_retained</div>
   </div>
 
   <!-- SANDBOX TESTER: talk to a test Clar using live AI Context/Charts, never logged as a real session -->
@@ -629,6 +678,7 @@ async function loadData() {
   loadFeatureGates();
   loadNotificationRules();
   loadNotifLog();
+  loadEngagementConfig();
 }
 
 async function api(params) {
@@ -1999,6 +2049,90 @@ async function loadNotifLog() {
   } catch(e) {
     el.innerHTML = empty('⚠️', 'Could not load: ' + e.message);
   }
+}
+
+/* ══════════════════════════════════════════════════════
+   ENGAGEMENT — momentum growth/decay + Fortune gap-awareness config
+   (v186). Section targets are a fixed set of 6 rows (vibe/chat/fortune/
+   goal/home/self, enforced by a CHECK constraint on the table) — edit
+   only, no add/delete, unlike the other CRUD tabs above. Settings is a
+   single-row table, edited as one inline form rather than the sheet/
+   modal pattern, since there's nothing to list or pick between.
+   ══════════════════════════════════════════════════════ */
+let ENGAGEMENT_TARGETS = [];
+const ENGAGEMENT_SECTION_LABELS = {vibe:'Vibe Feed',chat:'Clar AI',fortune:'Fortune',goal:'Goal',home:'Home',self:'Self'};
+
+async function loadEngagementConfig() {
+  const listEl = document.getElementById('engagement-targets-list');
+  if (!listEl) return;
+  try {
+    ENGAGEMENT_TARGETS = await adminApi('section_engagement_targets.select') || [];
+    renderEngagementTargets(ENGAGEMENT_TARGETS);
+    const settingsRows = await adminApi('engagement_settings.select') || [];
+    const s = settingsRows[0] || {};
+    document.getElementById('eng-threshold').value       = s.engaged_day_threshold_pct ?? 60;
+    document.getElementById('eng-k').value                = s.decay_k ?? 0.000436;
+    document.getElementById('eng-exp').value              = s.decay_exponent ?? 1.5;
+    document.getElementById('eng-nn-full-th').value       = s.nn_full_threshold_pct ?? 80;
+    document.getElementById('eng-nn-full-mult').value     = s.nn_full_multiplier ?? 1.0;
+    document.getElementById('eng-nn-partial-th').value    = s.nn_partial_threshold_pct ?? 40;
+    document.getElementById('eng-nn-partial-mult').value  = s.nn_partial_multiplier ?? 0.75;
+    document.getElementById('eng-nn-none-mult').value     = s.nn_none_multiplier ?? 0.5;
+  } catch(e) {
+    listEl.innerHTML = empty('⚠️', 'Could not load: ' + e.message);
+  }
+}
+
+function renderEngagementTargets(rows) {
+  const el = document.getElementById('engagement-targets-list');
+  const bySection = {}; rows.forEach(r => bySection[r.section] = r);
+  el.innerHTML = Object.keys(ENGAGEMENT_SECTION_LABELS).map(section => {
+    const r = bySection[section] || {target_minutes:'?', target_xp:'?'};
+    return `<div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${ENGAGEMENT_SECTION_LABELS[section]}</div>
+          <div style="font-size:12px;color:#9CA3AF;margin-top:2px">${x(String(r.target_minutes))} min/day, ${x(String(r.target_xp))} XP/day target</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openSectionTargetForm('${section}')">Edit</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSectionTargetForm(section) {
+  const r = ENGAGEMENT_TARGETS.find(t => t.section === section) || {target_minutes:10, target_xp:10};
+  openSheet(
+    'Edit target — ' + ENGAGEMENT_SECTION_LABELS[section],
+    fT('Target minutes per day *','set-minutes', String(r.target_minutes), 'e.g. 10')
+    + fT('Target XP per day *','set-xp', String(r.target_xp), 'e.g. 10', 'How much XP a full, real-effort day in this section should earn — this preserves each practice\'s own effectiveness weighting instead of a flat time-only check.'),
+    async () => {
+      const minutes = parseFloat(v('set-minutes')), xp = parseFloat(v('set-xp'));
+      if (isNaN(minutes) || isNaN(xp)) { toast('Both fields must be numbers','err'); return; }
+      await adminApi('section_engagement_targets.upsert', { section, target_minutes: minutes, target_xp: xp });
+      toast('Saved ✓','ok'); closeSheet(); await loadEngagementConfig();
+    }
+  );
+}
+
+async function saveEngagementSettings() {
+  const payload = {
+    engaged_day_threshold_pct: parseFloat(v('eng-threshold')),
+    decay_k: parseFloat(v('eng-k')),
+    decay_exponent: parseFloat(v('eng-exp')),
+    nn_full_threshold_pct: parseFloat(v('eng-nn-full-th')),
+    nn_full_multiplier: parseFloat(v('eng-nn-full-mult')),
+    nn_partial_threshold_pct: parseFloat(v('eng-nn-partial-th')),
+    nn_partial_multiplier: parseFloat(v('eng-nn-partial-mult')),
+    nn_none_multiplier: parseFloat(v('eng-nn-none-mult')),
+  };
+  if (Object.values(payload).some(n => isNaN(n))) { toast('All settings fields must be numbers','err'); return; }
+  try {
+    await adminApi('engagement_settings.upsert', payload);
+    toast('Settings saved ✓','ok');
+  } catch(e) { toast('Error: '+e.message,'err'); }
 }
 
 /* ══════════════════════════════════════════════════════
