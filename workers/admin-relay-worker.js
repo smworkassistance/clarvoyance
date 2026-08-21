@@ -22,8 +22,10 @@
                              'mailto:you@example.com' — required by the
                              Web Push spec, shown to push services only.
    The matching VAPID_PUBLIC_KEY is NOT a secret (it's meant to be public —
-   it's the applicationServerKey the client uses to subscribe) and lives
-   directly in the client HTML instead.
+   it's the applicationServerKey the client uses to subscribe) — it does
+   NOT need a Worker variable entry; it's hardcoded as a const below
+   (search VAPID_PUBLIC_KEY) and separately embedded in the client HTML
+   as window.CLV_VAPID_PUBLIC_KEY. Both must stay the exact same value.
 
    Also needs a Cron Trigger added (dashboard → this Worker → Triggers →
    Cron Triggers → Add), schedule "0,15,30,45 * * * *" (fires at :00, :15,
@@ -42,6 +44,13 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 const SB_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co';
+
+/* v184/fix: not a secret — this is the public half of the VAPID keypair,
+   the same value embedded in index.html as window.CLV_VAPID_PUBLIC_KEY.
+   Hardcoded here (rather than read from env.VAPID_PUBLIC_KEY) so it
+   doesn't need its own dashboard entry — only VAPID_PRIVATE_KEY_JWK
+   (the actual secret) needs to be set as a Worker variable. */
+const VAPID_PUBLIC_KEY = 'BHp8v_x-FNtbuG3HMYyZ7Z6cIJ9HoPydch4thpicFDUUL9iJSyaH0nRgDnRz84AGSkaX-K2h0tNW-cK9xM-DzZE';
 
 /* Only these tables may be touched by the generic ai_best_for updater —
    an allowlist even though the request is already token-gated, so a
@@ -151,6 +160,17 @@ async function encryptWebPush(plaintextStr, uaPublicB64url, authSecretB64url) {
    Returns {status:'sent'} / {status:'gone'} (expired/revoked — caller should
    delete the subscription) / throws on any other failure. */
 async function sendWebPush(env, subscription, payloadObj) {
+  /* Fail with a diagnostic message instead of a cryptic JSON.parse error
+     when a secret is genuinely missing from this Worker's environment —
+     JSON.parse(undefined) coerces to JSON.parse("undefined") and throws
+     '"undefined" is not valid JSON", which gives no hint which secret
+     is the actual problem. */
+  if (!env.VAPID_PRIVATE_KEY_JWK) {
+    throw new Error('VAPID_PRIVATE_KEY_JWK secret is not set on this Worker (Settings → Variables and Secrets)');
+  }
+  if (!env.VAPID_SUBJECT) {
+    throw new Error('VAPID_SUBJECT secret is not set on this Worker (Settings → Variables and Secrets)');
+  }
   const aud = new URL(subscription.endpoint).origin;
   const vapidPriv = await crypto.subtle.importKey(
     'jwk', JSON.parse(env.VAPID_PRIVATE_KEY_JWK), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']
@@ -173,7 +193,7 @@ async function sendWebPush(env, subscription, payloadObj) {
       'Content-Encoding': 'aes128gcm',
       'Content-Type': 'application/octet-stream',
       'TTL': '86400',
-      'Authorization': 'vapid t=' + jwt + ', k=' + env.VAPID_PUBLIC_KEY,
+      'Authorization': 'vapid t=' + jwt + ', k=' + VAPID_PUBLIC_KEY,
     },
     body,
   });
