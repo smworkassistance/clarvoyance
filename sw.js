@@ -1,5 +1,5 @@
-/* ═══ Clarvoyance Service Worker v159 ═══ */
-const CACHE_VERSION  = 'clv-v183';
+/* ═══ Clarvoyance Service Worker v184 ═══ */
+const CACHE_VERSION  = 'clv-v184';
 const SHEETS_WORKER  = 'https://clarvoyance-sheets.smworkassistance.workers.dev/';
 const SHELL = [
   '/clarvoyance/',
@@ -67,5 +67,40 @@ self.addEventListener('fetch', e => {
   /* ── Everything else: cache-first ── */
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
+  );
+});
+
+/* ── v184: Web Push — display the notification the admin-relay-worker's
+   Cron-triggered rule engine sent. Payload shape: {title, body, target_tab}. ── */
+self.addEventListener('push', e => {
+  var data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (err) {}
+  var title = data.title || 'Clarvoyance';
+  var options = {
+    body: data.body || '',
+    icon: '/clarvoyance/clar-logo.jpg.jpg',
+    badge: '/clarvoyance/clar-logo.jpg.jpg',
+    data: { target_tab: data.target_tab || null },
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+/* Tapping the notification focuses an already-open tab (deep-linked via
+   ?notif_tab=, read by the boot script) or opens a fresh one. */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  var targetTab = (e.notification.data && e.notification.data.target_tab) || null;
+  var url = '/clarvoyance/' + (targetTab ? ('?notif_tab=' + encodeURIComponent(targetTab)) : '');
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      for (var i = 0; i < clientList.length; i++) {
+        var c = clientList[i];
+        if (c.url.indexOf(self.location.origin) === 0 && 'focus' in c) {
+          if ('navigate' in c) c.navigate(url).catch(function () {});
+          return c.focus();
+        }
+      }
+      return clients.openWindow(url);
+    })
   );
 });

@@ -238,6 +238,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="sandbox" onclick="switchTab(this)">🧪 Sandbox</button>
     <button class="tab"    data-p="consultant" onclick="switchTab(this)">🧭 Consultant</button>
     <button class="tab"    data-p="limits" onclick="switchTab(this)">💳 Limits</button>
+    <button class="tab"    data-p="notifications" onclick="switchTab(this)">🔔 Notifications</button>
   </div>
 
   <!-- TOOLS -->
@@ -343,6 +344,28 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     </div>
     <button class="add-btn" onclick="setUserTierByEmail()">Look up &amp; set</button>
     <div id="tier-result" style="margin-top:10px;font-size:13px;color:#9CA3AF"></div>
+  </div>
+
+  <!-- NOTIFICATIONS: push notification rule engine, v184 -->
+  <div id="pane-notifications" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Every timing/repeat/limit knob below is data, not code — add as many rules of either type as you want, nothing needs a redeploy. "Schedule" rules fire at fixed times of day for everyone subscribed; "Inactivity" rules check per-user how long it's been since they touched Clar (or the whole app). Requires <code>db/schema_v184_notifications.sql</code> to have been run, and the Worker redeployed with the new VAPID secrets — see that file and the Worker's own header comment.</p>
+
+    <div class="sec-lbl">📋 Rules</div>
+    <button class="add-btn" onclick="openNotifRuleForm()">＋ Add rule</button>
+    <div id="notif-rules-list"><div class="s-load">Loading...</div></div>
+
+    <div class="sec-lbl" style="margin-top:22px">🧪 Send a test push</div>
+    <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px;line-height:1.5">Sends immediately, outside the rule engine — the fastest way to confirm delivery actually works end-to-end. The target account must have tapped "Enable" under Profile → Reminders first.</p>
+    <div class="fld"><input type="text" id="notif-test-email" placeholder="account email"></div>
+    <div class="fld-2">
+      <input type="text" id="notif-test-title" placeholder="Title (optional)">
+      <input type="text" id="notif-test-body" placeholder="Body (optional)">
+    </div>
+    <button class="add-btn" onclick="sendTestNotif()">Send test</button>
+    <div id="notif-test-result" style="margin-top:10px;font-size:13px;color:#9CA3AF"></div>
+
+    <div class="sec-lbl" style="margin-top:22px">🔍 Recent sends</div>
+    <div id="notif-log-list"><div class="s-load">Loading...</div></div>
   </div>
 
   <!-- SANDBOX TESTER: talk to a test Clar using live AI Context/Charts, never logged as a real session -->
@@ -604,6 +627,8 @@ async function loadData() {
   loadConsultantContext();
   loadCommands();
   loadFeatureGates();
+  loadNotificationRules();
+  loadNotifLog();
 }
 
 async function api(params) {
@@ -1827,6 +1852,150 @@ async function _applyTier(user_id, tier, label) {
     await adminApi('user_profile.setTier', { user_id, tier });
     out.innerHTML = `✓ ${x(label)} (${x(user_id)}) is now "${x(tier)}".`;
   } catch(e) { toast('Error: '+e.message,'err'); }
+}
+
+/* ══════════════════════════════════════════════════════
+   NOTIFICATIONS — push notification rule engine (v184). Every timing/
+   repeat/cap field lives on the notification_rules row (see
+   db/schema_v184_notifications.sql) — this UI is pure CRUD over that
+   table via admin-relay-worker.js, same upsert-by-id pattern as
+   Tools/Chargers/etc above. The actual sending happens server-side on
+   a Cloudflare Cron Trigger, not from this page.
+   ══════════════════════════════════════════════════════ */
+let NOTIF_RULES = [];
+
+async function loadNotificationRules() {
+  const el = document.getElementById('notif-rules-list');
+  if (!el) return;
+  try {
+    NOTIF_RULES = await adminApi('notification_rules.select') || [];
+    renderNotifRules(NOTIF_RULES);
+  } catch(e) {
+    el.innerHTML = empty('⚠️', 'Could not load: ' + e.message);
+  }
+}
+
+function renderNotifRules(rows) {
+  const el = document.getElementById('notif-rules-list');
+  if (!rows.length) { el.innerHTML = empty('🔔', 'No rules yet — nothing sends until you add one'); return; }
+  el.innerHTML = rows.map(r => {
+    const detail = r.trigger_type === 'schedule'
+      ? `at ${(r.schedule_times||[]).join(', ')} (${x(r.timezone||'Asia/Kolkata')})`
+      : `after ${r.inactivity_threshold_minutes||'?'}min quiet on ${x(r.signal_source||'clar')}, repeats every ${r.cooldown_minutes||0}min`;
+    return `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${x(r.name)} <span style="color:#9CA3AF;font-weight:400">— ${x(r.trigger_type)}</span></div>
+          <div style="font-size:12px;color:#9CA3AF;margin-top:2px">${r.enabled ? '' : '⏸ disabled — '}${detail}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openNotifRuleForm(${r.id})">Edit</button>
+          <button class="ab a-del"  onclick="delNotifRule(${r.id})">Del</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* comma-separated text -> array helpers (blank input -> null = "no limit"/"every day") */
+function _csvToArr(str){ const s=(str||'').trim(); if(!s) return null; return s.split(',').map(x=>x.trim()).filter(Boolean); }
+function _csvToIntArr(str){ const a=_csvToArr(str); return a ? a.map(n=>parseInt(n,10)).filter(n=>!isNaN(n)) : null; }
+function _intOrNull(str){ const s=(str||'').trim(); return s===''?null:parseInt(s,10); }
+
+function openNotifRuleForm(id) {
+  const isEdit = id != null;
+  const r = isEdit ? (NOTIF_RULES.find(n => n.id === id) || {}) : {};
+  openSheet(
+    isEdit ? 'Edit rule' : 'Add rule',
+    fT('Name *','nr-name', r.name || '', 'e.g. Non-Negotiables reminder')
+    + fS('Trigger type','nr-trigger', ['schedule','inactivity'], r.trigger_type || 'schedule')
+    + fYN('Enabled','nr-enabled', r.enabled === false ? 'no' : 'yes')
+
+    + fSep('Schedule — only used when trigger = schedule')
+    + fT('Times (comma-separated, 24h)','nr-times', (r.schedule_times||[]).join(', '), 'e.g. 09:00, 21:00')
+    + fT('Days of week — blank = every day','nr-days', (r.days_of_week||[]).join(', '), '1=Mon .. 7=Sun, e.g. 1,2,3,4,5')
+    + fT('Timezone','nr-tz', r.timezone || 'Asia/Kolkata', 'IANA timezone name')
+
+    + fSep('Inactivity — only used when trigger = inactivity')
+    + fS('Signal','nr-signal', [{v:'clar',l:'Clar chat specifically'},{v:'app',l:'Whole app'}], r.signal_source || 'clar')
+    + fT('Minutes of inactivity before it qualifies','nr-threshold', r.inactivity_threshold_minutes != null ? String(r.inactivity_threshold_minutes) : '120', 'e.g. 120')
+    + fT('Minimum minutes engaged earlier today','nr-minengage', r.min_prior_engagement_minutes != null ? String(r.min_prior_engagement_minutes) : '5', 'so it never fires on someone who never opened the app at all')
+
+    + fSep('Limits — apply to either trigger type, blank = unlimited')
+    + fT('Max sends per day','nr-maxday', r.max_sends_per_day != null ? String(r.max_sends_per_day) : '')
+    + fT('Max sends per week','nr-maxweek', r.max_sends_per_week != null ? String(r.max_sends_per_week) : '')
+    + fT('Max sends per month','nr-maxmonth', r.max_sends_per_month != null ? String(r.max_sends_per_month) : '')
+    + fT('Cooldown minutes between sends of this rule','nr-cooldown', r.cooldown_minutes != null ? String(r.cooldown_minutes) : '0', 'for inactivity rules this IS the repeat cadence — e.g. 120 = re-nudge every 2h while still inactive')
+
+    + fSep('Message')
+    + fT('Title *','nr-title', r.title || '')
+    + fA('Body *','nr-body', r.body || '')
+    + fT('Deep link tab — blank = just opens the app','nr-target', r.target_tab || '', 'e.g. nn, chat, goal, self, vibe, fortune'),
+    async () => {
+      const name = v('nr-name'), title = v('nr-title'), body = v('nr-body');
+      if (!name || !title || !body) { toast('Name, title and body are required','err'); return; }
+      const payload = {
+        name, title, body,
+        trigger_type: v('nr-trigger'),
+        enabled: document.getElementById('nr-enabled').checked,
+        schedule_times: _csvToArr(v('nr-times')),
+        days_of_week: _csvToIntArr(v('nr-days')),
+        timezone: v('nr-tz') || 'Asia/Kolkata',
+        signal_source: v('nr-signal'),
+        inactivity_threshold_minutes: _intOrNull(v('nr-threshold')),
+        min_prior_engagement_minutes: _intOrNull(v('nr-minengage')),
+        max_sends_per_day: _intOrNull(v('nr-maxday')),
+        max_sends_per_week: _intOrNull(v('nr-maxweek')),
+        max_sends_per_month: _intOrNull(v('nr-maxmonth')),
+        cooldown_minutes: _intOrNull(v('nr-cooldown')) ?? 0,
+        target_tab: v('nr-target') || null,
+      };
+      if (isEdit) payload.id = id;
+      await adminApi('notification_rules.upsert', payload);
+      toast('Saved ✓','ok'); closeSheet(); await loadNotificationRules();
+    }
+  );
+}
+
+function delNotifRule(id) {
+  showConfirm('Delete this rule? It stops sending immediately.', async () => {
+    try { await adminApi('notification_rules.delete', { id }); }
+    catch(e) { toast('Error: '+e.message,'err'); return; }
+    toast('Deleted ✓','ok'); loadNotificationRules();
+  });
+}
+
+async function sendTestNotif() {
+  const email = v('notif-test-email');
+  const out = document.getElementById('notif-test-result');
+  if (!email) { toast('Enter an email first','err'); return; }
+  out.textContent = 'Sending...';
+  try {
+    const res = await adminApi('notifications.testSend', {
+      email, title: v('notif-test-title') || undefined, body: v('notif-test-body') || undefined,
+    });
+    out.textContent = `Sent to ${res.sent_to_devices} device(s): ${res.results.join(', ')}`;
+  } catch(e) { out.textContent = 'Error: ' + e.message; }
+}
+
+async function loadNotifLog() {
+  const el = document.getElementById('notif-log-list');
+  if (!el) return;
+  try {
+    const rows = await adminApi('notification_send_log.select', { limit: 30 }) || [];
+    if (!rows.length) { el.innerHTML = empty('🔍', 'No sends yet'); return; }
+    el.innerHTML = rows.map(row => {
+      const rule = NOTIF_RULES.find(r => r.id === row.rule_id);
+      const statusColor = row.status === 'sent' ? '#4ADE80' : row.status === 'failed' ? '#F87171' : '#9CA3AF';
+      return `<div class="ic"><div class="ic-head"><div class="ic-body">
+        <div class="ic-name">${x(rule ? rule.name : ('rule #'+row.rule_id))} <span style="color:${statusColor};font-weight:400">— ${x(row.status)}</span></div>
+        <div style="font-size:12px;color:#9CA3AF;margin-top:2px">${new Date(row.sent_at).toLocaleString()}${row.error ? ' — '+x(row.error) : ''}</div>
+      </div></div></div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = empty('⚠️', 'Could not load: ' + e.message);
+  }
 }
 
 /* ══════════════════════════════════════════════════════

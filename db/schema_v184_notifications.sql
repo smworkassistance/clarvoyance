@@ -1,0 +1,133 @@
+-- ═══════════════════════════════════════════════════════════════════
+-- v184 — Push notifications (web-first; schema is platform-aware from
+-- day one so Android/iOS via Capacitor slot in later without a rework).
+--
+-- Run this whole file in the Supabase SQL editor.
+-- ═══════════════════════════════════════════════════════════════════
+
+-- ── Admin-configured rule engine — every timing/repeat/cap knob is a
+--    column, not hardcoded logic. Two rows cover the two examples
+--    discussed (Non-Negotiables 9am/9pm reminder, Clar-inactivity nudge);
+--    a third rule of either type needs zero code changes, just a row. ──
+CREATE TABLE IF NOT EXISTS notification_rules (
+  id                          bigint generated always as identity primary key,
+  name                        text NOT NULL,
+  enabled                     boolean NOT NULL DEFAULT true,
+  trigger_type                text NOT NULL CHECK (trigger_type IN ('schedule','inactivity')),
+
+  -- schedule-type fields
+  schedule_times              jsonb,             -- e.g. ["09:00","21:00"], any count
+  days_of_week                jsonb,             -- e.g. [1,2,3,4,5] (1=Mon..7=Sun); null = every day
+  timezone                    text NOT NULL DEFAULT 'Asia/Kolkata',
+
+  -- inactivity-type fields
+  signal_source               text DEFAULT 'clar' CHECK (signal_source IN ('clar','app')),
+  inactivity_threshold_minutes int,
+  min_prior_engagement_minutes int,
+
+  -- shared caps (all nullable = unlimited). cooldown_minutes IS the repeat
+  -- cadence for inactivity-type rules too — e.g. inactivity_threshold=120 +
+  -- cooldown=120 together mean "first nudge after 2h quiet, repeats every
+  -- 2h after that as long as they stay quiet" (a separate repeat_every_minutes
+  -- field would just duplicate cooldown_minutes for this trigger type).
+  max_sends_per_day           int,
+  max_sends_per_week          int,
+  max_sends_per_month         int,
+  cooldown_minutes            int NOT NULL DEFAULT 0,
+
+  -- message
+  title                       text NOT NULL,
+  body                        text NOT NULL,
+  target_tab                  text,              -- deep link on tap, e.g. 'nn', 'chat'; null = just opens app
+
+  created_at                  timestamptz NOT NULL DEFAULT now(),
+  updated_at                  timestamptz NOT NULL DEFAULT now()
+);
+
+-- ── One row per subscribed device. platform + native_token are unused
+--    today (web-only) but present now so adding Android/iOS later is
+--    purely additive — new rows, no schema change. ──
+CREATE TABLE IF NOT EXISTS user_push_subscriptions (
+  id            bigint generated always as identity primary key,
+  user_id       uuid NOT NULL,
+  platform      text NOT NULL DEFAULT 'web' CHECK (platform IN ('web','android','ios')),
+  endpoint      text,          -- web push subscription endpoint URL
+  p256dh        text,          -- web push client public key (base64url)
+  auth          text,          -- web push auth secret (base64url)
+  native_token  text,          -- future: FCM/APNs device token
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  updated_at    timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (user_id, endpoint)
+);
+
+-- ── Every send attempt, per rule + user. Not just an audit trail — the
+--    cron worker queries this to enforce max_sends_per_day/week/month
+--    and cooldown_minutes before sending again. ──
+CREATE TABLE IF NOT EXISTS notification_send_log (
+  id          bigint generated always as identity primary key,
+  rule_id     bigint REFERENCES notification_rules(id) ON DELETE CASCADE,
+  user_id     uuid NOT NULL,
+  sent_at     timestamptz NOT NULL DEFAULT now(),
+  status      text,          -- 'sent' | 'failed' | 'gone' (subscription expired/revoked)
+  error       text
+);
+CREATE INDEX IF NOT EXISTS idx_notif_log_rule_user ON notification_send_log(rule_id, user_id, sent_at DESC);
+
+-- ── Last-active tracking — user_progress already exists (v121); these
+--    two columns are what the inactivity trigger type actually reads.
+--    Separate from the existing clv_clar_times/clv_app_times daily
+--    ROLLUPS (v146/v178) — those store per-day minute totals, not a
+--    live last-touched timestamp, which is what "has it been 2 hours"
+--    needs. ──
+ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS last_clar_active_at timestamptz;
+ALTER TABLE user_progress ADD COLUMN IF NOT EXISTS last_app_active_at  timestamptz;
+
+-- ── RLS: user_push_subscriptions is written directly by the main app,
+--    same pattern as every other user_* table (own-row only). ──
+ALTER TABLE user_push_subscriptions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "own subscriptions select" ON user_push_subscriptions;
+DROP POLICY IF EXISTS "own subscriptions insert" ON user_push_subscriptions;
+DROP POLICY IF EXISTS "own subscriptions update" ON user_push_subscriptions;
+DROP POLICY IF EXISTS "own subscriptions delete" ON user_push_subscriptions;
+CREATE POLICY "own subscriptions select" ON user_push_subscriptions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "own subscriptions insert" ON user_push_subscriptions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own subscriptions update" ON user_push_subscriptions FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "own subscriptions delete" ON user_push_subscriptions FOR DELETE USING (auth.uid() = user_id);
+
+-- Both anon and authenticated, per the recurring gotcha that real app
+-- traffic (even anonymous sign-in) arrives as 'authenticated', not 'anon'.
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_push_subscriptions TO anon, authenticated;
+GRANT USAGE, SELECT ON SEQUENCE user_push_subscriptions_id_seq TO anon, authenticated;
+
+-- notification_rules / notification_send_log: admin + cron-worker only,
+-- via service_role — no anon/authenticated policy at all (same lockdown
+-- pattern as ai_context/admin_commands/admin_insights, v178).
+GRANT SELECT, INSERT, UPDATE, DELETE ON notification_rules       TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON notification_send_log    TO service_role;
+GRANT SELECT, INSERT, UPDATE, DELETE ON user_push_subscriptions  TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE notification_rules_id_seq        TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE notification_send_log_id_seq     TO service_role;
+GRANT USAGE, SELECT ON SEQUENCE user_push_subscriptions_id_seq   TO service_role;
+
+-- service_role needs its OWN explicit grant on user_progress too, even
+-- though this table already existed since v121 — confirmed 3x now
+-- (v178a/v181/v182) that "old table, new role touching it" always needs
+-- a fresh GRANT regardless of age. Defensive/idempotent, no-op if already covered.
+GRANT SELECT, UPDATE ON user_progress TO service_role;
+
+-- ── Seed the two rules discussed, disabled by default so nothing sends
+--    until you review/enable them from admin.html's new Notifications tab. ──
+INSERT INTO notification_rules
+  (name, enabled, trigger_type, schedule_times, max_sends_per_day, title, body, target_tab)
+VALUES
+  ('Non-Negotiables — morning/evening reminder', false, 'schedule', '["09:00","21:00"]', 2,
+   'Non-Negotiables', 'Have you checked in on your non-negotiables today?', 'nn')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO notification_rules
+  (name, enabled, trigger_type, signal_source, inactivity_threshold_minutes,
+   min_prior_engagement_minutes, cooldown_minutes, max_sends_per_day, title, body, target_tab)
+VALUES
+  ('Distraction nudge — Clar inactivity', false, 'inactivity', 'clar', 120, 5, 120, 3,
+   'Still there?', 'It seems you''ve been distracted — come back to Clar for a moment.', 'chat')
+ON CONFLICT DO NOTHING;
