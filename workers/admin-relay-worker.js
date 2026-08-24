@@ -448,6 +448,26 @@ const ACTIONS = {
       + '&tier=eq.' + encodeURIComponent(p.tier), { method: 'DELETE' });
   },
 
+  /* v211: video_seed_topics — admin-managed "always seed a bit of this"
+     video topics (e.g. Abraham Hicks / Law of Attraction content), shown
+     to users as pre-toggled-on chips in a dedicated "Admin Recommended"
+     section of My Interests, so they're visible and opt-out-able rather
+     than silently injected. See db/schema_v211_video_seed_topics.sql. */
+  async 'video_seed_topics.select'(env) {
+    return sbFetch(env, 'video_seed_topics?select=*&order=label.asc');
+  },
+  async 'video_seed_topics.upsert'(env, p) {
+    return sbFetch(env, 'video_seed_topics?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'video_seed_topics.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'video_seed_topics?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+
   /* v182: manual tier assignment — no payment webhook exists yet, so the
      owner grants/changes a specific account's tier by email from
      admin.html until Razorpay integration lands. */

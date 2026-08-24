@@ -240,6 +240,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="limits" onclick="switchTab(this)">💳 Limits</button>
     <button class="tab"    data-p="notifications" onclick="switchTab(this)">🔔 Notifications</button>
     <button class="tab"    data-p="engagement" onclick="switchTab(this)">📊 Engagement</button>
+    <button class="tab"    data-p="videotopics" onclick="switchTab(this)">🎬 Video Topics</button>
   </div>
 
   <!-- TOOLS -->
@@ -415,6 +416,15 @@ momentum decay (continuous, real HOURS since the last day that
 crossed the engaged-day threshold — not whole calendar days):
   pct_retained = exp(-decay_k &times; hours_since_engaged ^ decay_exponent)
   momentum     = momentum &times; pct_retained</div>
+  </div>
+
+  <!-- VIDEO TOPICS (v211): admin-seeded topics shown to users as pre-toggled-on
+       chips in My Interests, e.g. Abraham Hicks / Law of Attraction content the
+       owner wants periodically surfaced app-wide. -->
+  <div id="pane-videotopics" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Topics you want to periodically appear in everyone's video feed, regardless of what they've personally added — e.g. Law of Attraction / Abraham Hicks content. Shown to every user as a chip in their own My Interests, on by default, with one tap to turn any single one off — never silently injected. Uses the same shared search-and-cache system as everything else in the video feed, so this doesn't cost anything extra per user.</p>
+    <button class="add-btn" onclick="openSeedTopicForm()">＋ Add topic</button>
+    <div id="seed-topics-list"><div class="s-load">Loading...</div></div>
   </div>
 
   <!-- SANDBOX TESTER: talk to a test Clar using live AI Context/Charts, never logged as a real session -->
@@ -679,6 +689,7 @@ async function loadData() {
   loadNotificationRules();
   loadNotifLog();
   loadEngagementConfig();
+  loadSeedTopics();
 }
 
 async function api(params) {
@@ -1905,6 +1916,77 @@ async function _applyTier(user_id, tier, label) {
     await adminApi('user_profile.setTier', { user_id, tier });
     out.innerHTML = `✓ ${x(label)} (${x(user_id)}) is now "${x(tier)}".`;
   } catch(e) { toast('Error: '+e.message,'err'); }
+}
+
+/* ══════════════════════════════════════════════════════
+   VIDEO SEED TOPICS (v211) — admin-recommended video content, shown to
+   every user as a pre-toggled-on chip in My Interests (opt-out, not
+   silent injection). Same shared search-and-cache system as everything
+   else in the video feed — see db/schema_v211_video_seed_topics.sql.
+   ══════════════════════════════════════════════════════ */
+let SEED_TOPIC_ROWS = [];
+
+async function loadSeedTopics() {
+  const el = document.getElementById('seed-topics-list');
+  if (!el) return;
+  try {
+    SEED_TOPIC_ROWS = await adminApi('video_seed_topics.select') || [];
+    renderSeedTopics(SEED_TOPIC_ROWS);
+  } catch(e) {
+    el.innerHTML = /unauthorized/i.test(e.message)
+      ? empty('🔒', 'Invalid admin token — reload the page and re-enter it')
+      : empty('⚠️', 'Could not load: ' + e.message);
+  }
+}
+
+function renderSeedTopics(rows) {
+  const el = document.getElementById('seed-topics-list');
+  if (!rows.length) { el.innerHTML = empty('🎬', 'Nothing seeded yet — users see no "Admin Recommended" section until you add one'); return; }
+  el.innerHTML = rows.map(r => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${x(r.label)}</div>
+          <div style="font-size:12px;color:#9CA3AF;margin-top:2px">${r.active ? '' : '⏸ off — '}${x(r.query)}</div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="openSeedTopicForm(${r.id})">Edit</button>
+          <button class="ab a-del"  onclick="delSeedTopic(${r.id})">Del</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openSeedTopicForm(id) {
+  const isEdit = id != null;
+  const r = isEdit ? (SEED_TOPIC_ROWS.find(t => t.id === id) || {}) : {};
+  openSheet(
+    isEdit ? 'Edit video topic' : 'Add video topic',
+    fT('Label — shown on the chip *','seed-label', r.label || '', 'e.g. Law of Attraction')
+    + fT('YouTube search query *','seed-query', r.query || '', 'e.g. law of attraction manifestation shorts')
+    + fYN('Active','seed-active', r.active === false ? 'no' : 'yes'),
+    async () => {
+      const label = v('seed-label');
+      const query = v('seed-query');
+      if (!label || !query) { toast('Label and query are both required','err'); return; }
+      const payload = {
+        label, query,
+        active: document.getElementById('seed-active').checked,
+        topic: 'seed_' + label.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''),
+      };
+      if (isEdit) payload.id = id;
+      await adminApi('video_seed_topics.upsert', payload);
+      toast('Saved ✓','ok'); closeSheet(); await loadSeedTopics();
+    }
+  );
+}
+
+function delSeedTopic(id) {
+  showConfirm('Delete this video topic? It stops appearing for every user immediately.', async () => {
+    try { await adminApi('video_seed_topics.delete', { id }); }
+    catch(e) { toast('Error: '+e.message,'err'); return; }
+    toast('Deleted ✓','ok'); loadSeedTopics();
+  });
 }
 
 /* ══════════════════════════════════════════════════════

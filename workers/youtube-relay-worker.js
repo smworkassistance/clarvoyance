@@ -200,11 +200,24 @@
     cache rather than replacing anything, so the pool only ever grows.
     Deliberately a no-op (zero extra YouTube quota spent) once a topic is
     marked exhausted — a broad query running out of genuinely new results
-    is rare but not impossible, and there's no point re-asking forever. */
-  async function growTopicPool(env, topic, query) {
+    is rare but not impossible, and there's no point re-asking forever.
+
+    v211: gained `freshQuery` — a way to swap an EXISTING topic bucket to
+    a genuinely different search query instead of only ever paging deeper
+    into the one it started with. Built for dream-desire topics (a client
+    request to keep surfacing new angles on "white Range Rover" — driving
+    shots, interior tours, delivery reels — over the life of that desire),
+    but generic: any caller can request it. When set, this deliberately
+    bypasses the `exhausted` short-circuit too — exhaustion is specific to
+    the OLD query having run out of new results, not proof the topic has
+    no more content anywhere; a new query angle can easily find fresh
+    results even after the old one dried up. The new query becomes the
+    stored query going forward, so a later plain `more:true` (no
+    freshQuery) paginates from THIS query until the next explicit swap. */
+  async function growTopicPool(env, topic, query, freshQuery) {
     let state = await getTopicState(env, topic);
 
-    if (state && state.exhausted) {
+    if (state && state.exhausted && !freshQuery) {
       const cached = await fetchAllFromCache(env, topic);
       return { source: 'exhausted', videos: cached, count: cached.length, grew: false };
     }
@@ -223,8 +236,8 @@
       overlap what's already cached (on_conflict dedups them), the point
       is this call finally gets and saves a REAL nextPageToken, after
       which normal pagination takes over correctly from here on. */
-    const q = (state && state.query) || query || topic;
-    const pageToken = state ? (state.next_page_token || null) : null;
+    const q = (freshQuery && query) ? query : ((state && state.query) || query || topic);
+    const pageToken = freshQuery ? null : (state ? (state.next_page_token || null) : null);
     const page = await searchYouTubePage(env, topic, q, pageToken);
     if (page.rows.length) {
       await sbFetch(env, 'youtube_topic_cache?on_conflict=topic,video_id', {
@@ -236,7 +249,8 @@
     await saveTopicState(env, topic, q, page.nextPageToken, !page.nextPageToken);
 
     const cached = await fetchAllFromCache(env, topic);
-    return { source: state ? 'grown' : 'bootstrapped', videos: cached, count: cached.length, grew: page.rows.length > 0, added: page.rows.length };
+    const source = freshQuery ? 'fresh_variant' : (state ? 'grown' : 'bootstrapped');
+    return { source, videos: cached, count: cached.length, grew: page.rows.length > 0, added: page.rows.length };
   }
 
   export default {
@@ -252,7 +266,7 @@
 
       try {
         const result = body.more
-          ? await growTopicPool(env, topic, body.query)
+          ? await growTopicPool(env, topic, body.query, !!body.freshQuery)
           : await getVideosForTopic(env, topic, body.query);
         return json(result);
       } catch (e) {
