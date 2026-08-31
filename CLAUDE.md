@@ -25,7 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v182), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
+| PWA | sw.js (cache version clv-v216), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 
