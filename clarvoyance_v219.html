@@ -1993,27 +1993,6 @@ html[data-theme="dark"] .chat-msgs{
     </div>
   </div>
 
-  <!-- NON-NEGOTIABLES (v220 — moved from Self tab to Home, taking the Clar
-       Commitment card's old spot; Clar Commitment itself removed from view,
-       see bnavSwitch's map.home below — markup left in place, not deleted) -->
-  <div class="self-acc" id="nn-tab-section" style="display:none">
-    <div class="sacc-row sacc-row-last" onclick="selfToggle('nn')">
-      <span class="sacc-sym">◈</span>
-      <div style="flex:1;min-width:0">
-        <span class="sacc-title" style="display:block">Non-Negotiables</span>
-        <span style="display:block;font-size:.74rem;color:var(--lt);font-weight:400;margin-top:2px">The basis of a well-formed life.</span>
-      </div>
-      <span class="sacc-chev" id="self-chev-nn">›</span>
-    </div>
-    <div class="sacc-body sacc-body-last" id="self-body-nn" style="display:none">
-      <div id="nn-cl-list"></div>
-      <div class="nn-add-row" style="padding:10px 0 2px">
-        <input class="nn-inp" type="text" id="nn-tab-new" placeholder="Add a non-negotiable..." onkeydown="if(event.key==='Enter')addNNTab()">
-        <button class="btn pr" onclick="addNNTab()">+ Add</button>
-      </div>
-    </div>
-  </div>
-
   <!-- PRACTICE PLAN CARD (v180) — Clar's own suggested short practices, not shown until one is active -->
   <div id="clv-practice-plan" style="display:none">
     <div class="clv-cm-hdr" style="cursor:default">
@@ -2453,7 +2432,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v220</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v219</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -2693,12 +2672,12 @@ html[data-theme="dark"] .chat-msgs{
       </div>
 
       <!-- Protect Yourself -->
-      <div class="sacc-row sacc-row-last" onclick="selfToggle('pys')">
+      <div class="sacc-row" onclick="selfToggle('pys')">
         <span class="sacc-sym">◻</span>
         <span class="sacc-title">Protect Yourself</span>
         <span class="sacc-chev" id="self-chev-pys">›</span>
       </div>
-      <div class="sacc-body sacc-body-last" id="self-body-pys" style="display:none">
+      <div class="sacc-body" id="self-body-pys" style="display:none">
         <div class="pys-section">
           <div class="pys-hdr"><span class="pys-hdr-sym" style="color:#b84040">✕</span><span>Kill Distractions</span></div>
           <div id="kd-list"></div>
@@ -2719,6 +2698,22 @@ html[data-theme="dark"] .chat-msgs{
           <div class="pys-hdr"><span class="pys-hdr-sym">○</span><span>No Overindulgence</span></div>
           <div id="noi-list"></div>
           <div class="kd-add-row"><input class="nn-inp" type="text" id="noi-inp" placeholder="Name an overindulgence to break..." onkeydown="if(event.key==='Enter')noiAdd()"><button class="btn pr" onclick="noiAdd()">+ Add</button></div>
+        </div>
+      </div>
+
+      <!-- Non-Negotiables -->
+      <div id="nn-tab-section">
+        <div class="sacc-row sacc-row-last" onclick="selfToggle('nn')">
+          <span class="sacc-sym">◈</span>
+          <span class="sacc-title">Non-Negotiables</span>
+          <span class="sacc-chev" id="self-chev-nn">›</span>
+        </div>
+        <div class="sacc-body sacc-body-last" id="self-body-nn" style="display:none">
+          <div id="nn-cl-list"></div>
+          <div class="nn-add-row" style="padding:10px 0 2px">
+            <input class="nn-inp" type="text" id="nn-tab-new" placeholder="Add a non-negotiable..." onkeydown="if(event.key==='Enter')addNNTab()">
+            <button class="btn pr" onclick="addNNTab()">+ Add</button>
+          </div>
         </div>
       </div>
 
@@ -5368,18 +5363,12 @@ function bnavSwitch(el){
   const genManifestSec=document.getElementById('gen-manifest-section');
   const selfSec=document.getElementById('self-section');
   const fortuneSec=document.getElementById('fortune-section');
-  const nnTabSec=document.getElementById('nn-tab-section'); /* v220: moved from Self tab to Home */
   if(chatSection) chatSection.style.display='none';
   const profSec=document.getElementById('profile-section');if(profSec)profSec.style.display='none';
-  const all=[homeWidget,dqCard,vibeFeed,goalRow,rrRow,rrQuotesSec,...slbls,tlMain,chargersSec,sheetRevSec,commitCard,practicePlanCard,homeNavCards,mirrorCard,shortGoalsSec,issuesSec,genManifestSec,selfSec,fortuneSec,nnTabSec];
+  const all=[homeWidget,dqCard,vibeFeed,goalRow,rrRow,rrQuotesSec,...slbls,tlMain,chargersSec,sheetRevSec,commitCard,practicePlanCard,homeNavCards,mirrorCard,shortGoalsSec,issuesSec,genManifestSec,selfSec,fortuneSec];
   all.forEach(s=>{if(s)s.style.display='none';});
   const map={
-    /* v220: Non-Negotiables replaces Clar Commitment in the Home lineup —
-       Clar Commitment removed from every map (so it stays permanently
-       hidden via the all[] pass above) but its variable/markup/functions are
-       deliberately left in place, not deleted, matching this file's own
-       established "hide, don't remove" convention for retired UI. */
-    home:[dqCard,nnTabSec,practicePlanCard,homeNavCards],
+    home:[dqCard,commitCard,practicePlanCard,homeNavCards],
     goal:[goalRow,issuesSec,genManifestSec],
     vibe:[vibeFeed],
     tools:[tlMain],
@@ -14863,8 +14852,7 @@ body.home-tab #home-v2{order:1;}
 body.home-tab #clv-commitment{order:2;}
 body.home-tab #home-nav-cards{order:3;}
 body.home-tab #dq-card{order:9;margin-top:8px;}
-/* v220: NN moved from Self tab to Home, taking Clar Commitment's old spot (order:2) */
-body.home-tab #nn-tab-section{order:2;}
+body.home-tab #nn-tab-section{order:10;}
 
 /* ── Home Nav Cards (Chargers / Tools / Revise shortcuts) ── */
 #home-nav-cards{margin-bottom:16px;}

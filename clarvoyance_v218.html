@@ -1993,27 +1993,6 @@ html[data-theme="dark"] .chat-msgs{
     </div>
   </div>
 
-  <!-- NON-NEGOTIABLES (v220 — moved from Self tab to Home, taking the Clar
-       Commitment card's old spot; Clar Commitment itself removed from view,
-       see bnavSwitch's map.home below — markup left in place, not deleted) -->
-  <div class="self-acc" id="nn-tab-section" style="display:none">
-    <div class="sacc-row sacc-row-last" onclick="selfToggle('nn')">
-      <span class="sacc-sym">◈</span>
-      <div style="flex:1;min-width:0">
-        <span class="sacc-title" style="display:block">Non-Negotiables</span>
-        <span style="display:block;font-size:.74rem;color:var(--lt);font-weight:400;margin-top:2px">The basis of a well-formed life.</span>
-      </div>
-      <span class="sacc-chev" id="self-chev-nn">›</span>
-    </div>
-    <div class="sacc-body sacc-body-last" id="self-body-nn" style="display:none">
-      <div id="nn-cl-list"></div>
-      <div class="nn-add-row" style="padding:10px 0 2px">
-        <input class="nn-inp" type="text" id="nn-tab-new" placeholder="Add a non-negotiable..." onkeydown="if(event.key==='Enter')addNNTab()">
-        <button class="btn pr" onclick="addNNTab()">+ Add</button>
-      </div>
-    </div>
-  </div>
-
   <!-- PRACTICE PLAN CARD (v180) — Clar's own suggested short practices, not shown until one is active -->
   <div id="clv-practice-plan" style="display:none">
     <div class="clv-cm-hdr" style="cursor:default">
@@ -2453,7 +2432,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v220</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v218</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -2693,12 +2672,12 @@ html[data-theme="dark"] .chat-msgs{
       </div>
 
       <!-- Protect Yourself -->
-      <div class="sacc-row sacc-row-last" onclick="selfToggle('pys')">
+      <div class="sacc-row" onclick="selfToggle('pys')">
         <span class="sacc-sym">◻</span>
         <span class="sacc-title">Protect Yourself</span>
         <span class="sacc-chev" id="self-chev-pys">›</span>
       </div>
-      <div class="sacc-body sacc-body-last" id="self-body-pys" style="display:none">
+      <div class="sacc-body" id="self-body-pys" style="display:none">
         <div class="pys-section">
           <div class="pys-hdr"><span class="pys-hdr-sym" style="color:#b84040">✕</span><span>Kill Distractions</span></div>
           <div id="kd-list"></div>
@@ -2719,6 +2698,22 @@ html[data-theme="dark"] .chat-msgs{
           <div class="pys-hdr"><span class="pys-hdr-sym">○</span><span>No Overindulgence</span></div>
           <div id="noi-list"></div>
           <div class="kd-add-row"><input class="nn-inp" type="text" id="noi-inp" placeholder="Name an overindulgence to break..." onkeydown="if(event.key==='Enter')noiAdd()"><button class="btn pr" onclick="noiAdd()">+ Add</button></div>
+        </div>
+      </div>
+
+      <!-- Non-Negotiables -->
+      <div id="nn-tab-section">
+        <div class="sacc-row sacc-row-last" onclick="selfToggle('nn')">
+          <span class="sacc-sym">◈</span>
+          <span class="sacc-title">Non-Negotiables</span>
+          <span class="sacc-chev" id="self-chev-nn">›</span>
+        </div>
+        <div class="sacc-body sacc-body-last" id="self-body-nn" style="display:none">
+          <div id="nn-cl-list"></div>
+          <div class="nn-add-row" style="padding:10px 0 2px">
+            <input class="nn-inp" type="text" id="nn-tab-new" placeholder="Add a non-negotiable..." onkeydown="if(event.key==='Enter')addNNTab()">
+            <button class="btn pr" onclick="addNNTab()">+ Add</button>
+          </div>
         </div>
       </div>
 
@@ -5368,18 +5363,12 @@ function bnavSwitch(el){
   const genManifestSec=document.getElementById('gen-manifest-section');
   const selfSec=document.getElementById('self-section');
   const fortuneSec=document.getElementById('fortune-section');
-  const nnTabSec=document.getElementById('nn-tab-section'); /* v220: moved from Self tab to Home */
   if(chatSection) chatSection.style.display='none';
   const profSec=document.getElementById('profile-section');if(profSec)profSec.style.display='none';
-  const all=[homeWidget,dqCard,vibeFeed,goalRow,rrRow,rrQuotesSec,...slbls,tlMain,chargersSec,sheetRevSec,commitCard,practicePlanCard,homeNavCards,mirrorCard,shortGoalsSec,issuesSec,genManifestSec,selfSec,fortuneSec,nnTabSec];
+  const all=[homeWidget,dqCard,vibeFeed,goalRow,rrRow,rrQuotesSec,...slbls,tlMain,chargersSec,sheetRevSec,commitCard,practicePlanCard,homeNavCards,mirrorCard,shortGoalsSec,issuesSec,genManifestSec,selfSec,fortuneSec];
   all.forEach(s=>{if(s)s.style.display='none';});
   const map={
-    /* v220: Non-Negotiables replaces Clar Commitment in the Home lineup —
-       Clar Commitment removed from every map (so it stays permanently
-       hidden via the all[] pass above) but its variable/markup/functions are
-       deliberately left in place, not deleted, matching this file's own
-       established "hide, don't remove" convention for retired UI. */
-    home:[dqCard,nnTabSec,practicePlanCard,homeNavCards],
+    home:[dqCard,commitCard,practicePlanCard,homeNavCards],
     goal:[goalRow,issuesSec,genManifestSec],
     vibe:[vibeFeed],
     tools:[tlMain],
@@ -8833,10 +8822,6 @@ function renderNoOverindulgence(){
 
   var _sb  = null;
   var _uid = null;  // anon user_id, set after auth
-  /* v219: tracks the last Google account uid we actually processed a real
-     sign-in for — see _setupAuthListener's SIGNED_IN branch and initSync
-     below for why this exists. */
-  var _lastKnownGoogleUid = null;
 
   function _getSb(){
     if(!_sb) _sb = window._sbShared || window.supabase.createClient(SB_URL, SB_KEY);
@@ -9356,49 +9341,31 @@ function renderNoOverindulgence(){
         if(_uid){
           var isGoogle = session && !session.user.is_anonymous;
           if(isGoogle){
-            /* v219: supabase-js can re-emit SIGNED_IN for an ALREADY-active
-               Google session with nothing actually changed — most commonly
-               when a PWA/tab regains focus after being backgrounded, a
-               widely-reported supabase-js v2 behavior (its auto-refresh
-               logic re-validates the session on visibility/focus regain).
-               Every SIGNED_IN event here used to be treated as "the user
-               just signed in", wiping local data and reloading the whole
-               page — so simply switching apps/tabs and coming back on a
-               signed-in PWA reset the entire window with no real sign-in
-               having happened (real owner report). Only run the destructive
-               clear+pull+reload cascade when the account genuinely changed
-               (a real first-time sign-in, or a different Google account) —
-               _updateAuthUI() above already keeps the header/UI in sync on
-               every event, which is all a same-account refire needs. */
-            if(_lastKnownGoogleUid !== _uid){
-              _lastKnownGoogleUid = _uid;
-              // Clear previous user's local data, then pull this user's Supabase data
-              // If new user (empty Supabase row) → app shows blank. If returning user → their data loads.
-              _clearUserLocalStorage();
-              _pullUserData().then(function(){
-                _pushAllUserData();
-                /* v191: only safe to run here — after the pull, on fresh
-                   correctly-restored data — see the function's own comment
-                   above for why running this before the pull was a real bug. */
-                if(typeof window._syncGoogleEmailIfNeeded === 'function') window._syncGoogleEmailIfNeeded(session);
-                if(typeof window._syncGoogleNameIfNeeded === 'function') window._syncGoogleNameIfNeeded(session);
-                // refresh profile form so it shows new user's data immediately
-                if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
-                if(typeof window.xpRefreshAll   === 'function'){
-                  var xp = parseInt(localStorage.getItem('clar_xp')||'0',10);
-                  window.xpRefreshAll(xp);
-                }
-                /* v175: reload so every tab (chat, goal, NN, revise, self) boots fresh from
-                   the new account instead of only profile/XP refreshing — each tab caches
-                   its own in-memory state (e.g. chatHistory) that a localStorage write alone
-                   doesn't reach, so without this, tabs already rendered kept showing the
-                   previous user's data until manually re-visited. Short delay lets the
-                   _pushAllUserData() upserts above reach the server before reload cancels them. */
-                setTimeout(function(){ window.location.reload(); }, 600);
-              });
-            }
+            // Clear previous user's local data, then pull this user's Supabase data
+            // If new user (empty Supabase row) → app shows blank. If returning user → their data loads.
+            _clearUserLocalStorage();
+            _pullUserData().then(function(){
+              _pushAllUserData();
+              /* v191: only safe to run here — after the pull, on fresh
+                 correctly-restored data — see the function's own comment
+                 above for why running this before the pull was a real bug. */
+              if(typeof window._syncGoogleEmailIfNeeded === 'function') window._syncGoogleEmailIfNeeded(session);
+              if(typeof window._syncGoogleNameIfNeeded === 'function') window._syncGoogleNameIfNeeded(session);
+              // refresh profile form so it shows new user's data immediately
+              if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
+              if(typeof window.xpRefreshAll   === 'function'){
+                var xp = parseInt(localStorage.getItem('clar_xp')||'0',10);
+                window.xpRefreshAll(xp);
+              }
+              /* v175: reload so every tab (chat, goal, NN, revise, self) boots fresh from
+                 the new account instead of only profile/XP refreshing — each tab caches
+                 its own in-memory state (e.g. chatHistory) that a localStorage write alone
+                 doesn't reach, so without this, tabs already rendered kept showing the
+                 previous user's data until manually re-visited. Short delay lets the
+                 _pushAllUserData() upserts above reach the server before reload cancels them. */
+              setTimeout(function(){ window.location.reload(); }, 600);
+            });
           } else {
-            _lastKnownGoogleUid = null;
             _pullUserData().then(function(){
               if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
             });
@@ -9426,14 +9393,6 @@ function renderNoOverindulgence(){
       var sb = _getSb();
       var { data: { session } } = await sb.auth.getSession();
       _updateAuthUI(session);
-      /* v219: seed the "already-known" Google uid here too, not just inside
-         the SIGNED_IN listener — a normal load for an already-signed-in
-         Google user establishes its session through this direct getSession()
-         call, never through a SIGNED_IN event (see the v177 comment below on
-         _setupAuthListener for why), so without this the listener's own
-         "is this genuinely a new sign-in" guard wouldn't recognize the
-         account on the very first spurious refire. */
-      if(session && !session.user.is_anonymous) _lastKnownGoogleUid = session.user.id;
       await _pullUserData();
       /* v191: same reasoning as the SIGNED_IN branch above — only safe
          after the pull, never before. */
@@ -14863,8 +14822,7 @@ body.home-tab #home-v2{order:1;}
 body.home-tab #clv-commitment{order:2;}
 body.home-tab #home-nav-cards{order:3;}
 body.home-tab #dq-card{order:9;margin-top:8px;}
-/* v220: NN moved from Self tab to Home, taking Clar Commitment's old spot (order:2) */
-body.home-tab #nn-tab-section{order:2;}
+body.home-tab #nn-tab-section{order:10;}
 
 /* ── Home Nav Cards (Chargers / Tools / Revise shortcuts) ── */
 #home-nav-cards{margin-bottom:16px;}
