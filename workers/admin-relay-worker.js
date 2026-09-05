@@ -560,6 +560,70 @@ const ACTIONS = {
       body: JSON.stringify(p),
     });
   },
+
+  /* v225 — the owner's own manual check of the app's core belief ("does
+     this person's Clar usage actually track with how they're doing
+     emotionally") for the "📈 Usage vs State" admin.html tool. Mirrors
+     _computeUsageOutcomeCorrelation() in index.html exactly (same 3-day
+     recency window, same median split, same >0.05 confirms threshold) —
+     a separate copy rather than shared code since this runs in a
+     different file/runtime, same "own local copy" pattern already used
+     elsewhere in this project (see CLAUDE.md v211/v215). Needs
+     db/schema_v225_admin_insights_user_id.sql run first — admin_insights
+     had no user_id column before that. service_role reads both tables
+     directly here, bypassing each user's own RLS, since this is an
+     admin-only lookup by email, not a user reading their own data. */
+  async 'usage_correlation.compute'(env, p) {
+    if (!p.email) throw new Error('email required');
+    const users = await sbFetch(env, 'user_profile?select=user_id,email&email=eq.'
+      + encodeURIComponent(p.email) + '&order=updated_at.desc&limit=1');
+    if (!users.length) throw new Error('no user found with that email');
+    const uid = users[0].user_id;
+    const dailyRows = await sbFetch(env, 'user_daily_log?select=date,daily_score&user_id=eq.'
+      + encodeURIComponent(uid) + '&order=date.asc&limit=120');
+    const insightRows = await sbFetch(env, 'admin_insights?select=value,created_at&user_id=eq.'
+      + encodeURIComponent(uid) + '&order=created_at.asc&limit=400');
+
+    const scoreByDate = {};
+    (dailyRows || []).forEach((r) => {
+      if (r.daily_score !== null && r.daily_score !== undefined) scoreByDate[r.date] = r.daily_score;
+    });
+    const SR_NUM = { low: 0, neutral: 0.5, high: 1 };
+    const stateByDate = {};
+    (insightRows || []).forEach((r) => {
+      const sr = r.value && r.value.state_read;
+      if (!(sr in SR_NUM)) return;
+      const d = new Date(r.created_at).toISOString().slice(0, 10);
+      (stateByDate[d] = stateByDate[d] || []).push(SR_NUM[sr]);
+    });
+    const points = [];
+    Object.keys(stateByDate).forEach((dateStr) => {
+      const d = new Date(dateStr + 'T00:00:00Z');
+      let sum = 0, cnt = 0;
+      for (let i = 0; i < 3; i++) {
+        const dd = new Date(d); dd.setUTCDate(dd.getUTCDate() - i);
+        const key = dd.toISOString().slice(0, 10);
+        if (scoreByDate[key] !== undefined) { sum += scoreByDate[key]; cnt++; }
+      }
+      if (!cnt) return;
+      const states = stateByDate[dateStr];
+      points.push({ date: dateStr, recentEngagement: sum / cnt, avgState: states.reduce((a, b) => a + b, 0) / states.length });
+    });
+    if (points.length < 6) {
+      return { email: p.email, user_id: uid, hasEnoughData: false, sampleSize: points.length };
+    }
+    const sorted = points.slice().sort((a, b) => a.recentEngagement - b.recentEngagement);
+    const mid = Math.floor(sorted.length / 2);
+    const lowHalf = sorted.slice(0, mid), highHalf = sorted.slice(sorted.length - mid);
+    const avg = (arr) => arr.reduce((a, pt) => a + pt.avgState, 0) / arr.length;
+    const lowState = avg(lowHalf), highState = avg(highHalf);
+    return {
+      email: p.email, user_id: uid, hasEnoughData: true, sampleSize: points.length,
+      lowEngagementStatePct: Math.round(lowState * 100),
+      highEngagementStatePct: Math.round(highState * 100),
+      confirms: highState > lowState + 0.05,
+    };
+  },
 };
 
 export default {

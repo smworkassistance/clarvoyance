@@ -241,6 +241,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="notifications" onclick="switchTab(this)">🔔 Notifications</button>
     <button class="tab"    data-p="engagement" onclick="switchTab(this)">📊 Engagement</button>
     <button class="tab"    data-p="videotopics" onclick="switchTab(this)">🎬 Video Topics</button>
+    <button class="tab"    data-p="usagecorr" onclick="switchTab(this)">📈 Usage vs State</button>
   </div>
 
   <!-- TOOLS -->
@@ -416,6 +417,24 @@ momentum decay (continuous, real HOURS since the last day that
 crossed the engaged-day threshold — not whole calendar days):
   pct_retained = exp(-decay_k &times; hours_since_engaged ^ decay_exponent)
   momentum     = momentum &times; pct_retained</div>
+  </div>
+
+  <!-- USAGE vs STATE (v225): the owner's own manual check of the app's core
+       belief — does this specific person's Clar usage actually track with
+       how they're doing emotionally, in their own real data. Mirrors
+       _computeUsageOutcomeCorrelation() in index.html exactly (same 3-day
+       recency window, median split, >0.05 confirms threshold) — that
+       client-side copy is what lets Fortune cite this to the person
+       directly, but only when it's genuinely true for them; this tab is
+       purely for the owner to check specific accounts, not seen by users.
+       Needs db/schema_v225_admin_insights_user_id.sql run first. -->
+  <div id="pane-usagecorr" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Checks, for one specific person, whether the app's core belief actually holds in their real data: do the days that followed a higher-Clar-engagement stretch (their own last 3 days, recency-weighted — older history is treated as less predictive, per the idea that mood shifts with Clar usage fairly fast) get a better emotional read from Clar than the days that followed a quieter stretch? Needs at least 6 real days with both a daily_score and a logged state_read on record — below that it'll say so rather than guess.</p>
+    <div class="fld-2">
+      <div class="fld"><label>User email</label><input type="text" id="uc-email" placeholder="user@example.com"></div>
+      <div class="fld" style="display:flex;align-items:flex-end"><button class="add-btn" style="width:100%;margin:0" onclick="checkUsageCorrelation()">Check</button></div>
+    </div>
+    <div id="uc-result"></div>
   </div>
 
   <!-- VIDEO TOPICS (v211): admin-seeded topics shown to users as pre-toggled-on
@@ -1916,6 +1935,32 @@ async function _applyTier(user_id, tier, label) {
     await adminApi('user_profile.setTier', { user_id, tier });
     out.innerHTML = `✓ ${x(label)} (${x(user_id)}) is now "${x(tier)}".`;
   } catch(e) { toast('Error: '+e.message,'err'); }
+}
+
+/* v225 — "does this specific person's Clar usage actually track with how
+   they're doing emotionally" check, per the owner's explicit request to
+   verify the app's own core belief against real data rather than just
+   assert it. Same lookup-by-email pattern as setUserTierByEmail above. */
+async function checkUsageCorrelation() {
+  const email = v('uc-email');
+  const out = document.getElementById('uc-result');
+  if (!email) { toast('Enter an email first','err'); return; }
+  out.innerHTML = '<div class="s-load">Checking...</div>';
+  try {
+    const r = await adminApi('usage_correlation.compute', { email });
+    if (!r.hasEnoughData) {
+      out.innerHTML = `<div style="padding:14px;background:#1A1A24;border:1px solid #2A2A38;border-radius:10px;color:#9CA3AF;font-size:13px">Not enough real history yet for ${x(email)} — ${r.sampleSize||0} usable day${r.sampleSize===1?'':'s'} on record (needs at least 6, each with both a logged daily score and a Clar emotional read). Check back once they have more history.</div>`;
+      return;
+    }
+    const color = r.confirms ? '#8de6b0' : '#ff6b6b';
+    const label = r.confirms ? '✓ Confirms' : '✗ Does not confirm';
+    out.innerHTML = `<div style="padding:14px;background:#1A1A24;border:1px solid ${color};border-radius:10px">
+      <div style="font-size:16px;font-weight:700;color:${color};margin-bottom:8px">${label} — ${x(email)}</div>
+      <div style="font-size:13px;color:#C4C4D4;line-height:1.8">Sample size: ${r.sampleSize} day-windows<br>
+      After higher-engagement stretches: <b style="color:#fff">${r.highEngagementStatePct}%</b> (their own emotional-state scale)<br>
+      After lower-engagement stretches: <b style="color:#fff">${r.lowEngagementStatePct}%</b></div>
+      </div>`;
+  } catch(e) { out.innerHTML = `<div style="padding:14px;color:#ff6b6b;font-size:13px">Error: ${x(e.message)}</div>`; }
 }
 
 /* ══════════════════════════════════════════════════════
