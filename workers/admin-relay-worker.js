@@ -429,6 +429,68 @@ const ACTIONS = {
     return sbFetch(env, 'tools?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
   },
 
+  /* v230: vibe_cards/quotes/revise_repeat/learning_channels/modules — the
+     last 5 tables admin.html still wrote to Google Sheets only. The live
+     app (index.html) has read all of these from Supabase since v120, with
+     Sheets kept only as an emergency fallback if Supabase itself is down —
+     so every edit made to these 5 through admin.html's old Sheets path was
+     silently invisible to real users, same bug class v181 already fixed
+     for tools/chargers/charger_categories/charger_rules. This closes the
+     last gap and removes the only remaining reason admin.html needed the
+     Apps Script token/endpoint at all. Same upsert-by-id / delete-by-id
+     pattern as every table above. */
+  async 'vibe_cards.upsert'(env, p) {
+    return sbFetch(env, 'vibe_cards?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'vibe_cards.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'vibe_cards?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'quotes.upsert'(env, p) {
+    return sbFetch(env, 'quotes?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'quotes.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'quotes?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'revise_repeat.upsert'(env, p) {
+    return sbFetch(env, 'revise_repeat?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'revise_repeat.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'revise_repeat?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'learning_channels.upsert'(env, p) {
+    return sbFetch(env, 'learning_channels?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+  async 'learning_channels.delete'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'learning_channels?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+  async 'modules.upsert'(env, p) {
+    return sbFetch(env, 'modules?on_conflict=id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(p),
+    });
+  },
+
   /* v182: feature_gates — admin-adjustable AI usage limits (free vs
      premium, per feature). Composite primary key (feature_key, tier),
      so on_conflict names both columns. See db/schema_v182_feature_gates.sql. */

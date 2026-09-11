@@ -525,8 +525,10 @@ crossed the engaged-day threshold — not whole calendar days):
    CONFIG
    ══════════════════════════════════════════════════════ */
 const PASS  = 'clv2024';
-const TOKEN = 'clv_admin_2024'; // Must match ADMIN_TOKEN in Apps Script
-const API   = 'https://script.google.com/macros/s/AKfycbxJi8chmSSoLOMDKGnKjK6yNhrKM0Uh4C3-j1pjjPSFmZ3_V25TXvVUV9YA5kHFGxlNBw/exec';
+/* v230: the Google Sheets/Apps Script TOKEN+API constants that used to live
+   here are gone — vibe_cards/quotes/revise_repeat/learning_channels/modules
+   (the last 5 tables still using them) now go through adminApi() straight to
+   Supabase, same as every other tab. See the loadData()/api() history below. */
 
 /* AI Logic tab talks directly to Supabase (v160) — same project as the live app */
 const SB_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co';
@@ -654,37 +656,40 @@ function switchTab(btn) {
    DATA & API
    ══════════════════════════════════════════════════════ */
 async function loadData() {
-  /* v181: tools/chargers/charger_categories/charger_rules now read straight
-     from Supabase (what the live app actually uses) instead of the Sheets
-     copy — the two used to silently diverge with nothing warning about it.
-     vibe_cards/quotes/revise_repeat/learning_channels/modules still come
-     from the Sheets endpoint. Kept as two independent try/catch blocks
-     (not one Promise.all) deliberately — the Sheets endpoint has a known
-     CORS/reliability issue on some origins, and a failure there must not
-     also take down Tools/Chargers, which no longer depend on it at all. */
+  /* v230: vibe_cards/quotes/revise_repeat/learning_channels/modules moved
+     off the Sheets endpoint too — they're now fetched from Supabase in the
+     same Promise.all as tools/chargers/charger_categories/charger_rules
+     (which moved in v181). The old two-independent-try/catch split existed
+     specifically to isolate the Sheets endpoint's known CORS/reliability
+     issue from the Supabase-backed tables; with Sheets gone from this file
+     entirely, there's nothing left to isolate, so this is one straight
+     fetch+render pass now. */
   SD = SD || {};
-  let sheetsOk = true;
-  try {
-    const res = await fetch(API + '?admin=1&token=' + TOKEN + '&t=' + Date.now());
-    SD = await res.json();
-  } catch(e) { sheetsOk = false; console.warn('[Admin] Sheets fetch failed:', e.message); }
-
   let contentOk = true;
   try {
-    const [sbTools, sbCats, sbChargers, sbRules] = await Promise.all([
+    const [sbTools, sbCats, sbChargers, sbRules, sbVibe, sbQuotes, sbRevise, sbChannels, sbModules] = await Promise.all([
       getSb().from('tools').select('*'),
       getSb().from('charger_categories').select('*'),
       getSb().from('chargers').select('*'),
       getSb().from('charger_rules').select('*'),
+      getSb().from('vibe_cards').select('*'),
+      getSb().from('quotes').select('*'),
+      getSb().from('revise_repeat').select('*'),
+      getSb().from('learning_channels').select('*'),
+      getSb().from('modules').select('*'),
     ]);
-    if (sbTools.error) throw new Error('tools: ' + sbTools.error.message);
-    if (sbCats.error) throw new Error('charger_categories: ' + sbCats.error.message);
-    if (sbChargers.error) throw new Error('chargers: ' + sbChargers.error.message);
-    if (sbRules.error) throw new Error('charger_rules: ' + sbRules.error.message);
-    SD.tools              = sbTools.data || [];
-    SD.charger_categories = sbCats.data || [];
+    [sbTools, sbCats, sbChargers, sbRules, sbVibe, sbQuotes, sbRevise, sbChannels, sbModules].forEach(r => {
+      if (r.error) throw new Error(r.error.message);
+    });
+    SD.tools              = sbTools.data    || [];
+    SD.charger_categories = sbCats.data     || [];
     SD.chargers            = sbChargers.data || [];
-    SD.charger_rules       = sbRules.data || [];
+    SD.charger_rules       = sbRules.data    || [];
+    SD.vibe_cards           = sbVibe.data     || [];
+    SD.quotes               = sbQuotes.data   || [];
+    SD.revise_repeat        = sbRevise.data   || [];
+    SD.learning_channels    = sbChannels.data || [];
+    SD.modules              = sbModules.data  || [];
   } catch(e) { contentOk = false; console.warn('[Admin] Supabase content fetch failed:', e.message); }
 
   renderTools    (SD.tools              || []);
@@ -695,10 +700,14 @@ async function loadData() {
   renderQuotes   (SD.quotes             || []);
   renderRevise   (SD.revise_repeat      || []);
   renderChannels (SD.learning_channels  || []);
-  renderModules  (SD.modules            || []);
+  /* modules table now holds every module row (active and inactive) since
+     it's read straight from Supabase instead of the old Sheets endpoint,
+     which only ever returned active ones — renderModules only expects the
+     active subset (it just checks membership against the hardcoded
+     MOD_DEFS list), so filter here to match its original contract. */
+  renderModules  ((SD.modules || []).filter(m => m.active));
 
-  if (sheetsOk && contentOk) toast('Data refreshed ✓', 'ok');
-  else toast((!contentOk ? 'Tools/Chargers failed to load' : 'Sheets content (Vibe Cards/Quotes/etc) failed to load'), 'err');
+  toast(contentOk ? 'Data refreshed ✓' : 'Some content failed to load', contentOk ? 'ok' : 'err');
 
   loadAiContext();
   loadDebugLog();
@@ -709,12 +718,6 @@ async function loadData() {
   loadNotifLog();
   loadEngagementConfig();
   loadSeedTopics();
-}
-
-async function api(params) {
-  params.token = TOKEN;
-  const res = await fetch(API + '?' + new URLSearchParams(params));
-  return res.json();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1185,22 +1188,20 @@ function openVibeForm(idx) {
     async () => {
       const content = v('vf-content');
       if (!content) { toast('Content is required','err'); return; }
-      const d = { action:isEdit?'editVibeCard':'addVibeCard',
+      const payload = {
         id:v('vf-id')||slug(content.slice(0,20)), type:v('vf-type'),
         title:v('vf-title'), content, placeholder:v('vf-ph'),
-        timer:v('vf-timer'), xp:v('vf-xp'), icon:v('vf-ico-val'),
-        category:v('vf-cat'), active:chk('vf-act') };
-      if (isEdit) d.findId = c.id;
-      const r = await api(d);
-      if (r.success) { toast(isEdit?'Card updated ✓':'Card added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(r.error);
+        timer:parseInt(v('vf-timer'),10)||null, xp:parseInt(v('vf-xp'),10)||null, icon:v('vf-ico-val'),
+        category:v('vf-cat'), active:chk('vf-act')==='TRUE' };
+      await adminApi('vibe_cards.upsert', payload);
+      toast(isEdit?'Card updated ✓':'Card added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delVibe(i) {
   const c = (SD.vibe_cards||[])[i];
   showConfirm(`Delete vibe card "${c.title||c.id||'this card'}"?`, async () => {
-    const r = await api({action:'deleteVibeCard', findId:c.id});
-    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
+    try { await adminApi('vibe_cards.delete', {id:c.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -1242,21 +1243,19 @@ function openQuoteForm(idx) {
     async () => {
       const quote = v('qq-q');
       if (!quote) { toast('Quote text is required','err'); return; }
-      const d = { action:isEdit?'editQuote':'addQuote',
+      const payload = {
         id:isEdit?q.id:nextNumId(SD.quotes),
         quote, author:v('qq-a'), category:v('qq-cat'),
-        order:v('qq-order'), active:chk('qq-act'), action_col:v('qq-action') };
-      if (isEdit) d.findQuote = q.quote||q.text;
-      const r = await api(d);
-      if (r.success) { toast(isEdit?'Quote updated ✓':'Quote added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(r.error);
+        order:parseInt(v('qq-order'),10)||null, active:chk('qq-act')==='TRUE', action:v('qq-action') };
+      await adminApi('quotes.upsert', payload);
+      toast(isEdit?'Quote updated ✓':'Quote added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delQuote(i) {
   const q = (SD.quotes||[])[i];
   showConfirm('Delete this quote?', async () => {
-    const r = await api({action:'deleteQuote', findQuote:q.quote||q.text});
-    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
+    try { await adminApi('quotes.delete', {id:q.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -1297,21 +1296,19 @@ function openReviseForm(idx) {
     async () => {
       const title = v('rv-title');
       if (!title) { toast('Title is required','err'); return; }
-      const d = { action:isEdit?'editRevise':'addRevise',
+      const payload = {
         id:isEdit?r.id:nextNumId(SD.revise_repeat),
         title, content:v('rv-content'), image_url:v('rv-img'),
-        type:v('rv-type')||'philosophy', order:v('rv-order'), active:chk('rv-act') };
-      if (isEdit) d.findTitle = r.title;
-      const res = await api(d);
-      if (res.success) { toast(isEdit?'Item updated ✓':'Item added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(res.error);
+        type:v('rv-type')||'philosophy', order:parseInt(v('rv-order'),10)||null, active:chk('rv-act')==='TRUE' };
+      await adminApi('revise_repeat.upsert', payload);
+      toast(isEdit?'Item updated ✓':'Item added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delRevise(i) {
   const r = (SD.revise_repeat||[])[i];
   showConfirm(`Delete "${r.title||'this item'}"?`, async () => {
-    const res = await api({action:'deleteRevise', findTitle:r.title});
-    res.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+res.error,'err');
+    try { await adminApi('revise_repeat.delete', {id:r.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -1352,21 +1349,19 @@ function openChannelForm(idx) {
     async () => {
       const name=v('lc-name'), url=v('lc-url');
       if (!name||!url) { toast('Name and URL are required','err'); return; }
-      const d = { action:isEdit?'editChannel':'addChannel',
+      const payload = {
         id:isEdit?c.id:nextNumId(SD.learning_channels),
         name, url, description:v('lc-desc'),
-        category:v('lc-cat'), order:v('lc-order'), active:chk('lc-act') };
-      if (isEdit) d.findName = c.name;
-      const r = await api(d);
-      if (r.success) { toast(isEdit?'Channel updated ✓':'Channel added ✓','ok'); closeSheet(); await loadData(); }
-      else throw new Error(r.error);
+        category:v('lc-cat'), order:parseInt(v('lc-order'),10)||null, active:chk('lc-act')==='TRUE' };
+      await adminApi('learning_channels.upsert', payload);
+      toast(isEdit?'Channel updated ✓':'Channel added ✓','ok'); closeSheet(); await loadData();
     });
 }
 async function delChannel(i) {
   const c = (SD.learning_channels||[])[i];
   showConfirm(`Delete channel "${c.name}"?`, async () => {
-    const r = await api({action:'deleteChannel', findName:c.name});
-    r.success ? (toast('Deleted ✓','ok'),loadData()) : toast('Error: '+r.error,'err');
+    try { await adminApi('learning_channels.delete', {id:c.id}); toast('Deleted ✓','ok'); loadData(); }
+    catch(e) { toast('Error: '+e.message,'err'); }
   });
 }
 
@@ -1392,10 +1387,10 @@ function renderModules(activeMods) {
 async function toggleMod(id, active, cb) {
   cb.disabled = true;
   try {
-    const r = await api({action:'toggleModule', moduleId:id, active:String(active)});
-    if (r.success) toast((active?'Enabled: ':'Disabled: ')+id,'ok');
-    else { cb.checked = !active; throw new Error(r.error); }
-  } catch(e) { toast('Error: '+e.message,'err'); }
+    const def = MOD_DEFS.find(m=>m.id===id) || {};
+    await adminApi('modules.upsert', {id, name:def.name, description:def.desc, order:def.order, active});
+    toast((active?'Enabled: ':'Disabled: ')+id,'ok');
+  } catch(e) { cb.checked = !active; toast('Error: '+e.message,'err'); }
   cb.disabled = false;
 }
 
