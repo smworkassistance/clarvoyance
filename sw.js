@@ -1,5 +1,5 @@
 /* ═══ Clarvoyance Service Worker v229 ═══ */
-const CACHE_VERSION  = 'clv-v232';
+const CACHE_VERSION  = 'clv-v233';
 const SHEETS_WORKER  = 'https://clarvoyance-sheets.smworkassistance.workers.dev/';
 const SHELL = [
   '/clarvoyance/',
