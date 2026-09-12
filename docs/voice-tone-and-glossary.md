@@ -87,7 +87,11 @@ definitive-language rule (Part I, rule 3) matters most.
 ## Part III — Feature Glossary
 
 Written against Parts I & II above, from the owner's own explanation of what
-each feature is actually for. 27 entries, grouped by where they live in the app.
+each feature is actually for. 28 entries, grouped by where they live in the app.
+
+### How to Use Clar
+
+- **Getting the most from Clar** — *"How do I use Clar?"* — Talk to Clar often — the more you show up, the more it can actually help. Many people find real value spending around an hour a day across the app, though even a few minutes counts. Write down a real goal, so Clar can tailor what it shows you. Explore every part of the app at least once — Chargers, Tools, Self, and Fortune each help in a different way. Set your Non-Negotiables and try not to miss them — they're the foundation everything else builds on. Stuck on how something works? Search here, or just ask Clar directly. Need more than that? Write to us. Think of Clar less like an app and more like a companion for the life you're building — one that also knows how to help you unwind, with short videos and quotes built right into your feed.
 
 ### Main Sections (bottom navigation)
 
@@ -136,5 +140,10 @@ each feature is actually for. 27 entries, grouped by where they live in the app.
 *v1 — captured 2026-09-12, after the owner reviewed and corrected the original
 draft over several rounds of voice notes. Shipped into the app as the Help
 Glossary in v232, fidelity-corrected in v233 (3 entries had drifted during
-transcription — see CLAUDE.md v233 entry). Edit this file and the live
-artifact together; they should never diverge.*
+transcription — see CLAUDE.md v233 entry). "How to Use Clar" added as the
+Glossary's first section in v234, alongside the new one-time Life Quiz
+(3 reflection questions at the end of onboarding, answers saved straight
+into `present_challenge`/`permanent_challenge`/`goal` — the same fields
+Clar's own conversation already reads — see CLAUDE.md v234 entry for the
+full mechanics). Edit this file and the live artifact together; they
+should never diverge.*
