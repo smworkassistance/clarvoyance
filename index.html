@@ -2563,7 +2563,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v239</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v240</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -9678,6 +9678,18 @@ function renderNoOverindulgence(){
   }
 
   // ── Google OAuth ─────────────────────────────────────────────
+  /* v240: true only inside the Capacitor Android app's WebView — window.Capacitor
+     is injected by the native bridge before this script runs and simply doesn't
+     exist on the real website, so this is a safe, synchronous check with zero
+     effect on clar.co.in. */
+  function _isNative(){ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+
+  /* v240: the native app can't complete a redirect-based OAuth flow the way a browser
+     tab does (there's no page to reload) — Google/Supabase instead hand the result back
+     via this custom URL scheme, caught by the appUrlOpen listener registered below.
+     Must be added to Supabase's Redirect URLs allow-list (additive, same as the web one). */
+  var NATIVE_REDIRECT_URL = 'com.smworkassistance.clar://auth-callback';
+
   /* v230: was hardcoded to the old smworkassistance.github.io/clarvoyance/
      URL — every Google sign-in on clar.co.in was completing the OAuth
      handshake on that other origin instead, so the session landed in that
@@ -9685,7 +9697,7 @@ function renderNoOverindulgence(){
      silently failed every time ("logged in but still shows logged out").
      Owner added https://clar.co.in/ to Supabase's Redirect URLs allow-list
      first — this constant is the other half of that fix. */
-  var REDIRECT_URL = 'https://clar.co.in/';
+  var REDIRECT_URL = _isNative() ? NATIVE_REDIRECT_URL : 'https://clar.co.in/';
 
   /* v150: link the Google identity to the CURRENT anonymous user instead of starting a
      fresh sign-in. A plain signInWithOAuth() does not preserve the existing anonymous
@@ -9707,23 +9719,42 @@ function renderNoOverindulgence(){
      we know this device has done this before removes that duplicate prompt. */
   var GOOGLE_LINKED_BEFORE_KEY = 'clv_google_linked_before';
 
+  /* v240: on native, opens the OAuth URL in a system browser tab (Custom Tab on
+     Android) instead of letting the SDK navigate the app's own WebView away — the
+     WebView never leaves the app, and Google/Chrome's own signed-in session there
+     can make the sign-in near-instant. Falls back to a plain page redirect on web,
+     unchanged from before. */
+  async function _openAuthUrl(sb, method, opts){
+    if(!_isNative()){
+      var r = await sb.auth[method](opts);
+      if(r && r.error) throw r.error;
+      return;
+    }
+    var res = await sb.auth[method](Object.assign({}, opts, {
+      options: Object.assign({}, opts.options, { skipBrowserRedirect: true })
+    }));
+    if(res && res.error) throw res.error;
+    var url = res && res.data && res.data.url;
+    if(!url) throw new Error('no OAuth URL returned');
+    await window.Capacitor.Plugins.Browser.open({ url: url });
+  }
+
   window._signInWithGoogle = async function(){
     var sb = _getSb();
     if(localStorage.getItem(GOOGLE_LINKED_BEFORE_KEY) === '1'){
-      try { await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: REDIRECT_URL } }); }
+      try { await _openAuthUrl(sb, 'signInWithOAuth', { provider: 'google', options: { redirectTo: REDIRECT_URL } }); }
       catch(e){ console.warn('[Auth] Google sign-in error:', e.message); }
       return;
     }
     try {
       localStorage.setItem(LINK_PENDING_KEY, '1'); /* v159: checked on the return trip below */
-      var res = await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: REDIRECT_URL } });
-      if(res && res.error) throw res.error;
+      await _openAuthUrl(sb, 'linkIdentity', { provider: 'google', options: { redirectTo: REDIRECT_URL } });
     } catch(e){
       console.warn('[Auth] linkIdentity failed, falling back to plain sign-in:', e && e.message);
       localStorage.removeItem(LINK_PENDING_KEY);
       /* This Google account is already linked to a different (e.g. another device's)
          Supabase user — sign into that existing account instead of staying orphaned. */
-      try { await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: REDIRECT_URL } }); }
+      try { await _openAuthUrl(sb, 'signInWithOAuth', { provider: 'google', options: { redirectTo: REDIRECT_URL } }); }
       catch(e2){ console.warn('[Auth] Google sign-in error:', e2.message); }
     }
   };
@@ -9893,6 +9924,45 @@ function renderNoOverindulgence(){
   };
 
   // ── Auth state listener ───────────────────────────────────────
+  /* v240: extracted verbatim from the SIGNED_IN listener's Google branch below so the
+     native deep-link handler (which has no onAuthStateChange event to wait on — see
+     _handleNativeAuthCallback) can drive the exact same, already-hardened completion
+     sequence instead of a second, divergent copy. The _lastKnownGoogleUid dedup guard
+     is what makes this safe to call from two places without double-running: if the
+     web listener also happens to fire for the same account, the guard below simply
+     no-ops on the second call. */
+  function _completeGoogleSignIn(session){
+    if(!session || session.user.is_anonymous) return;
+    var uid = session.user.id;
+    if(_lastKnownGoogleUid === uid) return;
+    _lastKnownGoogleUid = uid;
+    // Clear previous user's local data, then pull this user's Supabase data
+    // If new user (empty Supabase row) → app shows blank. If returning user → their data loads.
+    _clearUserLocalStorage();
+    _pullUserData().then(function(){
+      _pushAllUserData();
+      /* v191: only safe to run here — after the pull, on fresh
+         correctly-restored data — see the function's own comment
+         above for why running this before the pull was a real bug. */
+      if(typeof window._syncGoogleEmailIfNeeded === 'function') window._syncGoogleEmailIfNeeded(session);
+      if(typeof window._syncGoogleNameIfNeeded === 'function') window._syncGoogleNameIfNeeded(session);
+      if(typeof window._reconcileLifeQuizFromSync === 'function') window._reconcileLifeQuizFromSync(); /* v238-follow-up */
+      // refresh profile form so it shows new user's data immediately
+      if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
+      if(typeof window.xpRefreshAll   === 'function'){
+        var xp = parseInt(localStorage.getItem('clar_xp')||'0',10);
+        window.xpRefreshAll(xp);
+      }
+      /* v175: reload so every tab (chat, goal, NN, revise, self) boots fresh from
+         the new account instead of only profile/XP refreshing — each tab caches
+         its own in-memory state (e.g. chatHistory) that a localStorage write alone
+         doesn't reach, so without this, tabs already rendered kept showing the
+         previous user's data until manually re-visited. Short delay lets the
+         _pushAllUserData() upserts above reach the server before reload cancels them. */
+      setTimeout(function(){ window.location.reload(); }, 600);
+    });
+  }
+
   function _setupAuthListener(){
     var sb = _getSb();
     sb.auth.onAuthStateChange(function(event, session){
@@ -9918,34 +9988,7 @@ function renderNoOverindulgence(){
                (a real first-time sign-in, or a different Google account) —
                _updateAuthUI() above already keeps the header/UI in sync on
                every event, which is all a same-account refire needs. */
-            if(_lastKnownGoogleUid !== _uid){
-              _lastKnownGoogleUid = _uid;
-              // Clear previous user's local data, then pull this user's Supabase data
-              // If new user (empty Supabase row) → app shows blank. If returning user → their data loads.
-              _clearUserLocalStorage();
-              _pullUserData().then(function(){
-                _pushAllUserData();
-                /* v191: only safe to run here — after the pull, on fresh
-                   correctly-restored data — see the function's own comment
-                   above for why running this before the pull was a real bug. */
-                if(typeof window._syncGoogleEmailIfNeeded === 'function') window._syncGoogleEmailIfNeeded(session);
-                if(typeof window._syncGoogleNameIfNeeded === 'function') window._syncGoogleNameIfNeeded(session);
-                if(typeof window._reconcileLifeQuizFromSync === 'function') window._reconcileLifeQuizFromSync(); /* v238-follow-up */
-                // refresh profile form so it shows new user's data immediately
-                if(typeof window._doOpenProfile === 'function') window._doOpenProfile();
-                if(typeof window.xpRefreshAll   === 'function'){
-                  var xp = parseInt(localStorage.getItem('clar_xp')||'0',10);
-                  window.xpRefreshAll(xp);
-                }
-                /* v175: reload so every tab (chat, goal, NN, revise, self) boots fresh from
-                   the new account instead of only profile/XP refreshing — each tab caches
-                   its own in-memory state (e.g. chatHistory) that a localStorage write alone
-                   doesn't reach, so without this, tabs already rendered kept showing the
-                   previous user's data until manually re-visited. Short delay lets the
-                   _pushAllUserData() upserts above reach the server before reload cancels them. */
-                setTimeout(function(){ window.location.reload(); }, 600);
-              });
-            }
+            _completeGoogleSignIn(session);
           } else {
             _lastKnownGoogleUid = null;
             _pullUserData().then(function(){
@@ -10018,6 +10061,71 @@ function renderNoOverindulgence(){
       if(typeof window._refreshPlanStatus==='function') window._refreshPlanStatus();
     } catch(e){ console.warn('[Sync] init failed:', e.message); }
   }
+
+  /* v240: catches the deep-link return from the system browser after a native Google
+     sign-in (see _openAuthUrl above) — there's no page reload to read the returned
+     session from the way the web flow does via window.location.hash, so this parses
+     the same kind of tokens/error data directly off the deep-link URL instead. */
+  async function _handleNativeAuthCallback(url){
+    var sb = _getSb();
+    try {
+      var hashIdx = url.indexOf('#');
+      var qIdx = url.indexOf('?');
+      var raw = hashIdx >= 0 ? url.slice(hashIdx+1) : (qIdx >= 0 ? url.slice(qIdx+1) : '');
+      if(!raw) return;
+      var params = new URLSearchParams(raw);
+      var err = params.get('error_description') || params.get('error');
+      if(err){
+        /* Same conflict _handleAuthRedirectError/_checkLinkFallback handle on web:
+           this Google account is already linked to a different Supabase user —
+           retry as a plain sign-in instead of staying orphaned. */
+        localStorage.removeItem(LINK_PENDING_KEY);
+        if(/already.*link|identity_already_exists/i.test(err)){
+          try { await _openAuthUrl(sb, 'signInWithOAuth', { provider: 'google', options: { redirectTo: REDIRECT_URL } }); }
+          catch(e2){ console.warn('[Auth] Google sign-in error:', e2.message); }
+        } else {
+          console.warn('[Auth] Google sign-in returned an error:', err);
+        }
+        return;
+      }
+      var access_token = params.get('access_token');
+      var refresh_token = params.get('refresh_token');
+      if(!access_token || !refresh_token) return;
+      await sb.auth.setSession({ access_token: access_token, refresh_token: refresh_token });
+      localStorage.removeItem(LINK_PENDING_KEY);
+      var got = await sb.auth.getSession();
+      var session = got && got.data && got.data.session;
+      if(session && !session.user.is_anonymous){
+        _uid = session.user.id;
+        window._sbUid = _uid;
+        _updateAuthUI(session);
+        /* setSession() firing onAuthStateChange('SIGNED_IN') isn't guaranteed across
+           every supabase-js version — drive the same completion sequence directly
+           rather than depend on it; _completeGoogleSignIn's own dedup guard makes
+           this safe even if the listener ALSO ends up firing for the same account. */
+        _completeGoogleSignIn(session);
+      }
+    } catch(e){ console.warn('[Auth] native auth callback failed:', e && e.message); }
+    finally {
+      try { if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Browser) window.Capacitor.Plugins.Browser.close(); } catch(e2){}
+    }
+  }
+
+  /* v240: window.Capacitor.Plugins.App may not be populated the instant this script
+     runs (the native bridge injects it, timing not guaranteed) — retry briefly rather
+     than assume, same pattern already used for window._sbShared readiness elsewhere
+     in this file (see the v163/v164/v194/v198 changelog entries). */
+  function _registerNativeAuthListener(attempts){
+    attempts = attempts || 0;
+    if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App){
+      window.Capacitor.Plugins.App.addListener('appUrlOpen', function(ev){
+        if(ev && ev.url && ev.url.indexOf('auth-callback') !== -1) _handleNativeAuthCallback(ev.url);
+      });
+    } else if(attempts < 40){
+      setTimeout(function(){ _registerNativeAuthListener(attempts+1); }, 50);
+    }
+  }
+  if(_isNative()) _registerNativeAuthListener();
 
   document.addEventListener('DOMContentLoaded', function(){
     setTimeout(initSync, 1000);
