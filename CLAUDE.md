@@ -560,6 +560,19 @@ The owner's private tool for editing what Clar actually thinks — separate file
 
 ---
 
+## Voice, Safety & Feature Glossary
+
+The full writing rules (feeling-first over mechanism-first, plain language over
+manifestation jargon, never a guaranteed outcome) and the complete 27-entry
+feature glossary that shipped as the v232/v233 Help Glossary live in
+**`docs/voice-tone-and-glossary.md`** — a permanent repo copy of the document
+also published live at https://claude.ai/code/artifact/1d31f371-d3ad-470f-b448-81eed0847cf1.
+Edit both together; if they ever disagree, the artifact is the editable one,
+this file is the durable backup — re-sync from it.
+
+Use this as the source of truth for any new app copy, marketing text, or
+onboarding content — not just the Help Glossary feature itself.
+
 ## Deliberately Deferred (not built yet)
 - Challenges sheet (40 research-backed challenges) — Apps Script SHEET_NAMES needs `challenges` added
 - Quest system linked to challenges sheet
@@ -578,7 +591,9 @@ The owner's private tool for editing what Clar actually thinks — separate file
 | New quote | Add row to `quotes` sheet |
 
 
-*Last updated: 2026-09-12 — v233: fixed 3 of the v232 Help Glossary's 27 entries that had drifted from the reviewed reference text during transcription (caught by the owner asking directly, verified with an actual diff rather than assumed). `sw.js` `CACHE_VERSION` `clv-v232`→`clv-v233`. See the v233 entry above.*
+*Last updated: 2026-09-12 — saved the Voice, Safety & Feature Glossary document as a permanent repo file (`docs/voice-tone-and-glossary.md`), verified word-for-word against the live artifact and the shipped app content via diff — this had been offered earlier in the session but never actually done, a real gap given the owner was about to switch sessions. See the new "Voice, Safety & Feature Glossary" section above for where it lives and how it relates to the live artifact link.*
+
+*Previously — 2026-09-12 — v233: fixed 3 of the v232 Help Glossary's 27 entries that had drifted from the reviewed reference text during transcription (caught by the owner asking directly, verified with an actual diff rather than assumed). `sw.js` `CACHE_VERSION` `clv-v232`→`clv-v233`. See the v233 entry above.*
 
 *Previously — 2026-09-12 — v232: added the in-app Help Glossary (second header icon, full-screen, browsable, static — no AI call, Clar's own chat context untouched by design) plus two new standing copy rules (feeling-first over mechanism-first, plain language over manifestation jargon, never a guaranteed outcome). `sw.js` `CACHE_VERSION` `clv-v231`→`clv-v232`. See the v232 entry above.*
 
