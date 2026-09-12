@@ -28,7 +28,10 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          # v240 first attempt used 17 and failed: capacitor-cordova-android-plugins'
+          # build.gradle sets sourceCompatibility/targetCompatibility to JavaVersion.VERSION_21 —
+          # confirmed by reading that file after the real build failure, not guessed a second time.
+          java-version: '21'
           cache: gradle
 
       - uses: android-actions/setup-android@v3
