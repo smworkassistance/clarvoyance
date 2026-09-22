@@ -45,7 +45,7 @@ As of v175, Claude has a working local end-to-end test loop for auth/Supabase fl
 clarvoyance_v[MAJOR].[MINOR]_[description]_[STATUS].html
 STATUS: TESTING | STABLE
 ```
-- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v227**
+- `index.html` = always the latest pushed stable/testing version (what users see on GitHub Pages) — currently **v242** (this line goes stale fast — check the top version-history table entry or `sw.js`'s `CACHE_VERSION` for the true current number, don't trust this line blindly)
 - Never edit old version files — always create a new version
 - After pushing a new version, always copy it to index.html and push that too
 
@@ -600,7 +600,9 @@ onboarding content — not just the Help Glossary feature itself.
 | New quote | Add row to `quotes` sheet |
 
 
-*Last updated: 2026-09-22 (later) — v242: Community button also on the Clar chat header (the global header is hidden on the chat tab where the app opens, so v241's only button was invisible after first paint); GitHub Pages was stuck because the repo had been made private — now public again.*
+*Last updated: 2026-09-23 — **Community is now LIVE for everyone**: owner ran `update feature_flags set enabled=true where key='social_layer'` in the Supabase SQL editor; confirmed via direct query the row now reads `enabled:true`. Every signed-in user now sees the Community icon (header on most tabs, `#chat-soc-btn` in the Clar chat header per v242) without needing `?social=1`. To pause it again if needed: `update public.feature_flags set enabled=false, updated_at=now() where key='social_layer';` — takes effect instantly for everyone, no redeploy. `index.html`/`sw.js` are at **v242**, repo is **public** (was briefly private, which silently stopped GitHub Pages builds — see the v242 entry above; do not re-privatize without a paid Pages plan). Also unresolved from this session, worth a look next time: the leftover Google Apps Script `ADMIN_TOKEN` sitting in old git history (pre-v230 `admin.html`/`admin_v182.html` revisions) — that endpoint is dead (Sheets writes were fully migrated to Supabase by v181/the "admin.html's last 5 Google Sheets tables" entry), so the exposure is low, but since the repo is now public it's worth either undeploying that Apps Script or rotating its token as a cleanup pass.*
+
+*Previously — 2026-09-22 (later) — v242: Community button also on the Clar chat header (the global header is hidden on the chat tab where the app opens, so v241's only button was invisible after first paint); GitHub Pages was stuck because the repo had been made private — now public again.*
 
 *Previously — 2026-09-22 — v241 (Community/social layer) built as `clarvoyance_v241.html` + `db/schema_v241_social.sql`, NOT promoted to `index.html`/`sw.js` and SQL not yet run — feature-flagged OFF by default; see the v241 entry above for what's verified (fake-backend browser tests, SQL parse) and what still needs the owner (run SQL → real-DB RLS test → flip flag → promote).*
 
