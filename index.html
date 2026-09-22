@@ -2243,6 +2243,24 @@ html[data-theme="dark"] .chat-msgs{
       </div>
     </div>
 
+    <!-- v243: Goal Items — small, individually-trackable goals, distinct from
+         the Major Definite Goal life-story above. Each gets its own photos,
+         an achieve-tick (which counts toward the profile's "Goals Achieved"
+         and can be shared to Community), and a per-item public/private
+         toggle. Not gated behind an accordion — same "loads instantly"
+         choice v229 made above. All logic lives in the self-contained
+         #gi-js block near the end of the file; this is markup only. -->
+    <div class="sacc-row sacc-row-last" style="cursor:default;margin-top:16px">
+      <span class="sacc-sym">🏆</span>
+      <span class="sacc-title">Your Goals</span>
+    </div>
+    <div class="sacc-body sacc-body-last" id="goal-items-body">
+      <p style="font-size:.82rem;color:var(--sub);line-height:1.5;margin:0 0 10px">Track a few specific goals with their own photos. Tick one off when it's real — it counts toward your achievements, and their photos show up in your Vibe Feed too.</p>
+      <div id="gi-note" style="display:none;font-size:.78rem;color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent);border-radius:10px;padding:8px 10px;margin-bottom:10px">✦ Recommended: don't focus on more than 3 goals at a time — it's easier to actually get there.</div>
+      <div id="gi-list"></div>
+      <button class="btn pr" style="margin-top:8px;width:100%" onclick="giAddOpen()">+ Add a Goal</button>
+    </div>
+
     <!-- v229: Issues & Resolutions and General Manifestation hidden per explicit
          owner request ("only major definite goal section is useful... app
          should be visual as much as possible") — the owner felt these two were
@@ -2571,7 +2589,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v242</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v243</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -3570,27 +3588,42 @@ let visSlide=0;
 function renderVisGrid(){
   const g=document.getElementById('vis-grid');if(!g)return;
   g.style.display='block';g.innerHTML='';
+  /* v243: read-only reflection — Goal Items' own photos are appended for
+     display only (never written into S.visImgs/c9_vis). One image lives in
+     exactly one place (its own Goal Item); this strip just also shows it.
+     Because they're appended AFTER the real vision images, any index below
+     S.visImgs.length is still a real image at its original index — delVis()
+     below needs no change, it just stays hidden for the reflected tail. */
+  const giImgs=window._goalItemVFImages?window._goalItemVFImages():[];
+  const combined=S.visImgs.concat(giImgs);
   /* Show/hide the vis-sec manifest button depending on whether images exist */
-  if(!S.visImgs.length){
+  if(!combined.length){
     const ab=document.createElement('button');ab.className='vis-add';ab.style.cssText='width:100%;aspect-ratio:4/3';ab.onclick=showVisAdd;
     ab.innerHTML='<span style="font-size:1.4rem">＋</span><span>Add Image</span>';g.appendChild(ab);return;
   }
-  if(visSlide>=S.visImgs.length)visSlide=S.visImgs.length-1;
-  const item=S.visImgs[visSlide];
+  if(visSlide>=combined.length)visSlide=combined.length-1;
+  const item=combined[visSlide];
+  const isReflected=visSlide>=S.visImgs.length; /* a Goal Item's photo, not a real vision image */
   const wrap=document.createElement('div');wrap.className='ss-wrap';
   const img=document.createElement('img');img.className='ss-img';img.src=item.src;img.alt='';img.loading='lazy';
-  img.onclick=()=>openLB(S.visImgs,visSlide);img.onerror=()=>{wrap.style.opacity='.4';};
+  img.onclick=()=>openLB(combined,visSlide);img.onerror=()=>{wrap.style.opacity='.4';};
   wrap.appendChild(img);
-  if(S.visImgs.length>1){
-    const cnt=document.createElement('div');cnt.className='ss-count';cnt.textContent=(visSlide+1)+' / '+S.visImgs.length;wrap.appendChild(cnt);
+  if(combined.length>1){
+    const cnt=document.createElement('div');cnt.className='ss-count';cnt.textContent=(visSlide+1)+' / '+combined.length;wrap.appendChild(cnt);
     const la=document.createElement('button');la.className='ss-arrow ss-l';la.innerHTML='&#8249;';la.disabled=visSlide===0;
     la.onclick=e=>{e.stopPropagation();visSlide--;renderVisGrid();};wrap.appendChild(la);
-    const ra=document.createElement('button');ra.className='ss-arrow ss-r';ra.innerHTML='&#8250;';ra.disabled=visSlide===S.visImgs.length-1;
+    const ra=document.createElement('button');ra.className='ss-arrow ss-r';ra.innerHTML='&#8250;';ra.disabled=visSlide===combined.length-1;
     ra.onclick=e=>{e.stopPropagation();visSlide++;renderVisGrid();};wrap.appendChild(ra);
   }
-  /* Delete button — top-right corner */
-  const del=document.createElement('button');del.className='ss-del';del.innerHTML='✕';del.title='Remove';
-  del.onclick=e=>{e.stopPropagation();delVis(visSlide);};wrap.appendChild(del);
+  if(isReflected){
+    /* From a Goal Item — read-only here; a small label instead of a delete
+       button, since deleting it belongs to that Goal Item, not this strip. */
+    const tag=document.createElement('div');tag.className='ss-count';tag.style.cssText='left:auto;right:8px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';tag.textContent='🏆 '+(item.note||'Goal');wrap.appendChild(tag);
+  }else{
+    /* Delete button — top-right corner (real vision images only) */
+    const del=document.createElement('button');del.className='ss-del';del.innerHTML='✕';del.title='Remove';
+    del.onclick=e=>{e.stopPropagation();delVis(visSlide);};wrap.appendChild(del);
+  }
   /* Manifest button — bottom-left corner, passes image src for image-mode overlay */
   const mBtn=document.createElement('button');mBtn.className='ss-manifest-btn';
   mBtn.innerHTML='✦ Manifest';mBtn.title='Manifest this vision';
@@ -3604,11 +3637,11 @@ function renderVisGrid(){
   wrap.appendChild(fBtn);
   let tx=0;
   wrap.addEventListener('touchstart',e=>{if(e.touches.length===1)tx=e.touches[0].clientX;},{passive:true});
-  wrap.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){if(dx<0&&visSlide<S.visImgs.length-1){visSlide++;renderVisGrid();}else if(dx>0&&visSlide>0){visSlide--;renderVisGrid();}}},{passive:true});
+  wrap.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){if(dx<0&&visSlide<combined.length-1){visSlide++;renderVisGrid();}else if(dx>0&&visSlide>0){visSlide--;renderVisGrid();}}},{passive:true});
   g.appendChild(wrap);
-  if(S.visImgs.length>1){
+  if(combined.length>1){
     const dots=document.createElement('div');dots.className='ss-dots';
-    S.visImgs.forEach((_,i)=>{const d=document.createElement('button');d.className='ss-dot'+(i===visSlide?' on':'');d.onclick=()=>{visSlide=i;renderVisGrid();};dots.appendChild(d);});
+    combined.forEach((_,i)=>{const d=document.createElement('button');d.className='ss-dot'+(i===visSlide?' on':'');d.onclick=()=>{visSlide=i;renderVisGrid();};dots.appendChild(d);});
     g.appendChild(dots);
   }
   const ab=document.createElement('button');ab.className='ss-add-btn';ab.textContent='＋ Add Image';ab.onclick=showVisAdd;g.appendChild(ab);
@@ -4999,7 +5032,8 @@ function vfInit(){
 
 function vfPickCard(){
   const nick=localStorage.getItem('clv_nick')||'Guest'; /* v227: 'Friend' was the pre-v217 placeholder, no longer current */
-  const visImgs=(S.visImgs||[]).filter(function(img){return img&&img.src;});
+  const visImgs=(S.visImgs||[]).filter(function(img){return img&&img.src;})
+    .concat(window._goalItemVFImages?window._goalItemVFImages():[]); /* v243: Goal Items' photos also feed the Vibe Feed's GOAL_VISION pool */
   const rrImgs=get(K.rr,[]).filter(function(img){return img&&img.src;});
 
   /* Build list of available types this pick */
@@ -9668,7 +9702,8 @@ function renderNoOverindulgence(){
       'c9_rr' /* v177: was missing — c9_rrdocs/c9_rrlinks were cleared but not the actual
                  Revise & Repeat image array itself, so switching accounts on the same
                  device left the previous account's images rendering until (if ever) the
-                 new account's own rr_images pull happened to overwrite them */
+                 new account's own rr_images pull happened to overwrite them */,
+      'clv_goal_items' /* v243: Goal Items — per-account, must not leak across sign-in/out */
     ];
     keys.forEach(function(k){ localStorage.removeItem(k); });
     console.log('[Sync] cleared user localStorage for new sign-in');
@@ -20597,6 +20632,17 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-cheer.pop{animation:socPop .35s}
 .soc-time{font-size:.8rem;color:var(--lt);margin-left:auto}
 
+/* v243: achievement posts (Goal Items shared to the feed / shown on a profile) */
+.soc-ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;border-radius:14px;overflow:hidden}
+.soc-ach-grid.one{grid-template-columns:1fr}
+.soc-ach-grid img{width:100%;height:120px;object-fit:cover;display:block;background:var(--su)}
+.soc-ach-grid.one img{height:200px}
+.soc-ach-title{font-weight:750;font-size:1rem;margin-top:12px}
+.soc-ach-preview{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px}
+.soc-ach-preview img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--su)}
+/* achieved goal cards on a profile get the same celebratory gold treatment as a badge tile — reuses that gradient rather than a new color */
+.soc-card.win{background:linear-gradient(135deg,color-mix(in srgb,#f0c987 14%,var(--su)),var(--su) 70%);border-color:color-mix(in srgb,#f0c987 35%,var(--bo))}
+
 /* segmented control */
 .soc-seg{position:relative;display:flex;margin:6px 16px 0;padding:4px;border-radius:14px;background:color-mix(in srgb,var(--su) 70%,var(--bo));border:1px solid var(--bo)}
 .soc-seg button{flex:1;position:relative;z-index:1;border:none;background:none;color:var(--sub);font:inherit;font-size:.92rem;font-weight:700;padding:8px 0;cursor:pointer;transition:color .2s}
@@ -21034,9 +21080,14 @@ textarea.soc-in{resize:none;min-height:74px}
     skeleton();
     try{
       var fr=q('social_feed').select('*').order('created_at',{ascending:false}).limit(40);
+      /* v243: achievement posts (photos + title) merged in below, sorted alongside badge posts */
+      var ar=q('social_achievement_feed').select('*').order('created_at',{ascending:false}).limit(40);
       var sr=q('social_public_profiles').select('user_id,handle,display_name,avatar_url').eq('i_follow',true).limit(24);
-      var a=await fr,b=await sr;if(a.error)throw a.error;if(b.error)throw b.error;
-      var rows=a.data||[],follows=b.data||[];S.feedRows=rows;
+      var a=await fr,ac=await ar,b=await sr;if(a.error)throw a.error;if(b.error)throw b.error;
+      var badgeRows=(a.data||[]).map(function(r){r._kind='badge';return r;});
+      var achRows=(ac.error?[]:(ac.data||[])).map(function(r){r._kind='ach';return r;}); /* soft-fail: table may not exist yet on an unmigrated project */
+      var rows=badgeRows.concat(achRows).sort(function(x,y){return Date.parse(y.created_at)-Date.parse(x.created_at);});
+      var follows=b.data||[];S.feedRows=rows;
       var recent={};rows.forEach(function(r){if(Date.now()-Date.parse(r.created_at)<172800000)recent[r.user_id]=1;});
       var h='<div class="soc-stories"><button class="soc-story" data-act="tab" data-tab="me"><span class="soc-plus">'+avatar(S.me,58,'glow')+'<i>+</i></span><span>Your story</span></button>';
       follows.forEach(function(f){h+='<button class="soc-story" data-act="open-profile" data-handle="'+esc(f.handle)+'">'+avatar(f,58,recent[f.user_id]?true:'quiet')+'<span>'+esc(f.display_name.split(' ')[0])+'</span></button>';});
@@ -21046,13 +21097,21 @@ textarea.soc-in{resize:none;min-height:74px}
       }else{
         h+='<div class="soc-stack">';
         rows.forEach(function(r,i){
-          var bd=BMAP[r.badge_id];if(!bd)return;
           var mine=r.user_id===uid();
-          h+='<div class="soc-card" style="animation-delay:'+Math.min(i,8)*45+'ms">'
-            +'<div class="soc-post-hd"><button class="soc-story" style="width:auto;flex-direction:row;gap:10px" data-act="open-profile" data-handle="'+esc(r.handle)+'">'+avatar(r,40,true)+'</button>'
-            +'<div class="soc-grow"><div class="soc-name">'+esc(r.display_name)+(mine?' <span class="soc-chip">You</span>':'')+'</div><div class="soc-sub">@'+esc(r.handle)+'</div></div><span class="soc-time">'+ago(r.created_at)+'</span></div>'
-            +'<div class="soc-badge-tile"><div class="soc-badge-ic">'+bd.ic+'</div><div><div class="soc-badge-t">'+esc(bd.t)+'</div><div class="soc-badge-d">'+esc(bd.d)+'</div></div></div>'
-            +'<div class="soc-post-ft"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'"><span>'+(r.i_cheered?'🙌':'👏')+'</span><span class="n">'+(r.cheers||0)+'</span> Cheer</button></div></div>';
+          var hd='<div class="soc-post-hd"><button class="soc-story" style="width:auto;flex-direction:row;gap:10px" data-act="open-profile" data-handle="'+esc(r.handle)+'">'+avatar(r,40,true)+'</button>'
+            +'<div class="soc-grow"><div class="soc-name">'+esc(r.display_name)+(mine?' <span class="soc-chip">You</span>':'')+'</div><div class="soc-sub">@'+esc(r.handle)+'</div></div><span class="soc-time">'+ago(r.created_at)+'</span></div>';
+          if(r._kind==='ach'){
+            var imgs=(r.images||[]).filter(function(im){return im&&im.src;});
+            h+='<div class="soc-card" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd
+              +(imgs.length?'<div class="soc-ach-grid'+(imgs.length===1?' one':'')+'">'+imgs.slice(0,4).map(function(im){return '<img src="'+esc(im.src)+'" alt="">';}).join('')+'</div>':'')
+              +'<div class="soc-ach-title">🏆 '+esc(r.title)+'</div>'
+              +'<div class="soc-post-ft"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer-ach" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'"><span>'+(r.i_cheered?'🙌':'👏')+'</span><span class="n">'+(r.cheers||0)+'</span> Cheer</button></div></div>';
+          }else{
+            var bd=BMAP[r.badge_id];if(!bd)return;
+            h+='<div class="soc-card" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd
+              +'<div class="soc-badge-tile"><div class="soc-badge-ic">'+bd.ic+'</div><div><div class="soc-badge-t">'+esc(bd.t)+'</div><div class="soc-badge-d">'+esc(bd.d)+'</div></div></div>'
+              +'<div class="soc-post-ft"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'"><span>'+(r.i_cheered?'🙌':'👏')+'</span><span class="n">'+(r.cheers||0)+'</span> Cheer</button></div></div>';
+          }
         });
         h+='</div>';
       }
@@ -21151,8 +21210,40 @@ textarea.soc-in{resize:none;min-height:74px}
       var r=await q('social_public_profiles').select('*').eq('handle',handle).maybeSingle();
       if(r.error)throw r.error;
       if(!r.data){S.prof=null;renderTop();return body('<div class="soc-empty"><span class="em">🫥</span><b>Profile not found</b><p>It may have been removed or made private.</p><button class="soc-btn pri" data-act="tab" data-tab="feed">Back to Community</button></div>');}
+      /* v243: this person's public Goal Items (soft-fail — table may not exist yet on an unmigrated project) */
+      try{
+        var gr=await q('social_public_goal_items').select('*').eq('user_id',r.data.user_id).order('date_set',{ascending:false});
+        r.data._giItems=gr.error?[]:(gr.data||[]);
+      }catch(ge){r.data._giItems=[];}
       S.prof=r.data;renderTop();renderProfile(r.data);
     }catch(e){S.prof=null;renderError('Couldn’t open that profile.');}
+  }
+  /* v243: Achieved / Currently Pursuing sections, shared by own + others' profiles */
+  function giSectionsHtml(items){
+    items=items||[];
+    var pursuing=items.filter(function(x){return !x.achieved;});
+    var achieved=items.filter(function(x){return x.achieved;});
+    var h='';
+    if(pursuing.length){
+      h+='<div class="soc-h">🎯 Currently Pursuing</div><div class="soc-stack">';
+      pursuing.forEach(function(g){
+        var imgs=(g.images||[]).filter(function(im){return im&&im.src;});
+        h+='<div class="soc-card" style="padding:12px">'+(imgs.length?'<div class="soc-ach-grid'+(imgs.length===1?' one':'')+'">'+imgs.slice(0,4).map(function(im){return '<img src="'+esc(im.src)+'" alt="">';}).join('')+'</div>':'')
+          +'<div class="soc-ach-title" style="margin-top:'+(imgs.length?'8px':'0')+'">'+esc(g.title)+'</div></div>';
+      });
+      h+='</div>';
+    }
+    if(achieved.length){
+      h+='<div class="soc-h">🏆 Goals Achieved</div><div class="soc-stack">';
+      achieved.forEach(function(g){
+        var imgs=(g.images||[]).filter(function(im){return im&&im.src;});
+        h+='<div class="soc-card win" style="padding:12px">'+(imgs.length?'<div class="soc-ach-grid'+(imgs.length===1?' one':'')+'">'+imgs.slice(0,4).map(function(im){return '<img src="'+esc(im.src)+'" alt="">';}).join('')+'</div>':'')
+          +'<div class="soc-ach-title" style="margin-top:'+(imgs.length?'8px':'0')+'">🏆 '+esc(g.title)+'</div>'
+          +(g.date_achieved?'<div class="soc-sub" style="margin-top:2px">Achieved '+ago(g.date_achieved)+' ago</div>':'')+'</div>';
+      });
+      h+='</div>';
+    }
+    return h;
   }
   function renderProfile(p){
     if(!p)return;
@@ -21197,6 +21288,10 @@ textarea.soc-in{resize:none;min-height:74px}
       (it.books||[]).forEach(function(x){h+='<span class="soc-tag">📖 '+esc(x)+'</span>';});
       h+='</div>';
     }
+    /* v243: Goal Items — mine come straight from the local cache (instant, no fetch);
+       someone else's were fetched in openProfile() as p._giItems */
+    var giItems=me?(window.GI&&window.GI.items?window.GI.items().filter(function(x){return x.visibility==='public';}):[]):(p._giItems||[]);
+    if(giItems.length){shown++;h+=giSectionsHtml(giItems);}
     if(!me&&!shown&&p.badges==null&&!p.goal_text&&!it)h+='<div class="soc-priv">This person keeps their journey private — follow to cheer them on when they share a win.</div>';
     if(me)h+='<div class="soc-priv">Only what you switch on in <b>Privacy board</b> is visible to others.</div>';
     body(h);
@@ -21286,6 +21381,27 @@ textarea.soc-in{resize:none;min-height:74px}
       +'<div><div class="soc-lbl"><span>Bio</span><span id="soc-e-bc">'+(S.me.bio||'').length+'/160</span></div><textarea class="soc-in" id="soc-e-bio" maxlength="160">'+esc(S.me.bio||'')+'</textarea></div>'
       +'<button class="soc-btn pri wide" data-act="save-edit">Save</button></div>');
   }
+  /* v243: share an achieved Goal Item into the Community feed. Called from
+     the Goal tab (window.giShareToCommunity → window.SOC.openAchievementCompose),
+     which is why this opens the whole Community screen first if it wasn't
+     already — the compose sheet needs S.me loaded to post. */
+  async function openAchievementCompose(item){
+    if(!item)return;
+    if(!window._isGoogleUser){if(window._signInWithGoogle)window._signInWithGoogle();return;}
+    /* always (re-)run open() — S.me being already cached from an earlier visit
+       does NOT mean #soc-screen is currently visible; skipping open() in that
+       case would inject this sheet into a still-hidden screen */
+    await open();
+    if(!S.me)return; /* open() already showed the join/gate screen */
+    var imgs=(item.images||[]).filter(function(im){return im&&im.src;}).slice(0,6);
+    S._pendingAch=item;
+    openSheet('<h3>Share this win</h3><p class="lead">Posts to your followers\' feed with a title and photos — you can delete it any time.</p>'
+      +'<div class="soc-form" style="padding:10px 0 0">'
+      +'<div><div class="soc-lbl">Title</div><input class="soc-in" id="soc-ach-title" maxlength="140" value="'+esc(item.title||'')+'"></div>'
+      +(imgs.length?'<div class="soc-ach-preview">'+imgs.map(function(im){return '<img src="'+esc(im.src)+'" alt="">';}).join('')+'</div>':'')
+      +'<div class="soc-hint" id="soc-ach-hint"></div>'
+      +'<button class="soc-btn pri wide" data-act="post-achievement">Post to Community</button></div>');
+  }
   function openReport(p){
     S.reportFor=p;S.reason='';
     openSheet('<h3>Report or block</h3><p class="lead">@'+esc(p.handle)+' won’t be told. Reports are reviewed by a human.</p>'
@@ -21335,6 +21451,40 @@ textarea.soc-in{resize:none;min-height:74px}
         el.setAttribute('data-on',on?0:1);el.classList.toggle('on',!on);el.firstChild.textContent=on?'👏':'🙌';el.disabled=false;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
         if(!on){var rc=el.getBoundingClientRect();confetti(rc.left+30,rc.top,['🙌','✨','💛']);}
       }catch(er){el.disabled=false;toast('Couldn’t cheer — try again');}
+    },
+    /* v243: same cheer mechanic as above, but for achievement posts — kept as its
+       own action against social_reactions rather than touching the cheer action
+       above, so social_cheers/social_activity (v241) stay exactly as they were. */
+    'cheer-ach':async function(el){
+      var id=el.getAttribute('data-id'),on=el.getAttribute('data-on')==='1';el.disabled=true;
+      try{
+        var r=on?await q('social_reactions').delete().eq('target_type','achievement').eq('target_id',id).eq('user_id',uid())
+                :await q('social_reactions').insert({target_type:'achievement',target_id:id,user_id:uid()});
+        if(r.error)throw r.error;
+        var n=el.querySelector('.n');n.textContent=Math.max(0,(+n.textContent||0)+(on?-1:1));
+        el.setAttribute('data-on',on?0:1);el.classList.toggle('on',!on);el.firstChild.textContent=on?'👏':'🙌';el.disabled=false;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');
+        if(!on){var rc=el.getBoundingClientRect();confetti(rc.left+30,rc.top,['🙌','✨','💛']);}
+      }catch(er){el.disabled=false;toast('Couldn’t cheer — try again');}
+    },
+    /* v243: post a Goal Item's photos + title to the Community feed */
+    'post-achievement':async function(el){
+      var item=S._pendingAch;if(!item)return;
+      var title=clean($('soc-ach-title').value,140),hint=$('soc-ach-hint');
+      if(!title){if(hint){hint.textContent='Add a title';hint.className='soc-hint bad';}return;}
+      el.disabled=true;
+      try{
+        var r=await q('social_achievements').insert({
+          user_id:uid(),
+          goal_item_id:item.remoteId||null,
+          title:title,
+          images:(item.images||[]).filter(function(im){return im&&im.src;}).slice(0,6),
+          date_set:item.date_set||null,
+          date_achieved:item.date_achieved||null
+        });
+        if(r.error)throw r.error;
+        if(window._giMarkShared)window._giMarkShared(item.id);
+        closeSheet();toast('Shared to Community ✦');S.feedRows=null;if(S.tab==='feed'&&!S.prof)loadFeed();
+      }catch(er){el.disabled=false;if(hint){hint.textContent='Couldn’t post — try again';hint.className='soc-hint bad';}}
     },
     badge:function(el){var b=BMAP[el.getAttribute('data-b')];if(b)toast(b.ic+' '+b.t+' — '+b.d);},
     share:function(el){
@@ -21426,7 +21576,7 @@ textarea.soc-in{resize:none;min-height:74px}
   }
 
   window.socOpen=open;
-  window.SOC={open:open,close:close,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES};
+  window.SOC={open:open,close:close,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose};
   document.addEventListener('DOMContentLoaded',function(){
     wire();refreshFlag();
     setTimeout(function(){ /* keep my public numbers fresh — only if I already have a profile and I'm signed in */
@@ -21435,6 +21585,261 @@ textarea.soc-in{resize:none;min-height:74px}
           .then(function(r){if(r&&r.data){S.me=r.data;syncStats(false);}}).catch(function(){});
       }
     },6000);
+  });
+})();
+</script>
+
+<style id="gi-css">
+/* v243: Goal Items — small, individually-trackable goals on the Goal tab */
+.gi-card{background:var(--su);border:1px solid var(--bo);border-radius:14px;padding:12px;margin-bottom:10px;transition:background .3s,border-color .3s}
+/* achieved = a small celebratory lift, same gold this app already uses for badge tiles/streaks — not a new color */
+.gi-card.done{border-color:color-mix(in srgb,#f0c987 45%,var(--bo));background:linear-gradient(135deg,color-mix(in srgb,#f0c987 10%,var(--su)),var(--su) 65%)}
+.gi-top{display:flex;align-items:flex-start;gap:8px}
+.gi-title{font-weight:700;font-size:.98rem;flex:1;word-break:break-word;padding-top:2px}
+.gi-title.done{text-decoration:line-through;color:var(--sub)}
+.gi-imgs{display:flex;gap:6px;overflow-x:auto;margin:8px 0}
+.gi-imgs img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--ca);cursor:pointer}
+.gi-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.gi-chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--bo);background:none;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:transparent;transition:all .2s}
+.gi-chk.on{background:var(--acc);border-color:var(--acc);color:#fff;animation:giPop .35s}
+@keyframes giPop{0%{transform:scale(.6)}55%{transform:scale(1.25)}100%{transform:scale(1)}}
+.gi-pill{font-size:.72rem;font-weight:700;padding:5px 10px;border-radius:999px;border:1px solid var(--bo);background:var(--ca);color:var(--sub);cursor:pointer}
+.gi-pill.pub{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 40%,transparent)}
+.gi-del{background:none;border:none;color:var(--lt);font-size:1rem;cursor:pointer;padding:2px 6px;flex-shrink:0}
+.gi-share-hint{font-size:.8rem;color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,transparent);border-radius:10px;padding:8px 10px;margin-top:8px}
+.gi-share-hint button{margin-top:6px;width:100%}
+</style>
+
+<script id="gi-js">
+/* ═══ v243 GOAL ITEMS — small, individually-trackable goals ═══════════════
+   Self-contained module (mirrors #soc-js's own conventions, defined right
+   after it so window.SOC already exists by the time this runs). Touches
+   the rest of the app only via:
+     • window._sbShared / window._sbUid   — the app's Supabase client + uid
+     • window.SOC.openAchievementCompose  — bridge into Community sharing
+     • window._goalItemVFImages()         — read by vfPickCard (main script)
+     • openModal/closeModal, openLB       — reuses the app's existing modal
+       and lightbox chrome instead of building new ones
+   S.visImgs (the Major Definite Goal's own Vision Images) is never touched
+   — Goal Items are a wholly separate array, own localStorage key, own
+   Supabase table. */
+(function(){
+  var KEY='clv_goal_items';
+  var GS={items:[]};
+
+  function $(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function lsGet(k,d){try{var v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}}
+  function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+  function jparse(s,d){try{var v=JSON.parse(s);return v==null?d:v;}catch(e){return d;}}
+  function localId(){return 'g_'+Date.now()+'_'+Math.random().toString(36).slice(2);}
+  function find(id){return GS.items.filter(function(x){return x.id===id;})[0];}
+
+  function load(){GS.items=jparse(lsGet(KEY,'[]'),[]);if(!Array.isArray(GS.items))GS.items=[];}
+  function persist(){lsSet(KEY,JSON.stringify(GS.items));}
+
+  /* ── Supabase (same "wait until ready" pattern the rest of the app uses) ── */
+  function ready(){
+    return new Promise(function(res,rej){var n=0;(function p(){
+      if(window._sbShared&&window._sbUid)return res();
+      if(++n>53)return rej(new Error('not ready'));setTimeout(p,150);})();});
+  }
+  function q(t){return window._sbShared.from(t);}
+
+  async function uploadImage(base64,uid){
+    var sb=window._sbShared;if(!sb||!uid)return null;
+    try{
+      var parts=base64.split(','),mime=parts[0].match(/:(.*?);/)[1],bin=atob(parts[1]);
+      var arr=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+      var blob=new Blob([arr],{type:mime}),ext=mime.split('/')[1]||'jpg';
+      var path=uid+'/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+      var res=await sb.storage.from('goal-item-images').upload(path,blob,{upsert:false});
+      if(res.error){console.warn('[GI] upload failed:',res.error.message);return null;}
+      return sb.storage.from('goal-item-images').getPublicUrl(path).data.publicUrl;
+    }catch(e){console.warn('[GI] upload error:',e.message);return null;}
+  }
+  async function deleteImageFromStorage(src){
+    var sb=window._sbShared;if(!sb||!src)return;
+    try{
+      var marker='goal-item-images/',idx=src.indexOf(marker);if(idx===-1)return;
+      await sb.storage.from('goal-item-images').remove([src.slice(idx+marker.length)]);
+    }catch(e){}
+  }
+
+  /* Upload any base64 images on this item to Storage, then insert/update its row */
+  async function syncOne(item){
+    try{
+      await ready();
+      var uid=window._sbUid,changed=false;
+      for(var i=0;i<(item.images||[]).length;i++){
+        var im=item.images[i];
+        if(im&&im.src&&im.src.indexOf('data:')===0){
+          var url=await uploadImage(im.src,uid);
+          if(url){item.images[i]={src:url};changed=true;}
+        }
+      }
+      if(changed){persist();render();}
+      var row={user_id:uid,title:item.title,images:item.images||[],date_set:item.date_set,
+        achieved:!!item.achieved,date_achieved:item.date_achieved||null,
+        visibility:item.visibility||'private',updated_at:new Date().toISOString()};
+      if(item.remoteId){
+        var r=await q('user_goal_items').update(row).eq('id',item.remoteId);
+        if(r.error)console.warn('[GI] update failed:',r.error.message);
+      }else{
+        var ri=await q('user_goal_items').insert(row).select('id').maybeSingle();
+        if(ri.error)console.warn('[GI] insert failed:',ri.error.message);
+        else if(ri.data){item.remoteId=ri.data.id;persist();}
+      }
+    }catch(e){console.warn('[GI] sync failed:',e&&e.message);}
+  }
+  async function syncDelete(remoteId){
+    if(!remoteId)return;
+    try{await ready();await q('user_goal_items').delete().eq('id',remoteId);}catch(e){}
+  }
+  async function pullAll(){
+    try{
+      await ready();
+      var r=await q('user_goal_items').select('*').eq('user_id',window._sbUid).order('updated_at',{ascending:false});
+      if(r.error||!r.data)return;
+      var byRemote={};GS.items.forEach(function(it){if(it.remoteId)byRemote[it.remoteId]=it;});
+      var merged=[];
+      r.data.forEach(function(row){
+        var local=byRemote[row.id];
+        merged.push({id:local?local.id:localId(),remoteId:row.id,title:row.title,
+          images:row.images||[],date_set:row.date_set,achieved:!!row.achieved,
+          date_achieved:row.date_achieved,visibility:row.visibility||'private'});
+      });
+      GS.items.forEach(function(it){if(!it.remoteId)merged.push(it);}); /* keep offline-created, not-yet-synced items */
+      GS.items=merged;persist();render();
+    }catch(e){console.warn('[GI] pull failed:',e&&e.message);}
+  }
+
+  /* ── render ── */
+  function render(){
+    /* v243: refresh the Vision Images strip too — it reflects Goal Items'
+       photos read-only (see renderVisGrid in the main script), so any
+       add/remove/achieve/visibility change here must repaint it, not just
+       the goal list below. Safe to call even if that DOM isn't mounted
+       right now (renderVisGrid itself no-ops if #vis-grid is absent). */
+    if(window.renderVisGrid)window.renderVisGrid();
+    var list=$('gi-list');if(!list)return;
+    var active=GS.items.filter(function(x){return !x.achieved;}).length;
+    var note=$('gi-note');if(note)note.style.display=active>3?'block':'none';
+    if(!GS.items.length){list.innerHTML='<p style="font-size:.85rem;color:var(--lt);text-align:center;padding:10px 0">No goals yet — add your first one below.</p>';return;}
+    list.innerHTML=GS.items.map(function(it){
+      var imgs=(it.images||[]).filter(function(im){return im&&im.src;});
+      var h='<div class="gi-card'+(it.achieved?' done':'')+'"><div class="gi-top">'
+        +'<button class="gi-chk'+(it.achieved?' on':'')+'" onclick="giToggleAchieve(\''+it.id+'\')" title="Mark achieved">'+(it.achieved?'✓':'')+'</button>'
+        +'<div class="gi-title'+(it.achieved?' done':'')+'">'+esc(it.title)+'</div>'
+        +'<button class="gi-del" onclick="giDelete(\''+it.id+'\')" title="Delete">✕</button></div>';
+      if(imgs.length)h+='<div class="gi-imgs">'+imgs.map(function(im,i){return '<img src="'+esc(im.src)+'" onclick="giViewImages(\''+it.id+'\','+i+')">';}).join('')+'</div>';
+      h+='<div class="gi-row">'
+        +'<button class="gi-pill'+(it.visibility==='public'?' pub':'')+'" onclick="giToggleVis(\''+it.id+'\')">'+(it.visibility==='public'?'✦ Shown on profile':'🔒 Private')+'</button>'
+        +'<button class="gi-pill" onclick="giAddImages(\''+it.id+'\')">+ Photos</button>'
+        +(it.achieved?'<button class="gi-pill" onclick="giShare(\''+it.id+'\')">Share ✦</button>':'')
+        +'</div>';
+      if(it._justAchieved)h+='<div class="gi-share-hint">🎉 Nice — want to share this on your Community profile?<button class="btn pr" onclick="giShare(\''+it.id+'\')">Share this win</button></div>';
+      h+='</div>';
+      return h;
+    }).join('');
+  }
+
+  function readFiles(fileList){
+    var files=Array.from(fileList||[]);
+    return Promise.all(files.map(function(f){
+      return new Promise(function(res){
+        if(f.size>5*1024*1024){alert(f.name+' too large (max 5MB).');return res(null);}
+        var r=new FileReader();r.onload=function(e){res(e.target.result);};r.readAsDataURL(f);
+      });
+    })).then(function(srcs){return srcs.filter(Boolean);});
+  }
+
+  /* ── add ── */
+  var _pendingImgs=[];
+  window.giAddOpen=function(){
+    _pendingImgs=[];
+    var html='<input class="minp" type="text" id="gi-add-title" placeholder="e.g. 10,000 Instagram followers" maxlength="140">'
+      +'<div class="gi-imgs" id="gi-add-imgs" style="margin-top:8px"></div>'
+      +'<button class="btn" style="width:100%;margin-top:6px" onclick="document.getElementById(\'gi-add-file\').click()">📷 Add photos</button>'
+      +'<input type="file" id="gi-add-file" accept="image/*" multiple style="display:none" onchange="_giAddPick(this)">';
+    openModal('Add a Goal',html,'Save',window.giAddSave);
+  };
+  window._giAddPick=function(input){
+    readFiles(input.files).then(function(srcs){
+      srcs.forEach(function(s){_pendingImgs.push(s);});
+      var box=$('gi-add-imgs');if(box)box.innerHTML=_pendingImgs.map(function(s){return '<img src="'+esc(s)+'">';}).join('');
+      input.value='';
+    });
+  };
+  window.giAddSave=function(){
+    var el=$('gi-add-title'),t=el?el.value.trim():'';
+    if(!t){alert('Give this goal a short title first.');return;}
+    var item={id:localId(),remoteId:null,title:t.slice(0,140),images:_pendingImgs.map(function(s){return {src:s};}),
+      date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private'};
+    GS.items.unshift(item);persist();render();closeModal();
+    syncOne(item);
+  };
+  window.giAddImages=function(id){
+    var item=find(id);if(!item)return;
+    var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;
+    inp.onchange=function(){
+      readFiles(inp.files).then(function(srcs){
+        if(!srcs.length)return;
+        item.images=(item.images||[]).concat(srcs.map(function(s){return {src:s};})).slice(0,8);
+        persist();render();syncOne(item);
+      });
+    };
+    inp.click();
+  };
+  window.giViewImages=function(id,idx){
+    var item=find(id);if(!item)return;
+    if(typeof openLB==='function')openLB(item.images,idx||0);
+  };
+  window.giToggleVis=function(id){
+    var item=find(id);if(!item)return;
+    item.visibility=item.visibility==='public'?'private':'public';
+    persist();render();syncOne(item);
+  };
+  window.giToggleAchieve=function(id){
+    var item=find(id);if(!item)return;
+    item.achieved=!item.achieved;
+    item.date_achieved=item.achieved?new Date().toISOString():null;
+    item._justAchieved=item.achieved;
+    persist();render();syncOne(item);
+  };
+  window.giDelete=function(id){
+    var item=find(id);if(!item)return;
+    if(!confirm('Delete "'+item.title+'"? This can\'t be undone.'))return;
+    (item.images||[]).forEach(function(im){if(im&&im.src)deleteImageFromStorage(im.src);});
+    if(item.remoteId)syncDelete(item.remoteId);
+    GS.items=GS.items.filter(function(x){return x.id!==id;});
+    persist();render();
+  };
+  window.giShare=function(id){
+    var item=find(id);if(!item)return;
+    item._justAchieved=false;persist();render();
+    if(window.SOC&&window.SOC.openAchievementCompose)window.SOC.openAchievementCompose(item);
+    else alert('Sign in to Community first (Profile → Community).');
+  };
+  /* called by #soc-js right after a successful post, so the shared item also
+     shows up on the profile's own "Goals Achieved" section */
+  window._giMarkShared=function(id){
+    var item=find(id);if(!item)return;
+    if(item.visibility!=='public'){item.visibility='public';persist();render();syncOne(item);}
+  };
+
+  /* ── bridge into the Vibe Feed's GOAL_VISION pool (read by vfPickCard) ── */
+  window._goalItemVFImages=function(){
+    var out=[];
+    GS.items.forEach(function(it){(it.images||[]).forEach(function(im){if(im&&im.src)out.push({src:im.src,note:it.title||''});});});
+    return out;
+  };
+
+  window.GI={items:function(){return GS.items;}};
+
+  document.addEventListener('DOMContentLoaded',function(){
+    load();render();
+    ready().then(pullAll).catch(function(){});
   });
 })();
 </script>
