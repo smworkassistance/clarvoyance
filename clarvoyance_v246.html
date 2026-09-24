@@ -20673,6 +20673,11 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-ach-grid img{width:100%;height:120px;object-fit:cover;display:block;background:var(--su);cursor:pointer}
 .soc-ach-grid.one img{height:200px}
 .soc-ach-title{font-weight:750;font-size:1rem;margin-top:12px}
+/* v246 (T-003): official Clar posts — same card language as a person's post, but the avatar is Clar's own orb, there is no profile to open and no Like/Comment row */
+.soc-av.clar{background:linear-gradient(135deg,var(--acc),var(--t-dk,var(--acc)));color:#fff;font-size:1.15rem;font-weight:700}
+.soc-clar .soc-chip.official{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
+.soc-clar-img{width:100%;border-radius:14px;margin-top:12px;display:block;max-height:340px;object-fit:cover;background:var(--ca)}
+.soc-clar-cta{margin-top:12px}
 .soc-ach-preview{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px}
 .soc-ach-preview img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--su)}
 /* achieved goal cards on a profile get the same celebratory gold treatment as a badge tile — reuses that gradient rather than a new color */
@@ -20687,7 +20692,7 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-ach-pv img{width:64px;height:64px;object-fit:cover;border-radius:10px;display:block;background:var(--su)}
 .soc-ach-pv button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:.7rem;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
 /* v244: Facebook-style "what's on your mind" composer prompt at the top of Feed */
-.soc-composer{display:flex;align-items:center;gap:10px;width:100%;margin:4px 16px 10px;padding:10px 14px;border-radius:999px;border:1px solid var(--bo);background:var(--su);color:var(--sub);font:inherit;font-size:.92rem;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.soc-composer{display:flex;align-items:center;gap:10px;width:calc(100% - 32px);margin:4px 16px 10px;padding:10px 14px;border-radius:999px;border:1px solid var(--bo);background:var(--su);color:var(--sub);font:inherit;font-size:.92rem;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .soc-composer:active{background:var(--ca)}
 /* v244: comment button pairs with the existing cheer button */
 .soc-cmtbtn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid var(--bo);background:var(--su);color:var(--sub);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -21276,12 +21281,33 @@ textarea.soc-in{resize:none;min-height:74px}
     /* v243: achievement posts (photos + title) merged in below, sorted alongside badge posts */
     var ar=q('social_achievement_feed').select('*').order('created_at',{ascending:false}).limit(40);
     var sr=q('social_public_profiles').select('user_id,handle,display_name,avatar_url').eq('i_follow',true).limit(24);
-    var res=await Promise.all([fr,ar,sr]); /* all three round-trips in parallel */
-    var a=res[0],ac=res[1],b=res[2];if(a.error)throw a.error;if(b.error)throw b.error;
+    /* v246 (T-003): official Clar posts — soft-fail like the achievement feed, so an unmigrated project just shows no Clar posts */
+    var cr=q('social_clar_posts').select('*').eq('active',true).order('created_at',{ascending:false}).limit(12);
+    var res=await Promise.all([fr,ar,sr,cr]); /* all round-trips in parallel */
+    var a=res[0],ac=res[1],b=res[2],cp=res[3];if(a.error)throw a.error;if(b.error)throw b.error;
     var badgeRows=(a.data||[]).map(function(r){r._kind='badge';return r;});
     var achRows=(ac.error?[]:(ac.data||[])).map(function(r){r._kind='ach';return r;}); /* soft-fail: table may not exist yet on an unmigrated project */
-    var rows=badgeRows.concat(achRows).sort(function(x,y){return Date.parse(y.created_at)-Date.parse(x.created_at);});
+    var real=badgeRows.concat(achRows);
+    /* Clar posts only FILL a thin feed (target: at least 6 items on screen). A busy feed of real people is never crowded out by them,
+       and a brand-new user with nobody to follow still sees plenty. They sort by their own date alongside real posts. */
+    var need=Math.max(0,6-real.length);
+    var clarRows=(cp&&!cp.error?(cp.data||[]):[]).slice(0,need).map(function(r){r._kind='clar';r.user_id='clar';return r;});
+    var rows=real.concat(clarRows).sort(function(x,y){return Date.parse(y.created_at)-Date.parse(x.created_at);});
     return{rows:rows,follows:b.data||[]};
+  }
+  /* v246 (T-003): one official Clar post. Plain text only (escaped), optional https image, optional button that
+     jumps to a whitelisted app tab (the DB enforces the same whitelist). No profile to open, no Like/Comment. */
+  var CLAR_TABS={chat:1,vibe:1,goal:1,self:1,home:1,fortune:1};
+  function _clarCardHtml(r,i){
+    var h='<div class="soc-card soc-clar" style="animation-delay:'+Math.min(i,8)*45+'ms">'
+      +'<div class="soc-post-hd"><span class="soc-ring"><div class="soc-av clar" style="--s:40px">✦</div></span>'
+      +'<div class="soc-grow"><div class="soc-name">Clar <span class="soc-chip official">Official</span></div><div class="soc-sub">Your companion</div></div>'
+      +'<span class="soc-time">'+ago(r.created_at)+'</span></div>';
+    if(r.image_url&&/^https:\/\//.test(r.image_url))h+='<img class="soc-clar-img" src="'+esc(r.image_url)+'" alt="" loading="lazy" referrerpolicy="no-referrer">';
+    if(r.title)h+='<div class="soc-ach-title">'+esc(r.title)+'</div>';
+    if(r.message)h+='<div class="soc-ach-msg">'+esc(r.message).replace(/\n/g,'<br>')+'</div>';
+    if(r.cta_label&&CLAR_TABS[r.cta_tab])h+='<div class="soc-clar-cta"><button class="soc-btn pri sm" data-act="clar-cta" data-tab="'+esc(r.cta_tab)+'">'+esc(r.cta_label)+'</button></div>';
+    return h+'</div>';
   }
   async function loadFeed(){
     var c=cacheGet(),shown=false;
@@ -21315,6 +21341,7 @@ textarea.soc-in{resize:none;min-height:74px}
       }else{
         h+='<div class="soc-stack">';
         rows.forEach(function(r,i){
+          if(r._kind==='clar'){h+=_clarCardHtml(r,i);return;} /* v246 (T-003) */
           var mine=r.user_id===uid();
           var hd='<div class="soc-post-hd"><button class="soc-story" style="width:auto;flex-direction:row;gap:10px" data-act="open-profile" data-handle="'+esc(r.handle)+'">'+avatar(r,40,true)+'</button>'
             +'<div class="soc-grow"><div class="soc-name">'+esc(r.display_name)+(mine?' <span class="soc-chip">You</span>':'')+'</div><div class="soc-sub">@'+esc(r.handle)+'</div></div><span class="soc-time">'+ago(r.created_at)+'</span></div>';
@@ -21802,7 +21829,7 @@ textarea.soc-in{resize:none;min-height:74px}
        Vision Images/Goal Items) — not a new viewer, reuses openLB */
     'view-ach-imgs':function(el){
       var id=el.getAttribute('data-id'),ix=parseInt(el.getAttribute('data-i'),10)||0;
-      var row=(S.feedRows||[]).filter(function(r){return String(r.id)===String(id);})[0];
+      var row=(S.feedRows||[]).filter(function(r){return r._kind==='ach'&&String(r.id)===String(id);})[0]; /* v246: _kind guard — a Clar post can share a numeric id with an achievement */
       if(row&&typeof openLB==='function')openLB(row.images||[],ix);
     },
     'view-prof-goal-imgs':function(el){
@@ -21842,6 +21869,8 @@ textarea.soc-in{resize:none;min-height:74px}
     edit:openEdit,privacy:openPrivacy,blocked:openBlocked,
     'create-post':openCreatePost,
     'goto-goal':function(){close();var el=document.querySelector('.bnav-tab[data-tab="goal"]');if(el&&window.bnavSwitch)window.bnavSwitch(el);},
+    /* v246 (T-003): a Clar post's button — same jump the ClarZone title uses, but to whichever whitelisted tab the post names */
+    'clar-cta':function(el){var t=el.getAttribute('data-tab');if(!CLAR_TABS[t])return;close();var b=document.querySelector('.bnav-tab[data-tab="'+t+'"]');if(b&&window.bnavSwitch)window.bnavSwitch(b);},
     more:function(){if(S.prof&&S.prof.user_id)openReport(S.prof);},
     'sheet-bg':function(el,e){if(e.target===el)closeSheet();},
     join:doJoin,
