@@ -20816,6 +20816,44 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-clar .soc-chip.official{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 35%,transparent)}
 .soc-clar-img{width:100%;border-radius:14px;margin-top:12px;display:block;max-height:340px;object-fit:cover;background:var(--ca)}
 .soc-clar-cta{margin-top:12px}
+/* v246 (T-006): video posts. Feed shows a poster + play badge (cheap, no autoplay in the list); tapping opens the full-screen
+   Reels-style viewer (#soc-reels). Compose shows a small preview with a remove button and an upload progress bar. */
+.soc-vid-poster{position:relative;width:100%;margin-top:12px;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/5;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.soc-vid-poster img{width:100%;height:100%;object-fit:cover;display:block}
+.soc-vid-play{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+.soc-vid-play svg{width:28px;height:28px;fill:#fff;margin-left:3px}
+.soc-vid-dur{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.6);color:#fff;font-size:.74rem;font-weight:700;padding:3px 8px;border-radius:999px}
+.soc-vid-pv{position:relative;border-radius:14px;overflow:hidden;background:#000;margin-top:10px}
+.soc-vid-pv video{width:100%;max-height:220px;display:block;object-fit:contain}
+.soc-vid-pv button{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;font-size:.95rem;cursor:pointer}
+.soc-vid-pv .dur{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:.74rem;font-weight:700;padding:3px 8px;border-radius:999px}
+.soc-vid-bar{height:5px;border-radius:3px;background:var(--bo);overflow:hidden;margin-top:8px}
+.soc-vid-bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+/* full-screen Reels-style viewer */
+#soc-reels{position:fixed;inset:0;z-index:9660;background:#000;display:none}
+#soc-reels.on{display:block}
+.rl-scroll{height:100%;overflow-y:auto;scroll-snap-type:y mandatory;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:none}
+.rl-scroll::-webkit-scrollbar{display:none}
+.rl-item{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;background:#000;overflow:hidden}
+.rl-item video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.rl-item video.land{object-fit:contain}
+.rl-tap{position:absolute;inset:0;z-index:1}
+.rl-scrim{position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(to top,rgba(0,0,0,.65),rgba(0,0,0,0));pointer-events:none;z-index:1}
+.rl-pp{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.8);transition:opacity .18s,transform .18s;pointer-events:none;z-index:2}
+.rl-pp.on{opacity:1;transform:scale(1)}
+.rl-pp svg{width:34px;height:34px;fill:#fff}
+.rl-meta{position:absolute;left:16px;right:84px;bottom:calc(26px + env(safe-area-inset-bottom,0px));color:#fff;z-index:2;pointer-events:none;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.rl-meta .who{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.98rem}
+.rl-meta .msg{margin-top:8px;font-size:.92rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rl-side{position:absolute;right:12px;bottom:calc(30px + env(safe-area-inset-bottom,0px));z-index:3;display:flex;flex-direction:column;align-items:center;gap:18px}
+.rl-side .soc-cheer,.rl-side .rl-btn{background:none;border:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:.78rem;font-weight:700;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.rl-side .soc-cheer .heart-ic{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:1.8}
+.rl-side .soc-cheer.on .heart-ic{fill:#ed4956;stroke:#ed4956}
+.rl-side .rl-btn svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rl-x{position:absolute;left:14px;top:calc(14px + env(safe-area-inset-top,0px));z-index:4;width:38px;height:38px;border-radius:50%;border:none;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.rl-x svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.rl-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.25);z-index:3;pointer-events:none}
+.rl-prog i{display:block;height:100%;width:0;background:#fff}
 .soc-ach-preview{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px}
 .soc-ach-preview img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0;background:var(--su)}
 /* achieved goal cards on a profile get the same celebratory gold treatment as a badge tile — reuses that gradient rather than a new color */
@@ -21308,7 +21346,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var host=$('soc-sheet-host');
     if(changed&&S.tab==='me'&&!S.prof&&!(host&&host.innerHTML))render();
   }
-  function close(){var r=root();if(r)r.classList.add('hidden');closeSheet();}
+  function close(){var r=root();if(r)r.classList.add('hidden');closeSheet();closeReels();}
   function maybeDeepLink(){ /* ?u=handle on the URL → open that profile once the flag says we're live */
     if(flagOn()&&lsGet(PENDING_U,'')&&window._isGoogleUser)setTimeout(open,600);
   }
@@ -21383,6 +21421,7 @@ textarea.soc-in{resize:none;min-height:74px}
     if(r.date_achieved)dateBits.push('🏆 Achieved '+esc(_fmtDate(r.date_achieved)));
     var h='<div class="soc-card" data-ach-id="'+r.id+'" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd;
     if(imgs.length)h+='<div class="soc-ach-grid'+(imgs.length===1?' one':'')+'">'+imgs.map(function(im,ix){return '<img src="'+esc(im.src)+'" alt="" data-act="view-ach-imgs" data-id="'+r.id+'" data-i="'+ix+'">';}).join('')+'</div>';
+    h+=_vidPosterHtml(r); /* v246 (T-006) — empty string unless this post has a video and video is configured */
     if(r.title)h+='<div class="soc-ach-title">'+(isWin?'🏆 ':'')+esc(r.title)+'</div>';
     if(dateBits.length)h+='<div class="soc-ach-dates">'+dateBits.join(' · ')+'</div>';
     if(r.message)h+='<div class="soc-ach-msg">'+esc(r.message).replace(/\n/g,'<br>')+'</div>';
@@ -21742,7 +21781,7 @@ textarea.soc-in{resize:none;min-height:74px}
     closeSheet();var host=$('soc-sheet-host');if(!host)return;
     host.innerHTML='<div class="soc-sheet-bg" data-act="sheet-bg"><div class="soc-sheet" id="soc-sheet"><div class="soc-grab"></div>'+html+'</div></div>';
   }
-  function closeSheet(){var h=$('soc-sheet-host');if(h)h.innerHTML='';}
+  function closeSheet(){var h=$('soc-sheet-host');if(h)h.innerHTML='';_vidClear();}
   function sw(k,on,forced){return '<button class="soc-sw'+(on?' on':'')+(forced?' forced':'')+'" data-act="sw" data-k="'+k+'" aria-pressed="'+(on?'true':'false')+'"></button>';}
   function privRows(vis,listed,inForm){
     var lb=!!vis.leaderboard,h='';
@@ -21811,11 +21850,199 @@ textarea.soc-in{resize:none;min-height:74px}
   }
   window._achPickFiles=function(input){
     _readFilesB64(input.files).then(function(srcs){
+      if(S._pendingVideo&&srcs.length){_vidClear();_vidRenderPreview();} /* v246: a post carries photos OR one video, not both */
       srcs.forEach(function(s){(S._pendingAchImgs=S._pendingAchImgs||[]).push({src:s});});
       if(S._pendingAchImgs.length>6)S._pendingAchImgs=S._pendingAchImgs.slice(0,6);
       _achRenderPreview();input.value='';
     });
   };
+
+  /* ═══ v246 (T-006): VIDEO POSTS ═══════════════════════════════════════════
+     Upload: the app asks our Bunny relay Worker for a signed, expiring upload
+     ticket (the Bunny API key never reaches the browser), then uploads the file
+     straight to Bunny with the tus resumable protocol. A post stores only
+     {guid,duration}; playback URLs are built HERE from a fixed CDN address, so
+     no one can plant an arbitrary URL in a feed. Until the owner pastes the
+     real Worker URL + CDN address below, the whole feature stays hidden. */
+  var CFG={
+    worker:'https://replace_with_your_bunny_worker_url.workers.dev/',
+    cdn:'https://replace_with_your_bunny_cdn_host.b-cdn.net',
+    maxSeconds:30,maxBytes:100*1024*1024
+  };
+  function videoEnabled(){return CFG.worker.indexOf('replace_with')<0&&CFG.cdn.indexOf('replace_with')<0;}
+  function vGuidOk(g){return /^[0-9a-fA-F-]{36}$/.test(g||'');}
+  function vUrl(guid,file){return CFG.cdn.replace(/\/$/,'')+'/'+guid+'/'+file;}
+  function fmtDur(s){s=Math.round(s||0);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+  var PLAY_SVG='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+  var _scriptP={};
+  function _loadScript(url,globalName){ /* one shared loader per URL: resolves with the global once it exists */
+    if(_scriptP[url])return _scriptP[url];
+    _scriptP[url]=new Promise(function(res,rej){
+      if(window[globalName])return res(window[globalName]);
+      var s=document.createElement('script');s.src=url;s.async=true;
+      s.onload=function(){window[globalName]?res(window[globalName]):rej(new Error(globalName+' missing'));};
+      s.onerror=function(){delete _scriptP[url];rej(new Error('Could not load '+globalName));};
+      document.head.appendChild(s);
+    });
+    return _scriptP[url];
+  }
+  function _loadTus(){return _loadScript('https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js','tus');}
+  function _loadHls(){return _loadScript('https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js','Hls');}
+
+  /* compose: button + preview + selection */
+  function _vidBtnHtml(){
+    if(!videoEnabled())return '';
+    return '<button class="btn" type="button" style="width:100%" onclick="document.getElementById(\'soc-vid-file\').click()">🎬 Add a video (up to '+CFG.maxSeconds+' s)</button>'
+      +'<input type="file" id="soc-vid-file" accept="video/*" style="display:none" onchange="_achPickVideo(this)">';
+  }
+  function _vidPreviewHtml(){
+    var v=S._pendingVideo;
+    if(!v)return '<div id="soc-vid-preview"></div>';
+    return '<div id="soc-vid-preview"><div class="soc-vid-pv"><video src="'+esc(v.url)+'#t=0.1" muted playsinline preload="metadata"></video>'
+      +'<button type="button" data-act="vid-rm" aria-label="Remove video">✕</button><span class="dur">'+fmtDur(v.duration)+'</span></div>'
+      +'<div class="soc-vid-bar" id="soc-vid-bar" style="display:none"><i id="soc-vid-bar-i"></i></div></div>';
+  }
+  function _vidRenderPreview(){var b=$('soc-vid-preview');if(b)b.outerHTML=_vidPreviewHtml();}
+  function _vidClear(){if(S._pendingVideo){try{URL.revokeObjectURL(S._pendingVideo.url);}catch(e){}S._pendingVideo=null;}}
+  window._achPickVideo=function(input){
+    var f=input.files&&input.files[0];input.value='';if(!f)return;
+    var hint=$('soc-ach-hint');
+    function bad(m){if(hint){hint.textContent=m;hint.className='soc-hint bad';}}
+    if(!/^video\//.test(f.type)&&!/\.(mp4|mov|m4v|webm)$/i.test(f.name))return bad('Please choose a video file');
+    if(f.size>CFG.maxBytes)return bad('That video is too large (max '+Math.round(CFG.maxBytes/1048576)+' MB)');
+    var url=URL.createObjectURL(f),v=document.createElement('video');v.preload='metadata';
+    v.onloadedmetadata=function(){
+      if(!(v.duration>0)||v.duration>CFG.maxSeconds+0.5){URL.revokeObjectURL(url);return bad('Videos can be up to '+CFG.maxSeconds+' seconds — this one is '+Math.round(v.duration)+' s');}
+      _vidClear();S._pendingVideo={file:f,url:url,duration:Math.round(v.duration*10)/10};
+      S._pendingAchImgs=[];_achRenderPreview();_vidRenderPreview();
+      if(hint){hint.textContent='';hint.className='soc-hint';}
+    };
+    v.onerror=function(){URL.revokeObjectURL(url);bad('Couldn’t read that video — try a different one');};
+    v.src=url;
+  };
+  /* ticket from our Worker → resumable upload straight to Bunny. Resolves with the Worker's reply ({guid,…}). */
+  async function _vidUpload(pv,onProgress){
+    var s=await window._sbShared.auth.getSession();
+    var token=s&&s.data&&s.data.session&&s.data.session.access_token;
+    if(!token)throw new Error('Sign in first');
+    var r=await fetch(CFG.worker,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'create',size:pv.file.size,duration:pv.duration})});
+    var j={};try{j=await r.json();}catch(e){}
+    if(!r.ok||!j.guid)throw new Error(j.error||'Upload service unavailable');
+    var tus=await _loadTus();
+    await new Promise(function(res,rej){
+      var up=new tus.Upload(pv.file,{endpoint:j.endpoint,retryDelays:[0,1500,4000,10000],headers:j.headers,
+        metadata:{filetype:pv.file.type||'video/mp4',title:'clar-post'},
+        onError:rej,onProgress:function(a,b){if(onProgress)onProgress(Math.round(a/b*100));},onSuccess:res});
+      up.start();
+    });
+    return j;
+  }
+
+  /* feed: poster + play badge */
+  function _vidPosterHtml(r){
+    if(!r.video||!vGuidOk(r.video.guid)||!videoEnabled())return '';
+    return '<div class="soc-vid-poster" data-act="open-reels" data-id="'+r.id+'" role="button" aria-label="Play video">'
+      +'<img src="'+esc(vUrl(r.video.guid,'thumbnail.jpg'))+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+      +'<div class="soc-vid-play">'+PLAY_SVG+'</div>'
+      +(r.video.duration?'<span class="soc-vid-dur">'+fmtDur(r.video.duration)+'</span>':'')
+      +'</div>';
+  }
+
+  /* ── full-screen Reels-style viewer ──
+     One <section> per video post in the feed; vertical scroll-snap; the section that is >=60% visible plays (others pause);
+     tap = pause/play, double-tap = like (never unlike), speaker button shares the Vibe feed's remembered sound choice,
+     thin progress bar, caption over a soft scrim. Video source: HLS (native on Safari/iOS, hls.js elsewhere) with the MP4
+     fallback if HLS fails. */
+  var RL={io:null,muted:true,last:0,pending:null};
+  var SND_ON='<svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  var SND_OFF='<svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>';
+  function _rlEl(){var e=$('soc-reels');if(!e){e=document.createElement('div');e.id='soc-reels';root().appendChild(e);}return e;}
+  function openReels(startId){
+    if(!videoEnabled())return;
+    var list=(S.feedRows||[]).filter(function(r){return r._kind==='ach'&&r.video&&vGuidOk(r.video.guid);});
+    if(!list.length)return;
+    var idx=Math.max(0,list.findIndex(function(r){return String(r.id)===String(startId);}));
+    try{RL.muted=localStorage.getItem('clv_vf_sound')!=='1';}catch(e){RL.muted=true;} /* same remembered choice as the Vibe feed videos */
+    var el=_rlEl();
+    el.innerHTML='<div class="rl-scroll" id="rl-scroll">'+list.map(function(r,i){
+      return '<section class="rl-item" data-i="'+i+'" data-id="'+r.id+'" data-guid="'+esc(r.video.guid)+'">'
+        +'<video playsinline loop preload="none" poster="'+esc(vUrl(r.video.guid,'thumbnail.jpg'))+'"></video>'
+        +'<div class="rl-scrim"></div><div class="rl-tap"></div><div class="rl-pp">'+PLAY_SVG+'</div>'
+        +'<div class="rl-meta"><div class="who">'+avatar(r,36,false)+'<span>'+esc(r.display_name||'')+'</span></div>'
+        +(r.message?'<div class="msg">'+esc(r.message)+'</div>':(r.title?'<div class="msg">'+esc(r.title)+'</div>':''))+'</div>'
+        +'<div class="rl-side"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer-ach" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'" aria-label="Like">'+HEART_SVG+'<span class="n">'+(r.cheers||0)+'</span></button>'
+        +'<button class="rl-btn rl-snd" data-act="reels-mute" aria-label="Sound">'+(RL.muted?SND_OFF:SND_ON)+'</button></div>'
+        +'<div class="rl-prog"><i></i></div></section>';
+    }).join('')+'</div>'
+    +'<button class="rl-x" data-act="reels-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
+    el.classList.add('on');
+    var sc=$('rl-scroll');
+    sc.scrollTop=idx*sc.clientHeight;
+    if(RL.io)RL.io.disconnect();
+    RL.io=new IntersectionObserver(function(ents){
+      ents.forEach(function(en){
+        if(en.isIntersecting&&en.intersectionRatio>=0.6)_rlPlay(en.target);
+        else _rlPause(en.target);
+      });
+    },{root:sc,threshold:[0,0.6,1]});
+    Array.prototype.forEach.call(sc.querySelectorAll('.rl-item'),function(it){_rlWire(it);RL.io.observe(it);});
+  }
+  function closeReels(){
+    var el=$('soc-reels');if(!el)return;
+    if(RL.io){RL.io.disconnect();RL.io=null;}
+    Array.prototype.forEach.call(el.querySelectorAll('video'),function(v){try{v.pause();if(v._hls){v._hls.destroy();v._hls=null;}v.removeAttribute('src');v.load();}catch(e){}});
+    el.classList.remove('on');el.innerHTML='';
+  }
+  /* attach the right source once, the first time an item is needed */
+  function _rlAttach(it){
+    var v=it.querySelector('video');if(!v||v._att)return;v._att=1;
+    var guid=it.getAttribute('data-guid'),hls=vUrl(guid,'playlist.m3u8'),mp4=vUrl(guid,'play_720p.mp4');
+    function useMp4(){if(v._mp4)return;v._mp4=1;v.src=mp4;var p=v.play();if(p&&p.catch)p.catch(function(){});}
+    v.addEventListener('loadedmetadata',function(){v.classList.toggle('land',v.videoWidth>v.videoHeight);});
+    if(v.canPlayType('application/vnd.apple.mpegurl')){
+      v.src=hls;v.addEventListener('error',function(){useMp4();},{once:true});
+    }else{
+      _loadHls().then(function(Hls){
+        if(!Hls.isSupported())return useMp4();
+        var h=new Hls({maxBufferLength:8});v._hls=h;
+        h.on(Hls.Events.ERROR,function(_e,d){if(d&&d.fatal){try{h.destroy();}catch(x){}v._hls=null;useMp4();}});
+        h.loadSource(hls);h.attachMedia(v);
+      }).catch(useMp4);
+    }
+  }
+  function _rlPlay(it){
+    _rlAttach(it);
+    var v=it.querySelector('video');if(!v)return;
+    v.muted=RL.muted;
+    var p=v.play();
+    if(p&&p.catch)p.catch(function(){ /* sound blocked → fall back to muted rather than a frozen frame */
+      if(!v.muted){v.muted=true;RL.muted=true;_rlSyncSnd();var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});}
+    });
+  }
+  function _rlPause(it){var v=it.querySelector('video');if(v&&!v.paused)v.pause();}
+  function _rlSyncSnd(){
+    var bs=document.querySelectorAll('#soc-reels .rl-snd');
+    for(var i=0;i<bs.length;i++)bs[i].innerHTML=RL.muted?SND_OFF:SND_ON;
+  }
+  function _rlWire(it){
+    var v=it.querySelector('video'),tap=it.querySelector('.rl-tap'),pp=it.querySelector('.rl-pp'),bar=it.querySelector('.rl-prog i');
+    v.addEventListener('timeupdate',function(){if(v.duration>0)bar.style.width=(v.currentTime/v.duration*100)+'%';});
+    v.addEventListener('pause',function(){pp.classList.add('on');});
+    v.addEventListener('play',function(){pp.classList.remove('on');});
+    /* single tap toggles play/pause; a 2nd tap within 300 ms is a like instead (waits 240 ms to tell them apart) */
+    tap.addEventListener('click',function(e){
+      var now=Date.now();
+      if(now-RL.last<300){
+        clearTimeout(RL.pending);RL.pending=null;RL.last=0;
+        var b=it.querySelector('.soc-cheer');
+        if(b&&b.getAttribute('data-on')!=='1')ACT['cheer-ach'](b);
+        _heartBurst(tap);
+        return;
+      }
+      RL.last=now;
+      RL.pending=setTimeout(function(){RL.pending=null;if(v.paused)_rlPlay(it);else v.pause();},240);
+    });
+  }
   async function openAchievementCompose(item){
     if(!item)return;
     if(!window._isGoogleUser){if(window._signInWithGoogle)window._signInWithGoogle();return;}
@@ -21824,7 +22051,7 @@ textarea.soc-in{resize:none;min-height:74px}
        case would inject this sheet into a still-hidden screen */
     await open();
     if(!S.me)return; /* open() already showed the join/gate screen */
-    S._pendingAch=item;
+    S._pendingAch=item;_vidClear();
     S._pendingAchImgs=(item.images||[]).filter(function(im){return im&&im.src;}).slice(0,6).map(function(im){return {src:im.src};});
     var setD=_fmtDate(item.date_set),achD=_fmtDate(item.date_achieved);
     var dateLine=(setD||achD)?('<div class="soc-ach-dates">'+(setD?'🎯 Set '+esc(setD):'')+(setD&&achD?' → ':'')+(achD?'🏆 Achieved '+esc(achD):'')+'</div>'):'';
@@ -21833,9 +22060,10 @@ textarea.soc-in{resize:none;min-height:74px}
       +'<div><div class="soc-lbl">Title</div><input class="soc-in" id="soc-ach-title" maxlength="140" value="'+esc(item.title||'')+'"></div>'
       +dateLine
       +'<div><div class="soc-lbl"><span>Add a message (optional)</span><span id="soc-ach-mc">0/2000</span></div><textarea class="soc-in" id="soc-ach-msg" maxlength="2000" rows="3" placeholder="Say a bit more about this win…"></textarea></div>'
-      +_achPreviewHtml()
+      +_achPreviewHtml()+_vidPreviewHtml()
       +'<button class="btn" type="button" style="width:100%" onclick="document.getElementById(\'soc-ach-file\').click()">📷 Add more photos</button>'
       +'<input type="file" id="soc-ach-file" accept="image/*" multiple style="display:none" onchange="_achPickFiles(this)">'
+      +_vidBtnHtml()
       +'<div class="soc-hint" id="soc-ach-hint"></div>'
       +'<button class="soc-btn pri wide" data-act="post-achievement">Post to Community</button></div>');
   }
@@ -21846,13 +22074,14 @@ textarea.soc-in{resize:none;min-height:74px}
     if(!window._isGoogleUser){if(window._signInWithGoogle)window._signInWithGoogle();return;}
     await open();
     if(!S.me)return;
-    S._pendingAch=null;S._pendingAchImgs=[];
+    S._pendingAch=null;S._pendingAchImgs=[];_vidClear();
     openSheet('<h3>Create a post</h3><p class="lead">Shares to your followers\' feed — you can delete it any time.</p>'
       +'<div class="soc-form" style="padding:10px 0 0">'
       +'<div><div class="soc-lbl"><span>What\'s on your mind?</span><span id="soc-ach-mc">0/2000</span></div><textarea class="soc-in" id="soc-ach-msg" maxlength="2000" rows="4" placeholder="Share an update, a thought, anything…" autofocus></textarea></div>'
-      +_achPreviewHtml()
+      +_achPreviewHtml()+_vidPreviewHtml()
       +'<button class="btn" type="button" style="width:100%" onclick="document.getElementById(\'soc-ach-file\').click()">📷 Add photos</button>'
       +'<input type="file" id="soc-ach-file" accept="image/*" multiple style="display:none" onchange="_achPickFiles(this)">'
+      +_vidBtnHtml()
       +'<div class="soc-hint" id="soc-ach-hint"></div>'
       +'<button class="soc-btn pri wide" data-act="post-achievement">Post to Community</button></div>');
   }
@@ -21933,7 +22162,8 @@ textarea.soc-in{resize:none;min-height:74px}
       var msg=msgEl?clean(msgEl.value,2000):'';
       var imgs=(S._pendingAchImgs||[]).filter(function(im){return im&&im.src;});
       var hint=$('soc-ach-hint');
-      if(!title&&!msg&&!imgs.length){if(hint){hint.textContent='Write something or add a photo first';hint.className='soc-hint bad';}return;}
+      var pv=S._pendingVideo||null; /* v246 (T-006) */
+      if(!title&&!msg&&!imgs.length&&!pv){if(hint){hint.textContent='Write something or add a photo first';hint.className='soc-hint bad';}return;}
       el.disabled=true;
       try{
         var uidv=uid();
@@ -21943,7 +22173,7 @@ textarea.soc-in{resize:none;min-height:74px}
             if(url)imgs[i]={src:url};
           }
         }
-        var r=await q('social_achievements').insert({
+        var row={
           user_id:uidv,
           goal_item_id:(item&&item.remoteId)||null,
           title:title||null,
@@ -21951,17 +22181,42 @@ textarea.soc-in{resize:none;min-height:74px}
           images:imgs,
           date_set:(item&&item.date_set)||null,
           date_achieved:(item&&item.date_achieved)||null
-        });
+        };
+        /* v246 (T-006): `video` is only added when there IS a video, so an ordinary post still works on a project that hasn't run
+           schema_v246_video.sql yet (it would reject an unknown column even when null) */
+        if(pv){
+          var bar=$('soc-vid-bar'),bi=$('soc-vid-bar-i');if(bar)bar.style.display='block';
+          if(hint){hint.textContent='Uploading video… 0%';hint.className='soc-hint';}
+          var up=await _vidUpload(pv,function(p){if(bi)bi.style.width=p+'%';if(hint)hint.textContent='Uploading video… '+p+'%';});
+          row.video={guid:up.guid,duration:pv.duration};
+        }
+        var r=await q('social_achievements').insert(row);
         if(r.error)throw r.error;
         if(item&&window._giMarkShared)window._giMarkShared(item.id);
         closeSheet();toast('Posted to Community ✦');S.feedRows=null;cacheDropFeed();if(S.tab==='feed'&&!S.prof)loadFeed();
-      }catch(er){el.disabled=false;if(hint){hint.textContent='Couldn’t post — try again';hint.className='soc-hint bad';}}
+      }catch(er){
+        el.disabled=false;
+        /* the upload Worker's own messages ("30 seconds or shorter", "daily limit reached"…) are safe and useful to show;
+           anything else stays a generic line */
+        var pm=(pv&&er&&er.message&&!/Failed to fetch|NetworkError|tus:|Load failed/i.test(er.message))?er.message:'Couldn’t post — try again';
+        if(hint){hint.textContent=pm;hint.className='soc-hint bad';}
+      }
     },
     'ach-rm-img':function(el){
       var i=parseInt(el.getAttribute('data-i'),10);
       if(!S._pendingAchImgs||isNaN(i))return;
       S._pendingAchImgs.splice(i,1);
       _achRenderPreview();
+    },
+    /* v246 (T-006): video posts */
+    'vid-rm':function(){_vidClear();_vidRenderPreview();},
+    'open-reels':function(el){openReels(el.getAttribute('data-id'));},
+    'reels-close':function(){closeReels();},
+    'reels-mute':function(){
+      RL.muted=!RL.muted;
+      try{localStorage.setItem('clv_vf_sound',RL.muted?'0':'1');}catch(e){}
+      var vs=document.querySelectorAll('#soc-reels video');for(var i=0;i<vs.length;i++)vs[i].muted=RL.muted;
+      _rlSyncSnd();
     },
     /* v244: tap a feed photo → the app's own lightbox (swipe/pinch, same as
        Vision Images/Goal Items) — not a new viewer, reuses openLB */
@@ -22125,7 +22380,7 @@ textarea.soc-in{resize:none;min-height:74px}
   }
 
   window.socOpen=open;
-  window.SOC={open:open,close:close,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
+  window.SOC={open:open,close:close,_cfg:CFG,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
   document.addEventListener('DOMContentLoaded',function(){
     wire();refreshFlag();
     setTimeout(function(){ /* keep my public numbers fresh — only if I already have a profile and I'm signed in */
