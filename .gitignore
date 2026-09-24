@@ -9,3 +9,10 @@ ios/App/build/
 # Secrets — never commit
 Google Oauth/
 .clasp.json
+
+# QA / ops tooling (local only)
+qa/node_modules/
+qa/.browsers/
+qa/test-results/
+qa/playwright-report/
+ops/.state/

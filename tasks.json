@@ -1,0 +1,246 @@
+{
+  "project": "clarvoyance",
+  "schema": 1,
+  "run": {
+    "active": false
+  },
+  "batches": {
+    "B1": {
+      "created": "2026-09-23T22:50:00.000Z",
+      "frozen": true,
+      "frozen_at": "2026-09-23T22:50:00.000Z",
+      "legacy": true,
+      "frozen_hash": "bec8e2e4ef2b8f72236b422f62ae0498945271f007649b2f7722775d356a8768"
+    },
+    "B2": {
+      "created": "2026-09-23T23:20:00.000Z",
+      "frozen": true,
+      "frozen_at": "2026-09-23T23:20:00.000Z",
+      "legacy": true,
+      "frozen_hash": "afd7860fcb128b365d14d873fd3a8fb122c5a30e8143b142bf6107d1805ce013"
+    },
+    "B3": {
+      "created": "2026-09-23T23:40:00.000Z",
+      "frozen": true,
+      "frozen_at": "2026-09-23T23:40:00.000Z",
+      "legacy": true,
+      "frozen_hash": "c73bea10e6333a3f5d385e7055ee2ea772da54e8d989f0f207e01ce0e10e5fc6"
+    }
+  },
+  "tasks": [
+    {
+      "id": "T-001",
+      "title": "Community redesign: feed as first page, Board/Discover/Groups model, video (Bunny vs alternatives), chat (own vs service), tab layout (Clar AI / Vibe / Fortune placement), ClarZone<->Community blending, faster Community open",
+      "added": "2026-09-23T22:25:00.000Z",
+      "done_when": "Discussion agreed with owner; then split into separate T-rows with their own Done-when",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": true,
+      "files": "",
+      "result": "Research + discussion in progress; nothing to build yet",
+      "completed": null,
+      "completed_text": "",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DISCUSS",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-002",
+      "title": "Community opens fast: cache own profile + last feed locally, render instantly on open, refresh in background (stale-while-revalidate); prefetch after auth resolves; drop the serial 1.5s `_isGoogleUser` wait when a cached session flag exists",
+      "added": "2026-09-23T22:50:00.000Z",
+      "done_when": "In real Chrome (isolated context, disposable account): (a) 2nd open shows feed content with no skeleton within 300 ms of tap, measured by performance.now(); (b) cold-open time before vs after recorded in Result; (c) signed-out user still sees the sign-in gate; (d) console errors = 0; (e) after background refresh, new post appears without reopening",
+      "status": "DONE",
+      "batch": "B1",
+      "depends_on": [],
+      "verify": true,
+      "files": "clarvoyance_v246.html",
+      "result": "Measured in real Chrome (isolated ctx, disposable anon account, Fast 4G throttle, same harness on old v245 vs v246): OLD open-to-content 1288 / 1326 / 1941 ms; NEW warm open 35 / 96 / 35 ms (cache); NEW first-ever open (no cache) 1812 ms. Also verified: signed-out still gets the sign-in gate even with cache present; a different account's cache is NOT used (skeleton then normal load); a new post inserted after the cache was written shows up via background refresh with no reopen (first paint didn't have it, 3.5 s later it did); console errors = 0; all 48 script blocks parse. Cache is per-uid (`clv_soc_cache_v1`), cleared on profile delete, dropped on follow/new post.",
+      "completed": "2026-09-23T23:55:00.000Z",
+      "completed_text": "2026-09-24 05:25",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DONE",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-003",
+      "title": "Feed never empty: an official \"Clar\" account posts (owner-editable content table) so a brand-new user with zero follows still sees real posts",
+      "added": "2026-09-23T22:50:00.000Z",
+      "done_when": "New account with 0 follows sees >=1 post labelled \"Clar\" (verified in real Chrome); Clar posts cannot be liked-as-impersonation of a real user; posts editable without code; SQL file written + parse-checked",
+      "status": "DONE",
+      "batch": "B1",
+      "depends_on": [],
+      "verify": true,
+      "files": "clarvoyance_v246.html + db/schema_v246_clar_posts.sql",
+      "result": "CODE DONE + tested. Verified in real Chrome (390x844): (a) with the table NOT yet migrated (today's real production state) the feed works, 0 Clar cards, no error; (b) with the table mocked (7 posts) a user with 2 real posts sees 2 real + 4 Clar cards (fills to 6), newest Clar post on top, \"Official\" chip on each, NO Like/Comment on Clar cards, CTA buttons correct (chat/vibe/goal), HTML/script in a post title is escaped (no injected img); (c) tapping \"Talk to Clar\" closes Community and lands on the Clar AI tab, \"Try a Vibe card\" lands on Vibe; SQL parsed OK by the real Postgres parser (libpg-query, 10 statements) but NOT executed. Also fixed a pre-existing layout bug: the \"What's on your mind?\" pill overflowed the right edge (width:100% + 16px margins). OWNER STEP: run db/schema_v246_clar_posts.sql in the Supabase SQL editor (creates table + RLS + grants + 7 starter posts; idempotent). Then Clar posts appear by themselves, editable in Table Editor (title/message/active).",
+      "completed": "2026-09-24T00:01:00.000Z",
+      "completed_text": "2026-09-24 05:31 (code done)",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DONE",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-004",
+      "title": "Feed-first start page behind a feature flag (`feed_first`, default OFF, % rollout) so returning users' Clar-AI-first habit is not broken for everyone at once",
+      "added": "2026-09-23T22:50:00.000Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [
+        "T-005"
+      ],
+      "verify": true,
+      "files": "",
+      "result": "Needs nav layout decision (T-005) first. Big product bet: Clar AI is the current start tab by design",
+      "completed": null,
+      "completed_text": "",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DISCUSS",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-005",
+      "title": "Bottom-nav restructure. Owner decisions 2026-09-24: Vibe stays its own tab; Fortune moves INTO the You tab (You already has usage + status); Home's NN/quests are NOT moved into You. Proposed 6 tabs: Feed / Vibe / Clar AI (raised centre button) / Goal / Home / You. Owner 2026-09-24: Self becomes a plate under Non-Negotiables on Home, tap opens the whole Self tab as-is. Board + Discover become top sub-tabs inside Feed (Following / Discover / Board); Community's inner \"You\" merges into main You tab",
+      "added": "2026-09-23T22:50:00.000Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": true,
+      "files": "",
+      "result": "DECIDED 2026-09-24: Clar AI = raised centre nav button (still a real tab, no chat-code refactor). Feed sub-tabs (Following/Discover/Board) must be slim and not change the feed's current look",
+      "completed": null,
+      "completed_text": "",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DISCUSS",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-006",
+      "title": "Video in Community posts (30 s cap) — built on Bunny Stream (originally planned on R2/Stream; owner chose Bunny 2026-09-25)",
+      "added": "2026-09-23T23:20:00.000Z",
+      "done_when": "Worker + SQL + client built and syntax-checked; upload/playback flow tested against a mocked Worker in real Chrome (no real key yet); status set BLOCKED with exact steps: (1) Cloudflare Stream enabled, (2) Account ID + API token (Stream:Edit) as Worker secrets, (3) run SQL, (4) deploy Worker",
+      "status": "DONE",
+      "batch": "B2",
+      "depends_on": [],
+      "verify": true,
+      "files": "clarvoyance_v246.html + workers/bunny-relay-worker.js + db/schema_v246_video.sql",
+      "result": "BUILT FOR BUNNY STREAM (Claude's recommendation; owner had not chosen — R2 would need a different Worker, client unchanged except the upload step). ALL PREPARED + TESTED WITHOUT REAL KEYS: (1) Worker `workers/bunny-relay-worker.js`: 20/20 isolated tests with every outside call mocked — no token 401, anonymous session 403, >100MB 413, >35s 400, unknown action 400, no side effects on rejected calls, signature = sha256(lib+key+expire+guid) verified, API key never in a response, ledger row per member, CORS only for allowed origins, 11th upload/24h -> 429, OPTIONS 204, GET 405. (2) SQL `db/schema_v246_video.sql` parsed OK by the real Postgres parser (21 statements) — NOT executed. (3) Client in real Chrome (390x844) against local mocks of Worker+TUS+CDN: video button hidden while unconfigured (nothing changes for anyone until the owner configures it); with mocks: pick file -> preview with duration; too-long video refused with message; non-video refused; Post -> Worker called with Bearer, real tus-js-client uploaded 1128375/1128375 bytes with the signed headers, insert payload = {message, images:[], video:{guid,duration}} (no `video` key at all on ordinary posts, so unmigrated projects keep working); feed shows a poster card with play badge + duration; tap opens Reels viewer: HLS tried first then automatic MP4 fallback (played), starts muted, progress bar moves, single tap pauses/resumes with centre glyph, double-tap likes exactly once (never unlikes, heart burst), speaker button unmutes + remembers choice (shared `clv_vf_sound` with Vibe), scrolling snaps to next video which plays while the previous pauses and back, close returns to the feed. NOT verified (needs real Bunny): real HLS playback, iOS/Safari native HLS, real transcoding. 2026-09-25: owner created the Bunny library (ID 761770, CDN host vz-07154b7f-e50.b-cdn.net); CDN host now set in CFG.cdn (host answers HTTP 403 for a non-existent video = reachable; library API answers 401 without a key = library exists). SQL run by owner; Worker deployed at https://clar-bunny.smworkassistance.workers.dev/ and URL set in CFG.worker (2026-09-25). Worker curl tests: GET 405 ok, CORS ok, no-token 401 ok, garbage token 401 ok, BUT a valid anonymous token also gets 401 Invalid session while Supabase itself returns 200 for it => Worker SUPABASE_ANON_KEY/SUPABASE_URL value wrong. Remaining: fix that variable, then real upload test with a Google-signed-in account. OWNER STEPS (in order): (1) Bunny: create account + Stream library; note Library ID, API Key, and the library's CDN hostname (vz-xxxx.b-cdn.net); leave MP4 Fallback ON. (2) Supabase SQL editor: run db/schema_v246_video.sql. (3) Cloudflare: new Worker, paste workers/bunny-relay-worker.js, set variables BUNNY_LIBRARY_ID, BUNNY_API_KEY(secret), SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY(secret), Deploy (re-deploy after saving secrets). (4) Tell Claude the Worker URL + CDN hostname (or paste into `CFG` at top of the Community script, search `replace_with_your_bunny`). Until step 4 the feature is invisible.",
+      "completed": null,
+      "completed_text": "05:48 (code done)",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DONE",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-007",
+      "title": "Invite friends link + small goal \"circles\" (3-8 people) for growth loop",
+      "added": "2026-09-23T22:50:00.000Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": true,
+      "files": "",
+      "result": "Public groups deferred until user density exists",
+      "completed": null,
+      "completed_text": "",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DISCUSS",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-008",
+      "title": "Fortune theme match (dark cosmic -> app theme, light+dark)",
+      "added": "2026-09-23T22:50:00.000Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [
+        "T-005"
+      ],
+      "verify": true,
+      "files": "",
+      "result": "Depends on T-005",
+      "completed": null,
+      "completed_text": "",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.409Z",
+          "status": "DISCUSS",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-010",
+      "title": "FOUND during regression pass (pre-existing, not caused by v246): Fortune's usage-vs-state correlation (v225) reads `admin_insights` from the browser as the signed-in user; that table was locked to service_role only in v178b, so every call returns 403 (visible in console) and the feature can never produce evidence. Needs a server-side path (Worker/RPC that computes the correlation) instead of a client read",
+      "added": "2026-09-24T00:22:00.000Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": true,
+      "files": "",
+      "result": "Owner to decide; not touched in v246",
+      "completed": null,
+      "completed_text": "",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.410Z",
+          "status": "DISCUSS",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-009",
+      "title": "Vibe Feed video card feels like Instagram/YouTube: starts by itself (muted autoplay is what mobile browsers allow), visible tap-to-pause/play icon, mute/unmute button, thin progress bar, swipe still skips, smooth",
+      "added": "2026-09-23T23:40:00.000Z",
+      "done_when": "Mobile-emulated real Chrome: video card starts playing within 2 s with no tap; tap toggles pause/play with a visible icon; mute toggle works; swipe up still advances; 50%-watched XP still unlocks; other card types unchanged; regression rule 11 passes. Real-phone behaviour cannot be proven in emulation - stated in Result",
+      "status": "DONE",
+      "batch": "B3",
+      "depends_on": [],
+      "verify": true,
+      "files": "clarvoyance_v246.html",
+      "result": "Verified in real Chrome, 390x844 mobile+touch emulation, real YouTube embed (video jNQXAC9IVRw): starts by itself muted (embed URL mute=1, controls=0), no tap; tap (touch) pauses -> centre play glyph appears, progress bar freezes; tap again resumes; desktop click also toggles (no double-toggle after a touch); mute button unmutes (icon flips immediately, choice remembered in `clv_vf_sound`, next video's embed URL then has mute=0); \"Tap for sound\" hint shows 3.5 s on muted start; 30 px swipe does NOT advance, 100 px swipe up DOES; leaving the Vibe tab pauses the video and returning resumes it; floating left buttons hidden during a video and restored afterwards. Also FOUND+FIXED in the process: the video wrap slid UNDER the bottom nav (Vibe container z-index 550 < nav 600), hiding mute/progress/caption — now ends exactly at the nav top (measured: wrap bottom 744 = nav top 744), like Instagram Reels. Console: only the pre-existing placeholder photo-worker URL error (v216 note), nothing from this change. NOT provable in emulation: real-phone autoplay/iOS Safari behaviour — muted autoplay is the standard allowed path, but owner must confirm on a real phone.",
+      "completed": "2026-09-24T00:08:00.000Z",
+      "completed_text": "2026-09-24 05:38",
+      "history": [
+        {
+          "at": "2026-09-24T22:40:29.410Z",
+          "status": "DONE",
+          "note": "migrated from TASKS.md v1"
+        }
+      ]
+    }
+  ]
+}

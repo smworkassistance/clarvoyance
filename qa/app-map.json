@@ -1,0 +1,24 @@
+{
+  "_about": "Project-specific map used by qa/tests. When the app's navigation changes (e.g. nav_v2), update THIS file, not the tests.",
+  "versionLabelSelector": "#prof-app-ver",
+  "tabs": [
+    { "tab": "chat",   "nav": ".bnav-tab[data-tab=\"chat\"]",   "section": "#chat-section" },
+    { "tab": "home",   "nav": ".bnav-tab[data-tab=\"home\"]",   "section": "#nn-tab-section" },
+    { "tab": "vibe",   "nav": ".bnav-tab[data-tab=\"vibe\"]",   "section": "#vibe-feed" },
+    { "tab": "goal",   "nav": ".bnav-tab[data-tab=\"goal\"]",   "section": "#goal-row" },
+    { "tab": "self",   "nav": ".bnav-tab[data-tab=\"self\"]",   "section": "#self-section" },
+    { "tab": "fortune","nav": ".bnav-tab[data-tab=\"fortune\"]","section": "#fortune-section" }
+  ],
+  "profileSection": "#profile-section",
+  "stableRegions": [ { "name": "bottom-nav", "selector": ".bnav" } ],
+  "networkBlock": [ "google-analytics.com", "googletagmanager.com", "clarity.ms", "doubleclick.net" ],
+  "ignoreConsoleErrorsFromUrls": [
+    "google-analytics", "googletagmanager", "clarity.ms", "doubleclick",
+    "admin_insights",
+    "replace_with_your_photo_worker_url",
+    "i.ytimg.com", "youtube.com", "googlevideo.com",
+    "fonts.googleapis", "fonts.gstatic"
+  ],
+  "chatInput": "#chat-input",
+  "chatBubble": ".chat-bubble"
+}

@@ -1,0 +1,32 @@
+{
+  "_about": "Agentic Delivery Kit (ADK) — project-specific settings. Everything project-specific lives HERE; the scripts in ops/ are generic. To reuse ADK in another project: copy ops/, qa/, docs/PROCESS.md, docs/templates/, .claude/hooks/ and edit only this file + qa/app-map.json.",
+  "project": "clarvoyance",
+  "tasksFile": "tasks.json",
+  "renderedTasksFile": "TASKS.md",
+  "runLogFile": "docs/RUNLOG.md",
+  "staleAfterHours": 24,
+  "verifyMaxAgeMinutes": 60,
+  "defaultRunMaxHours": 3,
+  "defaultRunMaxIterations": 200,
+  "app": {
+    "liveEntry": "index.html",
+    "serviceWorker": "sw.js",
+    "versionFilePattern": "clarvoyance_v{N}.html",
+    "versionLabelRegex": "id=\"prof-app-ver\">(v\\d+)",
+    "swCacheRegex": "const CACHE_VERSION\\s*=\\s*'(clv-v\\d+)'",
+    "swCacheTemplate": "clv-v{N}",
+    "inlineScriptFiles": ["index.html"]
+  },
+  "verify": {
+    "qaDir": "qa",
+    "browsers": ["chromium", "webkit"],
+    "playwrightBrowsersPath": "qa/.browsers"
+  },
+  "promote": {
+    "tagPrefix": "pre-",
+    "commitMessageTemplate": "{ver}: promote to {liveEntry} + {serviceWorker} {swCache}",
+    "coAuthor": "Claude Sonnet 5 <noreply@anthropic.com>"
+  },
+  "protectedPaths": ["index.html", "sw.js", "manifest.json"],
+  "hostingNote": "GitHub Pages serves the repo root; CDN caches ~10 min after a push."
+}

@@ -17,6 +17,16 @@ Repo: https://github.com/smworkassistance/clarvoyance
 
 ---
 
+## Delivery process (READ FIRST every session) — Agentic Delivery Kit
+
+> **Claude is responsible for the outcome** (owner's instruction, 2026-09-25): completeness, not breaking the live app, records, and collecting all prerequisites up front. The owner decides product/taste and does human-only steps.
+
+- **Rulebook:** `docs/PROCESS.md` (lifecycle, Definition of Done, permissions, blocked-handling). **Why built this way:** `docs/INFRA-PLAN.md`. **Project facts:** `docs/PROJECT.md`. **Decisions:** `docs/DECISIONS.md`. **Run history:** `docs/RUNLOG.md`.
+- **Tasks:** `tasks.json` is the source of truth (only `node ops/tasks.js …` edits it); `TASKS.md` is a generated view — never hand-edit. Session start: `node ops/tasks.js run status` and `node ops/tasks.js list`.
+- **Work flow:** brief (`docs/templates/BRIEF.md`) → one clarification round with defaults → freeze batch contract (`docs/batches/Bn.md`, `node ops/tasks.js batch freeze Bn`) → `run start` → per task: build in a NEW `clarvoyance_vN.html`, `node ops/verify.js`, `set <id> DONE --evidence …` → promote dark (`node ops/promote.js`, tag `pre-vN`) → report. Rollback: `node ops/rollback.js pre-vN`.
+- **Enforced by code:** DONE needs evidence + fresh full verify on the current bytes; frozen batches reject new tasks; stale (>24 h) tasks need re-confirmation; a Stop hook (`.claude/hooks/stop-guard.js`, active only during a declared run) stops early exit. Self-test: `node ops/selftest.js`.
+- **Regression gate:** `qa/` (Playwright, Chromium-Android + WebKit-iPhone, network-isolated, visual guard on stable regions). Known console noise is allow-listed in `qa/app-map.json`; anything else fails.
+
 ## Tech Stack
 | Layer | What |
 |-------|------|
@@ -25,7 +35,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 | Hosting | GitHub Pages (index.html = latest stable version) |
 | Storage | localStorage (all user data) |
 | Analytics | GA4 (G-BZZMW9B8SN) + Microsoft Clarity (wydll6jrxn) |
-| PWA | sw.js (cache version clv-v216), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
+| PWA | sw.js (cache version = current release, e.g. clv-v246; verify.js checks it matches the version label), manifest.json, beforeinstallprompt — **bump CACHE_VERSION on every release** |
 
 ---
 

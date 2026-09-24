@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "PowerShell(*)",
+      "WebFetch(*)",
+      "Bash(cd \"e:/AI Work - Claude desktop/Clarvoyance md\" && cp clarvoyance_v177.html clarvoyance_v178.html && echo done)",
+      "mcp__chrome-devtools__navigate_page",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__chrome-devtools__new_page",
+      "mcp__chrome-devtools"
+    ],
+    "ask": [
+      "Bash(git push*)"
+    ],
+    "deny": [
+      "Bash(git reset --hard*)",
+      "Bash(git clean -f*)",
+      "Bash(git branch -D*)",
+      "Bash(rm -rf*)"
+    ],
+    "additionalDirectories": [
+      "e:\\AI Work - Claude desktop\\Clarvoyance md"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/stop-guard.js"
+          }
+        ]
+      }
+    ]
+  }
+}
