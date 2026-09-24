@@ -18298,7 +18298,9 @@ body.home-tab #nn-tab-section{order:2;}
        never extended to — the Life Quiz and the Google sign-in prompt —
        found auditing this exact overlap risk on request. Checking all
        three (reg-screen is now always hidden anyway, kept for safety). */
-    var blockingScreenIds=['reg-screen','lifequiz-screen','gsignin-screen'];
+    /* v246: + soc-screen — found live testing the video viewer: the install card (z-index 9999) slid up over the full-screen Community / Reels
+       viewer. soc-screen uses the same 'hidden' class convention as the onboarding screens. */
+    var blockingScreenIds=['reg-screen','lifequiz-screen','gsignin-screen','soc-screen'];
     for(var _bi=0; _bi<blockingScreenIds.length; _bi++){
       var _bEl=document.getElementById(blockingScreenIds[_bi]);
       if(_bEl && !_bEl.classList.contains('hidden')) return;
@@ -20829,6 +20831,9 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-vid-pv .dur{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:.74rem;font-weight:700;padding:3px 8px;border-radius:999px}
 .soc-vid-bar{height:5px;border-radius:3px;background:var(--bo);overflow:hidden;margin-top:8px}
 .soc-vid-bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+/* the PWA install card (z-index 9999) sits above Community (9650) — it covered the bottom of the feed / the Reels viewer when it had
+   already slid up before Community was opened. Hidden while Community is open; comes back on its own after (its own show logic untouched). */
+body.soc-open #pwa-card{display:none!important}
 /* full-screen Reels-style viewer */
 #soc-reels{position:fixed;inset:0;z-index:9660;background:#000;display:none}
 #soc-reels.on{display:block}
@@ -21294,6 +21299,7 @@ textarea.soc-in{resize:none;min-height:74px}
   async function open(){
     var r=root();if(!r)return;
     r.classList.remove('hidden');S.prof=null;
+    document.body.classList.add('soc-open'); /* v246: hides the PWA install card while Community is open (see CSS next to .soc-vid-poster) */
     body('<div style="padding-top:14px"><div class="soc-sk"></div><div class="soc-sk"></div><div class="soc-sk" style="height:80px"></div></div>');
     renderTop();tabsVisible(false);
     /* v246 (T-002) fast path: I've been here before on this account/device —
@@ -21346,7 +21352,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var host=$('soc-sheet-host');
     if(changed&&S.tab==='me'&&!S.prof&&!(host&&host.innerHTML))render();
   }
-  function close(){var r=root();if(r)r.classList.add('hidden');closeSheet();closeReels();}
+  function close(){var r=root();if(r)r.classList.add('hidden');document.body.classList.remove('soc-open');closeSheet();closeReels();}
   function maybeDeepLink(){ /* ?u=handle on the URL → open that profile once the flag says we're live */
     if(flagOn()&&lsGet(PENDING_U,'')&&window._isGoogleUser)setTimeout(open,600);
   }
@@ -21996,8 +22002,20 @@ textarea.soc-in{resize:none;min-height:74px}
   /* attach the right source once, the first time an item is needed */
   function _rlAttach(it){
     var v=it.querySelector('video');if(!v||v._att)return;v._att=1;
-    var guid=it.getAttribute('data-guid'),hls=vUrl(guid,'playlist.m3u8'),mp4=vUrl(guid,'play_720p.mp4');
-    function useMp4(){if(v._mp4)return;v._mp4=1;v.src=mp4;var p=v.play();if(p&&p.catch)p.catch(function(){});}
+    var guid=it.getAttribute('data-guid'),hls=vUrl(guid,'playlist.m3u8');
+    /* MP4 fallback: Bunny only makes renditions up to the SOURCE resolution (verified live: a 360p test clip had play_480p/360p/240p but
+       no play_720p), so try high → low instead of assuming 720p exists */
+    var mp4s=['play_720p.mp4','play_480p.mp4','play_360p.mp4','play_240p.mp4'],mi=0;
+    function nextMp4(){
+      if(mi>=mp4s.length)return;
+      v.src=vUrl(guid,mp4s[mi++]);
+      var p=v.play();if(p&&p.catch)p.catch(function(){});
+    }
+    function useMp4(){
+      if(v._mp4)return;v._mp4=1;
+      v.addEventListener('error',function(){nextMp4();}); /* this rendition doesn't exist → next one down */
+      nextMp4();
+    }
     v.addEventListener('loadedmetadata',function(){v.classList.toggle('land',v.videoWidth>v.videoHeight);});
     if(v.canPlayType('application/vnd.apple.mpegurl')){
       v.src=hls;v.addEventListener('error',function(){useMp4();},{once:true});
