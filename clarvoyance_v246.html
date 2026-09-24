@@ -226,6 +226,24 @@ body[data-persona="nurturer"]  {--persona-col:#7556a4}  /* Amethyst — gentle, 
 /* v202: Vibe Feed video card */
 .vf-video-wrap{position:relative;width:100%;max-width:280px;margin:0 auto;aspect-ratio:9/16;border-radius:14px;overflow:hidden;background:#000;transition:none}
 .vf-video-wrap iframe{width:100%;height:100%}
+/* v246 (T-009): Reels/YouTube-Shorts-style controls — the YouTube player's own control bar is hidden (controls:0) and replaced by:
+   a big centre play/pause glyph (persistent while paused), a mute/unmute button, a thin progress bar, a bottom caption over a soft scrim.
+   All sit above the touch overlay (z-index:1) and use only light-on-video colours so they read on any footage. */
+.vf-vid-pp{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.8);transition:opacity .18s,transform .18s;pointer-events:none;z-index:2}
+.vf-vid-pp.on{opacity:1;transform:scale(1)}
+.vf-vid-pp svg{width:34px;height:34px;fill:#fff}
+.vf-vid-scrim{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(to top,rgba(0,0,0,.62),rgba(0,0,0,0));pointer-events:none;z-index:1}
+.vf-vid-cap{position:absolute;left:16px;right:78px;bottom:calc(26px + env(safe-area-inset-bottom,0px));color:#fff;font-size:.95rem;font-weight:600;line-height:1.35;text-shadow:0 1px 6px rgba(0,0,0,.5);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;pointer-events:none;z-index:2}
+.vf-vid-mute{position:absolute;right:14px;bottom:calc(24px + env(safe-area-inset-bottom,0px));width:42px;height:42px;border-radius:50%;border:none;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:3}
+.vf-vid-mute svg{width:22px;height:22px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vf-vid-hint{position:absolute;right:64px;bottom:calc(34px + env(safe-area-inset-bottom,0px));background:rgba(0,0,0,.55);color:#fff;font-size:.78rem;font-weight:600;padding:6px 11px;border-radius:999px;pointer-events:none;z-index:3;opacity:0;transition:opacity .3s}
+.vf-vid-hint.on{opacity:1}
+.vf-vid-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.25);z-index:3;pointer-events:none}
+.vf-vid-prog i{display:block;height:100%;width:0;background:#fff}
+.vf-vid-xp{position:absolute;left:14px;top:calc(14px + env(safe-area-inset-top,0px));background:rgba(0,0,0,.5);color:#fff;font-size:.76rem;font-weight:700;padding:6px 11px;border-radius:999px;z-index:3;pointer-events:none}
+.vf-vid-xp.done{background:rgba(46,160,90,.85)}
+/* the three floating left-edge buttons (New Story / Quick capture / Peak State) would sit on top of the footage */
+body.vf-vid-on #ns-fab,body.vf-vid-on #qc-fab,body.vf-vid-on #pk-fab{display:none!important}
 /* v216: Pinterest-style photo+quote card (QPHOTO). Gradient background is
    the always-present fallback (set inline per-card from a curated palette)
    so the card never looks broken while a real photo loads, or when the
@@ -13008,11 +13026,22 @@ function renderNoOverindulgence(){
        commonly blocked on mobile browsers, so PLAYING may never fire at
        all — under the old code that meant it silently stayed small
        forever with no visible sign anything was wrong. */
+    /* v246 (T-009): own controls layered over the video (see .vf-vid-* CSS) —
+       centre play/pause glyph, mute toggle, progress bar, caption, XP pill.
+       The 'Watch' label and old under-video hint were hidden behind the
+       fullscreen wrap anyway, so nothing visible is lost. */
     return '<div class="vf-card-type">Watch</div>'
       +'<div class="vf-video-wrap vf-video-fullscreen" id="vf-video-wrap">'
         +'<div id="vf-yt-player-el"></div>'
+        +'<div class="vf-vid-scrim"></div>'
         +'<div class="vf-video-touch-ov" id="vf-video-touch-ov"></div>'
+        +'<div class="vf-vid-pp" id="vf-vid-pp"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>'
+        +'<div class="vf-vid-xp" id="vf-vid-xp">Watch halfway for XP</div>'
         +(isGeneralTopic?'<button type="button" class="vf-video-like" id="vf-video-like-btn" onclick="vfVideoLike(this)" title="More like this">♡</button>':'')
+        +(card.title?'<div class="vf-vid-cap">'+esc(card.title)+'</div>':'')
+        +'<div class="vf-vid-hint" id="vf-vid-hint">Tap for sound</div>'
+        +'<button type="button" class="vf-vid-mute" id="vf-vid-mute" aria-label="Sound" onclick="vfVideoMute(event)"></button>'
+        +'<div class="vf-vid-prog"><i id="vf-vid-prog-i"></i></div>'
       +'</div>'
       +(card.title?'<div class="vf-card-body" style="font-size:.9rem;margin-top:10px">'+esc(card.title)+'</div>':'')
       +'<div style="text-align:center;margin-top:6px;font-size:.72rem;color:rgba(255,255,255,.4);letter-spacing:.06em">Watch at least halfway to earn XP</div>';
@@ -13083,6 +13112,7 @@ function renderNoOverindulgence(){
   var _origRender=window.vfRender;
   window.vfRender=function(){
     if(_ytPlayer){try{_ytPlayer.destroy();}catch(e){}_ytPlayer=null;}
+    clearInterval(_vfProgTimer);clearTimeout(_vfGuard); /* v246 (T-009): never leave the progress bar / autoplay guard running for a card that's gone */
     if(_origRender)_origRender();
     var card=(typeof vfCurCard!=='undefined')?vfCurCard:null;
     /* vfRender doesn't know about VIDEO's HTML — its own if/else chain
@@ -13090,12 +13120,44 @@ function renderNoOverindulgence(){
        renders an empty shell for it (the wrapping div only). Fill it in
        here instead of editing that chain, keeping this feature fully
        self-contained. */
+    document.body.classList.toggle('vf-vid-on',!!(card&&card.type==='VIDEO')); /* v246 (T-009): hides the floating left buttons over a video */
     if(card&&card.type==='VIDEO'){
       var elCard=document.getElementById('vf-card');
       if(elCard)elCard.innerHTML=_vfVideoHTML(card);
+      _vfFitWrap();
       _setupVideoPlayer(card);
     }
   };
+
+  /* v246 (T-009): the Vibe feed container has its own stacking context (z-index 550) that sits BELOW the bottom nav (600), so a
+     wrap pinned to inset:0 slid under the nav and its controls (mute, progress bar, caption) were hidden behind it. Like Instagram
+     Reels, the video now ends exactly where the nav begins — measured, not hard-coded, so it holds on any phone / safe-area. */
+  function _vfFitWrap(){
+    var w=document.getElementById('vf-video-wrap'),nav=document.querySelector('.bnav');
+    if(!w||!nav)return;
+    var h=nav.getBoundingClientRect().height;
+    w.style.bottom=(h>0?Math.round(h):0)+'px';
+  }
+  window.addEventListener('resize',_vfFitWrap);
+  /* leaving the Vibe tab pauses the video (it used to keep playing — with sound now possible, that would be audible on other tabs);
+     coming back resumes it and re-shows/hides the floating buttons correctly */
+  var _origNavForVid=window.bnavSwitch;
+  if(typeof _origNavForVid==='function'){
+    window.bnavSwitch=function(el){
+      var r=_origNavForVid.apply(this,arguments);
+      try{
+        var t=el&&el.getAttribute&&el.getAttribute('data-tab');
+        var isVid=!!(typeof vfCurCard!=='undefined'&&vfCurCard&&vfCurCard.type==='VIDEO');
+        document.body.classList.toggle('vf-vid-on',t==='vibe'&&isVid);
+        if(_ytPlayer){
+          if(t!=='vibe'&&_ytPlayer.pauseVideo)_ytPlayer.pauseVideo();
+          else if(t==='vibe'&&_ytPlayer.playVideo)_ytPlayer.playVideo();
+        }
+        if(t==='vibe')_vfFitWrap();
+      }catch(err){}
+      return r;
+    };
+  }
 
   /* v204: "if i skip it by thumb as we do in insta... even if i flash my
      thumb on running video" — a plain touch/swipe listener on the card
@@ -13113,22 +13175,79 @@ function renderNoOverindulgence(){
      "koi button bhi work nahi karta / sab dead sa lagta he". Fixed by
      treating a small movement (a tap) as "try to play", not just
      ignoring it. */
+  /* v246 (T-009): a tap now TOGGLES play/pause (was: only ever "try to play"),
+     like Instagram/YouTube. Touch and click both fire on a phone tap, so the
+     click handler ignores a click that follows a touch within 600 ms. */
+  var _vfLastTouch=0;
   function _wireVideoSwipe(){
     var ov=document.getElementById('vf-video-touch-ov');
     if(!ov)return;
     var ty=0;
     ov.addEventListener('touchstart',function(e){ty=e.touches[0].clientY;},{passive:true});
     ov.addEventListener('touchend',function(e){
+      _vfLastTouch=Date.now();
       var dy=ty-e.changedTouches[0].clientY;
       if(dy>50){window.vfNext();return;}
-      if(Math.abs(dy)<20&&_ytPlayer&&_ytPlayer.playVideo){
-        try{_ytPlayer.playVideo();}catch(err){}
-      }
+      if(Math.abs(dy)<20)_vfTogglePlay();
     },{passive:true});
+    ov.addEventListener('click',function(){
+      if(Date.now()-_vfLastTouch<600)return; /* already handled by touchend */
+      _vfTogglePlay();
+    });
+  }
+  function _vfTogglePlay(){
+    if(!_ytPlayer||!_ytPlayer.getPlayerState)return;
+    try{
+      if(_ytPlayer.getPlayerState()===1)_ytPlayer.pauseVideo();
+      else _ytPlayer.playVideo();
+    }catch(err){}
+  }
+  /* centre glyph: shown while paused; the YT state event drives it so pausing by any route stays in sync */
+  function _vfSetPausedGlyph(paused){
+    var g=document.getElementById('vf-vid-pp');if(g)g.classList.toggle('on',!!paused);
+  }
+  /* mute button icon + remembered choice. Starting MUTED is what every mobile browser allows for autoplay;
+     once the user unmutes (a real tap), later videos start with sound on. */
+  var SND_ICONS={
+    on:'<svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
+    off:'<svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 5 6M21 9l-5 6"/></svg>'
+  };
+  /* the icon follows OUR OWN record of the mute state, not a read-back from the player: the YouTube iframe API reports
+     isMuted() from a cache that lags a moment behind unMute()/mute(), which left the icon showing the old state right after a tap */
+  var _vfMuted=true;
+  function _vfRenderMute(){
+    var b=document.getElementById('vf-vid-mute');if(!b)return;
+    b.innerHTML=_vfMuted?SND_ICONS.off:SND_ICONS.on;
+  }
+  window.vfVideoMute=function(ev){
+    if(ev){ev.stopPropagation();}
+    if(!_ytPlayer)return;
+    try{
+      if(_vfMuted){_ytPlayer.unMute();_ytPlayer.setVolume(100);_vfMuted=false;try{localStorage.setItem('clv_vf_sound','1');}catch(e){}}
+      else{_ytPlayer.mute();_vfMuted=true;try{localStorage.setItem('clv_vf_sound','0');}catch(e){}}
+    }catch(err){}
+    var h=document.getElementById('vf-vid-hint');if(h)h.classList.remove('on');
+    _vfRenderMute();
+  };
+  /* thin progress bar + the "XP earned" pill. Own 250 ms timer (separate from the 1 s XP-unlock poll) so the bar moves smoothly;
+     cleared by the vfRender wrap so a swiped-away card never leaves a timer running. */
+  var _vfProgTimer=null,_vfGuard=null;
+  function _vfStartProg(){
+    clearInterval(_vfProgTimer);
+    _vfProgTimer=setInterval(function(){
+      if(!_ytPlayer||!_ytPlayer.getDuration)return;
+      var d=0,c=0;try{d=_ytPlayer.getDuration();c=_ytPlayer.getCurrentTime();}catch(err){return;}
+      if(!(d>0))return;
+      var bar=document.getElementById('vf-vid-prog-i');if(bar)bar.style.width=Math.min(100,c/d*100)+'%';
+      var xp=document.getElementById('vf-vid-xp');
+      if(xp&&c/d>=0.5&&!xp.classList.contains('done')){xp.classList.add('done');xp.textContent='✓ XP earned';}
+    },250);
   }
 
   function _setupVideoPlayer(card){
     _wireVideoSwipe();
+    _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}})();
+    _vfRenderMute(); /* icon is there from the first frame, not only once the player reports ready */
     _loadYT(function(){
       var el=document.getElementById('vf-yt-player-el');
       if(!el||!window.YT||!YT.Player)return;
@@ -13143,7 +13262,11 @@ function renderNoOverindulgence(){
            loop:1 + playlist:<same id> is YouTube's own documented
            pattern for looping a single video — loop alone does nothing
            without playlist repeating the same id. */
-        playerVars:{autoplay:1,mute:0,playsinline:1,controls:1,rel:0,modestbranding:1,loop:1,playlist:card.video_id},
+        /* v246 (T-009): mute:1 unless the user already chose sound in this
+           browser (autoplay-with-sound is blocked on phones until a real
+           tap); controls:0 because we draw our own (see .vf-vid-* CSS);
+           fs/disablekb/iv_load_policy trim YouTube's own chrome. */
+        playerVars:{autoplay:1,mute:(function(){try{return localStorage.getItem('clv_vf_sound')==='1'?0:1;}catch(e){return 1;}})(),playsinline:1,controls:0,rel:0,modestbranding:1,fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:card.video_id},
         events:{
           /* v207: mobile browsers are stricter about honoring the
              declarative autoplay=1 URL param for UNMUTED playback than
@@ -13152,8 +13275,23 @@ function renderNoOverindulgence(){
              param, since it's a direct API command rather than a page
              load hint the browser is free to ignore. Harmless on
              desktop, where it just confirms what already started. */
-          onReady:function(e){try{e.target.playVideo();}catch(err){}},
-          onStateChange:function(e){if(e.data===YT.PlayerState.PLAYING){_expandVideoFullscreen();_startProgressPoll();}}
+          onReady:function(e){
+            try{e.target.playVideo();}catch(err){}
+            _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}})();
+            _vfRenderMute();_vfStartProg();
+            /* first time (muted start): tell them sound is one tap away, then fade the hint */
+            if(_vfMuted){var h=document.getElementById('vf-vid-hint');if(h){h.classList.add('on');setTimeout(function(){h.classList.remove('on');},3500);}}
+            /* if the user wanted sound but the browser blocked autoplay-with-sound, PLAYING never fires —
+               fall back to muted playback rather than a video that sits there doing nothing */
+            clearTimeout(_vfGuard);
+            _vfGuard=setTimeout(function(){
+              try{if(_ytPlayer&&_ytPlayer.getPlayerState()!==1&&_ytPlayer.getPlayerState()!==3){_ytPlayer.mute();_vfMuted=true;_ytPlayer.playVideo();_vfRenderMute();}}catch(err){}
+            },1800);
+          },
+          onStateChange:function(e){
+            if(e.data===YT.PlayerState.PLAYING){_expandVideoFullscreen();_startProgressPoll();_vfSetPausedGlyph(false);}
+            else if(e.data===YT.PlayerState.PAUSED){_vfSetPausedGlyph(true);}
+          }
         }
       });
     });
