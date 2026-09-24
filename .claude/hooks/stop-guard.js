@@ -32,6 +32,7 @@ process.stdin.on('end', () => {
     const reason = `RUN ACTIVE (batch ${r.batch}, ${hoursUsed.toFixed(1)}h of ${r.max_hours}h used). ${runnable.length} runnable task(s) remain: ${left}. `
       + `Do NOT stop and do NOT summarize yet. Next: run "node ops/tasks.js next", implement exactly that task, run "node ops/verify.js", then "node ops/tasks.js set <id> DONE --evidence ...". `
       + `If a task cannot proceed, mark it BLOCKED with the exact owner action ("node ops/tasks.js set <id> BLOCKED --note ...") and continue with the next independent task. `
+      + `If the same problem has failed 3 times: record it (node ops/tasks.js attempt <id> "…") and follow the STUCK PROTOCOL (research online, change approach, then BLOCKED with exact help needed) — never keep retrying the same thing. `
       + `Only stop early if the owner explicitly told you to stop in chat.`;
     process.stdout.write(JSON.stringify({ decision: 'block', reason }));
     process.exit(0);

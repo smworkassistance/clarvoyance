@@ -139,6 +139,35 @@ if (cmd === 'migrate') {
   const r = runnable(t, b); if (!r.length) { console.log('NONE'); process.exit(0); }
   const x = r.find(y => y.status === 'IN_PROGRESS') || r[0];
   console.log(`${x.id}: ${x.title}\nDONE-WHEN: ${x.done_when}`);
+} else if (cmd === 'edit') {
+  // Controlled edit of a task that is NOT DONE and whose batch is NOT frozen (used to promote a DISCUSS task into a batch).
+  const t = need(L.loadTasks()); const x = getTask(t, pos[1]);
+  if (x.status === 'DONE') L.die('a DONE task is frozen history — add a new task instead');
+  if (x.batch && t.batches[x.batch] && t.batches[x.batch].frozen) L.die(`batch ${x.batch} is FROZEN — its tasks cannot be edited`);
+  if (flags.batch && t.batches[flags.batch] && t.batches[flags.batch].frozen) L.die(`batch ${flags.batch} is FROZEN — cannot add tasks to it`);
+  if (flags.title) x.title = flags.title;
+  if (flags['done-when']) x.done_when = flags['done-when'];
+  if (flags.deps !== undefined) x.depends_on = flags.deps === true || flags.deps === '' ? [] : String(flags.deps).split(',').map(s => s.trim());
+  if (flags.batch) { x.batch = flags.batch; if (!t.batches[flags.batch]) t.batches[flags.batch] = { created: L.nowIso(), frozen: false }; }
+  hist(x, x.status, 'edited: ' + Object.keys(flags).join(','));
+  L.saveTasks(t); console.log('edited', x.id);
+} else if (cmd === 'attempt') {
+  // Anti-stuck tracker: record every failed approach on a task. At 3 the protocol is mandatory (docs/PROCESS.md §6).
+  const t = need(L.loadTasks()); const x = getTask(t, pos[1]);
+  if (!pos[2]) L.die('usage: attempt <id> "what was tried and how it failed"');
+  x.attempts = x.attempts || []; x.attempts.push({ at: L.nowIso(), note: pos.slice(2).join(' ') });
+  hist(x, x.status, 'attempt ' + x.attempts.length + ': ' + pos.slice(2).join(' ').slice(0, 200)); L.saveTasks(t);
+  L.appendRunLog(`attempt ${x.attempts.length} on ${x.id}: ${pos.slice(2).join(' ').slice(0, 160)}`);
+  console.log(`attempt ${x.attempts.length} recorded for ${x.id}`);
+  if (x.attempts.length >= 3) {
+    console.log(`\nSTUCK PROTOCOL (mandatory now — ${x.attempts.length} attempts on ${x.id}):
+ 1. STOP repeating the same approach. Do not spend more tokens on it.
+ 2. RESEARCH online (WebSearch/WebFetch): how do others solve this exact problem? Look for a different technique, a library, a known bug/issue.
+ 3. Write down 2 genuinely DIFFERENT alternatives (different mechanism, not a tweak) and try the cheapest one. Record it with: node ops/tasks.js attempt ${x.id} "<approach>".
+ 4. Consider a smaller/safer slice of the task, or mocking the blocked dependency, so the rest can ship.
+ 5. If it still cannot be solved without a human: node ops/tasks.js set ${x.id} BLOCKED --note "<exact help needed from the owner: what, where, why>" and MOVE ON to the next task.`);
+    process.exit(3);
+  }
 } else if (cmd === 'log') {
   L.appendRunLog(pos.slice(1).join(' ')); console.log('logged');
 } else if (cmd === 'list') {

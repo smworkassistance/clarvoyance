@@ -25,6 +25,7 @@ Repo: https://github.com/smworkassistance/clarvoyance
 - **Tasks:** `tasks.json` is the source of truth (only `node ops/tasks.js …` edits it); `TASKS.md` is a generated view — never hand-edit. Session start: `node ops/tasks.js run status` and `node ops/tasks.js list`.
 - **Work flow:** brief (`docs/templates/BRIEF.md`) → one clarification round with defaults → freeze batch contract (`docs/batches/Bn.md`, `node ops/tasks.js batch freeze Bn`) → `run start` → per task: build in a NEW `clarvoyance_vN.html`, `node ops/verify.js`, `set <id> DONE --evidence …` → promote dark (`node ops/promote.js`, tag `pre-vN`) → report. Rollback: `node ops/rollback.js pre-vN`.
 - **Enforced by code:** DONE needs evidence + fresh full verify on the current bytes; frozen batches reject new tasks; stale (>24 h) tasks need re-confirmation; a Stop hook (`.claude/hooks/stop-guard.js`, active only during a declared run) stops early exit. Self-test: `node ops/selftest.js`.
+- **Anti-stuck (owner's rule):** same problem failing 3× ⇒ record `node ops/tasks.js attempt <id> "…"`, then STOP retrying: research online, change approach, and if still stuck mark BLOCKED with the exact help needed and continue with other tasks (PROCESS §6b). Run long jobs in the background and poll; kill processes only by port+exact command.
 - **Regression gate:** `qa/` (Playwright, Chromium-Android + WebKit-iPhone, network-isolated, visual guard on stable regions). Known console noise is allow-listed in `qa/app-map.json`; anything else fails.
 
 ## Tech Stack

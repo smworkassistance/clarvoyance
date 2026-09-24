@@ -16,3 +16,5 @@ qa/.browsers/
 qa/test-results/
 qa/playwright-report/
 ops/.state/
+qa/verify-run.log
+qa/test-results-*.log

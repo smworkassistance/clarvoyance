@@ -25,6 +25,14 @@
       "frozen_at": "2026-09-23T23:40:00.000Z",
       "legacy": true,
       "frozen_hash": "c73bea10e6333a3f5d385e7055ee2ea772da54e8d989f0f207e01ce0e10e5fc6"
+    },
+    "B4": {
+      "created": "2026-09-24T23:19:14.009Z",
+      "frozen": false
+    },
+    "B5": {
+      "created": "2026-09-24T23:24:31.655Z",
+      "frozen": false
     }
   },
   "tasks": [
@@ -202,11 +210,11 @@
     },
     {
       "id": "T-010",
-      "title": "FOUND during regression pass (pre-existing, not caused by v246): Fortune's usage-vs-state correlation (v225) reads `admin_insights` from the browser as the signed-in user; that table was locked to service_role only in v178b, so every call returns 403 (visible in console) and the feature can never produce evidence. Needs a server-side path (Worker/RPC that computes the correlation) instead of a client read",
+      "title": "Fix the dead usage-vs-state correlation: compute it server-side (Supabase function usage_correlation_me) and call it via rpc",
       "added": "2026-09-24T00:22:00.000Z",
-      "done_when": "",
-      "status": "DISCUSS",
-      "batch": null,
+      "done_when": "SQL function db/schema_v247_usage_correlation_rpc.sql executed on a real Postgres engine (pglite) returns exactly the same result as the existing JS algorithm on >= 200 random fixtures plus edge cases (fewer than 6 points, no scores, all-equal states); SQL parses with libpg-query; client _computeUsageOutcomeCorrelation uses sb.rpc and returns null (soft-fail) when the function is missing; no other Fortune behaviour changes (Playwright suite green). Activation needs the owner to run the SQL (tracked as T-012).",
+      "status": "QUEUED",
+      "batch": "B5",
       "depends_on": [],
       "verify": true,
       "files": "",
@@ -218,6 +226,16 @@
           "at": "2026-09-24T22:40:29.410Z",
           "status": "DISCUSS",
           "note": "migrated from TASKS.md v1"
+        },
+        {
+          "at": "2026-09-24T23:25:08.497Z",
+          "status": "DISCUSS",
+          "note": "edited: title,done-when,batch"
+        },
+        {
+          "at": "2026-09-24T23:25:10.439Z",
+          "status": "QUEUED",
+          "note": ""
         }
       ]
     },
@@ -239,6 +257,250 @@
           "at": "2026-09-24T22:40:29.410Z",
           "status": "DONE",
           "note": "migrated from TASKS.md v1"
+        }
+      ]
+    },
+    {
+      "id": "T-020",
+      "title": "Infra: get the WebKit (iPhone) lane of the QA gate working, or replace it with a documented equivalent",
+      "added": "2026-09-24T23:19:13.991Z",
+      "done_when": "Either the webkit-iphone Playwright project passes the suite locally, or WebKit coverage runs on an independent CI lane, and PROCESS/INFRA-PLAN state which one is authoritative",
+      "status": "DONE",
+      "batch": "B4",
+      "depends_on": [],
+      "verify": false,
+      "result": "start\nChromium/Android lane: full ops/verify.js PASSED on live index.html (8 passed, 1 flaky = first-time snapshot write, 0 failed; includes the real AI chat test). WebKit on Windows hangs in browserContext.newPage (known upstream #18953/#3939; 5 recorded attempts; stuck protocol -> researched -> alternative). WebKit/iPhone now runs on the independent CI lane .github/workflows/qa.yml (activates on next push); local WebKit only with QA_WEBKIT=1. PROCESS/INFRA-PLAN §5b document which lane is authoritative for what.",
+      "completed": "2026-09-24T23:27:46.977Z",
+      "history": [
+        {
+          "at": "2026-09-24T23:19:14.009Z",
+          "status": "QUEUED",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-24T23:19:14.616Z",
+          "status": "IN_PROGRESS",
+          "note": "start"
+        },
+        {
+          "at": "2026-09-24T23:19:14.827Z",
+          "status": "IN_PROGRESS",
+          "note": "attempt 1: full suite webkit: boot test 2.1m timeouts (first-load)"
+        },
+        {
+          "at": "2026-09-24T23:19:15.226Z",
+          "status": "IN_PROGRESS",
+          "note": "attempt 2: ignored WebKit viewport-console warning (interactive-widget) - not the cause"
+        },
+        {
+          "at": "2026-09-24T23:19:15.539Z",
+          "status": "IN_PROGRESS",
+          "note": "attempt 3: page.goto waitUntil domcontentloaded - still hangs"
+        },
+        {
+          "at": "2026-09-24T23:19:15.797Z",
+          "status": "IN_PROGRESS",
+          "note": "attempt 4: removed locale/timezoneId emulation - still hangs ('browserContext.newPage timeout while setting up page'); direct playwright script with same device works"
+        },
+        {
+          "at": "2026-09-24T23:19:51.500Z",
+          "status": "IN_PROGRESS",
+          "note": "attempt 5: ALTERNATIVE (after online research: known Playwright WebKit-on-Windows newPage hang, issue #18953/#3939): make CI (Linux) the authoritative WebKit lane; local gate = Chromium mobile; WebKit local only"
+        },
+        {
+          "at": "2026-09-24T23:27:47.000Z",
+          "status": "DONE",
+          "note": "Chromium/Android lane: full ops/verify.js PASSED on live index.html (8 passed, 1 flaky = first-time snapshot write, 0 failed; includes the real AI chat test). WebKit on Windows hangs in browserContext.newPage (known upstream #18953/#3939; 5 recorded attempts; stuck protocol -> researched -> alternative). WebKit/iPhone now runs on the independent CI lane .github/workflows/qa.yml (activates on next push); local WebKit only with QA_WEBKIT=1. PROCESS/INFRA-PLAN §5b document which lane is authoritative for what."
+        }
+      ],
+      "attempts": [
+        {
+          "at": "2026-09-24T23:19:14.824Z",
+          "note": "full suite webkit: boot test 2.1m timeouts (first-load)"
+        },
+        {
+          "at": "2026-09-24T23:19:15.225Z",
+          "note": "ignored WebKit viewport-console warning (interactive-widget) - not the cause"
+        },
+        {
+          "at": "2026-09-24T23:19:15.537Z",
+          "note": "page.goto waitUntil domcontentloaded - still hangs"
+        },
+        {
+          "at": "2026-09-24T23:19:15.794Z",
+          "note": "removed locale/timezoneId emulation - still hangs ('browserContext.newPage timeout while setting up page'); direct playwright script with same device works"
+        },
+        {
+          "at": "2026-09-24T23:19:51.476Z",
+          "note": "ALTERNATIVE (after online research: known Playwright WebKit-on-Windows newPage hang, issue #18953/#3939): make CI (Linux) the authoritative WebKit lane; local gate = Chromium mobile; WebKit local only with QA_WEBKIT=1"
+        }
+      ]
+    },
+    {
+      "id": "T-011",
+      "title": "Video upload no longer looks stuck: chunked upload with real progress, background chip (sheet closes at once), cancel, retry, stall notice",
+      "added": "2026-09-24T23:24:31.632Z",
+      "done_when": "Playwright test (mock Worker + throttled mock tus server, 128 KB chunks, ~1.1 MB real mp4): (a) sheet closes right after Post and the progress chip is visible within 1 s; (b) >= 5 distinct, non-decreasing progress values are shown; (c) on success the chip is removed and exactly one insert with video.guid is sent; (d) Cancel mid-upload removes the chip and sends NO insert; (e) a Worker error (429 daily limit) shows the Worker message with Try again/Dismiss and Try again succeeds; (f) a >25 s no-progress gap shows the slow-connection notice. Plus a real-service check (chunked upload of the sample to real Bunny via the owner signed-in Chrome, or documented as not verifiable). Full ops/verify.js passes on clarvoyance_v247.html.",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:31.655Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-012",
+      "title": "OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010)",
+      "added": "2026-09-24T23:24:32.401Z",
+      "done_when": "File exists, parse-checked, and the exact instruction is recorded; marked BLOCKED until the owner runs it.",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [
+        "T-010"
+      ],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:32.413Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-005a",
+      "title": "nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, Home, You); old nav untouched when the flag is off",
+      "added": "2026-09-24T23:24:32.700Z",
+      "done_when": "Flag OFF (default): full existing Playwright suite + bottom-nav visual baseline unchanged. Flag ON (?nav=2 or feature_flags.nav_v2): 6 new buttons visible, 9 old ones hidden; each of Vibe/Clar/Goal/Home opens its section; Clar AI is the centre raised button; active highlight follows navigation incl. Fortune/Profile->You and Self->Home; no horizontal overflow; screenshot baseline for the nav_v2 bar. ?nav=0 turns the dev override off.",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:32.702Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-005b",
+      "title": "nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub-tabs",
+      "added": "2026-09-24T23:24:33.640Z",
+      "done_when": "With nav_v2 ON: Feed opens Community above the nav (nav still visible and usable), no close button, sub-tabs Following/Discover/Board switch the three Community views (mocked signed-in profile), inner You tab hidden; signed-out visitor sees the Google gate with the nav still usable; leaving Feed via another nav button closes it cleanly; flag OFF: Community behaves exactly as before (existing tests green).",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [
+        "T-005a"
+      ],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:33.673Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-005c",
+      "title": "nav_v2: You tab = Profile + entries for Fortune and My Community profile",
+      "added": "2026-09-24T23:24:34.317Z",
+      "done_when": "With nav_v2 ON: You opens the existing Profile section with a top card offering Fortune and My Community profile; Fortune opens the existing Fortune section and keeps You highlighted; My Community profile opens the Community you-view; existing Profile content untouched (tests green).",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [
+        "T-005a"
+      ],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:34.337Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-005d",
+      "title": "nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is)",
+      "added": "2026-09-24T23:24:34.982Z",
+      "done_when": "With nav_v2 ON: Home shows a Self plate directly below the Non-Negotiables card; tapping it opens the unchanged Self section and keeps Home highlighted; with the flag OFF the plate is absent and Home is unchanged.",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [
+        "T-005a"
+      ],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:34.984Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-013",
+      "title": "Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it",
+      "added": "2026-09-24T23:24:35.449Z",
+      "done_when": "Full ops/verify.js passes on clarvoyance_v247.html; node ops/promote.js clarvoyance_v247.html --push succeeds (tag pre-v247); live https://clar.co.in/ serves label v247 and sw cache clv-v247 (curl); default experience for a fresh visitor identical to v246 except the fixed video upload.",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [
+        "T-011",
+        "T-010",
+        "T-005b",
+        "T-005c",
+        "T-005d"
+      ],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:35.465Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-014",
+      "title": "Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory",
+      "added": "2026-09-24T23:24:35.785Z",
+      "done_when": "CLAUDE.md has a v247 entry (what, verified how, rollback, owner steps); docs/PROJECT.md mentions nav_v2 + usage rpc; TASKS.md rendered; memory index updated.",
+      "status": "QUEUED",
+      "batch": "B5",
+      "depends_on": [
+        "T-013"
+      ],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-24T23:24:35.805Z",
+          "status": "QUEUED",
+          "note": "created"
         }
       ]
     }

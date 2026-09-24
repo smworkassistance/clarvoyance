@@ -73,7 +73,7 @@ Rules enforced by `ops/tasks.js`:
 | Practice | Here |
 |---|---|
 | **Dark launch behind a feature flag** | Every user-visible change ships OFF (`feature_flags` table / URL override). The old behaviour stays byte-identical until the owner flips it. Turning a flag ON for real users = owner's decision. |
-| **Automated regression gate** | `ops/verify.js`. Nothing is `DONE` or promoted without a passing full run. |
+| **Automated regression gate** | `ops/verify.js` (local: Chromium/Android). Nothing is `DONE` or promoted without a passing full run. A second, independent gate runs on CI (Chromium + WebKit/iPhone) — see `docs/INFRA-PLAN.md` §5b. |
 | **Ratchet** | Every bug fixed gets a test in `qa/tests/`. The suite only grows. |
 | **Visual regression on stable regions** | Pixel-diff (3 % tolerance) of regions that never change (bottom nav …). Dynamic content is never compared. |
 | **Additive-only database changes** | New tables/columns/views only; never drop/rename/rewrite. So an app rollback never needs a DB rollback. Destructive SQL needs explicit owner approval. |
@@ -88,12 +88,25 @@ Try, in order: (1) an alternative that needs nothing from the owner; (2) build e
 Questions to the owner during a run are only for: irreversible actions, spending money, secrets, or a product decision the brief did not cover
 and no default can safely cover. Everything else: decide, record in `docs/DECISIONS.md`, move on.
 
+## 6b. Anti-stuck rule (owner's instruction, 2026-09-25)
+
+Never burn tokens hammering one approach. If the same problem resists **3 attempts** (each failed approach is recorded with `node ops/tasks.js attempt <id> "what was tried"`), the tool prints the mandatory **STUCK PROTOCOL**:
+
+1. **Stop** repeating the approach.
+2. **Research online** how others solve exactly this (docs, issues, libraries, alternative techniques).
+3. **Change the approach** — two genuinely different alternatives, try the cheapest; consider a smaller slice or mocking the blocked part so the rest can ship.
+4. **Ask for external help** only after 1–3: mark the task `BLOCKED` with the exact help needed from the owner (what/where/why), and move to the next task.
+5. Also applies to tooling problems (e.g. a browser that will not start, a test that hangs): switch method (different runner, isolate with a tiny repro, check known issues, run in CI instead) rather than retrying the same command.
+
+Commands must also be short-lived and observable: long jobs run in the background with a log file and are polled, never as one silent multi-minute foreground call.
+
 ## 7. Permissions policy (least privilege, researched)
 
 | Class | Policy |
 |---|---|
 | Allowed without asking | Read/edit/write inside the repo; `node`; `git status/diff/log/add/commit/tag`; Chrome DevTools MCP; Playwright (installed in `qa/`, browsers in `qa/.browsers`); read-only `curl`/GET; test servers on local ports (only processes this session started). |
 | Ask first | `git push` **of anything not covered by an approved promote**; any SQL that writes/alters production; Worker deploys; installing anything outside the repo; anything that spends money or sends messages/posts on the owner's behalf. |
+| Processes | Stop only processes identified by **port + exact command line** (`serve.js`, my own test servers). Never pattern-kill by folder name — that once also matched the agent's own shell processes. |
 | Never | Force-push, `reset --hard`, `clean -f`, `branch -D`, `rm -rf` (also denied in settings); committing secrets; using the owner's real account for a *write* without the owner saying so for that task. |
 | Secrets | Never in chat, never in git. Tokens (if the owner ever provides them) live in an untracked local env file. |
 | Promote/push | After a full verify pass, Claude may `promote` **dark** changes and push, announcing the rollback command. Activating a flag for users, or promoting a non-dark user-visible change, needs the owner's go-ahead. |

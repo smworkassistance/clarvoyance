@@ -21,3 +21,8 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 
 - 2026-09-25 PROMOTED v246 -> index.html + sw.js clv-v246 (owner: "A is fine… fallback to previous version if problems"). T-003 SQL confirmed run by owner (7 Clar posts live) -> DONE; T-006 -> DONE (video live for all signed-in members). Pre-promotion regression on final file (fresh isolated Chrome, 390x844): 48 script blocks parse; all 6 tabs + Profile open; Vibe card renders; Clar chat sends and a real reply came back; Community shows the sign-in gate when signed out; console errors = 2 known pre-existing (403 admin_insights T-010, photo-worker placeholder). ROLLBACK: copy clarvoyance_v245.html over index.html and bump sw.js to a new cache name (clv-v247).
 
+- 25/09/2026 04:49:14 IST — attempt 1 on T-020: full suite webkit: boot test 2.1m timeouts (first-load)
+- 25/09/2026 04:49:15 IST — attempt 2 on T-020: ignored WebKit viewport-console warning (interactive-widget) - not the cause
+- 25/09/2026 04:49:15 IST — attempt 3 on T-020: page.goto waitUntil domcontentloaded - still hangs
+- 25/09/2026 04:49:15 IST — attempt 4 on T-020: removed locale/timezoneId emulation - still hangs ('browserContext.newPage timeout while setting up page'); direct playwright script with same device works
+- 25/09/2026 04:49:51 IST — attempt 5 on T-020: ALTERNATIVE (after online research: known Playwright WebKit-on-Windows newPage hang, issue #18953/#3939): make CI (Linux) the authoritative WebKit lane; local g

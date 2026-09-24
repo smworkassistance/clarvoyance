@@ -76,9 +76,19 @@ Key design choices:
 | Bad release reaches users | Dark flag OFF by default; `rollback.js` (bumps SW cache so phones actually update). |
 | Flaky test blocks work | One retry; a real regression fails both attempts; known-noise allow-list is explicit in `qa/app-map.json` (never a blanket ignore). |
 | Test run pollutes prod/analytics | Network isolation in `qa/tests/harness.js`. |
+| Agent burns tokens retrying one dead-end | **Anti-stuck rule** (PROCESS §6b): `attempt` counter; at 3 attempts the STUCK PROTOCOL is printed (stop → research online → change approach → ask owner for specific help) and the Stop-hook reason repeats it. Real example that motivated it: WebKit-on-Windows tests hanging — solved by isolating with a tiny script, not by re-running the suite. |
 | Stale instructions executed | 24 h staleness rule enforced at `run start`. |
 | Lost context between sessions | All state in files; `docs/RUNLOG.md` + memory; `node ops/tasks.js run status`. |
 | Supply-chain risk from third-party tools | Only Anthropic/Microsoft/official-marketplace sources considered; versions pinned (`@playwright/test` 1.55.0); nothing installed outside the repo. |
+
+## 5b. Lanes of the regression gate (decided 2026-09-25 after research)
+
+| Lane | Where | Engines | Authoritative for |
+|---|---|---|---|
+| Local gate | `node ops/verify.js` (agent, every task) | Chromium with Pixel-7 emulation | functional regressions, layout overflow, console errors, visual guard |
+| CI gate | `.github/workflows/qa.yml` (GitHub Actions, Linux, every push/PR) | Chromium **and WebKit/iPhone** | Safari/iPhone engine behaviour |
+
+Why: Playwright's WebKit build on **Windows** hangs on `browserContext.newPage` in the test runner (works when launched directly; known upstream: [#18953](https://github.com/microsoft/playwright/issues/18953), [#3939](https://github.com/microsoft/playwright/issues/3939)). Four tweaks were tried and recorded as attempts on T-020 (ignore viewport warning, `domcontentloaded`, drop locale/timezone, single-test isolation) before the stuck protocol forced a different approach: run WebKit where it is stable. Local WebKit remains available with `QA_WEBKIT=1`.
 
 ## 6. Known limits (honest)
 

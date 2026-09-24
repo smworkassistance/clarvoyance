@@ -85,7 +85,11 @@ test.describe('chat (real AI call — costs a fraction of a paisa)', () => {
     await app.gotoTab(MAP.tabs.find(t => t.tab === 'chat'));
     const before = await app.page.locator(MAP.chatBubble).count();
     await app.page.evaluate((sel) => { const i = document.querySelector(sel); i.value = 'qa check: reply with one short sentence'; i.dispatchEvent(new Event('input', { bubbles: true })); chatSend(); }, MAP.chatInput);
-    await expect.poll(async () => app.page.locator(MAP.chatBubble).count(), { timeout: 45000 }).toBeGreaterThanOrEqual(before + 2);
+    // the last bubble is an EMPTY typing-dots bubble while the AI is thinking — wait for real reply text that is not our own message
+    await expect.poll(async () => {
+      const t = (await app.page.locator(MAP.chatBubble).last().innerText()).trim();
+      return t.length > 2 && !/qa check/i.test(t);
+    }, { timeout: 45000, message: 'a real AI reply appears' }).toBe(true);
     const last = (await app.page.locator(MAP.chatBubble).last().innerText()).trim();
     expect(last.length).toBeGreaterThan(2);
   });

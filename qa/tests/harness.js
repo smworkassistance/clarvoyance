@@ -29,7 +29,7 @@ const test = base.extend({
     const app = {
       page, errors, pageErrors,
       async boot() {
-        await page.goto('/');
+        await page.goto('/', { waitUntil: 'domcontentloaded' });
         await page.waitForFunction(() => typeof window.bnavSwitch === 'function' && document.querySelector('.bnav-tab'), null, { timeout: 30000 });
         await page.waitForTimeout(4500);
         // onboarding overlays (life quiz / google sign-in prompt) are dismissed the way a user would ("don't ask again"/"maybe later")
