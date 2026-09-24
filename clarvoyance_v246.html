@@ -20821,6 +20821,8 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 /* v246 (T-006): video posts. Feed shows a poster + play badge (cheap, no autoplay in the list); tapping opens the full-screen
    Reels-style viewer (#soc-reels). Compose shows a small preview with a remove button and an upload progress bar. */
 .soc-vid-poster{position:relative;width:100%;margin-top:12px;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/5;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.soc-vid-poster{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 55%,#000),#111)}
+.soc-vid-poster.proc::after{content:'Processing video…';position:absolute;left:0;right:0;bottom:14px;text-align:center;color:#fff;font-size:.82rem;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .soc-vid-poster img{width:100%;height:100%;object-fit:cover;display:block}
 .soc-vid-play{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
 .soc-vid-play svg{width:28px;height:28px;fill:#fff;margin-left:3px}
@@ -20857,6 +20859,7 @@ body.soc-open #pwa-card{display:none!important}
 .rl-side .rl-btn svg{width:28px;height:28px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .rl-x{position:absolute;left:14px;top:calc(14px + env(safe-area-inset-top,0px));z-index:4;width:38px;height:38px;border-radius:50%;border:none;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .rl-x svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.rl-proc{position:absolute;left:24px;right:24px;top:50%;transform:translateY(-50%);z-index:2;text-align:center;color:#fff;font-size:.95rem;font-weight:600;background:rgba(0,0,0,.55);padding:14px 18px;border-radius:14px;pointer-events:none}
 .rl-prog{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.25);z-index:3;pointer-events:none}
 .rl-prog i{display:block;height:100%;width:0;background:#fff}
 .soc-ach-preview{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px}
@@ -21944,11 +21947,31 @@ textarea.soc-in{resize:none;min-height:74px}
     return j;
   }
 
+  /* Found in the real-account test: right after an upload Bunny is still encoding for a short while, so the poster's thumbnail.jpg is a 404
+     for a bit. Instead of a dead black box: show a soft "Processing video…" state and quietly retry the thumbnail every 6 s (up to ~2 min);
+     it turns into the normal poster on its own once Bunny is done. */
+  window._socThumbFail=function(img){
+    var box=img.parentNode;if(!box)return;
+    box.classList.add('proc');img.style.visibility='hidden';
+    var n=(+img._try||0)+1;img._try=n;
+    if(n>20)return;
+    clearTimeout(img._t);
+    img._t=setTimeout(function(){
+      if(!document.body.contains(img))return;
+      var u=img.src.replace(/[?&]_r=\d+/,'');
+      img.src=u+(u.indexOf('?')<0?'?':'&')+'_r='+Date.now();
+    },6000);
+  };
+  window._socThumbOk=function(img){
+    var box=img.parentNode;if(!box)return;
+    if(img.naturalWidth>0){box.classList.remove('proc');img.style.visibility='visible';}
+  };
+
   /* feed: poster + play badge */
   function _vidPosterHtml(r){
     if(!r.video||!vGuidOk(r.video.guid)||!videoEnabled())return '';
     return '<div class="soc-vid-poster" data-act="open-reels" data-id="'+r.id+'" role="button" aria-label="Play video">'
-      +'<img src="'+esc(vUrl(r.video.guid,'thumbnail.jpg'))+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">'
+      +'<img src="'+esc(vUrl(r.video.guid,'thumbnail.jpg'))+'" alt="" loading="lazy" onerror="_socThumbFail(this)" onload="_socThumbOk(this)">'
       +'<div class="soc-vid-play">'+PLAY_SVG+'</div>'
       +(r.video.duration?'<span class="soc-vid-dur">'+fmtDur(r.video.duration)+'</span>':'')
       +'</div>';
@@ -22007,7 +22030,10 @@ textarea.soc-in{resize:none;min-height:74px}
        no play_720p), so try high → low instead of assuming 720p exists */
     var mp4s=['play_720p.mp4','play_480p.mp4','play_360p.mp4','play_240p.mp4'],mi=0;
     function nextMp4(){
-      if(mi>=mp4s.length)return;
+      if(mi>=mp4s.length){ /* every rendition 404s → the video is most likely still being processed by Bunny */
+        if(!it.querySelector('.rl-proc')){var m=document.createElement('div');m.className='rl-proc';m.textContent='Still processing — try again in a minute';it.appendChild(m);}
+        return;
+      }
       v.src=vUrl(guid,mp4s[mi++]);
       var p=v.play();if(p&&p.catch)p.catch(function(){});
     }
