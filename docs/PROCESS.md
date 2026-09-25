@@ -16,6 +16,12 @@ problem. Concretely, Claude owns:
 3. **Not breaking the existing system** (section 5: dark launch, verify gate, additive DB, rollback).
 4. **Record keeping** (section 8): if it is not in the repo, it did not happen.
 5. **Honest reporting.** What was verified, how, and what could not be verified (e.g. real iPhone). Never "should work".
+6. **End-to-end testing is Claude's job, not the owner's** (owner's rule, 2026-09-25). Claude tests every change itself, in depth — automated suite
+   first, then a **read-only live pass on the deployed site** in the owner's signed-in Chrome (`qa/cdp-live.js` pattern, raw CDP on port 9222),
+   reading real data and looking at real screenshots. The owner is asked only for **rare things Claude truly cannot do**: physical-device checks,
+   paying/creating accounts, entering secrets, clicking Google's own consent screens. Everything else Claude arranges.
+   **When Claude needs something enabled to test end-to-end, it must say so up front, in the BRIEF/intake, with the exact one-line action** —
+   never mid-way and never as a vague "please test". The standing enablement checklist is `docs/E2E-ACCESS.md` (keep it current).
 
 The owner owns: business/product decisions, taste, real-world steps only a human can do (accounts, payments, real-phone checks),
 turning a dark-launched feature on for real users, and anything irreversible or costly.

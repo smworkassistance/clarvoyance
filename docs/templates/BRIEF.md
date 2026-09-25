@@ -27,6 +27,7 @@ _References (apps/screens), tone, things you dislike. Default: Instagram/YouTube
 | Need | Why | Who provides | Status |
 |------|-----|--------------|--------|
 | e.g. Supabase SQL run | new table | owner runs file X | BLOCKED-if-missing (rest continues) |
+| **E2E testing access** (see `docs/E2E-ACCESS.md`) | Claude tests end-to-end itself; list here anything that must be enabled for THIS batch, with the exact one-line action | owner, only if not already standing | check at intake, not mid-run |
 
 ## 7. Constraints
 Budget / cost ceiling: ____   Time box for the run: ____ h   Devices/browsers that matter: ____
