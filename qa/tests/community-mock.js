@@ -12,6 +12,8 @@ const JSON_H = { 'content-type': 'application/json', 'access-control-allow-origi
 async function mockCommunity(page, opts = {}) {
   await page.addInitScript(() => {
     Object.defineProperty(window, '_isGoogleUser', { get: () => true, set() {}, configurable: true });
+    // anonymous sign-in is not guaranteed inside the isolated test network, so present a fixed signed-in user id
+    Object.defineProperty(window, '_sbUid', { get: () => '00000000-0000-4000-8000-000000000001', set() {}, configurable: true });
     try { localStorage.setItem('clv_social_dev', '1'); } catch (e) {}
   });
   const wantsObject = r => (r.request().headers()['accept'] || '').includes('vnd.pgrst.object');
@@ -19,6 +21,8 @@ async function mockCommunity(page, opts = {}) {
   await page.route(/\/rest\/v1\/social_public_profiles/, route => {
     if (route.request().method() !== 'GET') return route.fallback();
     if (wantsObject(route)) return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify(PROFILE) });
+    // newer supabase-js maybeSingle() sends a plain Accept and unwraps an array itself
+    if (/is_me=eq\.true/.test(route.request().url())) return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify([PROFILE]) });
     return route.fulfill({ status: 200, headers: JSON_H, body: '[]' });
   });
   for (const t of ['social_feed', 'social_achievement_feed', 'social_clar_posts', 'social_comments_feed']) {

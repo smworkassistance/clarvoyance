@@ -3,6 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "Automated regression gate for the Clarvoyance single-file app (Playwright: Chromium + WebKit/iPhone)",
-  "scripts": { "test": "playwright test" },
-  "devDependencies": { "@playwright/test": "1.55.0" }
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "@playwright/test": "1.55.0"
+  }
 }

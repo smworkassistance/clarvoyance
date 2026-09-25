@@ -9,32 +9,54 @@ const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers
 
 // Mocks the relay Worker and Bunny's tus endpoint. opts.patchDelayMs slows every chunk; opts.workerFail = number of initial Worker 429s.
 async function mockUploadBackend(page, opts = {}) {
-  const st = { workerCalls: 0, patches: 0, offset: 0, total: 0 };
+  const st = { workerCalls: 0, patches: 0, offset: 0, total: 0, base: '' };
   await page.route('https://clar-bunny.smworkassistance.workers.dev/**', async route => {
     if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers: { ...CORS } });
     st.workerCalls++;
     if (st.workerCalls <= (opts.workerFail || 0)) return route.fulfill({ status: 429, headers: { ...JSON_H }, body: JSON.stringify({ error: 'Daily video limit reached — try again tomorrow' }) });
-    return route.fulfill({ status: 200, headers: { ...JSON_H }, body: JSON.stringify({ guid: GUID, endpoint: 'https://video.bunnycdn.com/tusupload', headers: { AuthorizationSignature: 'sig', AuthorizationExpire: '9999999999', VideoId: GUID, LibraryId: '1' } }) });
+    return route.fulfill({ status: 200, headers: { ...JSON_H }, body: JSON.stringify({ guid: GUID, endpoint: st.base, headers: { AuthorizationSignature: 'sig', AuthorizationExpire: '9999999999', VideoId: GUID, LibraryId: '1' } }) });
   });
-  await page.route('https://video.bunnycdn.com/tusupload**', async route => {
-    const m = route.request().method();
-    if (m === 'OPTIONS') return route.fulfill({ status: 204, headers: { ...CORS } });
-    if (m === 'POST') { st.total = Number(route.request().headers()['upload-length'] || 0); st.offset = 0; return route.fulfill({ status: 201, headers: { ...CORS, location: 'https://video.bunnycdn.com/tusupload/up1' } }); }
-    if (m === 'HEAD') return route.fulfill({ status: 200, headers: { ...CORS, 'upload-offset': String(st.offset), 'upload-length': String(st.total) } });
-    if (m === 'PATCH') {
-      const n = (route.request().postDataBuffer() || Buffer.alloc(0)).length;
-      await new Promise(r => setTimeout(r, opts.patchDelayMs || 300));
-      st.patches++; st.offset += n;
-      return route.fulfill({ status: 204, headers: { ...CORS, 'upload-offset': String(st.offset) } });
+  // a REAL local tus server (Playwright's request interception can hang on streamed PATCH bodies) — same protocol subset Bunny speaks
+  const http = require('http');
+  const H = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': '*', 'Access-Control-Allow-Methods': '*', 'Access-Control-Expose-Headers': 'Location,Upload-Offset,Upload-Length,Tus-Resumable', 'Tus-Resumable': '1.0.0' };
+  const srv = http.createServer((req, res) => {
+    if (req.method === 'OPTIONS') { res.writeHead(204, H); return res.end(); }
+    if (req.method === 'POST') { st.total = Number(req.headers['upload-length'] || 0); st.offset = 0; res.writeHead(201, { ...H, Location: st.base + '/up1' }); return res.end(); }
+    if (req.method === 'HEAD') { res.writeHead(200, { ...H, 'Upload-Offset': String(st.offset), 'Upload-Length': String(st.total) }); return res.end(); }
+    if (req.method === 'PATCH') {
+      let n = 0; req.on('data', c => { n += c.length; });
+      req.on('end', () => setTimeout(() => { st.patches++; st.offset += n; res.writeHead(204, { ...H, 'Upload-Offset': String(st.offset) }); res.end(); }, opts.patchDelayMs || 300));
+      return;
     }
-    return route.fulfill({ status: 405, headers: CORS });
+    res.writeHead(405, H); res.end();
   });
+  await new Promise(r => srv.listen(0, '127.0.0.1', r));
+  st.base = 'http://127.0.0.1:' + srv.address().port + '/tusupload';
+  srv.unref(); st.close = () => srv.close();
   return st;
 }
 
+// Playwright's Chromium ships without H.264, so it cannot read the mp4's metadata (real Chrome/Safari can).
+// This makes ONLY the app's metadata probe of a picked file succeed with a 12 s duration; the file bytes uploaded are still the real mp4.
+const FAKE_PROBE = () => {
+  const d = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
+  Object.defineProperty(HTMLMediaElement.prototype, 'src', { configurable: true, get: d.get, set(v) {
+    d.set.call(this, v);
+    if (String(v).startsWith('blob:') && this.preload === 'metadata' && !this.isConnected) {
+      this.onerror = null; this.__fakeDur = true;
+      setTimeout(() => this.dispatchEvent(new Event('loadedmetadata')), 30);
+    }
+  } });
+  const dd = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'duration');
+  Object.defineProperty(HTMLMediaElement.prototype, 'duration', { configurable: true, get() { return this.__fakeDur ? 12 : dd.get.call(this); } });
+};
+
 async function openComposeWithVideo(app, message) {
   const { page } = app;
+  await page.addInitScript(FAKE_PROBE);
   await app.boot();
+  // no real login inside the isolated test network: give the app a fake access token to send to the (mocked) Worker
+  await page.evaluate(() => { window._sbShared.auth.getSession = async () => ({ data: { session: { access_token: 'qa-token' } } }); });
   await page.evaluate(() => { SOC._cfg.chunkSize = 131072; }); // 128 KB chunks → ~9 chunks for the 1.1 MB sample
   await page.evaluate(() => SOC.openCreatePost());
   await page.waitForSelector('#soc-vid-file', { state: 'attached', timeout: 20000 });
@@ -103,10 +125,10 @@ test.describe('video upload (T-011)', () => {
   test('a long gap without progress shows the slow-connection notice', async ({ app }) => {
     const { page } = app;
     await mockCommunity(page);
-    await mockUploadBackend(page, { patchDelayMs: 6000 });
+    await mockUploadBackend(page, { patchDelayMs: 25000 });
     await openComposeWithVideo(app);
     await page.click('[data-act="post-achievement"]');
-    await expect(page.locator('#uc-t')).toContainText('%', { timeout: 20000 });
+    await expect(page.locator('#uc-t')).toContainText(/[1-9]\d*%/, { timeout: 20000 });
     await page.evaluate(() => { const u = window._socUpload.get(); u.lastProg = Date.now() - 30000; }); // simulate 30 s of silence
     await expect(page.locator('#uc-t')).toContainText('slow connection', { timeout: 5000 });
     await page.evaluate(() => window._socUpload.cancel());
