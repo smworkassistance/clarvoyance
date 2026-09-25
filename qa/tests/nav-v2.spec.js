@@ -142,7 +142,7 @@ test.describe('nav_v2 — flag ON', () => {
     await expect(plate).toBeVisible();
     const g = await page.evaluate(() => ({ nnBottom: document.getElementById('nn-tab-section').getBoundingClientRect().bottom, plateTop: document.getElementById('nv2-self-plate').getBoundingClientRect().top }));
     expect(g.plateTop, 'plate is below Non-Negotiables').toBeGreaterThanOrEqual(g.nnBottom - 1);
-    await plate.locator('.nv2-row').click();
+    await plate.locator('.sacc-row').click();
     await page.waitForTimeout(1200);
     expect(await sectionShown(page, tab('self').section)).toBe(true);
     expect(await activeNew(page)).toBe('home');

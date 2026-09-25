@@ -22812,6 +22812,8 @@ body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="me"]{display:none}
 .nv2-row .nv2-rt small{display:block;font-size:.8rem;font-weight:500;color:var(--lt);margin-top:1px}
 .nv2-row .nv2-rc{color:var(--lt);font-size:1.3rem;line-height:1}
 body.nav-v2.nv2-you #nv2-you-card{display:block}
+/* Self plate reuses Non-Negotiables' own classes (self-acc / sacc-row) so it is pixel-consistent with it; only visibility is ours */
+#nv2-self-plate{display:none}
 body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
 </style>
 <script id="navv2-js">
@@ -22897,8 +22899,9 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
     /* T-005d: Self plate sits directly under Non-Negotiables on Home (shown only while Home is the open tab, via CSS) */
     var nn=document.getElementById('nn-tab-section');
     if(nn&&!document.getElementById('nv2-self-plate')){
-      var p=document.createElement('div');p.id='nv2-self-plate';p.className='nv2-card';
-      p.appendChild(row('◎','Self','Peak State, Personal Space, True View and more',function(){var b=oldBtn('self');if(b&&window.bnavSwitch)window.bnavSwitch(b);}));
+      var p=document.createElement('div');p.id='nv2-self-plate';p.className='self-acc';
+      p.innerHTML='<div class="sacc-row sacc-row-last" role="button" tabindex="0"><span class="sacc-sym">◎</span><div style="flex:1;min-width:0"><span class="sacc-title" style="display:block">Self</span><span style="display:block;font-size:.74rem;color:var(--lt);font-weight:400;margin-top:2px">Peak State, Personal Space, True View and more</span></div><span class="sacc-chev">›</span></div>';
+      p.firstChild.addEventListener('click',function(){var b=oldBtn('self');if(b&&window.bnavSwitch)window.bnavSwitch(b);});
       nn.parentNode.insertBefore(p,nn.nextSibling);
     }
   }
