@@ -2,7 +2,11 @@
   "project": "clarvoyance",
   "schema": 1,
   "run": {
-    "active": false
+    "active": true,
+    "batch": "B5",
+    "started_at": "2026-09-24T23:28:08.404Z",
+    "max_hours": 8,
+    "max_iterations": 200
   },
   "batches": {
     "B1": {
@@ -32,7 +36,9 @@
     },
     "B5": {
       "created": "2026-09-24T23:24:31.655Z",
-      "frozen": false
+      "frozen": true,
+      "frozen_at": "2026-09-24T23:28:07.673Z",
+      "frozen_hash": "efd44eb29cacef4959e405257107ee6ce98fdb2f28ae5e8077216330d832da0a"
     }
   },
   "tasks": [
@@ -213,13 +219,13 @@
       "title": "Fix the dead usage-vs-state correlation: compute it server-side (Supabase function usage_correlation_me) and call it via rpc",
       "added": "2026-09-24T00:22:00.000Z",
       "done_when": "SQL function db/schema_v247_usage_correlation_rpc.sql executed on a real Postgres engine (pglite) returns exactly the same result as the existing JS algorithm on >= 200 random fixtures plus edge cases (fewer than 6 points, no scores, all-equal states); SQL parses with libpg-query; client _computeUsageOutcomeCorrelation uses sb.rpc and returns null (soft-fail) when the function is missing; no other Fortune behaviour changes (Playwright suite green). Activation needs the owner to run the SQL (tracked as T-012).",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [],
       "verify": true,
       "files": "",
-      "result": "Owner to decide; not touched in v246",
-      "completed": null,
+      "result": "Owner to decide; not touched in v246\ndb/schema_v247_usage_correlation_rpc.sql usage_correlation_me(); qa/sql/usage-correlation.test.js: SQL on real Postgres (pglite) == JS algorithm strictly on 240 random fixtures + no-user->null; client now calls sb.rpc with soft-fail; full verify 14/14",
+      "completed": "2026-09-25T01:51:06.066Z",
       "completed_text": "",
       "history": [
         {
@@ -236,6 +242,11 @@
           "at": "2026-09-24T23:25:10.439Z",
           "status": "QUEUED",
           "note": ""
+        },
+        {
+          "at": "2026-09-25T01:51:06.067Z",
+          "status": "DONE",
+          "note": "db/schema_v247_usage_correlation_rpc.sql usage_correlation_me(); qa/sql/usage-correlation.test.js: SQL on real Postgres (pglite) == JS algorithm strictly on 240 random fixtures + no-user->null; client now calls sb.rpc with soft-fail; full verify 14/14"
         }
       ]
     },
@@ -341,17 +352,27 @@
       "title": "Video upload no longer looks stuck: chunked upload with real progress, background chip (sheet closes at once), cancel, retry, stall notice",
       "added": "2026-09-24T23:24:31.632Z",
       "done_when": "Playwright test (mock Worker + throttled mock tus server, 128 KB chunks, ~1.1 MB real mp4): (a) sheet closes right after Post and the progress chip is visible within 1 s; (b) >= 5 distinct, non-decreasing progress values are shown; (c) on success the chip is removed and exactly one insert with video.guid is sent; (d) Cancel mid-upload removes the chip and sends NO insert; (e) a Worker error (429 daily limit) shows the Worker message with Try again/Dismiss and Try again succeeds; (f) a >25 s no-progress gap shows the slow-connection notice. Plus a real-service check (chunked upload of the sample to real Bunny via the owner signed-in Chrome, or documented as not verifiable). Full ops/verify.js passes on clarvoyance_v247.html.",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [],
       "verify": true,
-      "result": "",
-      "completed": null,
+      "result": "started\nclarvoyance_v247.html: chunked tus (1 MB), background progress chip with cancel/retry/stall notice; qa/tests/video-upload.spec.js 5/5 pass against a real local tus server (>=5 distinct progress values, cancel, Worker 429 + retry, stall notice, size hint); full ops/verify.js 14/14 passed",
+      "completed": "2026-09-25T01:51:05.734Z",
       "history": [
         {
           "at": "2026-09-24T23:24:31.655Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-24T23:28:20.121Z",
+          "status": "IN_PROGRESS",
+          "note": "started"
+        },
+        {
+          "at": "2026-09-25T01:51:05.743Z",
+          "status": "DONE",
+          "note": "clarvoyance_v247.html: chunked tus (1 MB), background progress chip with cancel/retry/stall notice; qa/tests/video-upload.spec.js 5/5 pass against a real local tus server (>=5 distinct progress values, cancel, Worker 429 + retry, stall notice, size hint); full ops/verify.js 14/14 passed"
         }
       ]
     },
@@ -360,7 +381,7 @@
       "title": "OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010)",
       "added": "2026-09-24T23:24:32.401Z",
       "done_when": "File exists, parse-checked, and the exact instruction is recorded; marked BLOCKED until the owner runs it.",
-      "status": "QUEUED",
+      "status": "BLOCKED",
       "batch": "B5",
       "depends_on": [
         "T-010"
@@ -373,25 +394,36 @@
           "at": "2026-09-24T23:24:32.413Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T01:51:11.426Z",
+          "status": "BLOCKED",
+          "note": "OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail)."
         }
-      ]
+      ],
+      "blocked_reason": "OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail)."
     },
     {
       "id": "T-005a",
       "title": "nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, Home, You); old nav untouched when the flag is off",
       "added": "2026-09-24T23:24:32.700Z",
       "done_when": "Flag OFF (default): full existing Playwright suite + bottom-nav visual baseline unchanged. Flag ON (?nav=2 or feature_flags.nav_v2): 6 new buttons visible, 9 old ones hidden; each of Vibe/Clar/Goal/Home opens its section; Clar AI is the centre raised button; active highlight follows navigation incl. Fortune/Profile->You and Self->Home; no horizontal overflow; screenshot baseline for the nav_v2 bar. ?nav=0 turns the dev override off.",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [],
       "verify": true,
-      "result": "",
-      "completed": null,
+      "result": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: flag OFF unchanged (old nav visible, no new nav, existing suite+bottom-nav baseline pass); ON: 6 buttons, old hidden, centred raised Clar orb, highlight follows (Fortune/Profile->You, Self->Home), ?nav=0 clears override, server flag path, nav-v2 visual baseline",
+      "completed": "2026-09-25T02:14:53.513Z",
       "history": [
         {
           "at": "2026-09-24T23:24:32.702Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T02:14:53.524Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: flag OFF unchanged (old nav visible, no new nav, existing suite+bottom-nav baseline pass); ON: 6 buttons, old hidden, centred raised Clar orb, highlight follows (Fortune/Profile->You, Self->Home), ?nav=0 clears override, server flag path, nav-v2 visual baseline"
         }
       ]
     },
@@ -400,19 +432,24 @@
       "title": "nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub-tabs",
       "added": "2026-09-24T23:24:33.640Z",
       "done_when": "With nav_v2 ON: Feed opens Community above the nav (nav still visible and usable), no close button, sub-tabs Following/Discover/Board switch the three Community views (mocked signed-in profile), inner You tab hidden; signed-out visitor sees the Google gate with the nav still usable; leaving Feed via another nav button closes it cleanly; flag OFF: Community behaves exactly as before (existing tests green).",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [
         "T-005a"
       ],
       "verify": true,
-      "result": "",
-      "completed": null,
+      "result": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Feed opens Community above the bar (overlay bottom == bar top, bar tappable), no close X, sub-tabs Following/Discover/Board, inner tab switch, leaving via bar closes cleanly; screenshot reviewed",
+      "completed": "2026-09-25T02:14:53.820Z",
       "history": [
         {
           "at": "2026-09-24T23:24:33.673Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T02:14:53.821Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Feed opens Community above the bar (overlay bottom == bar top, bar tappable), no close X, sub-tabs Following/Discover/Board, inner tab switch, leaving via bar closes cleanly; screenshot reviewed"
         }
       ]
     },
@@ -421,19 +458,24 @@
       "title": "nav_v2: You tab = Profile + entries for Fortune and My Community profile",
       "added": "2026-09-24T23:24:34.317Z",
       "done_when": "With nav_v2 ON: You opens the existing Profile section with a top card offering Fortune and My Community profile; Fortune opens the existing Fortune section and keeps You highlighted; My Community profile opens the Community you-view; existing Profile content untouched (tests green).",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [
         "T-005a"
       ],
       "verify": true,
-      "result": "",
-      "completed": null,
+      "result": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: You shows profile + card with Fortune and My Community profile entries; both verified; card hidden on other tabs",
+      "completed": "2026-09-25T02:14:54.106Z",
       "history": [
         {
           "at": "2026-09-24T23:24:34.337Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T02:14:54.109Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: You shows profile + card with Fortune and My Community profile entries; both verified; card hidden on other tabs"
         }
       ]
     },
@@ -442,19 +484,24 @@
       "title": "nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is)",
       "added": "2026-09-24T23:24:34.982Z",
       "done_when": "With nav_v2 ON: Home shows a Self plate directly below the Non-Negotiables card; tapping it opens the unchanged Self section and keeps Home highlighted; with the flag OFF the plate is absent and Home is unchanged.",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [
         "T-005a"
       ],
       "verify": true,
-      "result": "",
-      "completed": null,
+      "result": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Self plate below Non-Negotiables on Home only, opens Self, Home stays highlighted, hidden on other tabs",
+      "completed": "2026-09-25T02:14:54.322Z",
       "history": [
         {
           "at": "2026-09-24T23:24:34.984Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T02:14:54.324Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Self plate below Non-Negotiables on Home only, opens Self, Home stays highlighted, hidden on other tabs"
         }
       ]
     },
@@ -463,7 +510,7 @@
       "title": "Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it",
       "added": "2026-09-24T23:24:35.449Z",
       "done_when": "Full ops/verify.js passes on clarvoyance_v247.html; node ops/promote.js clarvoyance_v247.html --push succeeds (tag pre-v247); live https://clar.co.in/ serves label v247 and sw cache clv-v247 (curl); default experience for a fresh visitor identical to v246 except the fixed video upload.",
-      "status": "QUEUED",
+      "status": "BLOCKED",
       "batch": "B5",
       "depends_on": [
         "T-011",
@@ -480,8 +527,14 @@
           "at": "2026-09-24T23:24:35.465Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T02:15:53.235Z",
+          "status": "BLOCKED",
+          "note": "Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step."
         }
-      ]
+      ],
+      "blocked_reason": "Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step."
     },
     {
       "id": "T-014",

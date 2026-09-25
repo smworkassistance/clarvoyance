@@ -28,3 +28,9 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 25/09/2026 04:49:51 IST — attempt 5 on T-020: ALTERNATIVE (after online research: known Playwright WebKit-on-Windows newPage hang, issue #18953/#3939): make CI (Linux) the authoritative WebKit lane; local g
 - 25/09/2026 04:58:07 IST — batch B5 FROZEN (scope hash efd44eb29cac)
 - 25/09/2026 04:58:08 IST — RUN START batch B5 (max 8 h)
+
+- 2026-09-25 (B5) T-011 DONE: chunked tus upload + background chip; 5 upload tests vs a real local tus server (Playwright route interception hangs on streamed PATCH — switched approach per anti-stuck rule; Playwright Chromium has no H.264 so the metadata probe is stubbed in the test only).
+- 2026-09-25 (B5) T-010 DONE: SQL function usage_correlation_me() proven == old JS on 240 random datasets on pglite (real Postgres). T-012 BLOCKED: owner runs db/schema_v247_usage_correlation_rpc.sql.
+- 2026-09-25 (B5) T-005a-d DONE: nav_v2 dark-launched (Feed/Vibe/Clar orb/Goal/Home/You); qa/tests/nav-v2.spec.js. Full verify 23/23.
+- 2026-09-25 (B5) NOTE: repeated test boots hit Supabase's hourly anonymous-signup limit (429 on /auth/v1/signup) — environmental; allow-listed in qa/app-map.json. Each boot creates one anonymous auth user in production Supabase (pre-existing harness design: reads + anonymous auth are real, all writes faked) — harmless, but they accumulate in auth.users.
+- 2026-09-25 (B5) T-013 BLOCKED: `node ops/promote.js clarvoyance_v247.html --push` denied by the permission system (production deploy). Owner go-ahead needed. Not worked around.

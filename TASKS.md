@@ -2,20 +2,21 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 25/09/2026 04:57:47 IST.
+> Rendered 25/09/2026 07:45:54 IST.
 
 ## Run status
-No run active.
+**ACTIVE** — batch B5, started 25/09/2026 04:58:08 IST, limit 8 h.
 
 ## What the OWNER must do (all BLOCKED items, exact action)
-_Nothing — no blocked tasks._
+- **T-012** — OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail).
+- **T-013** — Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step.
 
 ## Batches
 - **B1** — frozen 24/09/2026 04:20:00 IST — 2/2 done: T-002(DONE), T-003(DONE)
 - **B2** — frozen 24/09/2026 04:50:00 IST — 1/1 done: T-006(DONE)
 - **B3** — frozen 24/09/2026 05:10:00 IST — 1/1 done: T-009(DONE)
 - **B4** — not frozen — 1/1 done: T-020(DONE)
-- **B5** — not frozen — 0/9 done: T-010(QUEUED), T-011(QUEUED), T-012(QUEUED), T-005a(QUEUED), T-005b(QUEUED), T-005c(QUEUED), T-005d(QUEUED), T-013(QUEUED), T-014(QUEUED)
+- **B5** — frozen 25/09/2026 04:58:07 IST — 6/9 done: T-010(DONE), T-011(DONE), T-012(BLOCKED), T-005a(DONE), T-005b(DONE), T-005c(DONE), T-005d(DONE), T-013(BLOCKED), T-014(QUEUED)
 
 ## Task table
 
@@ -29,17 +30,17 @@ _Nothing — no blocked tasks._
 | T-006 | 24/09/2026 04:50:00 | Video in Community posts (30 s cap) — built on Bunny Stream (originally planned on R2/Stream; owner chose Bun… | DONE | B2 | — | 05:48 (code done) |
 | T-007 | 24/09/2026 04:20:00 | Invite friends link + small goal "circles" (3-8 people) for growth loop | DISCUSS | — | — | — |
 | T-008 | 24/09/2026 04:20:00 | Fortune theme match (dark cosmic -> app theme, light+dark) | DISCUSS | — | T-005 ⛔ blocked-by T-005 | — |
-| T-010 | 24/09/2026 05:52:00 | Fix the dead usage-vs-state correlation: compute it server-side (Supabase function usage_correlation_me) and … | QUEUED | B5 | — | — |
+| T-010 | 24/09/2026 05:52:00 | Fix the dead usage-vs-state correlation: compute it server-side (Supabase function usage_correlation_me) and … | DONE | B5 | — | 25/09/2026 07:21:06 |
 | T-009 | 24/09/2026 05:10:00 | Vibe Feed video card feels like Instagram/YouTube: starts by itself (muted autoplay is what mobile browsers a… | DONE | B3 | — | 24/09/2026 05:38:00 |
 | T-020 | 25/09/2026 04:49:13 | Infra: get the WebKit (iPhone) lane of the QA gate working, or replace it with a documented equivalent | DONE | B4 | — | 25/09/2026 04:57:46 |
-| T-011 | 25/09/2026 04:54:31 | Video upload no longer looks stuck: chunked upload with real progress, background chip (sheet closes at once)… | QUEUED | B5 | — | — |
-| T-012 | 25/09/2026 04:54:32 | OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010) | QUEUED | B5 | T-010 | — |
-| T-005a | 25/09/2026 04:54:32 | nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, H… | QUEUED | B5 | — | — |
-| T-005b | 25/09/2026 04:54:33 | nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub… | QUEUED | B5 | T-005a | — |
-| T-005c | 25/09/2026 04:54:34 | nav_v2: You tab = Profile + entries for Fortune and My Community profile | QUEUED | B5 | T-005a | — |
-| T-005d | 25/09/2026 04:54:34 | nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is) | QUEUED | B5 | T-005a | — |
-| T-013 | 25/09/2026 04:54:35 | Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it | QUEUED | B5 | T-011, T-010, T-005b, T-005c, T-005d | — |
-| T-014 | 25/09/2026 04:54:35 | Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory | QUEUED | B5 | T-013 | — |
+| T-011 | 25/09/2026 04:54:31 | Video upload no longer looks stuck: chunked upload with real progress, background chip (sheet closes at once)… | DONE | B5 | — | 25/09/2026 07:21:05 |
+| T-012 | 25/09/2026 04:54:32 | OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010) | BLOCKED | B5 | T-010 | — |
+| T-005a | 25/09/2026 04:54:32 | nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, H… | DONE | B5 | — | 25/09/2026 07:44:53 |
+| T-005b | 25/09/2026 04:54:33 | nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub… | DONE | B5 | T-005a | 25/09/2026 07:44:53 |
+| T-005c | 25/09/2026 04:54:34 | nav_v2: You tab = Profile + entries for Fortune and My Community profile | DONE | B5 | T-005a | 25/09/2026 07:44:54 |
+| T-005d | 25/09/2026 04:54:34 | nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is) | DONE | B5 | T-005a | 25/09/2026 07:44:54 |
+| T-013 | 25/09/2026 04:54:35 | Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it | BLOCKED | B5 | T-011, T-010, T-005b, T-005c, T-005d | — |
+| T-014 | 25/09/2026 04:54:35 | Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory | QUEUED | B5 | T-013 ⛔ blocked-by T-013 | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -80,9 +81,10 @@ _Nothing — no blocked tasks._
 - Result / evidence: Depends on T-005
 
 ### T-010 — Fix the dead usage-vs-state correlation: compute it server-side (Supabase function usage_correlation_me) and call it via rpc
-- Status: **QUEUED**  · Batch: B5  · Depends on: —
+- Status: **DONE**  · Batch: B5  · Depends on: —
 - Done-when: SQL function db/schema_v247_usage_correlation_rpc.sql executed on a real Postgres engine (pglite) returns exactly the same result as the existing JS algorithm on >= 200 random fixtures plus edge cases (fewer than 6 points, no scores, all-equal states); SQL parses with libpg-query; client _computeUsageOutcomeCorrelation uses sb.rpc and returns null (soft-fail) when the function is missing; no other Fortune behaviour changes (Playwright suite green). Activation needs the owner to run the SQL (tracked as T-012).
 - Result / evidence: Owner to decide; not touched in v246
+  db/schema_v247_usage_correlation_rpc.sql usage_correlation_me(); qa/sql/usage-correlation.test.js: SQL on real Postgres (pglite) == JS algorithm strictly on 240 random fixtures + no-user->null; client now calls sb.rpc with soft-fail; full verify 14/14
 
 ### T-009 — Vibe Feed video card feels like Instagram/YouTube: starts by itself (muted autoplay is what mobile browsers allow), visible tap-to-pause/play icon, mute/unmute button, thin progress bar, swipe still skips, smooth
 - Status: **DONE**  · Batch: B3  · Depends on: —
@@ -96,32 +98,40 @@ _Nothing — no blocked tasks._
   Chromium/Android lane: full ops/verify.js PASSED on live index.html (8 passed, 1 flaky = first-time snapshot write, 0 failed; includes the real AI chat test). WebKit on Windows hangs in browserContext.newPage (known upstream #18953/#3939; 5 recorded attempts; stuck protocol -> researched -> alternative). WebKit/iPhone now runs on the independent CI lane .github/workflows/qa.yml (activates on next push); local WebKit only with QA_WEBKIT=1. PROCESS/INFRA-PLAN §5b document which lane is authoritative for what.
 
 ### T-011 — Video upload no longer looks stuck: chunked upload with real progress, background chip (sheet closes at once), cancel, retry, stall notice
-- Status: **QUEUED**  · Batch: B5  · Depends on: —
+- Status: **DONE**  · Batch: B5  · Depends on: —
 - Done-when: Playwright test (mock Worker + throttled mock tus server, 128 KB chunks, ~1.1 MB real mp4): (a) sheet closes right after Post and the progress chip is visible within 1 s; (b) >= 5 distinct, non-decreasing progress values are shown; (c) on success the chip is removed and exactly one insert with video.guid is sent; (d) Cancel mid-upload removes the chip and sends NO insert; (e) a Worker error (429 daily limit) shows the Worker message with Try again/Dismiss and Try again succeeds; (f) a >25 s no-progress gap shows the slow-connection notice. Plus a real-service check (chunked upload of the sample to real Bunny via the owner signed-in Chrome, or documented as not verifiable). Full ops/verify.js passes on clarvoyance_v247.html.
+- Result / evidence: started
+  clarvoyance_v247.html: chunked tus (1 MB), background progress chip with cancel/retry/stall notice; qa/tests/video-upload.spec.js 5/5 pass against a real local tus server (>=5 distinct progress values, cancel, Worker 429 + retry, stall notice, size hint); full ops/verify.js 14/14 passed
 
 ### T-012 — OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010)
-- Status: **QUEUED**  · Batch: B5  · Depends on: T-010
+- Status: **BLOCKED**  · Batch: B5  · Depends on: T-010
 - Done-when: File exists, parse-checked, and the exact instruction is recorded; marked BLOCKED until the owner runs it.
+- **Blocked — owner action:** OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail).
 
 ### T-005a — nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, Home, You); old nav untouched when the flag is off
-- Status: **QUEUED**  · Batch: B5  · Depends on: —
+- Status: **DONE**  · Batch: B5  · Depends on: —
 - Done-when: Flag OFF (default): full existing Playwright suite + bottom-nav visual baseline unchanged. Flag ON (?nav=2 or feature_flags.nav_v2): 6 new buttons visible, 9 old ones hidden; each of Vibe/Clar/Goal/Home opens its section; Clar AI is the centre raised button; active highlight follows navigation incl. Fortune/Profile->You and Self->Home; no horizontal overflow; screenshot baseline for the nav_v2 bar. ?nav=0 turns the dev override off.
+- Result / evidence: fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: flag OFF unchanged (old nav visible, no new nav, existing suite+bottom-nav baseline pass); ON: 6 buttons, old hidden, centred raised Clar orb, highlight follows (Fortune/Profile->You, Self->Home), ?nav=0 clears override, server flag path, nav-v2 visual baseline
 
 ### T-005b — nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub-tabs
-- Status: **QUEUED**  · Batch: B5  · Depends on: T-005a
+- Status: **DONE**  · Batch: B5  · Depends on: T-005a
 - Done-when: With nav_v2 ON: Feed opens Community above the nav (nav still visible and usable), no close button, sub-tabs Following/Discover/Board switch the three Community views (mocked signed-in profile), inner You tab hidden; signed-out visitor sees the Google gate with the nav still usable; leaving Feed via another nav button closes it cleanly; flag OFF: Community behaves exactly as before (existing tests green).
+- Result / evidence: fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Feed opens Community above the bar (overlay bottom == bar top, bar tappable), no close X, sub-tabs Following/Discover/Board, inner tab switch, leaving via bar closes cleanly; screenshot reviewed
 
 ### T-005c — nav_v2: You tab = Profile + entries for Fortune and My Community profile
-- Status: **QUEUED**  · Batch: B5  · Depends on: T-005a
+- Status: **DONE**  · Batch: B5  · Depends on: T-005a
 - Done-when: With nav_v2 ON: You opens the existing Profile section with a top card offering Fortune and My Community profile; Fortune opens the existing Fortune section and keeps You highlighted; My Community profile opens the Community you-view; existing Profile content untouched (tests green).
+- Result / evidence: fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: You shows profile + card with Fortune and My Community profile entries; both verified; card hidden on other tabs
 
 ### T-005d — nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is)
-- Status: **QUEUED**  · Batch: B5  · Depends on: T-005a
+- Status: **DONE**  · Batch: B5  · Depends on: T-005a
 - Done-when: With nav_v2 ON: Home shows a Self plate directly below the Non-Negotiables card; tapping it opens the unchanged Self section and keeps Home highlighted; with the flag OFF the plate is absent and Home is unchanged.
+- Result / evidence: fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Self plate below Non-Negotiables on Home only, opens Self, Home stays highlighted, hidden on other tabs
 
 ### T-013 — Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it
-- Status: **QUEUED**  · Batch: B5  · Depends on: T-011, T-010, T-005b, T-005c, T-005d
+- Status: **BLOCKED**  · Batch: B5  · Depends on: T-011, T-010, T-005b, T-005c, T-005d
 - Done-when: Full ops/verify.js passes on clarvoyance_v247.html; node ops/promote.js clarvoyance_v247.html --push succeeds (tag pre-v247); live https://clar.co.in/ serves label v247 and sw cache clv-v247 (curl); default experience for a fresh visitor identical to v246 except the fixed video upload.
+- **Blocked — owner action:** Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step.
 
 ### T-014 — Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory
 - Status: **QUEUED**  · Batch: B5  · Depends on: T-013
