@@ -2607,7 +2607,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v248</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v249</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -21397,6 +21397,7 @@ textarea.soc-in{resize:none;min-height:74px}
         +'<button class="soc-ib" data-act="v2-settings" aria-label="Settings and profile">'+ICO.gear+'</button>';
       return;
     }
+    if(v2()&&document.body.classList.contains('nv2-feed')&&!S.prof){t.innerHTML=lead+'<span class="soc-title">Feed</span>'+trail;return;}
     t.innerHTML=lead+'<button class="soc-title soc-title-btn" data-act="goto-goal"><b>✦</b> ClarZone</button>'+trail;
   }
   function setTab(t){
@@ -21435,7 +21436,8 @@ textarea.soc-in{resize:none;min-height:74px}
       inner='<div class="soc-prof"><div class="soc-prof-top">'+av('Y',cols[0]).replace('--s:40px','--s:86px')+'<div class="soc-stats"><div><b>1,240</b><span>XP</span></div><div><b>32</b><span>Followers</span></div><div><b>18</b><span>Following</span></div></div></div><div class="soc-pname">Your name</div><div class="soc-handle">@yourhandle</div></div>'
         +'<div class="soc-h">Momentum</div><div class="soc-metrics"><div class="soc-metric"><div class="v">🔥 7</div><div class="l">Day streak</div></div><div class="soc-metric"><div class="v">+320</div><div class="l">XP this week</div></div></div>';
     }else{
-      inner='<div class="soc-stack" style="margin-top:12px">'+[['Aarav','🏆 Achieved: Ran my first 10K','7 day streak'],['Meera','🎯 Working on: Launch my business','Shared a win']].map(function(x,i){return '<div class="soc-card" style="padding:12px"><div class="soc-row">'+av(x[0][0],cols[i])+'<div class="soc-grow"><div class="soc-name">'+x[0]+'</div><div class="soc-sub">'+x[2]+'</div></div></div><div class="soc-ach-title" style="margin-top:10px">'+x[1]+'</div></div>';}).join('')+'</div>';
+      inner='<div class="soc-stack" style="margin-top:12px"><div class="soc-card soc-clar" style="padding:12px"><div class="soc-post-hd"><span class="soc-ring"><div class="soc-av clar" style="--s:40px">✦</div></span><div class="soc-grow"><div class="soc-name">Clar <span class="soc-chip official">Official</span></div><div class="soc-sub">Your companion</div></div></div><div class="soc-ach-title">Two minutes is enough</div><div class="soc-ach-msg">One small, honest action today beats a big plan you never start.</div></div></div>'
+      +'<div class="soc-stack" style="margin-top:12px">'+[['Aarav','🏆 Achieved: Ran my first 10K','7 day streak'],['Meera','🎯 Working on: Launch my business','Shared a win']].map(function(x,i){return '<div class="soc-card" style="padding:12px"><div class="soc-row">'+av(x[0][0],cols[i])+'<div class="soc-grow"><div class="soc-name">'+x[0]+'</div><div class="soc-sub">'+x[2]+'</div></div></div><div class="soc-ach-title" style="margin-top:10px">'+x[1]+'</div></div>';}).join('')+'</div>';
     }
     return '<div class="v2-prev"><span class="v2-prev-tag">Example preview</span><div class="v2-prev-in" aria-hidden="true">'+inner+'</div></div>';
   }
@@ -22884,6 +22886,8 @@ textarea.soc-in{resize:none;min-height:74px}
 <style id="navv2-css">
 /* everything below only applies when body has .nav-v2 */
 body.nav-v2 #bnav{overflow:visible}
+/* v249: the Feed tab is the way into Community now — the two header icons would only duplicate it */
+body.nav-v2 #hdr-soc-btn,body.nav-v2 #chat-soc-btn{display:none!important}
 body.nav-v2 #bnav .bnav-tab{display:none!important}
 body:not(.nav-v2) #bnav .nv2-tab{display:none!important}
 .nv2-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;padding:8px 2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;font:inherit;color:inherit}
@@ -22940,7 +22944,8 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
   /* dev override from the URL: ?nav=2 turns it on for this device, ?nav=0 turns that override off again */
   try{
     var m=/[?&]nav=(\d)/.exec(location.search);
-    if(m){if(m[1]==='2')lset(DEV,'1');else if(m[1]==='0')lset(DEV,null);}
+    if(m){if(m[1]==='2')lset(DEV,'1');else if(m[1]==='0')lset(DEV,'0');}
+    if(/[?&]nav=reset/.test(location.search))lset(DEV,null);
   }catch(e){}
 
   var TABS=[
@@ -22967,6 +22972,7 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
       nav.appendChild(b);
     });
     buildCards();
+    moveTour();
     syncActive();
     /* the old buttons still carry the real "which tab is active" state — mirror it, whoever changed it */
     try{new MutationObserver(syncActive).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});}catch(e){}
@@ -22974,6 +22980,29 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
     if(ps){try{new MutationObserver(syncActive).observe(ps,{attributes:true,attributeFilter:['style']});}catch(e){}}
   }
 
+  /* the guided tour highlights [data-tour-title] elements. The old (now hidden) bar carried them, so move each step onto the visible new button
+     and drop the Self/Fortune steps (they are no longer bar buttons); restore everything if the new bar is switched off. */
+  var TOUR={
+    chat:{t:'Clar AI',b:'Your companion — talk here anytime. Everything else in the app grows out of this conversation.',o:1},
+    feed:{t:'Feed',b:'Wins from people you follow, people to discover, and short notes from Clar — cheer others on and share your own.',o:2},
+    vibe:{t:'Vibe',b:'Quick 2-minute exercises, plus videos and quotes picked for you — swipe through whenever you have a spare moment.',o:3},
+    goal:{t:'Goal',b:'Write your goal, add vision images, and get videos and quotes matched to what you are working toward.',o:4},
+    home:{t:'Home',b:'Your daily dashboard — Non-Negotiables, and right under it Self: practices for going inward.',o:5},
+    you:{t:'You',b:'Your dashboard — streaks, badges, goals you choose to share, your private Fortune reading and the leaderboard.',o:6}
+  };
+  function moveTour(on){
+    on=on!==false;
+    document.querySelectorAll('#bnav .bnav-tab').forEach(function(b){
+      if(on){
+        if(b.hasAttribute('data-tour-title')){b.setAttribute('data-nv2-tour',b.getAttribute('data-tour-title')+'\u0001'+(b.getAttribute('data-tour-body')||'')+'\u0001'+(b.getAttribute('data-tour-order')||''));['data-tour-title','data-tour-body','data-tour-order'].forEach(function(a){b.removeAttribute(a);});}
+      }else if(b.hasAttribute('data-nv2-tour')){var p=b.getAttribute('data-nv2-tour').split('\u0001');b.setAttribute('data-tour-title',p[0]);b.setAttribute('data-tour-body',p[1]);if(p[2])b.setAttribute('data-tour-order',p[2]);b.removeAttribute('data-nv2-tour');}
+    });
+    document.querySelectorAll('#bnav .nv2-tab').forEach(function(x){
+      var d=TOUR[x.getAttribute('data-nv2')];if(!d)return;
+      if(on){x.setAttribute('data-tour-title',d.t);x.setAttribute('data-tour-body',d.b);x.setAttribute('data-tour-order',String(d.o));}
+      else{x.removeAttribute('data-tour-title');x.removeAttribute('data-tour-body');x.removeAttribute('data-tour-order');}
+    });
+  }
   function oldBtn(tab){return document.querySelector('#bnav .bnav-tab[data-tab="'+tab+'"]');}
 
   function go(k){
@@ -23054,13 +23083,15 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
   })();
 
   function apply(on){
-    if(on){build();document.body.classList.add('nav-v2');syncActive();}
-    else document.body.classList.remove('nav-v2');
+    if(on){build();if(document.getElementById('nv2-bar-marker'))moveTour(true);document.body.classList.add('nav-v2');syncActive();}
+    else{document.body.classList.remove('nav-v2');if(document.getElementById('nv2-bar-marker'))moveTour(false);}
   }
   window._navV2Apply=apply;
 
   /* 1) instant, from what this device already knows (no flash on boot) */
-  apply(ls(DEV)==='1'||ls(CACHE)==='1');
+  /* v249: the new bar is the DEFAULT. It is only off when (a) this device forces it off (?nav=0) or (b) the server flag row says enabled=false (kill switch, remembered in CACHE as '0'). */
+  function decide(){var d=ls(DEV);if(d==='1')return true;if(d==='0')return false;return ls(CACHE)!=='0';}
+  apply(decide());
 
   /* 2) then confirm with the server flag (feature_flags.nav_v2); a real "false" turns it back off unless the dev override is set */
   var tries=0;
@@ -23068,9 +23099,10 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
     var sb=window._sbShared;
     if(!sb){if(++tries<60)setTimeout(poll,250);return;}
     Promise.resolve(sb.from('feature_flags').select('enabled').eq('key','nav_v2').maybeSingle()).then(function(r){
-      var on=!!(r&&r.data&&r.data.enabled);
-      lset(CACHE,on?'1':null);
-      apply(on||ls(DEV)==='1');
+      if(!r||r.error)return; /* unknown -> keep whatever we already decided */
+      var killed=!!(r.data&&r.data.enabled===false); /* only an explicit false switches the new bar off; a missing row means ON */
+      lset(CACHE,killed?'0':null);
+      apply(decide());
     }).catch(function(){});
   })();
 })();
