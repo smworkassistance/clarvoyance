@@ -1,5 +1,5 @@
-// T-005 — nav_v2: the new 6-button bottom navigation (dark-launched behind a flag).
-// OFF (default) must leave the existing app untouched; ON (dev override clv_nav_v2_dev, same as opening ?nav=2) shows the new bar.
+// nav_v2: the 6-button bottom navigation. Since v249 it is ON BY DEFAULT; it is off only when this device forces it (?nav=0 -> clv_nav_v2_dev='0')
+// or the server row feature_flags.nav_v2 says enabled=false (kill switch). 'OFF' tests below force it off and prove the old app is untouched.
 const { test, expect, MAP } = require('./harness');
 const { mockCommunity } = require('./community-mock');
 
@@ -11,12 +11,14 @@ async function bootOn(app, opts) {
   await app.page.addInitScript(() => { try { localStorage.setItem('clv_nav_v2_dev', '1'); } catch (e) {} });
   await app.boot();
 }
+const forceOff = page => page.addInitScript(() => { try { localStorage.setItem('clv_nav_v2_dev', '0'); } catch (e) {} });
 const clickNew = (page, k) => page.locator(`.nv2-tab[data-nv2="${k}"]`).click();
 const activeNew = page => page.evaluate(() => { const a = document.querySelector('.nv2-tab.active'); return a ? a.getAttribute('data-nv2') : null; });
 const sectionShown = (page, sel) => page.evaluate(s => { const e = document.querySelector(s); return !!e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().height > 0; }, sel);
 
-test.describe('nav_v2 — flag OFF (default) changes nothing', () => {
+test.describe('nav_v2 — forced OFF changes nothing', () => {
   test('no new nav, old nav fully visible', async ({ app }) => {
+    await forceOff(app.page);
     await app.boot();
     expect(await app.page.evaluate(() => document.body.classList.contains('nav-v2'))).toBe(false);
     expect(await app.page.evaluate(visible('.nv2-tab'))).toBe(0);
@@ -27,6 +29,7 @@ test.describe('nav_v2 — flag OFF (default) changes nothing', () => {
 test.describe('nav_v2 — flag OFF: the existing Community overlay is untouched', () => {
   test('4 bottom tabs, ClarZone title, close X, classic You without Fortune/Board cards', async ({ app }) => {
     await mockCommunity(app.page);
+    await forceOff(app.page);
     await app.boot();
     const { page } = app;
     await page.evaluate(() => SOC.open());
@@ -47,6 +50,27 @@ test.describe('nav_v2 — flag OFF: the existing Community overlay is untouched'
     await expect(page.locator('.v2-lbintro')).toHaveCount(0);
     await page.locator('#soc-top [data-act="close"]').click();
     expect(await page.evaluate(() => document.getElementById('soc-screen').classList.contains('hidden'))).toBe(true);
+  });
+});
+
+test.describe('nav_v2 — default ON (v249)', () => {
+  test('a normal visitor (no override, no server row) gets the new bar; tour steps moved to it; Community icons hidden', async ({ app }) => {
+    await app.boot();
+    const { page } = app;
+    expect(await page.evaluate(() => document.body.classList.contains('nav-v2'))).toBe(true);
+    expect(await page.evaluate(visible('.nv2-tab'))).toBe(6);
+    expect(await page.evaluate(visible('#hdr-soc-btn,#chat-soc-btn')), 'Feed tab replaces the two Community icons').toBe(0);
+    const steps = await page.evaluate(() => [...document.querySelectorAll('[data-tour-title]')].sort((a, b) => (parseInt(a.dataset.tourOrder) || 99) - (parseInt(b.dataset.tourOrder) || 99)).map(e => e.dataset.tourTitle + ':' + (e.classList.contains('nv2-tab') || e.id === 't-btn' ? 'ok' : 'HIDDEN-OLD')));
+    expect(steps).toEqual(['Clar AI:ok', 'Feed:ok', 'Vibe:ok', 'Goal:ok', 'Home:ok', 'You:ok', 'Focus Timer:ok']);
+  });
+
+  test('server kill switch (feature_flags.nav_v2 enabled=false) turns it off; ?nav=2 on this device overrides it', async ({ app }) => {
+    await mockCommunity(app.page, { navV2: false });
+    await app.boot();
+    await expect.poll(() => app.page.evaluate(() => document.body.classList.contains('nav-v2')), { timeout: 15000 }).toBe(false);
+    expect(await app.page.evaluate(visible('#bnav .bnav-tab'))).toBeGreaterThanOrEqual(5);
+    await app.page.goto('/?nav=2', { waitUntil: 'domcontentloaded' });
+    await expect.poll(() => app.page.evaluate(() => document.body.classList.contains('nav-v2')), { timeout: 15000 }).toBe(true);
   });
 });
 
@@ -95,11 +119,15 @@ test.describe('nav_v2 — flag ON', () => {
     await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(800);
     expect(await activeNew(page)).toBe('you');
-    // ?nav=0 removes the dev override
+    // ?nav=0 forces the old bar on this device; ?nav=reset clears the override (back to the default: new bar)
     await page.goto('/?nav=0', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
-    expect(await page.evaluate(() => localStorage.getItem('clv_nav_v2_dev'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('clv_nav_v2_dev'))).toBe('0');
     expect(await page.evaluate(() => document.body.classList.contains('nav-v2'))).toBe(false);
+    await page.goto('/?nav=reset', { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(1500);
+    expect(await page.evaluate(() => localStorage.getItem('clv_nav_v2_dev'))).toBeNull();
+    expect(await page.evaluate(() => document.body.classList.contains('nav-v2'))).toBe(true);
   });
 
   test('Feed hosts Community as a tab: stops above the bar, no close X, sub-tabs Following/Discover/Board, leaves cleanly', async ({ app }) => {
@@ -120,6 +148,8 @@ test.describe('nav_v2 — flag ON', () => {
     expect(g.hitInNav, 'bar is tappable while Feed is open').toBe(true);
     expect(g.closeVis).toBe('hidden');
     expect(g.tabs).toEqual(['Following', 'Discover', 'Board']);
+    await expect(page.locator('#soc-top .soc-title')).toHaveText('Feed');
+    await expect(page.locator('#soc-top [data-act="goto-goal"]')).toHaveCount(0); // the ClarZone->Goal shortcut is gone in the hosted Feed
     // inner sub-tab switch works
     await page.locator('#soc-tabs .soc-tab[data-tab="board"]').click();
     await page.waitForTimeout(600);
@@ -243,12 +273,6 @@ test.describe('nav_v2 — flag ON', () => {
     await clickNew(page, 'vibe');
     await page.waitForTimeout(800);
     await expect(plate).toBeHidden();
-  });
-
-  test('server flag feature_flags.nav_v2 turns it on without any override', async ({ app }) => {
-    await mockCommunity(app.page, { navV2: true });
-    await app.boot();
-    await expect.poll(() => app.page.evaluate(() => document.body.classList.contains('nav-v2')), { timeout: 15000 }).toBe(true);
   });
 
   test('nav_v2 bar looks like its approved baseline', async ({ app }) => {

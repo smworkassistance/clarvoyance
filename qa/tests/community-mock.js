@@ -35,6 +35,8 @@ async function mockCommunity(page, opts = {}) {
     if (route.request().method() !== 'GET') return route.fallback();
     const u = route.request().url();
     const key = (u.match(/key=eq\.([a-z_0-9]+)/) || [])[1];
+    // nav_v2: opts.navV2 === false -> an explicit "enabled:false" row (the server kill switch); true -> enabled; undefined -> no row (= default ON in v249)
+    if (key === 'nav_v2' && opts.navV2 === false) return route.fulfill({ status: 200, headers: JSON_H, body: wantsObject(route) ? JSON.stringify({ enabled: false }) : JSON.stringify([{ key, enabled: false }]) });
     const on = key === 'social_layer' || (key === 'nav_v2' && opts.navV2);
     if (wantsObject(route)) return on ? route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify({ enabled: true }) }) : route.fulfill({ status: 406, headers: JSON_H, body: JSON.stringify(notFound) });
     return route.fulfill({ status: 200, headers: JSON_H, body: on ? JSON.stringify([{ key, enabled: true }]) : '[]' });
