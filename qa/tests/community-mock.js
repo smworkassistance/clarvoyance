@@ -25,10 +25,11 @@ async function mockCommunity(page, opts = {}) {
     if (/is_me=eq\.true/.test(route.request().url())) return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify([PROFILE]) });
     return route.fulfill({ status: 200, headers: JSON_H, body: '[]' });
   });
-  for (const t of ['social_feed', 'social_achievement_feed', 'social_clar_posts', 'social_comments_feed']) {
+  for (const t of ['social_feed', 'social_achievement_feed', 'social_clar_posts', 'social_comments_feed', 'referrals', 'guides', 'guide_subscriptions', 'guide_posts', 'guide_signals']) {
     await page.route(new RegExp('/rest/v1/' + t), route => {
       if (route.request().method() !== 'GET') return route.fallback();
-      return route.fulfill({ status: 200, headers: JSON_H, body: '[]' });
+      const rows = (t === 'social_achievement_feed' && opts.achFeed) || (t === 'guides' && opts.guides) || (t === 'guide_posts' && opts.guidePosts) || (t === 'guide_subscriptions' && opts.guideSubs) || [];
+      return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify(rows) });
     });
   }
   await page.route(/\/rest\/v1\/feature_flags/, route => {

@@ -244,6 +244,16 @@ body[data-persona="nurturer"]  {--persona-col:#7556a4}  /* Amethyst — gentle, 
 .vf-vid-xp.done{background:rgba(46,160,90,.85)}
 /* the three floating left-edge buttons (New Story / Quick capture / Peak State) would sit on top of the footage */
 body.vf-vid-on #ns-fab,body.vf-vid-on #qc-fab,body.vf-vid-on #pk-fab{display:none!important}
+.vfv-share{position:fixed;inset:0;z-index:5200;display:flex;flex-direction:column;justify-content:flex-end}
+.vfv-share-bd{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.vfv-share-card{position:relative;background:var(--su);color:var(--tx);border-radius:22px 22px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px rgba(0,0,0,.35);animation:vfvUp .22s ease}
+@keyframes vfvUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.vfv-share-h{font-weight:800;font-size:1.05rem;margin-bottom:10px}
+.vfv-share-v{display:flex;gap:10px;align-items:center;margin-bottom:12px}.vfv-share-v img{width:72px;height:54px;object-fit:cover;border-radius:10px;background:#000}.vfv-share-v span{font-size:.85rem;color:var(--lt);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vfv-share-b{display:block;width:100%;text-align:left;background:var(--ca);border:1px solid var(--bo);border-radius:14px;padding:12px 14px;margin-bottom:8px;color:var(--tx);font:inherit;cursor:pointer}
+.vfv-share-b b{display:block;font-size:.98rem}.vfv-share-b small{display:block;color:var(--lt);font-size:.78rem;margin-top:2px}
+.vfv-share-b:active{transform:scale(.985)}
+.vfv-share-x{display:block;width:100%;background:none;border:none;color:var(--lt);font:inherit;padding:10px;cursor:pointer}
 /* ═══ v250: policy-compliant Vibe video card. Nothing of ours is ever drawn over the YouTube player; our UI sits below it. ═══ */
 .vfv-layer{position:absolute;left:0;right:0;z-index:5;visibility:hidden;pointer-events:none}
 .vfv-layer.on{visibility:visible}
@@ -4264,6 +4274,7 @@ document.addEventListener('DOMContentLoaded',async ()=>{
   try{
     const notifTab=new URLSearchParams(location.search).get('notif_tab');
     if(notifTab){ lastTab=notifTab; history.replaceState(null,'',location.pathname); }
+    else if(localStorage.getItem('clv_pending_v')) lastTab='vibe'; /* v250: a shared-video link lands on Vibe */
   }catch(e){}
   const startTab=document.querySelector('.bnav-tab[data-tab="chat"]');
   if(startTab)bnavSwitch(startTab);
@@ -13033,6 +13044,8 @@ function renderNoOverindulgence(){
      miss should never block or break the feed). ── */
   var _origPickCard=window.vfPickCard;
   window.vfPickCard=function(){
+    var _pv=null;try{_pv=localStorage.getItem('clv_pending_v');}catch(e){}
+    if(_pv&&/^[A-Za-z0-9_-]{11}$/.test(_pv)){try{localStorage.removeItem('clv_pending_v');}catch(e){}_markSeen(_pv);_cardsSinceVideo=0;_nextVideoThreshold=_rand();return{type:'VIDEO',video_id:_pv,title:'',topic:'shared'};} /* v250: opened from a shared link */
     _cardsSinceVideo++;
     if(_cardsSinceVideo>=_nextVideoThreshold&&_pool.length){
       var v=_takeNextVideo(); /* v250: the video that was already preloaded, if any */
@@ -13313,6 +13326,33 @@ function renderNoOverindulgence(){
         _vfvSignal(slot,'share');if(f3)window._interactionXp('share');
       });
     }
+  };
+  /* v250 (T-043): the Share button — post it to my Community feed (plays right there), or invite friends by WhatsApp / any app */
+  window._vfvOpenShare=function(v,done){
+    var old=document.getElementById('vfv-share');if(old)old.remove();
+    var sh=document.createElement('div');sh.id='vfv-share';sh.className='vfv-share';
+    sh.innerHTML='<div class="vfv-share-bd"></div><div class="vfv-share-card" role="dialog" aria-label="Share this video"><div class="vfv-share-h">Share this video</div>'
+      +'<div class="vfv-share-v"><img alt="" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg"><span></span></div>'
+      +'<button type="button" class="vfv-share-b" data-s="feed"><b>Post to my feed</b><small>Your followers can watch it right there</small></button>'
+      +'<button type="button" class="vfv-share-b" data-s="wa"><b>Invite on WhatsApp</b><small>Video + a note to join you on Clar</small></button>'
+      +'<button type="button" class="vfv-share-b" data-s="more"><b>More apps…</b><small>Messages, Instagram, copy link</small></button>'
+      +'<button type="button" class="vfv-share-x" data-s="x">Not now</button></div>';
+    sh.querySelector('.vfv-share-v span').textContent=v.title||'';
+    document.body.appendChild(sh);
+    function close(){try{sh.remove();}catch(e){}}
+    sh.addEventListener('click',function(e){
+      var b=e.target.closest&&e.target.closest('[data-s]');if(!b&&e.target.classList.contains('vfv-share-bd')){close();return;}
+      if(!b)return;var k=b.getAttribute('data-s');
+      if(k==='x'){close();return;}
+      var text=window._inviteText(v.id,v.title),url=window._inviteUrl(v.id);
+      if(k==='feed'){close();if(window.SOC&&SOC.shareYt){SOC.shareYt(v);if(done)done();}return;}
+      if(k==='wa'){try{window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener');}catch(er){}close();if(done)done();return;}
+      if(k==='more'){
+        if(navigator.share){navigator.share({title:v.title||'Clar',text:text,url:url}).then(function(){if(done)done();}).catch(function(){});}
+        else if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){if(done)done();window._clvToast&&window._clvToast('Copied — paste it anywhere');});}
+        close();
+      }
+    });
   };
   /* shared with the Community share sheet + You → Saved videos */
   window._vidSavedList=function(){return _vp().saved;};
@@ -20613,6 +20653,10 @@ function initThemeSwitcher(){
      post-load restore reads window._bootLastTab instead of localStorage
      directly, since by then localStorage would already say 'chat'. */
   window._bootLastTab = localStorage.getItem('clv_last_tab');
+  /* v250: invitation links — ?ref=<inviter handle> is remembered (first one wins) until this device signs in; ?v=<video id> opens Vibe on that video */
+  try{var _sp=new URLSearchParams(location.search),_rf=(_sp.get('ref')||'').toLowerCase(),_vv=_sp.get('v')||'';
+    if(/^[a-z0-9_.]{3,20}$/.test(_rf)&&!localStorage.getItem('clv_ref'))localStorage.setItem('clv_ref',_rf);
+    if(/^[A-Za-z0-9_-]{11}$/.test(_vv))localStorage.setItem('clv_pending_v',_vv);}catch(e){}
   /* 1. Apply wordmark and nav icons right away (same as boot() but early) */
   if(window.swapWordmark) swapWordmark();
   if(window.swapNavIcons) swapNavIcons();
@@ -21233,6 +21277,20 @@ textarea.soc-in{resize:none;min-height:74px}
 @media (prefers-reduced-motion:reduce){#soc-screen *{animation:none!important;transition:none!important}}
 @media (max-width:360px){.soc-badges{grid-template-columns:repeat(3,1fr)}.soc-stats b{font-size:1.05rem}}
 
+/* ═══ v250 — inline shared video, saved videos, invite ═══ */
+.soc-yt{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;margin-top:8px}
+.soc-yt-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.soc-yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.soc-yt-play{position:absolute;left:50%;top:50%;width:62px;height:62px;margin:-31px 0 0 -31px;border-radius:50%;border:none;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.soc-yt-play svg{width:30px;height:30px;fill:#fff}
+.soc-yt.live .soc-yt-play{display:none}
+.soc-yt-cap{font-size:.92rem;font-weight:650;margin:8px 2px 2px;color:var(--tx)}
+.soc-yt-prev{display:flex;gap:10px;align-items:center}.soc-yt-prev img{width:96px;height:54px;object-fit:cover;border-radius:10px;background:#000}.soc-yt-prev span{font-size:.88rem;font-weight:600}
+.soc-sv{margin-bottom:14px}.soc-sv-r{display:flex;align-items:center;gap:10px;margin-top:6px}.soc-sv-t{flex:1;font-size:.9rem;font-weight:600}
+.soc-inv-t{white-space:pre-wrap;background:var(--ca);border:1px solid var(--bo);border-radius:14px;padding:12px 14px;font-size:.88rem;color:var(--tx);margin-bottom:6px}
+.v2-mini{display:flex;align-items:center;gap:12px;width:calc(100% - 32px);margin:10px 16px 0;padding:12px 14px;border-radius:16px;background:var(--su);border:1px solid var(--bo);color:var(--tx);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.v2-mini:active{transform:scale(.985)}.v2-mini .mi{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:var(--t-xlt,color-mix(in srgb,var(--acc) 12%,transparent));flex-shrink:0}
+.v2-mini .mt{flex:1;min-width:0}.v2-mini b{display:block;font-size:.98rem}.v2-mini em{display:block;font-style:normal;font-size:.8rem;color:var(--lt)}.v2-mini .fc{font-size:1.4rem;opacity:.6}
 /* ═══ v248 — hosted You: Fortune card, Board card, goal share pills, Board intro, signed-out preview ═══ */
 .v2-fortune,.v2-rank{display:flex;align-items:center;gap:14px;width:calc(100% - 32px);margin:12px 16px 0;padding:14px 16px;border-radius:20px;text-align:left;cursor:pointer;font:inherit;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .2s;animation:socUp .45s both}
 .v2-fortune:active,.v2-rank:active{transform:scale(.985)}
@@ -21615,10 +21673,11 @@ textarea.soc-in{resize:none;min-height:74px}
   }
 
   /* ── chrome ── */
-  function body(html){var b=$('soc-body');if(b){b.innerHTML=html;b.scrollTop=0;}}
+  function body(html){var b=$('soc-body');if(b){b.innerHTML=html;b.scrollTop=0;try{_wireYtInline();}catch(e){}}}
   function tabsVisible(on){var t=$('soc-tabs');if(t)t.style.display=on?'flex':'none';}
+  window._myHandle=function(){var h='';try{if(S.me&&S.me.handle){h=S.me.handle;lsSet('clv_my_handle',h);}else h=lsGet('clv_my_handle','');}catch(e){}return h;};
   function renderTop(){
-    var t=$('soc-top');if(!t)return;
+    var t=$('soc-top');if(!t)return;window._myHandle();
     var lead=S.prof?'<button class="soc-ib" data-act="back" aria-label="Back">'+ICO.back+'</button>'
                    :'<button class="soc-ib" data-act="close" aria-label="Close">'+ICO.close+'</button>';
     var trail=S.prof?(S.prof.is_me?'<button class="soc-ib" data-act="share" aria-label="Share">'+ICO.share+'</button>'
@@ -21716,6 +21775,51 @@ textarea.soc-in{resize:none;min-height:74px}
   }
 
   /* v244: one achievement/post card — shared by the Feed */
+  /* ═══ v250 (T-043): a shared YouTube video plays INSIDE the feed post. Standard embed only (nothing over it); poster until it plays;
+     starts muted when 60% in view, stops when scrolled away, only one plays at a time. ═══ */
+  var YT_ID=/^[A-Za-z0-9_-]{11}$/;
+  function _ytInlineHtml(r){
+    var y=r&&r.yt_video;if(!y||!YT_ID.test(y.id||''))return '';
+    return '<div class="soc-yt" data-yt="'+y.id+'"><img class="soc-yt-poster" loading="lazy" alt="" src="https://i.ytimg.com/vi/'+y.id+'/hqdefault.jpg">'
+      +'<button class="soc-yt-play" data-act="yt-play" aria-label="Play video"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button></div>'
+      +(y.title?'<div class="soc-yt-cap">'+esc(y.title)+'</div>':'');
+  }
+  var _ytLive=null,_ytIO=null,_ytTimer=null;
+  function _ytApi(cb){
+    if(window.YT&&window.YT.Player){cb();return;}
+    if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){var sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);}
+    var n=0;(function p(){if(window.YT&&window.YT.Player)cb();else if(++n<75)setTimeout(p,200);})();
+  }
+  function _ytUnmount(box){
+    if(!box||!box._pl&&!box.classList.contains('live'))return;
+    try{if(box._pl&&box._pl.destroy)box._pl.destroy();}catch(e){}
+    box._pl=null;box.classList.remove('live');
+    var id=box.getAttribute('data-yt');
+    box.innerHTML='<img class="soc-yt-poster" loading="lazy" alt="" src="https://i.ytimg.com/vi/'+id+'/hqdefault.jpg"><button class="soc-yt-play" data-act="yt-play" aria-label="Play video"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>';
+    if(_ytLive===box)_ytLive=null;
+  }
+  function _ytMount(box){
+    if(!box||box.classList.contains('live')||!document.body.contains(box))return;
+    if(_ytLive&&_ytLive!==box)_ytUnmount(_ytLive);
+    var id=box.getAttribute('data-yt');if(!YT_ID.test(id||''))return;
+    box.classList.add('live');_ytLive=box;
+    var host=document.createElement('div');box.innerHTML='';box.appendChild(host);
+    _ytApi(function(){
+      if(!box.classList.contains('live'))return;
+      box._pl=new YT.Player(host,{videoId:id,width:'100%',height:'100%',playerVars:{autoplay:1,mute:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
+        events:{onError:function(){_ytUnmount(box);},onReady:function(e){try{e.target.mute();e.target.playVideo();}catch(er){}}}});
+    });
+  }
+  function _wireYtInline(){
+    var boxes=document.querySelectorAll('#soc-body .soc-yt');if(!boxes.length||!('IntersectionObserver' in window))return;
+    if(_ytIO)_ytIO.disconnect();
+    _ytIO=new IntersectionObserver(function(es){es.forEach(function(en){
+      var box=en.target;
+      if(en.intersectionRatio>=0.6){clearTimeout(_ytTimer);_ytTimer=setTimeout(function(){if(box.getBoundingClientRect().height)_ytMount(box);},350);}
+      else if(en.intersectionRatio<0.25&&box.classList.contains('live'))_ytUnmount(box);
+    });},{threshold:[0,0.25,0.6,1]});
+    boxes.forEach(function(b){_ytIO.observe(b);});
+  }
   function _achCardHtml(r,i,hd){
     var imgs=(r.images||[]).filter(function(im){return im&&im.src;});
     var isWin=!!(r.date_achieved||r.goal_item_id);
@@ -21725,6 +21829,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var h='<div class="soc-card" data-ach-id="'+r.id+'" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd;
     if(imgs.length)h+='<div class="soc-ach-grid'+(imgs.length===1?' one':'')+'">'+imgs.map(function(im,ix){return '<img src="'+esc(im.src)+'" alt="" data-act="view-ach-imgs" data-id="'+r.id+'" data-i="'+ix+'">';}).join('')+'</div>';
     h+=_vidPosterHtml(r); /* v246 (T-006) — empty string unless this post has a video and video is configured */
+    h+=_ytInlineHtml(r);  /* v250 — a shared YouTube video, playing inline */
     if(r.title)h+='<div class="soc-ach-title">'+(isWin?'🏆 ':'')+esc(r.title)+'</div>';
     if(dateBits.length)h+='<div class="soc-ach-dates">'+dateBits.join(' · ')+'</div>';
     if(r.message)h+='<div class="soc-ach-msg">'+esc(r.message).replace(/\n/g,'<br>')+'</div>';
@@ -21992,6 +22097,8 @@ textarea.soc-in{resize:none;min-height:74px}
     var youHost=me&&v2()&&hostYou();
     if(youHost){
       h+='<button class="v2-fortune" data-act="v2-fortune" type="button"><span class="fo">🔮</span><span class="ft"><small>Private · only you can see this</small><b>Your Fortune</b><em>Energy reading, patterns and insights</em></span><span class="fc">›</span></button>';
+      h+='<button class="v2-mini" data-act="v2-invite" type="button"><span class="mi">🌱</span><span class="mt"><b>Grow your circle</b><em>Invite a friend · earn 100 XP</em></span><span class="fc">›</span></button>';
+      h+='<button class="v2-mini" data-act="v2-saved" type="button"><span class="mi">🔖</span><span class="mt"><b>Saved videos</b><em>'+((window._vidSavedList&&window._vidSavedList().length)||0)+' saved from Vibe</em></span><span class="fc">›</span></button>';
       h+='<button class="v2-rank" data-act="v2-board" type="button" id="v2-rank"><span class="rk-tr">🏆</span><span class="rk-mid"><small>Leaderboard</small><b id="v2-rank-t"><i class="soc-sk" style="display:block;height:20px;width:120px;margin:2px 0"></i></b><em id="v2-rank-s">See where you stand</em></span><span class="rk-av" id="v2-rank-av"></span><span class="fc">›</span></button>';
     }
     var shown=0;
@@ -22542,6 +22649,34 @@ textarea.soc-in{resize:none;min-height:74px}
       +'<div class="soc-hint" id="soc-ach-hint"></div>'
       +'<button class="soc-btn pri wide" data-act="post-achievement">Post to Community</button></div>');
   }
+  /* v250 (T-043): share a video to my Community feed */
+  async function shareYt(v){
+    if(!window._isGoogleUser){if(window._signInWithGoogle)window._signInWithGoogle();return;}
+    await open();
+    if(!S.me)return;
+    S._pendingYt={id:v.id,title:clean(v.title||'',140)};
+    openSheet('<h3>Share this video</h3><p class="lead">Posts to your followers\' feed — they can watch it right there. You can delete it any time.</p>'
+      +'<div class="soc-form" style="padding:10px 0 0"><div class="soc-yt-prev"><img alt="" src="https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg"><span id="soc-ytp-t"></span></div>'
+      +'<div><div class="soc-lbl"><span>Add a note (optional)</span><span id="soc-ach-mc">0/2000</span></div><textarea class="soc-in" id="soc-ach-msg" maxlength="2000" rows="3" placeholder="Why this one?"></textarea></div>'
+      +'<div class="soc-hint" id="soc-ach-hint"></div><button class="soc-btn pri wide" data-act="post-yt">Post to my feed</button></div>');
+    var t=$('soc-ytp-t');if(t)t.textContent=S._pendingYt.title;
+  }
+  function openSaved(){
+    var list=(window._vidSavedList?window._vidSavedList():[]);
+    var rows=list.map(function(v){return '<div class="soc-sv" data-id="'+esc(v.id)+'"><div class="soc-yt" data-yt="'+esc(v.id)+'"><img class="soc-yt-poster" loading="lazy" alt="" src="https://i.ytimg.com/vi/'+esc(v.id)+'/hqdefault.jpg"><button class="soc-yt-play" data-act="yt-play" aria-label="Play video"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button></div><div class="soc-sv-r"><span class="soc-sv-t">'+esc(v.title||'Saved video')+'</span><button class="soc-btn sm" data-act="saved-rm" data-id="'+esc(v.id)+'">Remove</button></div></div>';}).join('');
+    openSheet('<h3>Saved videos</h3>'+(rows||'<p class="lead">Nothing saved yet — tap <b>Save</b> under any Vibe video and it will be here.</p>')+'<div style="height:6px"></div>');
+  }
+  async function openInvite(){
+    var h=window._myHandle?window._myHandle():'',text=window._inviteText('',''),n=0,paid=0;
+    openSheet('<h3>Grow your circle</h3><p class="lead">People who surround themselves with progressive, growth-minded people tend to grow faster. Invite a friend — when they join and complete their first day, you earn <b>100 XP</b> (they get 50).</p>'
+      +'<div class="soc-inv-t" id="soc-inv-t"></div>'
+      +'<div class="soc-form" style="padding:8px 0 0"><button class="soc-btn pri wide" data-act="inv-wa">Invite on WhatsApp</button><button class="soc-btn wide" data-act="inv-more">More apps…</button><div class="soc-hint" id="soc-inv-s"></div></div>');
+    var t=$('soc-inv-t');if(t)t.textContent=text;
+    try{
+      var r=await q('referrals').select('status,inviter_id').eq('inviter_id',uid());
+      if(r&&!r.error){(r.data||[]).forEach(function(x){n++;if(x.status==='qualified')paid++;});var st=$('soc-inv-s');if(st)st.textContent=n?(n+' invited · '+paid+' completed their first day'):'You have not invited anyone yet.';}
+    }catch(e){}
+  }
   function openReport(p){
     S.reportFor=p;S.reason='';
     openSheet('<h3>Report or block</h3><p class="lead">@'+esc(p.handle)+' won’t be told. Reports are reviewed by a human.</p>'
@@ -22561,6 +22696,23 @@ textarea.soc-in{resize:none;min-height:74px}
 
   /* ═══ ACTIONS ═══ */
   var ACT={
+    /* v250 */
+    'v2-invite':function(){openInvite();},
+    'v2-saved':function(){openSaved();},
+    'inv-wa':function(){try{window.open('https://wa.me/?text='+encodeURIComponent(window._inviteText('','')),'_blank','noopener');}catch(e){}},
+    'inv-more':function(){var text=window._inviteText('',''),url=window._inviteUrl('');if(navigator.share)navigator.share({title:'Clar',text:text,url:url}).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(text).then(function(){toast('Copied — paste it anywhere');});},
+    'yt-play':function(el){var box=el.closest('.soc-yt');if(box)_ytMount(box);},
+    'saved-rm':function(el){var id=el.getAttribute('data-id');if(window._vidUnsave)window._vidUnsave(id);var row=el.closest('.soc-sv');if(row)row.remove();},
+    'post-yt':async function(el){
+      var y=S._pendingYt;if(!y)return;var msgEl=$('soc-ach-msg'),hint=$('soc-ach-hint');
+      el.disabled=true;
+      try{
+        var r=await q('social_achievements').insert({user_id:uid(),message:msgEl?(clean(msgEl.value,2000)||null):null,images:[],yt_video:{id:y.id,title:y.title||''}});
+        if(r.error)throw r.error;
+        S._pendingYt=null;closeSheet();toast('Shared to your feed ✦');S.feedRows=null;cacheDropFeed();
+        setTimeout(function(){close();if(window._navV2Leave)window._navV2Leave();},900); /* back to the video */
+      }catch(er){el.disabled=false;if(hint){hint.textContent='Couldn’t share — try again';hint.className='soc-hint bad';}}
+    },
     /* v248 hosted-You actions */
     'v2-settings':function(){close();if(window._navV2Leave)window._navV2Leave();if(window.openProfileTab)window.openProfileTab();},
     'v2-fortune':function(){close();if(window._navV2Leave)window._navV2Leave();var b=document.querySelector('#bnav .bnav-tab[data-tab="fortune"]');if(b&&window.bnavSwitch)window.bnavSwitch(b);},
@@ -22850,7 +23002,7 @@ textarea.soc-in{resize:none;min-height:74px}
   }
 
   window.socOpen=open;
-  window.SOC={open:open,close:close,_cfg:CFG,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
+  window.SOC={shareYt:shareYt,openInvite:openInvite,open:open,close:close,_cfg:CFG,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
   document.addEventListener('DOMContentLoaded',function(){
     wire();refreshFlag();
     setTimeout(function(){ /* keep my public numbers fresh — only if I already have a profile and I'm signed in */
@@ -23117,6 +23269,50 @@ textarea.soc-in{resize:none;min-height:74px}
     load();render();
     ready().then(pullAll).catch(function(){});
   });
+})();
+</script>
+
+<!-- ═══ v250 REFERRALS + INVITE TEXT (T-044) ═══ -->
+<script id="ref-js">
+(function(){
+  /* small toast for things outside the Community overlay */
+  window._clvToast=function(msg){
+    var t=document.getElementById('clv-toast-x');
+    if(!t){t=document.createElement('div');t.id='clv-toast-x';t.style.cssText='position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:9800;background:rgba(20,20,20,.92);color:#fff;padding:10px 16px;border-radius:999px;font:600 .9rem/1.2 -apple-system,BlinkMacSystemFont,sans-serif;max-width:88vw;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none';document.body.appendChild(t);}
+    t.textContent=msg;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(function(){t.style.opacity=0;},3200);
+  };
+  /* the approved invitation wording — simple, no promises */
+  window._inviteUrl=function(vid){
+    var h='';try{h=(window._myHandle&&window._myHandle())||localStorage.getItem('clv_my_handle')||'';}catch(e){}
+    var q=[];if(h)q.push('ref='+encodeURIComponent(h));if(vid)q.push('v='+encodeURIComponent(vid));
+    return 'https://clar.co.in/'+(q.length?'?'+q.join('&'):'');
+  };
+  window._inviteText=function(vid,title){
+    return (title?'🎥 '+title+'\n\n':'')+"I'm transforming my life with Clar. Let's grow together 🌱 What are the first few goals or desires you want to fulfil?\nJoin me: "+window._inviteUrl(vid);
+  };
+  /* after Google sign-in: register the invitation this device arrived with, then collect any XP owed to me (server decides; each reward is paid once) */
+  var last=0;
+  async function run(){
+    var sb=window._sbShared;if(!sb||!window._sbUid||!window._isGoogleUser)return;
+    if(Date.now()-last<600000)return;last=Date.now();
+    try{
+      var ref=localStorage.getItem('clv_ref');
+      if(ref){
+        var r=await sb.rpc('referral_register',{p_handle:ref});
+        if(r&&!r.error)localStorage.removeItem('clv_ref'); /* any definite answer (ok / already / self / no inviter) closes it; a network error keeps it for next time */
+      }
+      var c=await sb.rpc('referral_claim');
+      var xp=c&&c.data&&c.data.xp;
+      if(xp>0){if(window.xpAdd)window.xpAdd(xp);window._clvToast('🌱 +'+xp+' XP — thanks for growing the Clar community');}
+    }catch(e){}
+  }
+  window._refRun=run;
+  var n=0;(function wait(){
+    if(window._isGoogleUser===true&&window._sbShared&&window._sbUid){run();return;}
+    if(window._isGoogleUser===false&&n>4)return; /* a guest: nothing to do until they sign in (that reloads the app) */
+    if(++n<50)setTimeout(wait,1500);
+  })();
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')run();});
 })();
 </script>
 
