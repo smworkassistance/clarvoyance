@@ -65,6 +65,8 @@ function corsHeaders() {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Expose-Headers': 'X-Worker-Version',
+    'X-Worker-Version': 'v250-r6', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
