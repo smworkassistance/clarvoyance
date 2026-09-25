@@ -38,3 +38,6 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 25/09/2026 13:45:58 IST — batch B6 FROZEN (scope hash b97e23f5a377)
 - 25/09/2026 13:45:58 IST — RUN START batch B6 (max 6 h)
 - 25/09/2026 14:01:27 IST — RUN FINISH
+- 25/09/2026 14:32:36 IST — PROMOTED clarvoyance_v248.html -> index.html, sw clv-v248, rollback tag pre-v248, pushed
+
+- 2026-09-25 (B6) v248 PROMOTED + pushed on owner go-ahead (fresh full verify 27/27, tag pre-v248, commit 4580fc8). Pages built; live sw clv-v248, html v248. Live read-only check in the owner Chrome via qa/cdp-live.js (chrome-devtools MCP bridge timed out, used raw CDP): all nav_v2 screens work with real data. Pre-existing, not from v248: 400s on empty vision-images/revise-images storage URLs; photo-worker placeholder URL.
