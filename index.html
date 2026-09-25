@@ -2644,7 +2644,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v251</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v252</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -13397,6 +13397,14 @@ function renderNoOverindulgence(){
   /* v251: Feed opens OVER the Vibe tab (it's an overlay, not a bnavSwitch), so the Vibe video must be paused/resumed explicitly */
   window._vfvPauseActive=function(){var s=_vfvActive;if(s&&s.player)try{s.player.pauseVideo();}catch(e){}};
   window._vfvResumeActive=function(){var s=_vfvActive;if(s&&s.player&&s.ready)_vfvPlay(s);};
+  /* v252: the same like / save / signal store, for the Discover (Explore) player */
+  window._vidPrefApi={
+    isLiked:function(id){return !!_vp().liked[id];},
+    isSaved:function(id){return _vp().saved.some(function(v){return v.id===id;});},
+    toggleLike:function(v){var p=_vp(),on=!p.liked[v.id];if(on)p.liked[v.id]=1;else delete p.liked[v.id];var first=on&&!p.xpOnce['l'+v.id];if(first)p.xpOnce['l'+v.id]=1;_vpSave(p);_vfvSignal({vid:v.id,topic:v.topic||'explore'},on?'like':'unlike');if(first)window._interactionXp('like');return on;},
+    toggleSave:function(v){var p=_vp(),i=-1;p.saved.forEach(function(x,ix){if(x.id===v.id)i=ix;});var add=i<0;if(add)p.saved.unshift({id:v.id,title:v.title||'',topic:v.topic||'explore',ts:Date.now()});else p.saved.splice(i,1);var first=add&&!p.xpOnce['s'+v.id];if(first)p.xpOnce['s'+v.id]=1;_vpSave(p);_vfvSignal({vid:v.id,topic:v.topic||'explore'},add?'save':'unsave');if(first)window._interactionXp('save');return add;},
+    signal:function(v,ev){_vfvSignal({vid:v.id,topic:v.topic||'explore'},ev);}
+  };
   window._vidSavedList=function(){return _vp().saved;};
   window._vidUnsave=function(id){var p=_vp();p.saved=p.saved.filter(function(v){return v.id!==id;});_vpSave(p);};
   window._vfvDebug={preloadNow:function(){_vfvPreloadNext();},state:function(){return{poolLen:_pool.length,since:_cardsSinceVideo,thr:_nextVideoThreshold,nextVid:_nextVid&&_nextVid.video_id};},forceNextVideo:function(){_cardsSinceVideo=99;},setThreshold:function(n){_nextVideoThreshold=n;},slots:function(){return _vfvSlots.map(function(s){return{vid:s.vid,active:s.active,ready:s.ready,buffered:!!s.buffered,ttp:s.ttp,passes:s.passes};});},lastTtp:function(){return window._vfvLastTtp;}};
@@ -21399,6 +21407,7 @@ textarea.soc-in{resize:none;min-height:74px}
     <button class="soc-tab" data-tab="board" type="button"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a3 3 0 0 0 3 3M16 6h4v1a3 3 0 0 1-3 3M12 13v4M8 21h8M10 17h4"/></svg><span>Board</span></button>
     <button class="soc-tab" data-tab="find" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span>Discover</span></button>
     <button class="soc-tab" data-tab="me" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>You</span></button>
+    <button class="soc-tab" data-tab="guides" type="button"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z"/></svg><span>Guides</span></button>
   </nav>
   <div id="soc-sheet-host"></div>
   <div id="soc-toast"></div>
@@ -21745,6 +21754,7 @@ textarea.soc-in{resize:none;min-height:74px}
   window._myHandle=function(){var h='';try{if(S.me&&S.me.handle){h=S.me.handle;lsSet('clv_my_handle',h);}else h=lsGet('clv_my_handle','');}catch(e){}return h;};
   function renderTop(){
     var t=$('soc-top');if(!t)return;window._myHandle();
+    t.classList.remove('soc-top-off');document.body.classList.remove('soc-notop');
     var lead=S.prof?'<button class="soc-ib" data-act="back" aria-label="Back">'+ICO.back+'</button>'
                    :'<button class="soc-ib" data-act="close" aria-label="Close">'+ICO.close+'</button>';
     var trail=S.prof?(S.prof.is_me?'<button class="soc-ib" data-act="share" aria-label="Share">'+ICO.share+'</button>'
@@ -21765,7 +21775,8 @@ textarea.soc-in{resize:none;min-height:74px}
         +'<button class="soc-ib" data-act="v2-settings" aria-label="Settings and profile">'+ICO.gear+'</button>';
       return;
     }
-    if(v2()&&document.body.classList.contains('nv2-feed')&&!S.prof){t.innerHTML=lead+'<span class="soc-title">Feed</span>'+trail;return;}
+    /* v252: no "Feed" title bar — the Following · Discover · Board · Guides tray IS the top of the Feed */
+    if(v2()&&document.body.classList.contains('nv2-feed')&&!S.prof){t.innerHTML='';t.classList.add('soc-top-off');document.body.classList.add('soc-notop');return;}
     t.innerHTML=lead+'<button class="soc-title soc-title-btn" data-act="goto-goal"><b>✦</b> ClarZone</button>'+trail;
   }
   function setTab(t){
@@ -21778,13 +21789,15 @@ textarea.soc-in{resize:none;min-height:74px}
     renderTop();tabsVisible(true);
     var ts=document.querySelectorAll('#soc-tabs .soc-tab');
     for(var i=0;i<ts.length;i++)ts[i].classList.toggle('on',ts[i].getAttribute('data-tab')===S.tab&&!S.prof);
+    var gt=document.querySelector('#soc-tabs .soc-tab[data-tab="guides"]');if(gt)gt.style.display=guidesOn()?'':'none';
     if(S.prof)return renderProfile(S.prof);
     if(S.sub==='guides')return renderGuidesPage();
     if(S.sub==='gcreate')return renderCreate();
     if(S.sub==='board'&&v2()&&hostYou())return loadBoard();
     if(S.tab==='feed')return loadFeed();
     if(S.tab==='board')return loadBoard();
-    if(S.tab==='find')return loadFind('');
+    if(S.tab==='guides')return renderGuidesPage(); /* v252: Guides is a tab in the tray now */
+    if(S.tab==='find')return (v2()&&document.body.classList.contains('nv2-feed'))?loadExplore():loadFind(''); /* v252: Instagram-style Explore in the Feed tab */
     return renderProfile(S.me);
   }
   function skeleton(){body('<div style="padding-top:14px"><div class="soc-sk"></div><div class="soc-sk"></div><div class="soc-sk" style="height:90px"></div></div>');}
@@ -22096,6 +22109,201 @@ textarea.soc-in{resize:none;min-height:74px}
       box(h);
     }catch(e){console.warn('[soc] find',e);box('<div class="soc-empty"><span class="em">🌤️</span><b>Couldn’t search right now</b></div>');}
   }
+  /* ═══ v252 — Discover = Instagram-style Explore ═══════════════════════════════════════════════════════════════════════
+     Search bar on top. Not searching → an endless grid of videos picked the same way Vibe picks them (your interests, goal,
+     mentors, books, strengths/weaknesses…). Tap the search bar → recent searches + suggested accounts; typing → word
+     suggestions + matching accounts (@ids). Tap a word → a grid of videos for it. Tap a tile → full-screen player.
+     COST: YouTube's API is free but has a shared daily quota (10,000 units; one NEW search = 101 units, reading our own cache = 0).
+     So the grid reads the shared cache straight from Supabase (0 units), and only three things can spend quota, each capped
+     per person per day: a brand-new search word (5/day), growing a topic when the grid runs out (3/day), and a topic nobody
+     has ever searched (same as Vibe already does). ═══ */
+  var EXP={items:[],shown:0,seen:{},term:'',growN:0,busy:false,io:null,topics:[]};
+  var EXP_YT='https://clar-youtube.smworkassistance.workers.dev/';
+  var EXP_TERM_CAP=5,EXP_GROW_CAP=3,EXP_PAGE=30;
+  function _expDay(k){var d=new Date().toISOString().slice(0,10),o=jparse(lsGet(k,'{}'),{});if(o.d!==d)o={d:d,n:0};return o;}
+  function _expUse(k){var o=_expDay(k);o.n++;lsSet(k,JSON.stringify(o));}
+  function _expRecent(){return jparse(lsGet('clv_exp_recent','[]'),[]);}
+  function _expAddRecent(r){var a=_expRecent().filter(function(x){return !(x.t&&r.t&&x.t.toLowerCase()===r.t.toLowerCase())&&!(x.h&&r.h&&x.h===r.h);});a.unshift(r);lsSet('clv_exp_recent',JSON.stringify(a.slice(0,15)));}
+  function _expSlug(t){return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60);}
+  var EXP_REEL='<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 8.5h18M8 3l3 5.5M13.5 3l3 5.5"/><path d="M10 12v5l4.5-2.5z" fill="#fff"/></svg>';
+  function _expTopics(){
+    var goal='';try{goal=window._readGoalText?window._readGoalText():'';}catch(e){}
+    var t=[];try{t=window._activeVideoTopics?window._activeVideoTopics(goal):[];}catch(e){}
+    if(!t.length){var all=window._videoTopics||{};t=Object.keys(all).map(function(k){return {topic:k,query:all[k].query};});} /* nothing personal yet → a broad mix (Explore can't be empty) */
+    return t;
+  }
+  function _expOrder(rows){
+    /* group by topic, draw topics weighted by the viewer's own preference score (likes/saves/shares), no repeats */
+    var by={},keys=[];
+    rows.forEach(function(r){if(!r||!r.video_id||EXP.seen[r.video_id])return;EXP.seen[r.video_id]=1;if(!by[r.topic]){by[r.topic]=[];keys.push(r.topic);}by[r.topic].push(r);});
+    keys.forEach(function(k){var a=by[k];for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var x=a[i];a[i]=a[j];a[j]=x;}});
+    var out=[];
+    while(keys.length){
+      var w=keys.map(function(k){return window._vidAffinityWeight?window._vidAffinityWeight(k):1;}),sum=w.reduce(function(a,b){return a+b;},0),r=Math.random()*sum,pick=0;
+      for(var i=0;i<w.length;i++){r-=w[i];if(r<=0){pick=i;break;}}
+      var k=keys[pick];out.push(by[k].shift());if(!by[k].length)keys.splice(pick,1);
+    }
+    return out;
+  }
+  async function _expCache(topicKeys){
+    var sb=window._sbShared;if(!sb||!topicKeys.length)return [];
+    var r=await sb.from('youtube_topic_cache').select('video_id,title,thumbnail_url,channel_title,topic').in('topic',topicKeys.slice(0,40)).order('fetched_at',{ascending:false}).limit(400);
+    return r.error?[]:(r.data||[]);
+  }
+  function _expWorker(body){
+    return fetch(EXP_YT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json();}).then(function(d){return d&&Array.isArray(d.videos)?d:{videos:[]};}).catch(function(){return {videos:[]};});
+  }
+  function _expTileHtml(v,i){
+    var tall=(i%10===2||i%10===5); /* Instagram's rhythm: a tall tile now and then */
+    return '<button class="exp-tile'+(tall?' tall':'')+'" data-act="exp-open" data-i="'+i+'" aria-label="Play video">'
+      /* hqdefault (~15 KB) instead of the full 1080x1920 upright thumbnail (~150-400 KB each, too heavy for a grid on mobile data);
+         CSS zooms it so the Short fills the tile without its black side bars. A deleted video returns YouTube's 120x90 grey stand-in: drop that tile. */
+      +'<img loading="lazy" alt="" src="https://i.ytimg.com/vi/'+esc(v.video_id)+'/hqdefault.jpg" onload="if(this.naturalWidth===120&amp;&amp;this.naturalHeight===90)this.parentNode.remove()" onerror="this.parentNode.remove()">'
+      +'<span class="exp-reel">'+EXP_REEL+'</span></button>';
+  }
+  function _expRenderMore(){
+    var g=$('exp-grid');if(!g)return;
+    var next=EXP.items.slice(EXP.shown,EXP.shown+EXP_PAGE);
+    if(next.length){g.insertAdjacentHTML('beforeend',next.map(function(v,j){return _expTileHtml(v,EXP.shown+j);}).join(''));EXP.shown+=next.length;}
+    _expFitRows();
+    var m=$('exp-more');
+    if(EXP.shown>=EXP.items.length){ /* ran out of what we have → grow a topic (capped), else say so */
+      if(!EXP.term&&_expDay('clv_exp_grow').n<EXP_GROW_CAP&&EXP.topics.length){
+        if(m)m.innerHTML='<div class="exp-spin"></div>';
+        if(EXP.busy)return;EXP.busy=true;
+        var t=EXP.topics[EXP.growN++%EXP.topics.length];_expUse('clv_exp_grow');
+        _expWorker({topic:t.topic,query:t.query,more:true}).then(function(d){
+          EXP.busy=false;var add=_expOrder((d.videos||[]).map(function(v){v.topic=v.topic||t.topic;return v;}));
+          EXP.items=EXP.items.concat(add);
+          if(add.length)_expRenderMore();else if(m)m.innerHTML='<div class="exp-end">You’re all caught up ✦</div>';
+        });
+      }else if(m)m.innerHTML=EXP.items.length?'<div class="exp-end">You’re all caught up ✦</div>':'';
+    }else if(m)m.innerHTML='<div class="exp-spin"></div>';
+  }
+  function _expFitRows(){var g=$('exp-grid');if(g&&g.clientWidth)g.style.gridAutoRows=Math.round((g.clientWidth-4)/3*4/3)+'px';}
+  function _expWireScroll(){
+    if(EXP.io)EXP.io.disconnect();var m=$('exp-more');if(!m||!('IntersectionObserver' in window))return;
+    EXP.io=new IntersectionObserver(function(es){if(es[0].isIntersecting)_expRenderMore();},{root:$('soc-body'),rootMargin:'600px'});
+    EXP.io.observe(m);
+  }
+  async function _expLoadGrid(term){
+    EXP.items=[];EXP.shown=0;EXP.seen={};EXP.term=term||'';EXP.busy=false;
+    var g=$('exp-grid');if(g)g.innerHTML=Array(12).join('<div class="exp-tile sk"></div>');
+    var m=$('exp-more');if(m)m.innerHTML='';
+    var rows=[];
+    if(term){
+      var key='q_'+_expSlug(term);
+      rows=await _expCache([key]);
+      if(!rows.length){
+        if(_expDay('clv_exp_term').n>=EXP_TERM_CAP){
+          if(g)g.innerHTML='';if(m)m.innerHTML='<div class="exp-end">You’ve used today’s new searches — try a word you searched before, or one of the suggestions.</div>';return;
+        }
+        var d=await _expWorker({topic:key,query:term+' shorts'});
+        if(d.source==='live')_expUse('clv_exp_term');
+        rows=(d.videos||[]).map(function(v){v.topic=v.topic||key;return v;});
+      }
+    }else{
+      EXP.topics=_expTopics();
+      rows=await _expCache(EXP.topics.map(function(t){return t.topic;}));
+      /* topics that have never been fetched by anyone: fill up to 2 of them now (same cost as Vibe would spend) */
+      var have={};rows.forEach(function(r){have[r.topic]=1;});
+      var missing=EXP.topics.filter(function(t){return !have[t.topic];}).slice(0,2);
+      if(missing.length){
+        var extra=await Promise.all(missing.map(function(t){return _expWorker({topic:t.topic,query:t.query}).then(function(d){return (d.videos||[]).map(function(v){v.topic=v.topic||t.topic;return v;});});}));
+        extra.forEach(function(a){rows=rows.concat(a);});
+      }
+    }
+    if(EXP.term!==(term||''))return; /* user moved on */
+    EXP.items=_expOrder(rows);
+    if(g)g.innerHTML='';
+    if(!EXP.items.length){if(m)m.innerHTML='<div class="exp-end">'+(term?'No videos for “'+esc(term)+'” yet.':'Add a few interests in Profile → Clar AI and your Explore fills up.')+'</div>';return;}
+    _expRenderMore();_expWireScroll();
+  }
+  function _expSugHtml(term){
+    var h='',rec=_expRecent();
+    if(!term){
+      if(rec.length){
+        h+='<div class="exp-sh"><b>Recent</b><button data-act="exp-clear">Clear all</button></div>';
+        h+=rec.map(function(r,i){
+          if(r.h)return '<div class="exp-row"><button class="exp-rowb" data-act="exp-acc" data-handle="'+esc(r.h)+'">'+avatar({display_name:r.n||r.h,avatar_url:r.a||null,handle:r.h},44,false)+'<span class="exp-rt"><b>'+esc(r.h)+'</b><em>'+esc(r.n||'')+'</em></span></button><button class="exp-x" data-act="exp-rm" data-i="'+i+'" aria-label="Remove">×</button></div>';
+          return '<div class="exp-row"><button class="exp-rowb" data-act="exp-term" data-t="'+esc(r.t)+'"><span class="exp-ic">'+ICO.search+'</span><span class="exp-rt"><b>'+esc(r.t)+'</b></span></button><button class="exp-x" data-act="exp-rm" data-i="'+i+'" aria-label="Remove">×</button></div>';
+        }).join('');
+      }
+      h+='<div class="exp-sh"><b>Suggested for you</b></div><div id="exp-acc"><div class="soc-sk" style="height:44px;margin:6px 16px"></div></div>';
+      return h;
+    }
+    var tl=term.toLowerCase(),words=[term],all=window._videoTopics||{};
+    Object.keys(all).forEach(function(k){var lab=(all[k].label||k.replace(/_/g,' '));if(lab.toLowerCase().indexOf(tl)>-1&&words.length<6)words.push(lab);});
+    rec.forEach(function(r){if(r.t&&r.t.toLowerCase().indexOf(tl)>-1&&words.indexOf(r.t)<0&&words.length<7)words.push(r.t);});
+    h+=words.map(function(w){return '<div class="exp-row"><button class="exp-rowb" data-act="exp-term" data-t="'+esc(w)+'"><span class="exp-ic">'+ICO.search+'</span><span class="exp-rt"><b>'+esc(w)+'</b></span></button></div>';}).join('');
+    h+='<div id="exp-acc"></div>';
+    return h;
+  }
+  function _expAccRow(p){
+    return '<div class="exp-row"><button class="exp-rowb" data-act="exp-acc" data-handle="'+esc(p.handle)+'" data-n="'+esc(p.display_name||'')+'">'+avatar(p,44,false)
+      +'<span class="exp-rt"><b>'+esc(p.handle)+'</b><em>'+esc(p.display_name||'')+(p.i_follow?' · Following':'')+'</em></span></button></div>';
+  }
+  async function _expAccounts(term){
+    var box=$('exp-acc');if(!box)return;
+    var cols='user_id,handle,display_name,avatar_url,xp_week,interests,i_follow,is_me';
+    try{
+      var t2=clean(term||'',30).toLowerCase().replace(/^@/,'').replace(/[%,()*\\]/g,''),rows=[];
+      if(t2.length>=1){
+        var a=await q('social_public_profiles').select(cols).eq('is_listed',true).ilike('handle',t2+'%').limit(8);
+        var b=t2.length>=2?await q('social_public_profiles').select(cols).eq('is_listed',true).ilike('display_name','%'+t2+'%').limit(8):{data:[]};
+        var seen={};(a.data||[]).concat(b.data||[]).forEach(function(p){if(!seen[p.user_id]&&!p.is_me){seen[p.user_id]=1;rows.push(p);}});
+      }else{
+        var r=await q('social_public_profiles').select(cols).eq('is_listed',true).order('updated_at',{ascending:false}).limit(40);
+        var mine=myInterestTokens();
+        rows=(r.data||[]).filter(function(p){return !p.is_me&&!p.i_follow;}).map(function(p){var it=p.interests||{},n=0;[].concat(it.topics||[],it.mentors||[],it.strengths||[],it.books||[]).forEach(function(x){if(mine[String(x).toLowerCase()])n++;});p._s=n*10+(p.xp_week||0)/50;return p;}).sort(function(x,y){return y._s-x._s;}).slice(0,8);
+      }
+      if(($('exp-in')||{}).value!==undefined&&clean(($('exp-in')||{}).value||'',30).toLowerCase().replace(/^@/,'')!==t2)return; /* typed on */
+      box.innerHTML=rows.length?(term?'<div class="exp-sh"><b>Accounts</b></div>':'')+rows.map(_expAccRow).join(''):'';
+    }catch(e){box.innerHTML='';}
+  }
+  function _expSetMode(searching){
+    var w=$('exp-wrap');if(!w)return;w.classList.toggle('searching',!!searching);
+  }
+  function _expShowSug(term){
+    var s=$('exp-sug');if(!s)return;s.innerHTML=_expSugHtml(term);
+    clearTimeout(EXP.accT);EXP.accT=setTimeout(function(){_expAccounts(term);},term?250:0);
+  }
+  function loadExplore(){
+    body('<div id="exp-wrap" class="exp-wrap"><div class="exp-top"><div class="exp-search">'+ICO.search+'<input id="exp-in" type="search" placeholder="Search" autocomplete="off" autocapitalize="none" enterkeyhint="search"></div><button class="exp-cancel" data-act="exp-cancel" type="button">Cancel</button></div>'
+      +'<div id="exp-termbar" class="exp-termbar" style="display:none"></div>'
+      +'<div id="exp-sug" class="exp-sug"></div><div id="exp-grid" class="exp-grid"></div><div id="exp-more" class="exp-more"></div></div>');
+    var inp=$('exp-in');
+    inp.addEventListener('focus',function(){_expSetMode(true);_expShowSug(inp.value.trim());});
+    inp.addEventListener('input',function(){_expShowSug(inp.value.trim());});
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter'){var t=inp.value.trim();if(t)ACT['exp-term']({getAttribute:function(){return t;}});}});
+    _expLoadGrid('');
+  }
+  function _expRunTerm(t){
+    t=clean(t,60);if(!t)return;
+    _expAddRecent({t:t});
+    var inp=$('exp-in');if(inp){inp.value=t;inp.blur();}
+    _expSetMode(false);
+    var tb=$('exp-termbar');if(tb){tb.style.display='';tb.innerHTML='<span>'+esc(t)+'</span><button data-act="exp-cancel" type="button">×</button>';}
+    _expLoadGrid(t).then(_expWireScroll);
+  }
+  /* registered later (_expActs() runs right before window.SOC is published) because ACT is created further down this script */
+  function _expActs(){
+  ACT['exp-term']=function(el){_expRunTerm(el.getAttribute('data-t'));};
+  ACT['exp-acc']=function(el){var h=el.getAttribute('data-handle');_expAddRecent({h:h,n:el.getAttribute('data-n')||''});_expSetMode(false);openProfile(h);};
+  ACT['exp-rm']=function(el){var a=_expRecent();a.splice(+el.getAttribute('data-i'),1);lsSet('clv_exp_recent',JSON.stringify(a));_expShowSug('');};
+  ACT['exp-clear']=function(){lsSet('clv_exp_recent','[]');_expShowSug('');};
+  ACT['exp-cancel']=function(){
+    var inp=$('exp-in');if(inp){inp.value='';inp.blur();}
+    _expSetMode(false);
+    var tb=$('exp-termbar');var hadTerm=!!EXP.term;if(tb){tb.style.display='none';tb.innerHTML='';}
+    if(hadTerm)_expLoadGrid('').then(_expWireScroll);
+  };
+  ACT['exp-open']=function(el){
+    var i=+el.getAttribute('data-i');if(!window._exvOpen)return;
+    window._exvOpen(EXP.items.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore'};}),i,EXP.term||'Explore');
+  };
+  }
+  window.addEventListener('resize',_expFitRows);
   function personCard(p,i){
     var sh=(p._shared||[]).slice(0,2).map(function(x){return '<span class="soc-chip">✦ '+esc(x)+'</span>';}).join('');
     return '<div class="soc-card" data-act="open-profile" data-handle="'+esc(p.handle)+'" style="cursor:pointer;padding:12px">'
@@ -23402,7 +23610,7 @@ textarea.soc-in{resize:none;min-height:74px}
   }
 
   /* ── actions ── */
-  ACT['g-open']=function(){S.sub='guides';S.gw=null;render();};
+  ACT['g-open']=function(){if(S.tab==='guides'||(v2()&&document.body.classList.contains('nv2-feed'))){S.tab='guides';S.sub=null;S.gw=null;render();return;}S.sub=(S.tab==='guides')?null:'guides';S.gw=null;render(); /* v252: inside the Guides TAB stay on the tab (no old titled sub-page) */};
   ACT['g-back']=function(){S.sub=null;S.gw=null;S.tab='feed';render();};
   ACT['g-lang']=function(el){var l=el.getAttribute('data-l'),cur=myLangs(),i=cur.indexOf(l);if(i>-1){if(cur.length>1)cur.splice(i,1);}else{if(cur.length>=3)cur.shift();cur.push(l);}setLangs(cur);S.feedRows=null;cacheDropFeed();renderGuidesPage();};
   ACT['g-sub']=async function(el){
@@ -23411,7 +23619,7 @@ textarea.soc-in{resize:none;min-height:74px}
     if(r.error&&!/duplicate/i.test(r.error.message||'')){el.disabled=false;toast('Couldn’t follow just now');return;}
     G.list=null;G.subs=null;S.feedRows=null;cacheDropFeed();
     guideKick({guide_id:id,languages:myLangs()}).catch(function(){}); /* translate existing posts into my language(s) if needed */
-    toast('Following ✦');S.sub='guides';S.gw=null;render();
+    toast('Following ✦');S.sub=(S.tab==='guides')?null:'guides';S.gw=null;render(); /* v252: inside the Guides TAB stay on the tab (no old titled sub-page) */
   };
   ACT['g-unsub']=async function(el){
     var id=el.getAttribute('data-id');
@@ -23475,6 +23683,7 @@ textarea.soc-in{resize:none;min-height:74px}
   /* a guide's own affinity: which guides the member actually enjoys (drives "suggested for you") */
   function _gAff(pid,by){var p=findPost(pid);if(!p)return;var a=jparse(lsGet('clv_guide_aff','{}'),{});a[p.guide_id]=(a[p.guide_id]||0)+by;lsSet('clv_guide_aff',JSON.stringify(a));}
 
+  _expActs(); /* v252 */
   window.SOC={shareYt:shareYt,openInvite:openInvite,open:open,close:close,_cfg:CFG,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
   document.addEventListener('DOMContentLoaded',function(){
     wire();refreshFlag();
@@ -24131,6 +24340,189 @@ body.vf-vid-on .vfv-slot.active .vfv-swipehint{display:block;padding:4px 6px 0;f
       if(st2&&st2.tab==='feed'&&!st2.prof&&!st2.sub)window._clvGoVibe();
     }
   },{passive:true});
+})();
+</script>
+
+<!-- ═══ v252 — Feed tray on top (no "Feed" title), Guides in the tray, Discover = Instagram-style Explore (search + endless video grid)
+     and its full-screen player. Scoped to the hosted Feed (body.nv2-feed) / new elements only. ═══ -->
+<style id="v252-css">
+/* ── the tray is the top of the Feed ── */
+.soc-top.soc-top-off{display:none!important}
+body.nav-v2.nv2-feed.soc-notop #soc-tabs{padding-top:calc(env(safe-area-inset-top,0px) + 10px)}
+body.nav-v2.nv2-feed #soc-tabs{overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}
+body.nav-v2.nv2-feed #soc-tabs::-webkit-scrollbar{display:none}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab{padding:7px 13px;white-space:nowrap;flex-shrink:0}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="guides"]{order:4}
+body:not(.nv2-feed) #soc-tabs .soc-tab[data-tab="guides"],body.nv2-you-host #soc-tabs .soc-tab[data-tab="guides"]{display:none!important}
+body.nav-v2.nv2-feed .g-entry{display:none} /* Guides has its own tab now */
+
+/* ── Explore ── */
+.exp-wrap{min-height:100%}
+.exp-top{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg)}
+.exp-search{flex:1;display:flex;align-items:center;gap:8px;height:38px;padding:0 12px;border-radius:12px;background:color-mix(in srgb,var(--tx) 7%,transparent);min-width:0}
+.exp-search svg{width:18px;height:18px;fill:none;stroke:var(--lt);stroke-width:2;stroke-linecap:round;flex-shrink:0}
+.exp-search input{flex:1;border:none;background:none;outline:none;font:inherit;font-size:1rem;color:var(--tx);min-width:0;padding:0}
+.exp-search input::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
+.exp-cancel{display:none;border:none;background:none;font:inherit;font-weight:650;color:var(--tx);font-size:.98rem;cursor:pointer;padding:6px 2px}
+.exp-wrap.searching .exp-cancel{display:block}
+.exp-sug{display:none;padding-bottom:20px}
+.exp-wrap.searching .exp-sug{display:block}
+.exp-wrap.searching .exp-grid,.exp-wrap.searching .exp-more,.exp-wrap.searching .exp-termbar{display:none!important}
+.exp-termbar{display:flex;align-items:center;justify-content:space-between;padding:2px 16px 8px;font-weight:750;font-size:1rem}
+.exp-termbar button{border:none;background:none;color:var(--lt);font-size:1.4rem;cursor:pointer;padding:0 4px}
+.exp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;grid-auto-flow:dense;grid-auto-rows:160px}
+.exp-tile{position:relative;border:none;padding:0;margin:0;background:color-mix(in srgb,var(--tx) 8%,transparent);overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;display:block;width:100%;height:100%}
+.exp-tile.tall{grid-row:span 2}
+.exp-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.exp-tile:not(.tall) img{transform:scale(1.34)} /* a 9:16 Short sits in the middle of a 4:3 thumbnail: zoom past its black side bars (tall tiles already crop them) */
+.exp-tile:active img{opacity:.8}
+.exp-tile.sk{animation:expPulse 1.2s ease-in-out infinite}
+@keyframes expPulse{50%{opacity:.5}}
+.exp-reel{position:absolute;top:6px;right:6px;width:20px;height:20px;pointer-events:none}
+.exp-reel svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+.exp-more{padding:16px 0 26px;display:flex;justify-content:center}
+.exp-spin{width:26px;height:26px;border-radius:50%;border:2.5px solid var(--bo);border-top-color:var(--tx);animation:expSpin .8s linear infinite}
+@keyframes expSpin{to{transform:rotate(360deg)}}
+.exp-end{color:var(--lt);font-size:.88rem;text-align:center;padding:0 24px;line-height:1.45}
+.exp-sh{display:flex;justify-content:space-between;align-items:center;padding:12px 16px 4px}
+.exp-sh b{font-size:1rem;font-weight:750}
+.exp-sh button{border:none;background:none;color:var(--acc);font:inherit;font-weight:650;font-size:.9rem;cursor:pointer}
+.exp-row{display:flex;align-items:center}
+.exp-rowb{flex:1;display:flex;align-items:center;gap:12px;padding:7px 16px;border:none;background:none;text-align:left;font:inherit;color:var(--tx);cursor:pointer;min-width:0;-webkit-tap-highlight-color:transparent}
+.exp-rowb:active{background:color-mix(in srgb,var(--tx) 6%,transparent)}
+.exp-ic{width:44px;height:44px;border-radius:50%;border:1px solid var(--bo);display:grid;place-items:center;flex-shrink:0}
+.exp-ic svg{width:19px;height:19px;fill:none;stroke:var(--tx);stroke-width:2;stroke-linecap:round}
+.exp-rt{display:flex;flex-direction:column;min-width:0}
+.exp-rt b{font-size:.95rem;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-rt em{font-style:normal;font-size:.85rem;color:var(--lt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exp-x{border:none;background:none;color:var(--lt);font-size:1.5rem;padding:6px 16px;cursor:pointer;line-height:1}
+
+/* ── Explore player (same layout as the Vibe video: nothing of ours over YouTube's player) ── */
+.exv{position:fixed;inset:0;z-index:9800;background:#000;display:flex;flex-direction:column;align-items:center;--vt:calc(env(safe-area-inset-top,0px) + 52px);--vb:calc(env(safe-area-inset-bottom,0px) + 104px);animation:v251InR .24s cubic-bezier(.2,.8,.2,1)}
+.exv-top{position:absolute;top:0;left:0;right:0;height:var(--vt);padding:env(safe-area-inset-top,0px) 10px 0;display:flex;align-items:center;gap:6px;box-sizing:border-box}
+.exv-title{color:#fff;font-weight:800;font-size:1.05rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exv-stage{position:relative;margin-top:var(--vt);width:100%;max-width:560px;height:min(calc(100vw * 16 / 9),calc(100% - var(--vt) - var(--vb)));background:#000;overflow:hidden;flex:0 0 auto}
+.exv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.exv-yt{position:absolute;inset:0;opacity:0;transition:opacity .16s}
+.exv-yt iframe{width:100%;height:100%;border:0;display:block}
+.exv-stage.playing .exv-yt{opacity:1}
+.exv-ui{flex:1;width:100%;max-width:560px;padding:4px 10px calc(6px + env(safe-area-inset-bottom,0px));box-sizing:border-box;min-height:0;overflow:hidden}
+.exv .vfv-row{margin-top:0;gap:2px}
+.exv .vfv-btn{padding:8px}
+.exv .vfv-btn svg{width:27px;height:27px}
+.exv .vfv-next{padding:8px 14px;background:rgba(255,255,255,.16)}
+.exv .vfv-next svg{width:20px;height:20px}
+.exv .vfv-cap{margin-top:0;padding:0 6px}
+.exv-ch{color:rgba(255,255,255,.6);font-size:.8rem;padding:2px 6px 0}
+body.exv-on #bnav{display:none!important}
+.vfv-share{z-index:9900} /* share sheet must sit above the Explore player */
+</style>
+<script id="v252-js">
+(function(){
+  var X={list:[],i:0,pl:null,ready:false,lastSet:null,setAt:0,guard:null,tick:null,startedAt:null,title:''};
+  var SVG={
+    back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+    heart:'<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.5 8 3.3 5 6.4 5c1.9 0 3.5 1 4.3 2.4h.6C12.1 6 13.7 5 15.6 5c3.1 0 4.9 3 3.7 6.3-1.8 4.6-7.3 9.2-7.3 9.2z"/></svg>',
+    mark:'<svg viewBox="0 0 24 24"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1z"/></svg>',
+    send:'<svg viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></svg>',
+    next:'<svg viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></svg>'
+  };
+  function api(){return window._vidPrefApi||{isLiked:function(){return false;},isSaved:function(){return false;},toggleLike:function(){return false;},toggleSave:function(){return false;},signal:function(){}};}
+  function wantSound(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}}
+  function root(){return document.getElementById('exv');}
+  function cur(){return X.list[X.i];}
+  function loadYT(cb){
+    if(window.YT&&window.YT.Player)return cb();
+    if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);}
+    var n=0;(function p(){if(window.YT&&window.YT.Player)cb();else if(++n<75)setTimeout(p,200);})();
+  }
+  function applySound(){
+    var pl=X.pl;if(!pl)return;
+    try{if(wantSound()){pl.unMute();pl.setVolume(100);X.lastSet=false;}else{pl.mute();X.lastSet=true;}}catch(e){}
+    X.setAt=Date.now();
+    clearTimeout(X.guard); /* sound refused by the browser → muted rather than a frozen video */
+    X.guard=setTimeout(function(){try{var st=pl.getPlayerState();if(root()&&st!==1&&st!==3){pl.mute();X.lastSet=true;X.setAt=Date.now();pl.playVideo();}}catch(e){}},1500);
+  }
+  function paint(){
+    var r=root(),v=cur();if(!r||!v)return;
+    r.querySelector('.exv-poster').src='https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg';
+    r.querySelector('.exv-stage').classList.remove('playing');
+    r.querySelector('.vfv-cap').textContent=v.title||'';
+    r.querySelector('.exv-ch').textContent=v.channel||'';
+    r.querySelector('.vfv-like').classList.toggle('on',api().isLiked(v.id));
+    r.querySelector('.vfv-save').classList.toggle('on',api().isSaved(v.id));
+  }
+  function show(i){
+    if(i<0||i>=X.list.length)return;
+    var prev=cur();if(prev&&X.startedAt!=null&&Date.now()-X.startedAt<2000&&i!==X.i)api().signal(prev,'skip_fast');
+    X.i=i;X.startedAt=null;paint();
+    var v=cur();
+    if(!X.pl){
+      loadYT(function(){
+        var host=document.getElementById('exv-host');if(!host||X.pl)return;
+        X.pl=new YT.Player(host,{videoId:v.id,playerVars:{autoplay:1,mute:wantSound()?0:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
+          events:{
+            onReady:function(){X.ready=true;applySound();try{X.pl.playVideo();}catch(e){}},
+            onStateChange:function(e){
+              var r=root();if(!r)return;
+              if(e.data===1){r.querySelector('.exv-stage').classList.add('playing');if(X.startedAt==null){X.startedAt=Date.now();api().signal(cur(),'play');}}
+              if(e.data===0){try{X.pl.seekTo(0,true);X.pl.playVideo();}catch(er){}} /* loop, like a reel */
+            }
+          }});
+      });
+    }else if(X.ready){try{X.pl.loadVideoById(v.id);}catch(e){}applySound();}
+  }
+  function close(){
+    var r=root();clearTimeout(X.guard);clearInterval(X.tick);
+    try{if(X.pl&&X.pl.destroy)X.pl.destroy();}catch(e){}
+    X.pl=null;X.ready=false;
+    if(r)r.remove();
+    document.body.classList.remove('exv-on');
+  }
+  window._exvClose=close;
+  window._exvOpen=function(list,i,title){
+    if(!list||!list.length)return;
+    close();
+    X.list=list;X.title=title||'Explore';
+    try{document.querySelectorAll('.soc-vin video').forEach(function(v){if(!v.paused)v.pause();});}catch(e){}
+    var r=document.createElement('div');r.id='exv';r.className='exv';r.setAttribute('role','dialog');r.setAttribute('aria-label','Video');
+    r.innerHTML='<div class="exv-top"><button type="button" class="vfv-back" data-x="close" aria-label="Back">'+SVG.back+'</button><span class="exv-title"></span></div>'
+      +'<div class="exv-stage"><img class="exv-poster" alt=""><div class="exv-yt"><div id="exv-host"></div></div></div>'
+      +'<div class="exv-ui"><div class="vfv-row">'
+        +'<button type="button" class="vfv-btn vfv-like" data-x="like" aria-label="Like">'+SVG.heart+'</button>'
+        +'<button type="button" class="vfv-btn" data-x="share" aria-label="Share">'+SVG.send+'</button>'
+        +'<button type="button" class="vfv-btn vfv-save" data-x="save" aria-label="Save">'+SVG.mark+'</button>'
+        +'<span class="vfv-grow"></span>'
+        +'<button type="button" class="vfv-btn vfv-next" data-x="next" aria-label="Next">'+SVG.next+'<span>Next</span></button>'
+      +'</div><div class="vfv-cap"></div><div class="exv-ch"></div></div>';
+    r.querySelector('.exv-title').textContent=X.title;
+    document.body.appendChild(r);document.body.classList.add('exv-on');
+    r.addEventListener('click',function(e){
+      var b=e.target.closest&&e.target.closest('[data-x]');if(!b)return;var k=b.getAttribute('data-x'),v=cur();
+      if(k==='close')return close();
+      if(k==='next')return show(X.i+1<X.list.length?X.i+1:0);
+      if(k==='like'){b.classList.toggle('on',api().toggleLike(v));return;}
+      if(k==='save'){b.classList.toggle('on',api().toggleSave(v));return;}
+      if(k==='share'&&window._vfvOpenShare){
+        try{if(X.pl)X.pl.pauseVideo();}catch(er){}
+        window._vfvOpenShare({id:v.id,title:v.title,topic:v.topic},function(){api().signal(v,'share');});
+        var sh=document.getElementById('vfv-share');
+        if(sh)sh.addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('[data-s="feed"]'))close();},true); /* "Post to my feed" opens the Feed composer — step out of the player so it is visible */
+      }
+    });
+    /* swipe on our own strips (the player itself swallows touches): up = next, down = previous, right = back */
+    var sx=0,sy=0;
+    r.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+    r.addEventListener('touchend',function(e){
+      var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+      if(Math.abs(dy)>60&&Math.abs(dy)>Math.abs(dx)){show(dy<0?Math.min(X.i+1,X.list.length-1):Math.max(X.i-1,0));}
+      else if(dx>80&&Math.abs(dx)>Math.abs(dy)*1.6)close();
+    },{passive:true});
+    /* the viewer's own mute/unmute in YouTube's control is remembered (ignoring the moment right after we set it ourselves) */
+    X.tick=setInterval(function(){try{var m=X.pl&&X.pl.isMuted&&X.pl.isMuted();if(X.pl&&X.lastSet!=null&&m!==X.lastSet&&Date.now()-X.setAt>2500){X.lastSet=m;localStorage.setItem('clv_vf_sound',m?'0':'1');}}catch(e){}},1000);
+    show(Math.max(0,Math.min(i,list.length-1)));
+  };
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root())close();});
 })();
 </script>
 
