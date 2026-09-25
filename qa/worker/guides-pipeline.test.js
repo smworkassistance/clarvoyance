@@ -29,7 +29,7 @@ function geminiReply(sys, user) {
     const n = u.SOURCES.length ? 1 : 0;
     return { title: 'A small idea: ' + u.SOURCES[0].title.slice(0, 40), body: 'In your own words, this is a short, warm idea drawn from the source, told simply so it can be used today without any pressure or promise.', why: 'Because it supports ' + (u.GUIDE.intention || 'your growth'), used: [1], practice: { type: 'affirmation', prompt: 'Say one kind sentence to yourself.', seconds: 45 } };
   }
-  if (sys.includes(VER_SYS)) { DB.calls.gemini.push('verify'); return DB.mode.verifier === 'ok' ? { supported: true, safe: true, issues: [] } : { supported: false, safe: true, issues: ['claim not in sources'] }; }
+  if (sys.includes(VER_SYS)) { DB.calls.gemini.push('verify'); return DB.mode.verifier === 'ok' ? { supported: true, safe: true, on_philosophy: true, issues: [] } : { supported: false, safe: true, issues: ['claim not in sources'] }; }
   if (sys.includes(SCOPE_SYS)) { DB.calls.gemini.push('scope'); return DB.mode.scope === 'ok' ? { ok: true, category: 'personal growth', reason: '', sensitive: false, has_personal_details: false, canonical_key: 'x_topic' } : { ok: false, category: 'politics', reason: 'Guides about politics are not a fit for Clar.', sensitive: false, has_personal_details: false, canonical_key: 'politics' }; }
   if (sys.includes(TR_SYS)) { DB.calls.gemini.push('translate'); return { title: 'HI ' + u.title, body: 'HI ' + u.body, why: 'HI ' + u.why, practice_prompt: 'HI ' + u.practice_prompt }; }
   throw new Error('unexpected gemini prompt');
