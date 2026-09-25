@@ -34,3 +34,6 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 2026-09-25 (B5) T-005a-d DONE: nav_v2 dark-launched (Feed/Vibe/Clar orb/Goal/Home/You); qa/tests/nav-v2.spec.js. Full verify 23/23.
 - 2026-09-25 (B5) NOTE: repeated test boots hit Supabase's hourly anonymous-signup limit (429 on /auth/v1/signup) — environmental; allow-listed in qa/app-map.json. Each boot creates one anonymous auth user in production Supabase (pre-existing harness design: reads + anonymous auth are real, all writes faked) — harmless, but they accumulate in auth.users.
 - 2026-09-25 (B5) T-013 BLOCKED: `node ops/promote.js clarvoyance_v247.html --push` denied by the permission system (production deploy). Owner go-ahead needed. Not worked around.
+- 25/09/2026 07:46:00 IST — RUN FINISH
+- 25/09/2026 13:45:58 IST — batch B6 FROZEN (scope hash b97e23f5a377)
+- 25/09/2026 13:45:58 IST — RUN START batch B6 (max 6 h)

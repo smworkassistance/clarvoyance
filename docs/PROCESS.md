@@ -46,6 +46,7 @@ A task may be marked `DONE` only if **all** hold — `node ops/tasks.js set <id>
 3. Its dependencies are `DONE`.
 4. It is committed (one task = one commit).
 5. Anything the change touched that has documentation (CLAUDE.md version entry, PROJECT.md) is updated.
+6. **UI/UX work** additionally meets `docs/DESIGN-STANDARD.md` §6 (checklist) — screenshots were looked at, not only compared — and the **final report ends with the "Inspired by" list** (§7: screen → apps whose structure it follows → what we took / did differently). Owner rule (2026-09-25): UI is always built to professional, current, world-class app standards (Instagram / Facebook / Google / Strava / Duolingo class) aligned with the app's own theme, without being asked.
 
 Evidence before claims: if the check was not run in this session, it cannot be claimed.
 

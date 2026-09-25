@@ -24,6 +24,32 @@ test.describe('nav_v2 — flag OFF (default) changes nothing', () => {
   });
 });
 
+test.describe('nav_v2 — flag OFF: the existing Community overlay is untouched', () => {
+  test('4 bottom tabs, ClarZone title, close X, classic You without Fortune/Board cards', async ({ app }) => {
+    await mockCommunity(app.page);
+    await app.boot();
+    const { page } = app;
+    await page.evaluate(() => SOC.open());
+    await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(1000);
+    await expect(page.locator('#soc-tabs .soc-tab')).toHaveCount(4);
+    expect(await page.evaluate(() => getComputedStyle(document.getElementById('soc-tabs')).display)).toBe('flex');
+    await expect(page.locator('#soc-top .soc-title')).toContainText('ClarZone');
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector('#soc-top [data-act="close"]')).visibility)).toBe('visible');
+    await page.locator('#soc-tabs .soc-tab[data-tab="me"]').click();
+    await page.waitForTimeout(800);
+    await expect(page.locator('.soc-stats')).toBeVisible();
+    await expect(page.locator('.v2-fortune')).toHaveCount(0);
+    await expect(page.locator('.v2-rank')).toHaveCount(0);
+    await expect(page.locator('#soc-body .soc-h', { hasText: 'Achievements' })).toHaveCount(1); // the classic badge heading
+    await page.locator('#soc-tabs .soc-tab[data-tab="board"]').click();
+    await page.waitForTimeout(800);
+    await expect(page.locator('.v2-lbintro')).toHaveCount(0);
+    await page.locator('#soc-top [data-act="close"]').click();
+    expect(await page.evaluate(() => document.getElementById('soc-screen').classList.contains('hidden'))).toBe(true);
+  });
+});
+
 test.describe('nav_v2 — flag ON', () => {
   test('shows 6 new buttons, hides the old ones, Clar AI is the raised centre button', async ({ app }) => {
     await bootOn(app);
@@ -66,9 +92,9 @@ test.describe('nav_v2 — flag ON', () => {
     await page.waitForTimeout(800);
     expect(await activeNew(page)).toBe('home');
     await clickNew(page, 'you');
-    await page.waitForTimeout(1200);
+    await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(800);
     expect(await activeNew(page)).toBe('you');
-    expect(await sectionShown(page, MAP.profileSection)).toBe(true);
     // ?nav=0 removes the dev override
     await page.goto('/?nav=0', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
@@ -107,30 +133,97 @@ test.describe('nav_v2 — flag ON', () => {
     expect(await activeNew(page)).toBe('vibe');
   });
 
-  test('You: profile with entries to Fortune and My Community profile', async ({ app }) => {
-    await bootOn(app);
+  const GOALS = [
+    { id: 'g1', title: 'Run my first 10K', images: [], date_set: '2026-01-01', achieved: true, date_achieved: '2026-08-01T00:00:00Z', visibility: 'public' },
+    { id: 'g2', title: 'Private win', images: [], date_set: '2026-02-01', achieved: true, date_achieved: '2026-08-02T00:00:00Z', visibility: 'private' },
+    { id: 'g3', title: 'Launch my business', images: [], date_set: '2026-03-01', achieved: false, date_achieved: null, visibility: 'private' }
+  ];
+  async function bootYou(app) {
+    await mockCommunity(app.page);
+    await app.page.addInitScript(g => { try { localStorage.setItem('clv_nav_v2_dev', '1'); localStorage.setItem('clv_goal_items', JSON.stringify(g)); } catch (e) {} }, GOALS);
+    await app.boot();
+    await clickNew(app.page, 'you');
+    await expect(app.page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
+    await app.page.waitForTimeout(1200);
+  }
+
+  test('You = the community dashboard: stats, private Fortune card, gear opens the untouched Profile', async ({ app }) => {
+    await bootYou(app);
     const { page } = app;
-    await clickNew(page, 'you');
-    await page.waitForTimeout(1200);
-    await expect(page.locator('#nv2-you-card')).toBeVisible();
-    await expect(page.locator('#nv2-you-card .nv2-row')).toHaveCount(2);
-    // the existing profile is still there underneath
-    expect(await sectionShown(page, MAP.profileSection)).toBe(true);
-    await page.locator('#nv2-you-card .nv2-row').first().click();
+    expect(await activeNew(page)).toBe('you');
+    await expect(page.locator('#soc-top .soc-title')).toHaveText('You');
+    await expect(page.locator('.soc-stats')).toBeVisible();
+    await expect(page.locator('.soc-metrics')).toBeVisible();
+    await expect(page.locator('.v2-fortune')).toBeVisible();
+    await expect(page.locator('.v2-fortune')).toContainText('only you');
+    expect(await page.evaluate(() => getComputedStyle(document.getElementById('soc-tabs')).display), 'no inner tabs in You').toBe('none');
+    expect(await page.evaluate(() => !!document.getElementById('nv2-you-card')), 'App Profile has no injected card').toBe(false);
+    // Fortune card leaves the overlay and opens the Fortune tab; You stays highlighted
+    await page.locator('.v2-fortune').click();
     await page.waitForTimeout(1500);
     expect(await sectionShown(page, tab('fortune').section)).toBe(true);
     expect(await activeNew(page)).toBe('you');
-    // card is not shown on other tabs
-    await clickNew(page, 'goal');
-    await page.waitForTimeout(800);
-    await expect(page.locator('#nv2-you-card')).toBeHidden();
-    // My Community profile opens Community on the profile view
+    // back to You; the gear opens the ordinary App Profile
     await clickNew(page, 'you');
-    await page.waitForTimeout(800);
-    await page.locator('#nv2-you-card .nv2-row').nth(1).click();
-    await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
-    await page.waitForTimeout(800);
-    expect(await page.evaluate(() => SOC._state.tab)).toBe('me');
+    await expect(page.locator('#soc-screen')).toBeVisible();
+    await page.locator('#soc-top [data-act="v2-settings"]').click();
+    await page.waitForTimeout(1500);
+    expect(await sectionShown(page, MAP.profileSection)).toBe(true);
+    expect(await page.evaluate(() => document.getElementById('soc-screen').classList.contains('hidden'))).toBe(true);
+    expect(await activeNew(page)).toBe('you');
+  });
+
+  test('goal plates: Achievements vs Actively working on, per-goal share choice persists', async ({ app }) => {
+    await bootYou(app);
+    const { page } = app;
+    const heads = await page.locator('#soc-body .soc-h').allInnerTexts();
+    expect(heads.some(h => /Achievements/i.test(h))).toBe(true);
+    expect(heads.some(h => /Actively working on/i.test(h))).toBe(true);
+    await expect(page.locator('.soc-gpill')).toHaveCount(3);
+    const texts = await page.locator('.soc-gpill').allInnerTexts();
+    expect(texts.filter(t => /Shared/.test(t)).length).toBe(1);
+    expect(texts.filter(t => /Only you/.test(t)).length).toBe(2);
+    await page.locator('.soc-gpill[data-id="g3"]').click();
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('clv_goal_items')).find(g => g.id === 'g3').visibility)).toBe('public');
+    await expect(page.locator('.soc-gpill[data-id="g3"]')).toContainText('Shared');
+    await page.locator('.soc-gpill[data-id="g1"]').click();
+    await page.waitForTimeout(500);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('clv_goal_items')).find(g => g.id === 'g1').visibility)).toBe('private');
+    // what others could ever see = only the public ones
+    const pub = await page.evaluate(() => window.GI.items().filter(x => x.visibility === 'public').map(x => x.id));
+    expect(pub).toEqual(['g3']);
+  });
+
+  test('Board card in You opens the full board page (self-explaining) and back returns', async ({ app }) => {
+    await bootYou(app);
+    const { page } = app;
+    await expect(page.locator('#v2-rank')).toBeVisible();
+    await expect(page.locator('#v2-rank')).toContainText('Leaderboard');
+    await page.locator('#v2-rank').click();
+    await page.waitForTimeout(1200);
+    await expect(page.locator('#soc-top .soc-title')).toHaveText('Leaderboard');
+    await expect(page.locator('.v2-lbintro')).toContainText('How the board works');
+    await expect(page.locator('.soc-seg')).toBeVisible();
+    await page.locator('#soc-top [data-act="v2-back"]').click();
+    await page.waitForTimeout(900);
+    await expect(page.locator('#soc-top .soc-title')).toHaveText('You');
+    await expect(page.locator('.v2-fortune')).toBeVisible();
+  });
+
+  test('signed-out visitors see an example preview (not a bare wall) on Feed and You', async ({ app }) => {
+    await app.page.addInitScript(() => { try { localStorage.setItem('clv_nav_v2_dev', '1'); localStorage.setItem('clv_social_dev', '1'); } catch (e) {} });
+    await app.boot();
+    const { page } = app;
+    for (const k of ['feed', 'you']) {
+      await clickNew(page, k);
+      await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('.v2-prev')).toBeVisible({ timeout: 15000 });
+      await expect(page.locator('.v2-prev-tag')).toHaveText(/Example preview/i);
+      await expect(page.locator('#soc-body [data-act="signin"]')).toBeVisible();
+      await clickNew(page, 'vibe');
+      await page.waitForTimeout(900);
+    }
   });
 
   test('Self plate sits under Non-Negotiables on Home only, and opens Self', async ({ app }) => {
