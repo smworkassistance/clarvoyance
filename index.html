@@ -2607,7 +2607,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v246</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v248</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -7079,50 +7079,17 @@ function renderNoOverindulgence(){
      average emotional read between the two. Needs state_read history,
      which only exists from admin_insights rows written after v225's
      user_id column landed — older rows are unattributed and excluded. */
+  /* v247 (T-010): the calculation now runs SERVER-SIDE in the Supabase function usage_correlation_me() (db/schema_v247_usage_correlation_rpc.sql).
+     Reason: this used to read admin_insights straight from the browser, but that table has been locked to service_role since v178b, so
+     every read was a 403 and this feature silently never worked. The function reads it for auth.uid() only and returns just the numbers.
+     Same algorithm, verified equal to the old JS on 240 random datasets (qa/sql/usage-correlation.test.js). Soft-fails to null (the
+     caller already treats null as "no evidence yet") if the function isn't installed or the call errors. */
   window._computeUsageOutcomeCorrelation=function(cb){
     var sb=window._sbShared,uid=window._sbUid;
     if(!sb||!uid){cb(null);return;}
-    Promise.all([
-      sb.from('user_daily_log').select('date,daily_score').eq('user_id',uid).order('date',{ascending:true}).limit(120),
-      sb.from('admin_insights').select('value,created_at').eq('user_id',uid).order('created_at',{ascending:true}).limit(400)
-    ]).then(function(results){
-      var dailyRows=(results[0]&&results[0].data)||[];
-      var insightRows=(results[1]&&results[1].data)||[];
-      var scoreByDate={};
-      dailyRows.forEach(function(r){if(r.daily_score!==null&&r.daily_score!==undefined)scoreByDate[r.date]=r.daily_score;});
-      var SR_NUM={low:0,neutral:0.5,high:1};
-      var stateByDate={};
-      insightRows.forEach(function(r){
-        var sr=r.value&&r.value.state_read;
-        if(!(sr in SR_NUM))return;
-        var d=new Date(r.created_at).toISOString().slice(0,10);
-        (stateByDate[d]=stateByDate[d]||[]).push(SR_NUM[sr]);
-      });
-      var points=[];
-      Object.keys(stateByDate).forEach(function(dateStr){
-        var d=new Date(dateStr+'T00:00:00Z');
-        var sum=0,cnt=0;
-        for(var i=0;i<3;i++){
-          var dd=new Date(d);dd.setUTCDate(dd.getUTCDate()-i);
-          var key=dd.toISOString().slice(0,10);
-          if(scoreByDate[key]!==undefined){sum+=scoreByDate[key];cnt++;}
-        }
-        if(!cnt)return; /* no engagement data at all in this window — can't use this point */
-        var states=stateByDate[dateStr];
-        points.push({date:dateStr,recentEngagement:sum/cnt,avgState:states.reduce(function(a,b){return a+b;},0)/states.length});
-      });
-      if(points.length<6){cb({hasEnoughData:false,sampleSize:points.length});return;}
-      var sorted=points.slice().sort(function(a,b){return a.recentEngagement-b.recentEngagement;});
-      var mid=Math.floor(sorted.length/2);
-      var lowHalf=sorted.slice(0,mid),highHalf=sorted.slice(sorted.length-mid);
-      var avg=function(arr){return arr.reduce(function(a,p){return a+p.avgState;},0)/arr.length;};
-      var lowState=avg(lowHalf),highState=avg(highHalf);
-      cb({
-        hasEnoughData:true,sampleSize:points.length,
-        lowEngagementStatePct:Math.round(lowState*100),
-        highEngagementStatePct:Math.round(highState*100),
-        confirms:highState>lowState+0.05
-      });
+    Promise.resolve(sb.rpc('usage_correlation_me')).then(function(res){
+      if(!res||res.error||!res.data){cb(null);return;}
+      cb(res.data);
     }).catch(function(){cb(null);});
   };
 
@@ -20836,6 +20803,18 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 /* the PWA install card (z-index 9999) sits above Community (9650) — it covered the bottom of the feed / the Reels viewer when it had
    already slid up before Community was opened. Hidden while Community is open; comes back on its own after (its own show logic untouched). */
 body.soc-open #pwa-card{display:none!important}
+/* v247: background upload chip */
+#soc-upchip{position:fixed;left:12px;right:12px;top:calc(62px + env(safe-area-inset-top,0px));z-index:9700;background:var(--su);color:var(--tx);border:1px solid var(--bo);border-radius:16px;padding:12px 14px;box-shadow:0 10px 30px -12px rgba(0,0,0,.35);animation:socUp .3s cubic-bezier(.2,.8,.2,1) both}
+#soc-upchip .uc-row{display:flex;align-items:center;gap:10px}
+#soc-upchip .uc-t{flex:1;font-size:.9rem;font-weight:650;line-height:1.35}
+#soc-upchip .uc-x{border:none;background:var(--ca);color:var(--sub);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem}
+#soc-upchip .uc-bar{height:5px;border-radius:3px;background:var(--bo);overflow:hidden;margin-top:9px}
+#soc-upchip .uc-bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .35s}
+#soc-upchip.err .uc-t{color:var(--danger,#d33)}
+#soc-upchip .uc-act{display:flex;gap:8px;margin-top:8px}
+#soc-upchip .uc-act:empty{display:none}
+#soc-upchip .uc-act button{border:1px solid var(--bo);background:var(--ca);color:var(--tx);font:inherit;font-size:.82rem;font-weight:700;padding:6px 14px;border-radius:999px;cursor:pointer}
+#soc-upchip .uc-act button[data-uc="retry"]{background:var(--acc);border-color:transparent;color:#fff}
 /* full-screen Reels-style viewer */
 #soc-reels{position:fixed;inset:0;z-index:9660;background:#000;display:none}
 #soc-reels.on{display:block}
@@ -21012,6 +20991,37 @@ textarea.soc-in{resize:none;min-height:74px}
 
 @media (prefers-reduced-motion:reduce){#soc-screen *{animation:none!important;transition:none!important}}
 @media (max-width:360px){.soc-badges{grid-template-columns:repeat(3,1fr)}.soc-stats b{font-size:1.05rem}}
+
+/* ═══ v248 — hosted You: Fortune card, Board card, goal share pills, Board intro, signed-out preview ═══ */
+.v2-fortune,.v2-rank{display:flex;align-items:center;gap:14px;width:calc(100% - 32px);margin:12px 16px 0;padding:14px 16px;border-radius:20px;text-align:left;cursor:pointer;font:inherit;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .2s;animation:socUp .45s both}
+.v2-fortune:active,.v2-rank:active{transform:scale(.985)}
+.v2-fortune small,.v2-rank small{display:block;font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.v2-fortune b,.v2-rank b{display:block;font-size:1.12rem;font-weight:800;line-height:1.2}
+.v2-fortune em,.v2-rank em{display:block;font-style:normal;font-size:.82rem;margin-top:2px}
+.v2-fortune .fc,.v2-rank .fc{font-size:1.5rem;line-height:1;opacity:.7;flex-shrink:0}
+/* Fortune: the app's own dark cosmic look, so it reads as "the Fortune tab" */
+.v2-fortune{border:1px solid rgba(200,160,255,.28);background:radial-gradient(120% 140% at 0% 0%,rgba(140,90,255,.38),transparent 60%),linear-gradient(135deg,#1a1233,#0d0a1f);color:#fff;box-shadow:0 8px 22px rgba(60,30,120,.25)}
+.v2-fortune .fo{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:rgba(255,255,255,.1);flex-shrink:0}
+.v2-fortune .ft{flex:1;min-width:0}
+.v2-fortune small{color:#c8a0ff}.v2-fortune em{color:rgba(255,255,255,.72)}
+/* Board: gold trophy tile + rank + top-3 avatars, on the theme surface */
+.v2-rank{border:1px solid var(--bo);background:linear-gradient(135deg,color-mix(in srgb,#f0c987 20%,var(--su)),var(--su) 70%);box-shadow:var(--sh)}
+.v2-rank .rk-tr{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:linear-gradient(135deg,#f0c987,#e09a3d);flex-shrink:0;box-shadow:0 4px 10px rgba(224,154,61,.35)}
+.v2-rank .rk-mid{flex:1;min-width:0}.v2-rank small{color:var(--lt)}.v2-rank em{color:var(--lt)}
+.v2-rank b{font-size:1.5rem;letter-spacing:-.01em}
+.v2-rank .rk-av{display:flex;flex-shrink:0}.v2-rank .rk-av .soc-av{margin-left:-8px;border:2px solid var(--su);border-radius:50%}
+.v2-lbintro{margin:8px 16px 0;padding:12px 14px;border-radius:16px;background:color-mix(in srgb,var(--acc) 9%,var(--su));border:1px solid color-mix(in srgb,var(--acc) 25%,var(--bo))}
+.v2-lbintro b{font-size:.92rem}.v2-lbintro p{margin:4px 0 0;font-size:.84rem;color:var(--lt);line-height:1.45}
+.soc-gshare{display:flex;align-items:center;gap:10px;margin-top:10px}
+.soc-gshare span{font-size:.76rem;color:var(--lt)}
+.soc-gpill{font:inherit;font-size:.78rem;font-weight:700;padding:7px 12px;border-radius:999px;border:1px solid var(--bo);background:var(--ca);color:var(--lt);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s}
+.soc-gpill:active{transform:scale(.95)}
+.soc-gpill.pub{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 45%,transparent);background:color-mix(in srgb,var(--acc) 10%,var(--su))}
+.soc-card.soc-gpriv{border-style:dashed}
+.v2-gatehead{text-align:center;padding:18px 24px 4px}.v2-gatehead h2{margin:0;font-size:1.3rem;font-weight:800}.v2-gatehead p{margin:6px 0 0;color:var(--lt);font-size:.92rem}
+.v2-prev{position:relative;margin:12px 0 4px;max-height:340px;overflow:hidden;pointer-events:none;-webkit-mask-image:linear-gradient(#000 72%,transparent);mask-image:linear-gradient(#000 72%,transparent)}
+.v2-prev-in{filter:blur(1.4px);opacity:.95}
+.v2-prev-tag{position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:2;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:var(--su);border:1px solid var(--bo);color:var(--lt)}
 </style>
 
 <!-- ═══ v241 COMMUNITY — overlay shell (hidden until opened; the header button itself stays hidden until the feature flag is on) ═══ -->
@@ -21086,7 +21096,10 @@ textarea.soc-in{resize:none;min-height:74px}
   var VIS_DEFAULT={leaderboard:true,xp:true,streak:true,badges:true,clar_time:false,goal:false,interests:false};
   var REPORT_REASONS=['Spam','Harassment','Fake or impersonation','Inappropriate','Other'];
 
+  function v2(){return document.body.classList.contains('nav-v2');}
+  function hostYou(){return document.body.classList.contains('nv2-you-host');}
   var ICO={
+    gear:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
     feed:'<svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
     board:'<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a3 3 0 0 0 3 3M16 6h4v1a3 3 0 0 1-3 3M12 13v4M8 21h8M10 17h4"/></svg>',
     find:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>',
@@ -21373,6 +21386,17 @@ textarea.soc-in{resize:none;min-height:74px}
     /* v244: "ClarZone" replaces the plain "Community" label — now a real
        button (blended into the header's own styling, not a visually
        separate control) that jumps straight to the Goal tab */
+    if(v2()&&hostYou()&&!S.prof){
+      /* v248: hosted You — a plain title, a gear that opens the (unchanged) App Profile, and share. Board sub-page gets a back arrow. */
+      if(S.sub==='board'){
+        t.innerHTML='<button class="soc-ib" data-act="v2-back" aria-label="Back">'+ICO.back+'</button><span class="soc-title">Leaderboard</span><span class="soc-ib soc-ib-ghost"></span>';
+        return;
+      }
+      t.innerHTML='<span class="soc-ib soc-ib-ghost"></span><span class="soc-title">You</span>'
+        +(S.me?'<button class="soc-ib" data-act="share" aria-label="Share my profile">'+ICO.share+'</button>':'')
+        +'<button class="soc-ib" data-act="v2-settings" aria-label="Settings and profile">'+ICO.gear+'</button>';
+      return;
+    }
     t.innerHTML=lead+'<button class="soc-title soc-title-btn" data-act="goto-goal"><b>✦</b> ClarZone</button>'+trail;
   }
   function setTab(t){
@@ -21386,6 +21410,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var ts=document.querySelectorAll('#soc-tabs .soc-tab');
     for(var i=0;i<ts.length;i++)ts[i].classList.toggle('on',ts[i].getAttribute('data-tab')===S.tab&&!S.prof);
     if(S.prof)return renderProfile(S.prof);
+    if(S.sub==='board'&&v2()&&hostYou())return loadBoard();
     if(S.tab==='feed')return loadFeed();
     if(S.tab==='board')return loadBoard();
     if(S.tab==='find')return loadFind('');
@@ -21396,8 +21421,34 @@ textarea.soc-in{resize:none;min-height:74px}
     tabsVisible(false);
     body('<div class="soc-empty"><span class="em">🌤️</span><b>'+esc(msg)+'</b><p>Nothing is lost — your Clar data is safe.</p><button class="soc-btn pri" data-act="retry">Try again</button></div>');
   }
+  /* v248: illustrative (clearly labelled) preview shown behind the sign-in — inspires the login instead of a bare wall. Static sample content only; no real user data. */
+  function previewHtml(tab){
+    function av(n,c){return '<span class="soc-av" style="--s:40px;background:'+c+'">'+n+'</span>';}
+    var cols=['linear-gradient(135deg,#34a06a,#8fd3a8)','linear-gradient(135deg,#c8a0ff,#7d5ac9)','linear-gradient(135deg,#f0c987,#e09a3d)'];
+    var inner='';
+    if(tab==='board'){
+      inner='<div class="soc-podium" style="padding-top:10px"><div class="soc-pod r2">'+av('M',cols[1])+'<div class="nm">Meera</div><div class="xp">1,240 XP</div><div class="base">2</div></div><div class="soc-pod r1"><div class="crown">👑</div>'+av('A',cols[0])+'<div class="nm">Aarav</div><div class="xp">1,610 XP</div><div class="base">1</div></div><div class="soc-pod r3">'+av('K',cols[2])+'<div class="nm">Kabir</div><div class="xp">980 XP</div><div class="base">3</div></div></div>'
+        +'<div class="soc-stack"><div class="soc-lb"><div class="soc-rk">4</div>'+av('S',cols[0])+'<div class="soc-grow"><div class="soc-name">Sara</div></div><div class="soc-xpv">870<small>XP</small></div></div></div>';
+    }else if(tab==='find'){
+      inner='<div class="soc-h">People you might vibe with</div><div class="soc-stack">'+[['Meera','Manifestation','Mindfulness'],['Aarav','Fitness','Discipline'],['Sara','Books','Confidence']].map(function(x,i){return '<div class="soc-card" style="padding:12px"><div class="soc-row">'+av(x[0][0],cols[i%3])+'<div class="soc-grow"><div class="soc-name">'+x[0]+'</div><div class="soc-shared"><span class="soc-chip">✦ '+x[1]+'</span><span class="soc-chip">✦ '+x[2]+'</span></div></div></div></div>';}).join('')+'</div>';
+    }else if(tab==='me'){
+      inner='<div class="soc-prof"><div class="soc-prof-top">'+av('Y',cols[0]).replace('--s:40px','--s:86px')+'<div class="soc-stats"><div><b>1,240</b><span>XP</span></div><div><b>32</b><span>Followers</span></div><div><b>18</b><span>Following</span></div></div></div><div class="soc-pname">Your name</div><div class="soc-handle">@yourhandle</div></div>'
+        +'<div class="soc-h">Momentum</div><div class="soc-metrics"><div class="soc-metric"><div class="v">🔥 7</div><div class="l">Day streak</div></div><div class="soc-metric"><div class="v">+320</div><div class="l">XP this week</div></div></div>';
+    }else{
+      inner='<div class="soc-stack" style="margin-top:12px">'+[['Aarav','🏆 Achieved: Ran my first 10K','7 day streak'],['Meera','🎯 Working on: Launch my business','Shared a win']].map(function(x,i){return '<div class="soc-card" style="padding:12px"><div class="soc-row">'+av(x[0][0],cols[i])+'<div class="soc-grow"><div class="soc-name">'+x[0]+'</div><div class="soc-sub">'+x[2]+'</div></div></div><div class="soc-ach-title" style="margin-top:10px">'+x[1]+'</div></div>';}).join('')+'</div>';
+    }
+    return '<div class="v2-prev"><span class="v2-prev-tag">Example preview</span><div class="v2-prev-in" aria-hidden="true">'+inner+'</div></div>';
+  }
   function renderGate(){
     tabsVisible(false);
+    if(v2()){
+      var lines={feed:['See wins from people you follow','Cheer them on — and share your own.'],find:['Find people who share your path','Matched by interests, mentors and books.'],board:['Climb the leaderboard','Earn XP, keep your streak, rise with the community.'],me:['Your journey, beautifully in one place','Streaks, badges, goals — and you choose what to share.']};
+      var L=lines[S.tab]||lines.feed;
+      body('<div class="v2-gatehead"><h2>'+L[0]+'</h2><p>'+L[1]+'</p></div>'+previewHtml(S.tab)
+        +'<div class="soc-form" style="padding-top:6px"><button class="soc-btn pri wide" data-act="signin">Continue with Google</button>'
+        +'<div class="soc-priv" style="margin:0">No direct messages, no stranger requests. You choose what others see.</div></div>');
+      return;
+    }
     body('<div class="soc-hero"><div class="orb">✦</div><h2>Grow with people who get it</h2>'
       +'<p>A community for positive, powerful, goal-driven people. Sign in with Google so your profile follows you everywhere.</p></div>'
       +'<div class="soc-form"><button class="soc-btn pri wide" data-act="signin">Continue with Google</button>'
@@ -21555,7 +21606,7 @@ textarea.soc-in{resize:none;min-height:74px}
         .eq('on_leaderboard',true).order(col,{ascending:false}).limit(100);
       if(r.error)throw r.error;
       var rows=(r.data||[]).filter(function(x){return x[col]!=null;});
-      var h='<div class="soc-seg" data-on="'+(S.range==='week'?0:1)+'"><i></i><button data-act="range" data-r="week" class="'+(S.range==='week'?'on':'')+'">This week</button><button data-act="range" data-r="all" class="'+(S.range==='all'?'on':'')+'">All time</button></div>';
+      var h=(S.sub==='board'&&v2()?'<div class="v2-lbintro"><b>How the board works</b><p>Everyone here chose to share their XP. Ranked by XP earned — this week or all time. Tap anyone to see their journey. You can leave the board anytime in Privacy.</p></div>':'')+'<div class="soc-seg" data-on="'+(S.range==='week'?0:1)+'"><i></i><button data-act="range" data-r="week" class="'+(S.range==='week'?'on':'')+'">This week</button><button data-act="range" data-r="all" class="'+(S.range==='all'?'on':'')+'">All time</button></div>';
       if(!rows.length){
         h+='<div class="soc-empty"><span class="em">🏆</span><b>Be the first on the board</b><p>Share your XP and badges — someone out there needs to see what’s possible.</p></div>';
       }else{
@@ -21649,31 +21700,33 @@ textarea.soc-in{resize:none;min-height:74px}
   /* v244: images shown here are looked up by key at click-time (openLB
      needs the array + index) rather than re-parsed out of the DOM */
   S._profGiImgs={};
-  function _giCardHtml(g,win){
+  function _giCardHtml(g,win,mine){
     var imgs=(g.images||[]).filter(function(im){return im&&im.src;});
     var key='g'+(g.id!=null?g.id:g.title);
     S._profGiImgs[key]=imgs;
     var dateBits=[];
     if(g.date_set)dateBits.push('🎯 Set '+esc(_fmtDate(g.date_set)));
     if(g.date_achieved)dateBits.push('🏆 Achieved '+esc(_fmtDate(g.date_achieved)));
-    return '<div class="soc-card'+(win?' win':'')+'" style="padding:12px">'
+    var pill=mine?'<div class="soc-gshare"><button class="soc-gpill'+(g.visibility==='public'?' pub':'')+'" data-act="gi-vis" data-id="'+esc(g.id)+'">'+(g.visibility==='public'?'✦ Shared on your profile':'🔒 Only you')+'</button><span>'+(g.visibility==='public'?'Tap to make private':'Tap to share with others')+'</span></div>':'';
+    return '<div class="soc-card'+(win?' win':'')+(mine&&g.visibility!=='public'?' soc-gpriv':'')+'" style="padding:12px">'
       +(imgs.length?'<div class="soc-ach-grid'+(imgs.length===1?' one':'')+'">'+imgs.map(function(im,ix){return '<img src="'+esc(im.src)+'" alt="" data-act="view-prof-goal-imgs" data-gk="'+key+'" data-i="'+ix+'">';}).join('')+'</div>':'')
       +'<div class="soc-ach-title" style="margin-top:'+(imgs.length?'8px':'0')+'">'+(win?'🏆 ':'')+esc(g.title)+'</div>'
-      +(dateBits.length?'<div class="soc-ach-dates">'+dateBits.join(' · ')+'</div>':'')+'</div>';
+      +(dateBits.length?'<div class="soc-ach-dates">'+dateBits.join(' · ')+'</div>':'')+pill+'</div>';
   }
-  function giSectionsHtml(items){
+  function giSectionsHtml(items,mine){
     items=items||[];
+    var nv=v2();
     var pursuing=items.filter(function(x){return !x.achieved;});
     var achieved=items.filter(function(x){return x.achieved;});
     var h='';
     if(pursuing.length){
-      h+='<div class="soc-h">🎯 Currently Pursuing</div><div class="soc-stack">';
-      pursuing.forEach(function(g){h+=_giCardHtml(g,false);});
+      h+='<div class="soc-h">'+(nv?'🎯 Actively working on':'🎯 Currently Pursuing')+'</div><div class="soc-stack">';
+      pursuing.forEach(function(g){h+=_giCardHtml(g,false,mine);});
       h+='</div>';
     }
     if(achieved.length){
-      h+='<div class="soc-h">🏆 Goals Achieved</div><div class="soc-stack">';
-      achieved.forEach(function(g){h+=_giCardHtml(g,true);});
+      h+='<div class="soc-h">'+(nv?'🏆 Achievements':'🏆 Goals Achieved')+'</div><div class="soc-stack">';
+      achieved.forEach(function(g){h+=_giCardHtml(g,true,mine);});
       h+='</div>';
     }
     return h;
@@ -21692,6 +21745,12 @@ textarea.soc-in{resize:none;min-height:74px}
     if(me)h+='<button class="soc-btn" data-act="edit">Edit profile</button><button class="soc-btn" data-act="privacy">🔒 Privacy board</button>';
     else h+=followBtn(p,false).replace('class="soc-btn','class="soc-btn')+'<button class="soc-btn" data-act="share" data-h="'+esc(p.handle)+'">Share</button>';
     h+='</div></div>';
+    /* v248 hosted You: private Fortune card (only ever on my own view) + Board card */
+    var youHost=me&&v2()&&hostYou();
+    if(youHost){
+      h+='<button class="v2-fortune" data-act="v2-fortune" type="button"><span class="fo">🔮</span><span class="ft"><small>Private · only you can see this</small><b>Your Fortune</b><em>Energy reading, patterns and insights</em></span><span class="fc">›</span></button>';
+      h+='<button class="v2-rank" data-act="v2-board" type="button" id="v2-rank"><span class="rk-tr">🏆</span><span class="rk-mid"><small>Leaderboard</small><b id="v2-rank-t"><i class="soc-sk" style="display:block;height:20px;width:120px;margin:2px 0"></i></b><em id="v2-rank-s">See where you stand</em></span><span class="rk-av" id="v2-rank-av"></span><span class="fc">›</span></button>';
+    }
     var shown=0;
     if(p.streak!=null||p.clar_min_day!=null||p.xp_week!=null){
       h+='<div class="soc-h">Momentum</div><div class="soc-metrics">';
@@ -21702,9 +21761,16 @@ textarea.soc-in{resize:none;min-height:74px}
       if(p.clar_min_week!=null){h+='<div class="soc-metric"><div class="v">'+fmtMin(p.clar_min_week)+'</div><div class="l">Avg time in Clar / week</div></div>';shown++;}
       h+='</div>';
     }
+    /* v248: in the hosted You the goal plates come BEFORE the (long) badge grid */
+    var giAll=window.GI&&window.GI.items?window.GI.items():[];
+    var giItems=me?(youHost?giAll:giAll.filter(function(x){return x.visibility==='public';})):(p._giItems||[]);
+    var giHtml='';
+    if(giItems.length){shown++;giHtml=giSectionsHtml(giItems,youHost);}
+    else if(youHost)giHtml='<div class="soc-h">🎯 Goals</div><div class="soc-priv" style="margin-top:0">Add goals in the <b>Goal</b> tab. You choose, goal by goal, whether to share it here — private goals stay yours alone. <button class="soc-btn sm" data-act="goto-goal" style="margin-top:8px">Open Goal tab</button></div>';
+    if(youHost)h+=giHtml;
     if(p.badges!=null){
       var have={};(p.badges||[]).forEach(function(b){have[b]=1;});
-      h+='<div class="soc-h">Achievements</div><div class="soc-badges">';
+      h+='<div class="soc-h">'+(v2()?'🏅 Badges':'Achievements')+'</div><div class="soc-badges">';
       BADGES.forEach(function(b){
         if(b.id==='joined')return;
         var on=!!have[b.id];if(!on&&!me)return; /* strangers only see what's earned; you also see what's next */
@@ -21723,12 +21789,28 @@ textarea.soc-in{resize:none;min-height:74px}
     }
     /* v243: Goal Items — mine come straight from the local cache (instant, no fetch);
        someone else's were fetched in openProfile() as p._giItems */
-    var giItems=me?(window.GI&&window.GI.items?window.GI.items().filter(function(x){return x.visibility==='public';}):[]):(p._giItems||[]);
-    if(giItems.length){shown++;h+=giSectionsHtml(giItems);}
+    /* v248: in the hosted You I see ALL my goals (each with its own share switch); everywhere else only the public ones, as before */
+    if(!youHost)h+=giHtml;
     if(!me&&!shown&&p.badges==null&&!p.goal_text&&!it)h+='<div class="soc-priv">This person keeps their journey private — follow to cheer them on when they share a win.</div>';
     if(me)h+='<div class="soc-priv">Only what you switch on in <b>Privacy board</b> is visible to others.</div>';
     body(h);
     if(p.xp!=null)countUp($('soc-xpn'),p.xp);
+    if(youHost)fillRank();
+  }
+  /* v248: fills the Board card in the hosted You with my real rank (or an invitation to join) */
+  async function fillRank(){
+    var t=$('v2-rank-t'),sub=$('v2-rank-s'),avs=$('v2-rank-av');if(!t)return;
+    try{
+      if(!S.me||!S.me.on_leaderboard){t.textContent='Join the board';sub.textContent='Share your XP to see where you stand';return;}
+      var r=await q('social_public_profiles').select('user_id,handle,display_name,avatar_url,xp_week,is_me').eq('on_leaderboard',true).order('xp_week',{ascending:false}).limit(100);
+      if(r.error)throw r.error;
+      var rows=(r.data||[]).filter(function(x){return x.xp_week!=null;});
+      var idx=-1;rows.forEach(function(p,i){if(p.is_me)idx=i;});
+      if(!$('v2-rank-t'))return; /* user moved on */
+      if(idx>=0){t.textContent='#'+(idx+1);sub.textContent='of '+rows.length+' this week · tap to see everyone';}
+      else{t.textContent='Not ranked yet';sub.textContent='Earn XP this week to appear';}
+      if(avs)avs.innerHTML=rows.slice(0,3).map(function(p){return avatar(p,26,false);}).join('');
+    }catch(e){if($('v2-rank-t')){t.textContent='Leaderboard';sub.textContent='Tap to open';}}
   }
 
   /* ═══ JOIN ═══ */
@@ -21876,7 +21958,8 @@ textarea.soc-in{resize:none;min-height:74px}
   var CFG={
     worker:'https://clar-bunny.smworkassistance.workers.dev/', /* set 2026-09-25 (owner-deployed Cloudflare Worker) */
     cdn:'https://vz-07154b7f-e50.b-cdn.net', /* set 2026-09-25 from the owner's Bunny library (public hostname, not a secret) */
-    maxSeconds:30,maxBytes:100*1024*1024
+    maxSeconds:30,maxBytes:100*1024*1024,
+    chunkSize:1024*1024 /* v247: upload in 1 MB chunks so progress moves on every chunk, on any browser/network */
   };
   function videoEnabled(){return CFG.worker.indexOf('replace_with')<0&&CFG.cdn.indexOf('replace_with')<0;}
   function vGuidOk(g){return /^[0-9a-fA-F-]{36}$/.test(g||'');}
@@ -21924,13 +22007,17 @@ textarea.soc-in{resize:none;min-height:74px}
       if(!(v.duration>0)||v.duration>CFG.maxSeconds+0.5){URL.revokeObjectURL(url);return bad('Videos can be up to '+CFG.maxSeconds+' seconds — this one is '+Math.round(v.duration)+' s');}
       _vidClear();S._pendingVideo={file:f,url:url,duration:Math.round(v.duration*10)/10};
       S._pendingAchImgs=[];_achRenderPreview();_vidRenderPreview();
-      if(hint){hint.textContent='';hint.className='soc-hint';}
+      if(hint){
+        var mb=f.size/1048576;
+        hint.textContent=Math.round(mb*10)/10+' MB · '+Math.round(v.duration)+' s'+(mb>25?' — big video: it uploads in the background, keep the app open':'');
+        hint.className='soc-hint';
+      }
     };
     v.onerror=function(){URL.revokeObjectURL(url);bad('Couldn’t read that video — try a different one');};
     v.src=url;
   };
   /* ticket from our Worker → resumable upload straight to Bunny. Resolves with the Worker's reply ({guid,…}). */
-  async function _vidUpload(pv,onProgress){
+  async function _vidUpload(pv,hooks){
     var s=await window._sbShared.auth.getSession();
     var token=s&&s.data&&s.data.session&&s.data.session.access_token;
     if(!token)throw new Error('Sign in first');
@@ -21939,13 +22026,96 @@ textarea.soc-in{resize:none;min-height:74px}
     if(!r.ok||!j.guid)throw new Error(j.error||'Upload service unavailable');
     var tus=await _loadTus();
     await new Promise(function(res,rej){
-      var up=new tus.Upload(pv.file,{endpoint:j.endpoint,retryDelays:[0,1500,4000,10000],headers:j.headers,
+      /* v247: chunkSize -> real byte progress after every chunk (a single huge request only reports on browsers/stacks that support upload
+         progress events, which looked like "stuck at 0%" for minutes on some phones); more retry delays ride out mobile-network drops (tus resumes) */
+      var up=new tus.Upload(pv.file,{endpoint:j.endpoint,chunkSize:CFG.chunkSize,retryDelays:[0,1500,4000,10000,20000,30000],headers:j.headers,
         metadata:{filetype:pv.file.type||'video/mp4',title:'clar-post'},
-        onError:rej,onProgress:function(a,b){if(onProgress)onProgress(Math.round(a/b*100));},onSuccess:res});
+        onError:rej,onProgress:function(a,b){if(hooks&&hooks.onProgress)hooks.onProgress(a,b);},onSuccess:res});
+      if(hooks&&hooks.onUpload)hooks.onUpload(up);
       up.start();
     });
     return j;
   }
+
+  /* ═══ v247: BACKGROUND VIDEO POSTING ═══════════════════════════════════════
+     Owner report (v246): pressing Post showed "Uploading…" for a very long time with nothing visibly happening, and the whole sheet was
+     locked meanwhile. Now: the sheet closes at once, a small progress chip (real % and MB, a stall notice, Cancel, and Retry on failure)
+     tracks the upload, and the person can keep using the app. The post is created only when the upload finishes. */
+  var UP=null; /* the single in-flight video post: {row,pv,item,state,bytes,total,lastProg,tus,cancelled,err,watch} */
+  function _fmtMB(b){return (Math.round(b/104857.6)/10)+'';}
+  function _upChip(){
+    var e=document.getElementById('soc-upchip');
+    if(!e){
+      e=document.createElement('div');e.id='soc-upchip';
+      e.innerHTML='<div class="uc-row"><span class="uc-t" id="uc-t"></span><button type="button" class="uc-x" data-uc="cancel" aria-label="Cancel upload">✕</button></div>'
+        +'<div class="uc-bar"><i id="uc-bar-i"></i></div><div class="uc-act" id="uc-act"></div>';
+      e.addEventListener('click',function(ev){
+        var a=ev.target&&ev.target.getAttribute&&ev.target.getAttribute('data-uc');
+        if(a==='cancel'||a==='dismiss')_upCancel();
+        else if(a==='retry'&&UP){var c=UP;_startVideoPost(c);}
+      });
+      document.body.appendChild(e);
+    }
+    return e;
+  }
+  function _upRender(){
+    if(!UP){var old=document.getElementById('soc-upchip');if(old)old.remove();return;}
+    var e=_upChip(),t=document.getElementById('uc-t'),bar=document.getElementById('uc-bar-i'),act=document.getElementById('uc-act');
+    var pct=UP.total?Math.min(100,Math.floor(UP.bytes/UP.total*100)):0;
+    e.className=UP.state==='err'?'err':'';
+    if(UP.state==='prep'){t.textContent='Preparing your video…';bar.style.width='2%';}
+    else if(UP.state==='up'){
+      var stalled=Date.now()-UP.lastProg>25000;
+      t.textContent='Uploading video… '+pct+'% · '+_fmtMB(UP.bytes)+' of '+_fmtMB(UP.total)+' MB'+(stalled?' — slow connection, still trying (keep the app open)':'');
+      bar.style.width=Math.max(pct,2)+'%';
+    }
+    else if(UP.state==='finishing'){t.textContent='Almost done — posting…';bar.style.width='100%';}
+    else if(UP.state==='err'){t.textContent=UP.err||'Couldn’t post your video';bar.style.width='0%';}
+    act.innerHTML=UP.state==='err'?'<button type="button" data-uc="retry">Try again</button><button type="button" data-uc="dismiss">Dismiss</button>':'';
+    e.querySelector('.uc-x').style.display=UP.state==='err'?'none':'';
+  }
+  function _upBeforeUnload(ev){ev.preventDefault();ev.returnValue='';return '';}
+  function _upStop(){
+    if(UP){clearInterval(UP.watch);}
+    window.removeEventListener('beforeunload',_upBeforeUnload);
+  }
+  function _upCancel(){
+    if(!UP)return;
+    UP.cancelled=true;
+    try{if(UP.tus)UP.tus.abort(true);}catch(e){}
+    _upStop();UP=null;_upRender();
+  }
+  function _upFriendly(er){
+    var m=(er&&er.message)||'';
+    /* the upload Worker's own messages ("30 seconds or shorter", "daily limit reached"…) are safe and useful to show; anything else is generic */
+    return (m&&!/Failed to fetch|NetworkError|tus:|Load failed|XMLHttpRequest|Network request failed/i.test(m))?m:'Upload interrupted — check your connection and try again';
+  }
+  async function _startVideoPost(ctx){
+    if(UP&&UP!==ctx&&UP.state!=='err'){toast('Another video is still uploading');return;}
+    UP=ctx;UP.cancelled=false;UP.state='prep';UP.bytes=0;UP.total=ctx.pv.file.size;UP.lastProg=Date.now();UP.err='';
+    _upStop();window.addEventListener('beforeunload',_upBeforeUnload);
+    UP.watch=setInterval(_upRender,1000); /* also drives the "slow connection" notice */
+    _upRender();
+    try{
+      var up=await _vidUpload(ctx.pv,{
+        onProgress:function(a,b){if(UP!==ctx)return;UP.state='up';UP.bytes=a;UP.total=b;UP.lastProg=Date.now();_upRender();},
+        onUpload:function(u){ctx.tus=u;}
+      });
+      if(UP!==ctx||ctx.cancelled)return;
+      UP.state='finishing';_upRender();
+      var row=Object.assign({},ctx.row,{video:{guid:up.guid,duration:ctx.pv.duration}});
+      var r=await q('social_achievements').insert(row);
+      if(r.error)throw r.error;
+      if(ctx.item&&window._giMarkShared)window._giMarkShared(ctx.item.id);
+      _upStop();UP=null;_upRender();
+      toast('Posted to Community ✦');S.feedRows=null;cacheDropFeed();
+      var rt=root();if(S.tab==='feed'&&!S.prof&&rt&&!rt.classList.contains('hidden'))loadFeed();
+    }catch(er){
+      if(UP!==ctx||ctx.cancelled)return;
+      _upStop();UP.state='err';UP.err=_upFriendly(er);_upRender();
+    }
+  }
+  window._socUpload={get:function(){return UP;},cancel:_upCancel}; /* test hook */
 
   /* Found in the real-account test: right after an upload Bunny is still encoding for a short while, so the poster's thumbnail.jpg is a 404
      for a bit. Instead of a dead black box: show a soft "Processing video…" state and quietly retry the thumbnail every 6 s (up to ~2 min);
@@ -22148,6 +22318,18 @@ textarea.soc-in{resize:none;min-height:74px}
 
   /* ═══ ACTIONS ═══ */
   var ACT={
+    /* v248 hosted-You actions */
+    'v2-settings':function(){close();if(window._navV2Leave)window._navV2Leave();if(window.openProfileTab)window.openProfileTab();},
+    'v2-fortune':function(){close();if(window._navV2Leave)window._navV2Leave();var b=document.querySelector('#bnav .bnav-tab[data-tab="fortune"]');if(b&&window.bnavSwitch)window.bnavSwitch(b);},
+    'v2-board':function(){S.sub='board';S.range=S.range||'week';render();},
+    'v2-back':function(){S.sub=null;S.tab='me';render();},
+    'gi-vis':function(el){
+      var id=el.getAttribute('data-id');if(!window.giToggleVis||!id)return;
+      var bd=$('soc-body'),y=bd?bd.scrollTop:0;
+      window.giToggleVis(id);
+      renderProfile(S.me);
+      if(bd)bd.scrollTop=y;
+    },
     close:function(){close();},
     back:function(){S.prof=null;render();},
     retry:function(){open();},
@@ -22229,10 +22411,11 @@ textarea.soc-in{resize:none;min-height:74px}
         /* v246 (T-006): `video` is only added when there IS a video, so an ordinary post still works on a project that hasn't run
            schema_v246_video.sql yet (it would reject an unknown column even when null) */
         if(pv){
-          var bar=$('soc-vid-bar'),bi=$('soc-vid-bar-i');if(bar)bar.style.display='block';
-          if(hint){hint.textContent='Uploading video… 0%';hint.className='soc-hint';}
-          var up=await _vidUpload(pv,function(p){if(bi)bi.style.width=p+'%';if(hint)hint.textContent='Uploading video… '+p+'%';});
-          row.video={guid:up.guid,duration:pv.duration};
+          /* v247: hand off to the background uploader — close the sheet now, progress lives in the chip */
+          if(UP&&UP.state!=='err'){el.disabled=false;if(hint){hint.textContent='A video is still uploading — wait for it to finish first';hint.className='soc-hint bad';}return;}
+          closeSheet();
+          _startVideoPost({row:row,pv:pv,item:item});
+          return;
         }
         var r=await q('social_achievements').insert(row);
         if(r.error)throw r.error;
@@ -22691,6 +22874,205 @@ textarea.soc-in{resize:none;min-height:74px}
     load();render();
     ready().then(pullAll).catch(function(){});
   });
+})();
+</script>
+
+<!-- ═══ v247 NAV_V2 — new 6-button bottom navigation, dark-launched (OFF unless feature_flags.nav_v2 is true, or ?nav=2 on this device) ═══
+     Additive only: with the flag off the ONLY footprint is this block's inert script + CSS scoped under body.nav-v2 — the existing
+     nav, tabs and functions are untouched. When on, the old .bnav-tab buttons are hidden (never removed) and the new buttons call the
+     very same bnavSwitch()/openProfileTab() the old ones do, so every tab keeps working exactly as before. -->
+<style id="navv2-css">
+/* everything below only applies when body has .nav-v2 */
+body.nav-v2 #bnav{overflow:visible}
+body.nav-v2 #bnav .bnav-tab{display:none!important}
+body:not(.nav-v2) #bnav .nv2-tab{display:none!important}
+.nv2-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:none;cursor:pointer;padding:8px 2px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;position:relative;font:inherit;color:inherit}
+.nv2-tab svg{width:26px;height:26px;fill:none;stroke:var(--lt,#8a8a8a);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s,stroke .18s}
+.nv2-tab .nv2-lbl{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','DM Sans',sans-serif;font-size:.70rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--lt,#8a8a8a)}
+.nv2-tab.active svg{stroke:var(--acc);transform:scale(1.1)}
+.nv2-tab.active .nv2-lbl{color:var(--acc)}
+/* Clar AI: the centre button, raised out of the bar as a circle (bar overflow is visible only under nav-v2) */
+.nv2-tab.nv2-centre{flex:0 0 76px;justify-content:flex-end;padding-bottom:6px}
+/* 2 buttons left of the centre orb, 3 right: weight the left ones so both halves are equal and the orb sits at the true centre */
+.nv2-tab[data-nv2="feed"],.nv2-tab[data-nv2="vibe"]{flex:1.5}
+.nv2-tab.nv2-centre .nv2-orb{position:absolute;top:-16px;left:50%;width:56px;height:56px;margin-left:-28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,var(--acc),color-mix(in srgb,var(--acc) 62%,#000));box-shadow:0 6px 16px rgba(0,0,0,.28),0 0 0 4px var(--bg,#fff);color:#fff;font-family:serif;font-size:1.7rem;line-height:1}
+.nv2-tab.nv2-centre.active .nv2-orb{box-shadow:0 6px 18px rgba(0,0,0,.34),0 0 0 4px var(--bg,#fff),0 0 0 6px var(--acc)}
+.nv2-tab.nv2-centre .nv2-lbl{margin-top:0}
+
+/* T-005b — Feed tab = the Community overlay hosted as a TAB: it stops above the bottom bar (which stays visible and tappable), has no close X,
+   and its own 4 bottom tabs become 3 slim tabs on top: Following / Discover / Board (the inner "You" is dropped — You lives in the main bar). */
+body.nav-v2.nv2-feed #bnav{z-index:9700} /* above the overlay, so the raised Clar orb is not clipped by it */
+body.nav-v2.nv2-feed #soc-screen{inset:0 0 var(--nv2-h,65px) 0} /* --nv2-h = the bar's real height, measured in JS (safe-area padding varies per device) */
+body.nav-v2.nv2-feed #soc-top{order:0}
+body.nav-v2.nv2-feed #soc-tabs{order:1;padding:2px 12px 6px;border-top:none;border-bottom:1px solid var(--bo);gap:6px;justify-content:center}
+body.nav-v2.nv2-feed #soc-body{order:2}
+body.nav-v2.nv2-feed #soc-top [data-act="close"]{visibility:hidden}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab{flex:0 1 auto;flex-direction:row;gap:0;padding:7px 16px;border-radius:999px;font-size:.84rem}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab svg{display:none}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab.on{background:var(--t-xlt,color-mix(in srgb,var(--acc) 14%,transparent))}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab.on::after{display:none}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="feed"]{order:1}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="find"]{order:2}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="board"]{order:3}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="me"]{display:none}
+body.nav-v2.nv2-you-host #soc-tabs{display:none!important}
+
+/* T-005c/d — small entry cards. Hidden unless nav_v2 is on (and, for the Self plate, Home is the open tab) */
+.nv2-card{display:none;margin:10px 16px 0;background:var(--su);border:1px solid var(--bo);border-radius:16px;overflow:hidden}
+.nv2-row{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;background:none;border:none;border-top:1px solid var(--bo);color:var(--tx);font:inherit;font-size:1rem;font-weight:650;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nv2-row:first-child{border-top:none}
+.nv2-row:active{background:var(--ca)}
+.nv2-row .nv2-ri{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:var(--t-xlt,color-mix(in srgb,var(--acc) 12%,transparent));font-size:1.15rem;flex-shrink:0}
+.nv2-row .nv2-rt{flex:1;min-width:0}
+.nv2-row .nv2-rt small{display:block;font-size:.8rem;font-weight:500;color:var(--lt);margin-top:1px}
+.nv2-row .nv2-rc{color:var(--lt);font-size:1.3rem;line-height:1}
+/* Self plate reuses Non-Negotiables' own classes (self-acc / sacc-row) so it is pixel-consistent with it; only visibility is ours */
+#nv2-self-plate{display:none}
+body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
+</style>
+<script id="navv2-js">
+(function(){
+  var DEV='clv_nav_v2_dev', CACHE='clv_nav_v2_flag';
+  function ls(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function lset(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+
+  /* dev override from the URL: ?nav=2 turns it on for this device, ?nav=0 turns that override off again */
+  try{
+    var m=/[?&]nav=(\d)/.exec(location.search);
+    if(m){if(m[1]==='2')lset(DEV,'1');else if(m[1]==='0')lset(DEV,null);}
+  }catch(e){}
+
+  var TABS=[
+    {k:'feed',  t:'Feed',    svg:'<rect x="3.5" y="4" width="17" height="16" rx="3"/><path d="M7.5 9h9M7.5 13h9M7.5 16.5h5"/>'},
+    {k:'vibe',  t:'Vibe',    svg:'<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'},
+    {k:'chat',  t:'Clar AI', centre:true},
+    {k:'goal',  t:'Goal',    svg:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>'},
+    {k:'home',  t:'Home',    svg:'<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/>'},
+    {k:'you',   t:'You',     svg:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>'}
+  ];
+  /* which new button is highlighted for each existing tab key */
+  var OLD2NEW={vibe:'vibe',chat:'chat',goal:'goal',home:'home',self:'home',chargers:'home',tools:'home',revise:'home',fortune:'you',profile:'you'};
+
+  function build(){
+    var nav=document.getElementById('bnav');
+    if(!nav||document.getElementById('nv2-bar-marker'))return;
+    var mk=document.createElement('span');mk.id='nv2-bar-marker';mk.style.display='none';nav.appendChild(mk);
+    TABS.forEach(function(t){
+      var b=document.createElement('button');
+      b.type='button';b.className='nv2-tab'+(t.centre?' nv2-centre':'');b.setAttribute('data-nv2',t.k);
+      b.innerHTML=(t.centre?'<span class="nv2-orb">✦</span>':'<svg viewBox="0 0 24 24" aria-hidden="true">'+t.svg+'</svg>')+'<span class="nv2-lbl">'+t.t+'</span>';
+      b.setAttribute('aria-label',t.t);
+      b.addEventListener('click',function(){go(t.k);});
+      nav.appendChild(b);
+    });
+    buildCards();
+    syncActive();
+    /* the old buttons still carry the real "which tab is active" state — mirror it, whoever changed it */
+    try{new MutationObserver(syncActive).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});}catch(e){}
+    var ps=document.getElementById('profile-section');
+    if(ps){try{new MutationObserver(syncActive).observe(ps,{attributes:true,attributeFilter:['style']});}catch(e){}}
+  }
+
+  function oldBtn(tab){return document.querySelector('#bnav .bnav-tab[data-tab="'+tab+'"]');}
+
+  function go(k){
+    if(k==='feed'){if(window._navV2Feed)window._navV2Feed();return;}
+    if(window._navV2Leave)window._navV2Leave(); /* close the Community overlay if it is up */
+    if(k==='you'){if(window._navV2You)window._navV2You();return;}
+    var b=oldBtn(k);if(b&&window.bnavSwitch)window.bnavSwitch(b);
+  }
+
+  function syncActive(){
+    var cur=document.querySelector('#bnav .bnav-tab.active');
+    var ps=document.getElementById('profile-section');
+    var profileUp=ps&&ps.style.display!=='none'; /* profile opens through a stand-in element, not a real nav button */
+    var newKey=window._navV2YouOpen&&window._navV2YouOpen()?'you':window._navV2FeedOpen&&window._navV2FeedOpen()?'feed':(profileUp?'you':(cur?OLD2NEW[cur.getAttribute('data-tab')]||'home':'chat'));
+    document.querySelectorAll('#bnav .nv2-tab').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-nv2')===newKey);});
+  }
+  window._navV2Sync=syncActive;
+
+  /* T-005c: You = the existing Profile + a card at its top with entries to Fortune and to my Community profile */
+  function row(ic,t,sub,fn){
+    var b=document.createElement('button');b.type='button';b.className='nv2-row';
+    b.innerHTML='<span class="nv2-ri">'+ic+'</span><span class="nv2-rt">'+t+'<small>'+sub+'</small></span><span class="nv2-rc">›</span>';
+    b.addEventListener('click',fn);return b;
+  }
+  function buildCards(){
+    /* T-005d: Self plate sits directly under Non-Negotiables on Home (shown only while Home is the open tab, via CSS) */
+    var nn=document.getElementById('nn-tab-section');
+    if(nn&&!document.getElementById('nv2-self-plate')){
+      var p=document.createElement('div');p.id='nv2-self-plate';p.className='self-acc';
+      p.innerHTML='<div class="sacc-row sacc-row-last" role="button" tabindex="0"><span class="sacc-sym">◎</span><div style="flex:1;min-width:0"><span class="sacc-title" style="display:block">Self</span><span style="display:block;font-size:.74rem;color:var(--lt);font-weight:400;margin-top:2px">Peak State, Personal Space, True View and more</span></div><span class="sacc-chev">›</span></div>';
+      p.firstChild.addEventListener('click',function(){var b=oldBtn('self');if(b&&window.bnavSwitch)window.bnavSwitch(b);});
+      nn.parentNode.insertBefore(p,nn.nextSibling);
+    }
+  }
+
+  /* T-005b: Feed = Community overlay opened as a tab */
+  function soc(){return document.getElementById('soc-screen');}
+  window._navV2FeedOpen=function(){var e=soc();return document.body.classList.contains('nv2-feed')&&!document.body.classList.contains('nv2-you-host')&&!!e&&!e.classList.contains('hidden');};
+  window._navV2YouOpen=function(){var e=soc();return document.body.classList.contains('nv2-you-host')&&!!e&&!e.classList.contains('hidden');};
+  /* You = the Community 'me' dashboard hosted as a tab (same overlay mechanics as Feed, but no inner tabs) */
+  window._navV2You=function(){
+    if(!window.SOC||!SOC.open)return;
+    try{var st=SOC._state;if(st){st.tab='me';st.prof=null;st.sub=null;}}catch(e){}
+    measure();
+    document.body.classList.add('nv2-feed','nv2-you-host');
+    SOC.open();
+    setTimeout(syncActive,60);
+  };
+  window._navV2Feed=function(){
+    if(!window.SOC||!SOC.open)return;
+    /* leave any other tab's open state alone; just make sure we land on a top-level Community tab (never the inner "You"/a profile) */
+    try{var st=SOC._state;if(st){if(['feed','find','board'].indexOf(st.tab)<0)st.tab='feed';st.sub=null;}}catch(e){}
+    measure();
+    document.body.classList.remove('nv2-you-host');
+    document.body.classList.add('nv2-feed');
+    relabel();
+    SOC.open();
+    setTimeout(syncActive,60);
+  };
+  window._navV2Leave=function(){
+    document.body.classList.remove('nv2-feed','nv2-you-host');
+    var e=soc();if(e&&!e.classList.contains('hidden')&&window.SOC&&SOC.close)SOC.close();
+    setTimeout(syncActive,0);
+  };
+  function measure(){var n=document.getElementById('bnav');if(n)document.documentElement.style.setProperty('--nv2-h',Math.round(n.getBoundingClientRect().height)+'px');}
+  window.addEventListener('resize',function(){if(document.body.classList.contains('nv2-feed'))measure();});
+  /* inner tab labels for the hosted view: Feed→Following, Find→Discover (Board unchanged) */
+  function relabel(){
+    var f=document.querySelector('#soc-tabs .soc-tab[data-tab="feed"] span');if(f)f.textContent='Following';
+  }
+  /* whenever the overlay closes by any route (e.g. its own "ClarZone → Goal" shortcut), drop the hosted-tab state */
+  (function watchSoc(){
+    var e=soc();if(!e){document.addEventListener('DOMContentLoaded',watchSoc);return;}
+    try{new MutationObserver(function(){
+      if(e.classList.contains('hidden'))document.body.classList.remove('nv2-feed','nv2-you-host');
+      syncActive();
+    }).observe(e,{attributes:true,attributeFilter:['class']});}catch(x){}
+  })();
+
+  function apply(on){
+    if(on){build();document.body.classList.add('nav-v2');syncActive();}
+    else document.body.classList.remove('nav-v2');
+  }
+  window._navV2Apply=apply;
+
+  /* 1) instant, from what this device already knows (no flash on boot) */
+  apply(ls(DEV)==='1'||ls(CACHE)==='1');
+
+  /* 2) then confirm with the server flag (feature_flags.nav_v2); a real "false" turns it back off unless the dev override is set */
+  var tries=0;
+  (function poll(){
+    var sb=window._sbShared;
+    if(!sb){if(++tries<60)setTimeout(poll,250);return;}
+    Promise.resolve(sb.from('feature_flags').select('enabled').eq('key','nav_v2').maybeSingle()).then(function(r){
+      var on=!!(r&&r.data&&r.data.enabled);
+      lset(CACHE,on?'1':null);
+      apply(on||ls(DEV)==='1');
+    }).catch(function(){});
+  })();
 })();
 </script>
 
