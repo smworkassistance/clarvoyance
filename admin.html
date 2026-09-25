@@ -242,6 +242,8 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="engagement" onclick="switchTab(this)">📊 Engagement</button>
     <button class="tab"    data-p="videotopics" onclick="switchTab(this)">🎬 Video Topics</button>
     <button class="tab"    data-p="usagecorr" onclick="switchTab(this)">📈 Usage vs State</button>
+    <button class="tab"    data-p="clarposts" onclick="switchTab(this)">✍️ Clar Posts</button>
+    <button class="tab"    data-p="guides" onclick="switchTab(this)">🧭 Guides</button>
   </div>
 
   <!-- TOOLS -->
@@ -369,6 +371,33 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 
     <div class="sec-lbl" style="margin-top:22px">🔍 Recent sends</div>
     <div id="notif-log-list"><div class="s-load">Loading...</div></div>
+  </div>
+
+
+  <!-- v250: CLAR POSTS + APP SETTINGS -->
+  <div id="pane-clarposts" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Official "Clar" posts fill a thin Community feed. Plain text only. Schedule with a publish date; optional expiry. The button can only jump to a fixed app tab.</p>
+    <div class="sec-lbl">✍️ Posts</div>
+    <button class="add-btn" onclick="cpForm()">＋ New Clar post</button>
+    <div id="cp-list"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl" style="margin-top:22px">⚙️ XP &amp; referral settings</div>
+    <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Every number here is read by the app live (cached about an hour). No redeploy needed.</p>
+    <div id="cp-settings"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- v250: GUIDES moderation -->
+  <div id="pane-guides" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Guides are AI-curated feeds. Members' private guides start "pending" and are activated by the Worker after the scope check. Three distinct reporters in 7 days auto-pause a guide. Review paused guides and reported posts here.</p>
+    <div class="sec-lbl">🚩 Needs attention</div>
+    <div id="gd-attn"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl" style="margin-top:22px">🧭 All guides</div>
+    <button class="add-btn" onclick="gdStarterForm()">＋ New starter guide</button>
+    <button class="add-btn" onclick="gdTick()" style="margin-left:8px">▶ Run scheduler now</button>
+    <div id="gd-list"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl" style="margin-top:22px">📰 Source allowlist</div>
+    <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Only these feeds are ever read. Tags must match a guide's source_tags.</p>
+    <button class="add-btn" onclick="gsForm()">＋ Add source</button>
+    <div id="gd-sources"><div class="s-load">Loading...</div></div>
   </div>
 
   <!-- ENGAGEMENT: momentum growth/decay + Fortune gap-awareness config, v186 -->
@@ -2599,6 +2628,122 @@ function toast(msg, type) {
 /* Password gate temporarily bypassed — real auth to be added later */
 document.getElementById('login').style.display = 'none';
 document.getElementById('app').style.cssText = 'display:flex;flex-direction:column';
+/* ══════ v250: Clar Posts, app settings, Guides moderation — pure CRUD over admin-relay-worker.js ══════ */
+const CP_TABS=['','chat','vibe','goal','self','home','fortune'];
+let CP_ROWS=[],GD_ROWS=[];
+function _prom(title,fields,onOk){ // small generic modal form
+  const old=document.getElementById('v250-modal'); if(old) old.remove();
+  const m=document.createElement('div'); m.id='v250-modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  m.innerHTML='<div style="background:#1a1a24;border:1px solid #333;border-radius:14px;padding:18px;max-width:520px;width:100%;max-height:90vh;overflow:auto"><div style="font-weight:700;margin-bottom:12px">'+x(title)+'</div>'
+    +fields.map(f=>'<div class="fld"><label style="font-size:12px;color:#9CA3AF">'+x(f.l)+'</label>'+(f.t==='area'?'<textarea id="m-'+f.k+'" rows="4">'+x(f.v)+'</textarea>':f.t==='select'?'<select id="m-'+f.k+'">'+f.o.map(o=>'<option value="'+x(o)+'"'+(o===f.v?' selected':'')+'>'+x(o||'(none)')+'</option>').join('')+'</select>':'<input id="m-'+f.k+'" type="'+(f.t||'text')+'" value="'+x(f.v)+'">')+'</div>').join('')
+    +'<div style="display:flex;gap:8px;margin-top:12px"><button class="add-btn" id="m-ok">Save</button><button class="add-btn" style="background:#333" id="m-no">Cancel</button></div></div>';
+  document.body.appendChild(m);
+  document.getElementById('m-no').onclick=()=>m.remove();
+  document.getElementById('m-ok').onclick=async()=>{const o={};fields.forEach(f=>{o[f.k]=document.getElementById('m-'+f.k).value;});try{await onOk(o);m.remove();}catch(e){toast('⚠️ '+e.message,'err');}};
+}
+const _iso=s=>{if(!s)return null;const d=new Date(s);return isNaN(d)?null:d.toISOString();};
+const _loc=s=>{if(!s)return '';const d=new Date(s);if(isNaN(d))return '';const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'T'+p(d.getHours())+':'+p(d.getMinutes());};
+
+async function loadClarPosts(){
+  const el=document.getElementById('cp-list');
+  try{
+    CP_ROWS=await adminApi('social_clar_posts.select')||[];
+    el.innerHTML=CP_ROWS.length?CP_ROWS.map(r=>{
+      const st=!r.active?'⏸ off':(r.expires_at&&new Date(r.expires_at)<new Date())?'⌛ expired':(new Date(r.publish_at)>new Date())?'🗓 scheduled':'✅ live';
+      return '<div class="ic"><div class="ic-head"><div class="ic-body"><div class="ic-name">'+x(r.title||(r.message||'').slice(0,50))+'</div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">'+st+' · publish '+x(_loc(r.publish_at).replace('T',' '))+(r.expires_at?' · expires '+x(_loc(r.expires_at).replace('T',' ')):'')+(r.cta_label?' · button "'+x(r.cta_label)+'" → '+x(r.cta_tab):'')+'</div></div>'
+        +'<div class="ic-acts"><button class="ab a-edit" onclick="cpForm('+r.id+')">Edit</button><button class="ab a-del" onclick="cpDel('+r.id+')">Del</button></div></div></div>';
+    }).join(''):empty('✍️','No Clar posts yet');
+  }catch(e){el.innerHTML=empty('⚠️','Could not load: '+x(e.message));}
+  loadAppSettings();
+}
+function cpForm(id){
+  const r=CP_ROWS.find(z=>z.id===id)||{active:true,publish_at:new Date().toISOString()};
+  _prom(id?'Edit Clar post':'New Clar post',[
+    {k:'title',l:'Title (max 120)',v:r.title||''},{k:'message',l:'Message (max 1200, plain text)',t:'area',v:r.message||''},
+    {k:'image_url',l:'Image URL (https, optional)',v:r.image_url||''},{k:'cta_label',l:'Button label (max 30, optional)',v:r.cta_label||''},
+    {k:'cta_tab',l:'Button opens tab',t:'select',o:CP_TABS,v:r.cta_tab||''},
+    {k:'publish_at',l:'Publish at',t:'datetime-local',v:_loc(r.publish_at)},{k:'expires_at',l:'Expires at (optional)',t:'datetime-local',v:_loc(r.expires_at)},
+    {k:'active',l:'Active',t:'select',o:['yes','no'],v:r.active===false?'no':'yes'}
+  ],async o=>{
+    const p={title:o.title.trim()||null,message:o.message.trim()||null,image_url:o.image_url.trim()||null,cta_label:o.cta_label.trim()||null,cta_tab:o.cta_label.trim()?(o.cta_tab||null):null,publish_at:_iso(o.publish_at)||new Date().toISOString(),expires_at:_iso(o.expires_at),active:o.active==='yes'};
+    if(!p.title&&!p.message) throw new Error('Add a title or a message');
+    if(p.image_url&&!/^https:\/\//.test(p.image_url)) throw new Error('Image must be https');
+    if(p.cta_label&&!p.cta_tab) throw new Error('Choose which tab the button opens');
+    if(id) p.id=id;
+    await adminApi('social_clar_posts.upsert',p); toast('✅ Saved'); loadClarPosts();
+  });
+}
+async function cpDel(id){ if(!confirm('Delete this post?'))return; try{await adminApi('social_clar_posts.delete',{id});toast('🗑 Deleted');loadClarPosts();}catch(e){toast('⚠️ '+e.message,'err');} }
+async function loadAppSettings(){
+  const el=document.getElementById('cp-settings');
+  try{
+    const rows=await adminApi('app_settings.select')||[];
+    el.innerHTML=rows.map(r=>'<div class="ic"><div class="ic-head"><div class="ic-body"><div class="ic-name">'+x(r.key)+'</div><div style="font-size:12px;color:#9CA3AF">'+x(r.note||'')+'</div></div><div class="ic-acts"><input id="as-'+x(r.key)+'" type="number" step="any" value="'+x(r.num)+'" style="width:90px"><button class="ab a-edit" onclick="asSave(\''+x(r.key)+'\')">Save</button></div></div></div>').join('')||empty('⚙️','No settings (run the v250 SQL)');
+  }catch(e){el.innerHTML=empty('⚠️','Could not load: '+x(e.message));}
+}
+async function asSave(key){
+  const n=parseFloat(document.getElementById('as-'+key).value);
+  if(!isFinite(n)||n<0){toast('⚠️ Enter a number ≥ 0','err');return;}
+  try{await adminApi('app_settings.upsert',{key,num:n});toast('✅ '+key+' = '+n);}catch(e){toast('⚠️ '+e.message,'err');}
+}
+
+async function loadGuidesAdmin(){
+  const el=document.getElementById('gd-list'),at=document.getElementById('gd-attn'),so=document.getElementById('gd-sources');
+  try{
+    GD_ROWS=await adminApi('guides.select')||[];
+    const rep=await adminApi('guide_reports.select')||[];
+    const bad=GD_ROWS.filter(g=>g.status==='paused'||g.status==='rejected'||g.reports_open>0);
+    at.innerHTML=bad.length?bad.map(g=>'<div class="ic"><div class="ic-head"><div class="ic-body"><div class="ic-name">'+x(g.title)+' <span style="color:#9CA3AF;font-weight:400">— '+x(g.status)+', '+(g.reports_open||0)+' open report(s)</span></div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">'+x(g.last_error||'')+' '+rep.filter(r=>r.guide_id===g.id).slice(0,3).map(r=>'['+x(r.reason)+']').join(' ')+'</div></div><div class="ic-acts">'+gdButtons(g)+'<button class="ab a-edit" onclick="gdPosts(\''+g.id+'\')">Posts</button></div></div></div>').join(''):empty('✅','Nothing needs attention');
+    el.innerHTML=GD_ROWS.map(g=>'<div class="ic"><div class="ic-head"><div class="ic-body"><div class="ic-name">'+x(g.title)+' <span style="color:#9CA3AF;font-weight:400">— '+x(g.kind)+' / '+x(g.visibility)+' / '+x(g.status)+'</span></div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">'+(g.subscribers||0)+' followers · '+(g.posts_per_day||0)+'/day · last run '+x(g.last_run_at?_loc(g.last_run_at).replace('T',' '):'never')+'</div></div><div class="ic-acts">'+gdButtons(g)+'<button class="ab a-edit" onclick="gdPosts(\''+g.id+'\')">Posts</button></div></div></div>').join('')||empty('🧭','No guides yet');
+  }catch(e){el.innerHTML=empty('⚠️','Could not load: '+x(e.message));at.innerHTML='';}
+  try{
+    const src=await adminApi('guide_sources.select')||[]; window._GS=src;
+    so.innerHTML=src.map(s=>'<div class="ic"><div class="ic-head"><div class="ic-body"><div class="ic-name">'+x(s.name)+(s.active?'':' (off)')+'</div><div style="font-size:12px;color:#9CA3AF;margin-top:2px">'+x(s.url)+' · '+x((s.tags||[]).join(', '))+'</div></div><div class="ic-acts"><button class="ab a-edit" onclick="gsForm('+s.id+')">Edit</button><button class="ab a-del" onclick="gsDel('+s.id+')">Del</button></div></div></div>').join('')||empty('📰','No sources');
+  }catch(e){so.innerHTML=empty('⚠️','Could not load: '+x(e.message));}
+}
+function gdButtons(g){
+  const b=(s,l)=>'<button class="ab a-edit" onclick="gdSet(\''+g.id+'\',\''+s+'\')">'+l+'</button>';
+  return (g.status!=='active'?b('active','Activate'):b('paused','Pause'))+'<button class="ab a-edit" onclick="gdRun(\''+g.id+'\')">Run now</button><button class="ab a-del" onclick="gdDel(\''+g.id+'\')">Del</button>';
+}
+async function gdSet(id,status){ try{await adminApi('guides.update',{id,fields:{status,last_error:null,reports_open:0}});toast('✅ '+status);loadGuidesAdmin();}catch(e){toast('⚠️ '+e.message,'err');} }
+async function gdRun(id){ toast('Running… (can take ~20s)'); try{const r=await adminApi('guides.runNow',{id});toast('✅ '+JSON.stringify(r).slice(0,140));loadGuidesAdmin();}catch(e){toast('⚠️ '+e.message,'err');} }
+async function gdTick(){ toast('Running scheduler…'); try{const r=await adminApi('guides.tick');toast('✅ '+JSON.stringify(r).slice(0,140));loadGuidesAdmin();}catch(e){toast('⚠️ '+e.message,'err');} }
+async function gdDel(id){ if(!confirm('Delete this guide and all its posts?'))return; try{await adminApi('guides.delete',{id});toast('🗑 Deleted');loadGuidesAdmin();}catch(e){toast('⚠️ '+e.message,'err');} }
+async function gdPosts(gid){
+  try{
+    const ps=await adminApi('guide_posts.select',{guide_id:gid,limit:15})||[];
+    const m=document.createElement('div');m.id='v250-modal';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+    m.innerHTML='<div style="background:#1a1a24;border:1px solid #333;border-radius:14px;padding:18px;max-width:640px;width:100%;max-height:90vh;overflow:auto"><div style="font-weight:700;margin-bottom:10px">Recent posts</div>'
+      +(ps.map(p=>'<div class="ic"><div class="ic-body"><div class="ic-name">['+x(p.lang)+'] '+x(p.title)+' <span style="color:#9CA3AF;font-weight:400">'+x(p.status||'')+'</span></div><div style="font-size:12px;color:#9CA3AF;margin:4px 0">'+x((p.body||'').slice(0,240))+'</div><button class="ab a-del" onclick="gpHide('+p.id+')">Hide</button> <button class="ab a-edit" onclick="gpShow('+p.id+')">Show</button></div></div>').join('')||empty('📭','No posts'))
+      +'<button class="add-btn" style="background:#333;margin-top:10px" onclick="document.getElementById(\'v250-modal\').remove()">Close</button></div>';
+    const old=document.getElementById('v250-modal');if(old)old.remove();document.body.appendChild(m);
+  }catch(e){toast('⚠️ '+e.message,'err');}
+}
+async function gpHide(id){ try{await adminApi('guide_posts.update',{id,status:'hidden'});toast('Hidden');}catch(e){toast('⚠️ '+e.message,'err');} }
+async function gpShow(id){ try{await adminApi('guide_posts.update',{id,status:'published'});toast('Shown');}catch(e){toast('⚠️ '+e.message,'err');} }
+function gdStarterForm(){
+  _prom('New starter guide',[{k:'title',l:'Title',v:''},{k:'description',l:'Description',v:''},{k:'slug',l:'Slug (a-z0-9-)',v:''},{k:'canonical_key',l:'Canonical key (snake_case)',v:''},
+    {k:'topic',l:'Topic',v:''},{k:'intention',l:'Intention (what posts should help with)',t:'area',v:''},{k:'angles',l:'Angles (comma separated)',v:''},{k:'source_tags',l:'Source tags (comma separated, must exist in the allowlist)',v:''},
+    {k:'sensitive',l:'Sensitive topic (adds helpline note)',t:'select',o:['no','yes'],v:'no'}],
+    async o=>{
+      const csv=s=>s.split(',').map(z=>z.trim()).filter(Boolean);
+      if(!/^[a-z0-9-]{3,60}$/.test(o.slug)||!/^[a-z0-9_]{3,60}$/.test(o.canonical_key)||!o.title.trim()||!o.topic.trim()) throw new Error('Fill title, topic, valid slug and canonical key');
+      await adminApi('guides.insertStarter',{slug:o.slug,title:o.title.trim(),description:o.description.trim(),canonical_key:o.canonical_key,sensitive:o.sensitive==='yes',blueprint:{topic:o.topic.trim(),intention:o.intention.trim(),angles:csv(o.angles),tone:'warm, simple',avoid:[],source_tags:csv(o.source_tags),wikiquote:[],youtube:[]}});
+      toast('✅ Created — it posts on the next scheduler run'); loadGuidesAdmin();
+    });
+}
+function gsForm(id){
+  const s=(window._GS||[]).find(z=>z.id===id)||{active:true,tags:[]};
+  _prom(id?'Edit source':'Add source',[{k:'name',l:'Publisher name',v:s.name||''},{k:'url',l:'Feed URL (https RSS)',v:s.url||''},{k:'tags',l:'Tags (comma separated)',v:(s.tags||[]).join(', ')},{k:'active',l:'Active',t:'select',o:['yes','no'],v:s.active===false?'no':'yes'}],
+    async o=>{ if(!/^https:\/\//.test(o.url)||!o.name.trim()) throw new Error('Name and https URL required');
+      const p={name:o.name.trim(),url:o.url.trim(),tags:o.tags.split(',').map(z=>z.trim()).filter(Boolean),active:o.active==='yes'}; if(id)p.id=id;
+      await adminApi('guide_sources.upsert',p); toast('✅ Saved'); loadGuidesAdmin(); });
+}
+async function gsDel(id){ if(!confirm('Remove this source?'))return; try{await adminApi('guide_sources.delete',{id});toast('🗑 Removed');loadGuidesAdmin();}catch(e){toast('⚠️ '+e.message,'err');} }
+/* lazy-load the two new tabs the first time they open */
+(function(){const o=switchTab;switchTab=function(b){o(b);if(b.dataset.p==='clarposts')loadClarPosts();if(b.dataset.p==='guides')loadGuidesAdmin();};})();
+
 loadData();
 
 </script>
