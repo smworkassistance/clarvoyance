@@ -355,10 +355,18 @@ const DISTRESS = /\b(suicid|kill myself|end my life|self[- ]?harm|hopeless|worth
 const HELPLINE_NOTE = 'If things feel heavy, you are not alone — please reach out to someone you trust or a local helpline (India: Tele-MANAS 14416).';
 
 function nowIso() { return new Date().toISOString(); }
-async function fetchTimeout(url, init, ms) {
+/* Cloudflare blocks a Worker from calling another *.workers.dev Worker of the same account by URL (error 1042, shown as HTTP 404).
+   The supported way is a SERVICE BINDING: dashboard → this Worker → Settings → Bindings → Add → Service binding
+   (variable GEMINI → cold-frog-d555, variable YT → clar-youtube). callSibling() uses the binding when present, else falls back to the URL. */
+let _env = null;
+function callSibling(name, url, init, signal) {
+  const b = _env && _env[name];
+  return b && b.fetch ? b.fetch(url, { ...(init || {}), signal }) : fetch(url, { ...(init || {}), signal });
+}
+async function fetchTimeout(url, init, ms, sibling) {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), ms || 10000);
-  try { return await fetch(url, { ...(init || {}), signal: ctl.signal }); } finally { clearTimeout(t); }
+  try { return sibling ? await callSibling(sibling, url, init, ctl.signal) : await fetch(url, { ...(init || {}), signal: ctl.signal }); } finally { clearTimeout(t); }
 }
 function extractJson(text) {
   if (!text) return null;
@@ -378,8 +386,8 @@ async function geminiJSON(system, user, opts) {
     contents: [{ role: 'user', parts: [{ text: user }] }],
     generationConfig: { temperature: opts.temperature == null ? 0.4 : opts.temperature, maxOutputTokens: opts.maxTokens || 900, responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 0 } },
   };
-  const r = await fetchTimeout(GEMINI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, 30000);
-  if (!r.ok) throw new Error('gemini HTTP ' + r.status);
+  const r = await fetchTimeout(GEMINI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, 30000, 'GEMINI');
+  if (!r.ok) throw new Error('gemini HTTP ' + r.status + (r.status === 404 ? ' (add the GEMINI service binding — see callSibling)' : ''));
   const j = await r.json();
   const text = (((j.candidates || [])[0] || {}).content || {}).parts ? j.candidates[0].content.parts.map((p) => p.text || '').join('') : '';
   const data = extractJson(text);
@@ -483,7 +491,7 @@ async function pickVideo(bp, key, usedIds, postText) {
   if (!qs.length) return null;
   try {
     const q = qs[Math.floor(Date.now() / 86400000) % qs.length];
-    const r = await fetchTimeout(YT_WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic: 'guide_' + key, query: q }) }, 12000);
+    const r = await fetchTimeout(YT_WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic: 'guide_' + key, query: q }) }, 12000, 'YT');
     if (!r.ok) return null;
     const j = await r.json();
     const v = ((j && j.videos) || []).find((x) => x.video_id && /^[A-Za-z0-9_-]{11}$/.test(x.video_id) && !usedIds.has(x.video_id) && videoFits(x.title, postText || ''));
@@ -1116,6 +1124,7 @@ const ACTIONS = {
 
 export default {
   async fetch(request, env) {
+    _env = env;
     if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders() });
     if (request.method !== 'POST') return json({ error: 'POST only' }, 405);
 
@@ -1150,6 +1159,7 @@ export default {
      to add in the dashboard). Not token-gated like fetch() above — Cron
      Triggers invoke this directly, there's no incoming request to check. */
   async scheduled(event, env, ctx) {
+    _env = env;
     ctx.waitUntil(Promise.allSettled([evaluateAndSendAll(env), guidesTick(env)])); /* v250: notifications + guides */
   },
 };
