@@ -470,7 +470,15 @@ async function collectQuotes(bp, usedTexts) {
     return all.slice(0, 2);
   } catch (e) { return []; }
 }
-async function pickVideo(bp, key, usedIds) {
+/* a video is attached only when it plausibly matches the post (shares real words with it) and is not get-rich / clickbait material */
+const CLICKBAIT = /🤑|💰|💸|guarantee|secret|jackpot|paise kamao|earn \$|get rich|make money|forex|crypto|trading|betting|casino|100% |shocking|you won't believe/i;
+function videoFits(title, postText) {
+  if (!title || CLICKBAIT.test(title) || BAD_WORDS.test(title)) return false;
+  const kw = keywords(postText), tk = keywords(title);
+  let overlap = 0; tk.forEach((w) => { if (kw.has(w)) overlap++; });
+  return overlap >= 1;
+}
+async function pickVideo(bp, key, usedIds, postText) {
   const qs = bp.youtube || [];
   if (!qs.length) return null;
   try {
@@ -478,7 +486,7 @@ async function pickVideo(bp, key, usedIds) {
     const r = await fetchTimeout(YT_WORKER_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic: 'guide_' + key, query: q }) }, 12000);
     if (!r.ok) return null;
     const j = await r.json();
-    const v = ((j && j.videos) || []).find((x) => x.video_id && /^[A-Za-z0-9_-]{11}$/.test(x.video_id) && !usedIds.has(x.video_id));
+    const v = ((j && j.videos) || []).find((x) => x.video_id && /^[A-Za-z0-9_-]{11}$/.test(x.video_id) && !usedIds.has(x.video_id) && videoFits(x.title, postText || ''));
     return v ? { id: v.video_id, title: String(v.title || '').slice(0, 140) } : null;
   } catch (e) { return null; }
 }
@@ -570,7 +578,7 @@ async function runGuide(env, guide, opts) {
   const post = gen.post;
   const dedupe = fnv(post.used.map((s) => s.url + (s.type === 'quote' ? fnv(s.text) : '')).sort().join('|'));
   if (usedKeys.has(dedupe)) return { ok: false, reason: 'duplicate of an earlier post', published: 0, tokens };
-  const video = opts.noVideo ? null : await pickVideo(bp, guide.canonical_key, usedVids);
+  const video = opts.noVideo ? null : await pickVideo(bp, guide.canonical_key, usedVids, post.title + ' ' + post.body + ' ' + (bp.topic || ''));
   const sourcesJson = post.used.map((s) => ({ title: s.title, url: s.url, publisher: s.publisher, ...(s.type === 'quote' ? { qh: fnv(s.text), quote: s.text } : {}) }));
   const langs = await guideLanguages(env, guide);
   let published = 0;

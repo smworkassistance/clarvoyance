@@ -23,7 +23,7 @@ globalThis.fetch = async (url, init) => {
   if (url.startsWith('https://unvwjuceuyruqdnmvxlc.supabase.co/rest/v1/')) {
     const table = url.split('/rest/v1/')[1].split('?')[0];
     const json = o => new Response(JSON.stringify(o), { status: 200, headers: { 'content-type': 'application/json' } });
-    if ((init.method || 'GET') === 'GET') return json(table === 'guide_sources' ? sourcesFromSql() : table === 'guide_subscriptions' ? [{ languages: ['en', 'hi'] }] : []);
+    if ((init.method || 'GET') === 'GET') return json(table === 'guide_sources' ? sourcesFromSql() : table === 'guide_subscriptions' ? [{ languages: ['en', 'hi'] }] : table === 'guides' ? [globalThis.__guide] : []);
     if (init.method === 'POST' && table === 'guide_posts') { posts.push(JSON.parse(init.body)); return json([]); }
     return json([]);
   }
@@ -34,7 +34,7 @@ globalThis.fetch = async (url, init) => {
   const tmp = path.join(os.tmpdir(), 'arw-live-' + Date.now() + '.mjs');
   fs.copyFileSync(path.join(__dirname, '..', '..', 'workers', 'admin-relay-worker.js'), tmp);
   const W = (await import('file:///' + tmp.replace(/\\/g, '/'))).default;
-  const g = starterFromSql(slug);
+  const g = starterFromSql(slug); globalThis.__guide = g;
   const t0 = Date.now();
   const r = await W.fetch(new Request('https://w.test/', { method: 'POST', headers: { Authorization: 'Bearer ADM', 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'guides.runNow', payload: { id: g.id, dry: true } }) }),
     { ADMIN_TOKEN: 'ADM', SUPABASE_SERVICE_KEY: 'svc' });
