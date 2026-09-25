@@ -7422,6 +7422,11 @@ function renderNoOverindulgence(){
 .ms-emo .me{font-size:1.55rem;line-height:1}
 .ms-emo .mn{font-size:.52rem;color:var(--dksub);line-height:1.25;text-align:center}
 /* ── Registration screen ── */
+#disc-screen{position:fixed;inset:0;z-index:9503;background:var(--dk);display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+#disc-screen.hidden{display:none}
+#disc-card{width:min(380px,100%)}
+#disc-card .reg-head p{font-size:.98rem;line-height:1.6}
+.soc-disc{margin:18px 16px 26px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--su) 70%,transparent);border:1px dashed var(--bo);font-size:.78rem;line-height:1.5;color:var(--lt);text-align:center}
 #reg-screen{position:fixed;inset:0;z-index:9501;background:var(--dk);display:flex;align-items:flex-start;justify-content:center;padding:24px;overflow-y:auto}
 #reg-screen.hidden{display:none}
 #reg-card{width:min(380px,100%);padding-bottom:40px;margin:auto}
@@ -7656,6 +7661,18 @@ function renderNoOverindulgence(){
 <!-- mood-start-screen removed v64 -->
 
 <!-- REGISTRATION SCREEN (v92) — shown once after nickname, data saved to clv_user_identity -->
+<!-- v250 (T-046): one-time start-of-app disclaimer. Reuses the registration screen's look. Shown once per device before the rest of onboarding. -->
+<div id="disc-screen" class="hidden" role="dialog" aria-label="Before you begin">
+  <div id="disc-card">
+    <div class="reg-head">
+      <span class="reg-star">✦</span>
+      <h2>Before you begin</h2>
+      <p>Clar is not a substitute for a doctor, therapist or other qualified consultant. It helps you build a positive mindset and point it in the right direction. For specific medical, legal, financial or mental-health help, please speak to a qualified professional.</p>
+    </div>
+    <button type="button" class="reg-submit" onclick="discAccept()">I understand</button>
+  </div>
+</div>
+
 <div id="reg-screen" class="hidden">
   <button type="button" class="reg-skip-top" onclick="regSkip()">Skip</button>
   <div id="reg-card">
@@ -8312,8 +8329,17 @@ function renderNoOverindulgence(){
     if(!localStorage.getItem(DESTINY_SEEN_KEY)){
       localStorage.setItem(DESTINY_SEEN_KEY,'true');
     }
+    /* v250 (T-046): the "Clar is not a substitute for a doctor or consultant" note comes first, once per device */
+    var ok=false;try{ok=!!localStorage.getItem('clv_disclaimer_ok');}catch(e){}
+    var el=document.getElementById('disc-screen');
+    if(!ok&&el){window._discNext=_checkNick;el.classList.remove('hidden');return;}
     _checkNick();
   }
+  window.discAccept=function(){
+    try{localStorage.setItem('clv_disclaimer_ok',String(Date.now()));}catch(e){}
+    var el=document.getElementById('disc-screen');if(el)el.classList.add('hidden');
+    var n=window._discNext;window._discNext=null;if(typeof n==='function')n();
+  };
   window.destinyChoose=function(choice){
     document.getElementById('destiny-main').classList.add('hidden');
     document.getElementById(choice==='freewill'?'destiny-freewill':'destiny-destiny').classList.remove('hidden');
@@ -17194,6 +17220,7 @@ body.home-tab #nn-tab-section{order:2;}
   var HELP_SECTIONS=[
     { label:'How to Use Clar', items:[
       {sym:'✦', name:'Getting the most from Clar', q:'How do I use Clar?', a:'Talk to Clar often — the more you show up, the more it can actually help. Many people find real value spending around an hour a day across the app, though even a few minutes counts. Write down a real goal, so Clar can tailor what it shows you. Explore every part of the app at least once — Chargers, Tools, Self, and Fortune each help in a different way. Set your Non-Negotiables and try not to miss them — they’re the foundation everything else builds on. Stuck on how something works? Search here, or just ask Clar directly. Need more than that? Write to us. Think of Clar less like an app and more like a companion for the life you’re building — one that also knows how to help you unwind, with short videos and quotes built right into your feed.'},
+      {sym:'ⓘ', name:'Important: what Clar is (and isn’t)', q:'', a:'Clar is not a substitute for a doctor, therapist or other qualified consultant. It helps you build a positive mindset and point it in the right direction. For specific medical, legal, financial or mental-health help, please speak to a qualified professional.'},
       {sym:'?', name:'Take the guided tour', q:'', a:'A quick spotlight walkthrough of every main tab.', action:'tour'}
     ]},
     { label:'Main Sections', items:[
@@ -18548,7 +18575,7 @@ body.home-tab #nn-tab-section{order:2;}
        three (reg-screen is now always hidden anyway, kept for safety). */
     /* v246: + soc-screen — found live testing the video viewer: the install card (z-index 9999) slid up over the full-screen Community / Reels
        viewer. soc-screen uses the same 'hidden' class convention as the onboarding screens. */
-    var blockingScreenIds=['reg-screen','lifequiz-screen','gsignin-screen','soc-screen'];
+    var blockingScreenIds=['disc-screen','reg-screen','lifequiz-screen','gsignin-screen','soc-screen'];
     for(var _bi=0; _bi<blockingScreenIds.length; _bi++){
       var _bEl=document.getElementById(blockingScreenIds[_bi]);
       if(_bEl && !_bEl.classList.contains('hidden')) return;
@@ -21941,6 +21968,7 @@ textarea.soc-in{resize:none;min-height:74px}
         });
         h+='</div>';
       }
+      h+='<div class="soc-disc">Posts here are general information and community sharing to help you build a positive mindset. They are not advice — for specific help, please consult a qualified professional.</div>';
       body(h);
     }catch(e){console.warn('[soc] feed',e);renderError('Couldn’t load your feed.');}
   }

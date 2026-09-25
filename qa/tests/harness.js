@@ -33,10 +33,11 @@ const test = base.extend({
         await page.waitForFunction(() => typeof window.bnavSwitch === 'function' && document.querySelector('.bnav-tab'), null, { timeout: 30000 });
         await page.waitForTimeout(4500);
         // onboarding overlays (life quiz / google sign-in prompt) are dismissed the way a user would ("don't ask again"/"maybe later")
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
           const shown = await page.evaluate(() => [...document.querySelectorAll('[id$="-screen"],#tour-welcome')].filter(e => getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0 && e.id !== 'soc-screen').map(e => e.id));
           if (!shown.length) break;
           await page.evaluate(() => {
+            try { const d = document.getElementById('disc-screen'); if (d && !d.classList.contains('hidden') && typeof discAccept === 'function') discAccept(); } catch (e) {}
             try { if (typeof lifeQuizSkipForever === 'function') lifeQuizSkipForever(); } catch (e) {}
             const g = document.getElementById('gsignin-screen');
             if (g && getComputedStyle(g).display !== 'none') { const b = [...g.querySelectorAll('button,a,div')].find(e => /maybe later/i.test(e.textContent) && e.children.length === 0); if (b) b.click(); }
