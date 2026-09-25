@@ -85,7 +85,7 @@ test.describe('share + invite + referral (v250)', () => {
     await expect.poll(() => page.evaluate(() => document.getElementById('soc-screen').classList.contains('hidden')), { timeout: 5000 }).toBe(true);
   });
 
-  test('a shared video plays INSIDE the feed post (muted, when in view, one at a time)', async ({ app }) => {
+  test('a shared video plays INSIDE the feed post (with sound, when in view, one at a time)', async ({ app }) => {
     const { page } = app;
     await common(page);
     const rows = ['AAAAAAAAAAA', 'BBBBBBBBBBB'].map((id, i) => ({ id: 100 + i, user_id: '00000000-0000-4000-8000-0000000000f' + i, title: null, images: [], date_set: null, date_achieved: null, created_at: new Date(Date.now() - i * 3600000).toISOString(), handle: 'friend' + i, display_name: 'Friend ' + i, avatar_url: null, cheers: 0, i_cheered: false, message: 'watch this ' + i, comments: 0, video: null, yt_video: { id, title: 'Shared video ' + i } }));
@@ -96,7 +96,7 @@ test.describe('share + invite + referral (v250)', () => {
     await page.evaluate(() => document.querySelectorAll('.soc-yt')[0].scrollIntoView({ block: 'center' }));
     await expect(page.locator('.soc-yt.live')).toHaveCount(1, { timeout: 5000 });
     const first = await page.evaluate(() => ({ vid: document.querySelector('.soc-yt.live').getAttribute('data-yt'), muted: window.__yt.players.at(-1).opts.playerVars.mute, controls: window.__yt.players.at(-1).opts.playerVars.controls }));
-    expect(first.vid).toBe('AAAAAAAAAAA'); expect(first.muted).toBe(1); expect(first.controls).toBe(1);
+    expect(first.vid).toBe('AAAAAAAAAAA'); expect(first.muted).toBe(0); /* v251b: starts with sound by default */ expect(first.controls).toBe(1);
     // nothing of ours over the video: the centre pixel belongs to the player
     expect(await page.evaluate(() => { const r = document.querySelector('.soc-yt.live').getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!(e && e.closest('.fake-yt')); })).toBe(true);
     await page.evaluate(() => document.querySelectorAll('.soc-yt')[1].scrollIntoView({ block: 'center' }));

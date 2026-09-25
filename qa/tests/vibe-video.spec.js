@@ -133,18 +133,23 @@ test.describe('Vibe video card (v250)', () => {
     expect(share, '…but exploration still happens').toBeLessThan(0.97);
   });
 
-  test('sound: once the viewer unmutes in YouTube\'s own control, later videos start with sound', async ({ app }) => {
+  // v251b (owner: "videos mute hona hi nahi chahiye"): sound is ON by default; only the viewer's own mute keeps later videos muted
+  test('sound: videos start WITH sound by default; once the viewer mutes in YouTube own control, later videos stay muted', async ({ app }) => {
     await setup(app);
     const { page } = app;
-    expect(await page.evaluate(() => localStorage.getItem('clv_vf_sound'))).not.toBe('1');
+    expect(await page.evaluate(() => localStorage.getItem('clv_vf_sound'))).toBeNull();
     await expect.poll(() => page.evaluate(() => !!window.__yt.players.find(p => !p.destroyed && p.state === 1)), { timeout: 5000 }).toBe(true);
-    await page.evaluate(() => { const pl = window.__yt.players.find(p => !p.destroyed && p.state === 1); pl.muted = false; });   // the viewer taps YouTube's speaker icon
-    await expect.poll(() => page.evaluate(() => localStorage.getItem('clv_vf_sound')), { timeout: 3000 }).toBe('1');
+    const first = await page.evaluate(() => { const vid = document.querySelector('.vfv-slot.active').getAttribute('data-vid'); const pl = window.__yt.players.find(p => p.vid === vid && !p.destroyed); return { muted: pl.muted, unmuteCalls: pl.unmuteCalls }; });
+    expect(first.muted).toBe(false);
+    expect(first.unmuteCalls).toBeGreaterThanOrEqual(1);
+    await page.waitForTimeout(2700); // past the short grace window in which YouTube's isMuted() may still lag our own unMute()
+    expect(await page.evaluate(() => localStorage.getItem('clv_vf_sound')), 'our own unmute is not mistaken for a viewer choice').toBeNull();
+    await page.evaluate(() => { const pl = window.__yt.players.find(p => !p.destroyed && p.state === 1); pl.muted = true; });   // the viewer taps YouTube's speaker icon
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('clv_vf_sound')), { timeout: 3000 }).toBe('0');
     await showVideoCard(page);
     await page.waitForTimeout(800);
-    const muted = await page.evaluate(() => { const vid = document.querySelector('.vfv-slot.active').getAttribute('data-vid'); const pl = window.__yt.players.find(p => p.vid === vid && !p.destroyed); return { muted: pl.muted, unmuteCalls: pl.unmuteCalls }; });
-    expect(muted.muted).toBe(false);
-    expect(muted.unmuteCalls).toBeGreaterThanOrEqual(1);
+    const next = await page.evaluate(() => { const vid = document.querySelector('.vfv-slot.active').getAttribute('data-vid'); const pl = window.__yt.players.find(p => p.vid === vid && !p.destroyed); return { muted: pl.muted }; });
+    expect(next.muted).toBe(true);
   });
 
   test('swipe up on our own UI advances; Next button advances; leaving early is a fast-skip signal', async ({ app }) => {

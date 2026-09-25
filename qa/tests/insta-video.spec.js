@@ -136,10 +136,14 @@ test.describe('Instagram-style video (v251)', () => {
     expect(g.h / g.w).toBeCloseTo(1.25, 1);         // Instagram 4:5
     expect(g.snd).toBe(true);
     await page.evaluate(() => document.querySelector('.soc-vin').scrollIntoView({ block: 'center' }));
-    await expect.poll(() => page.evaluate(() => { const v = document.querySelector('.soc-vin video'); return !!(v && !v.paused && v.muted); }), { timeout: 15000 }).toBe(true);
+    await expect.poll(() => page.evaluate(() => { const v = document.querySelector('.soc-vin video'); return !!(v && !v.paused); }), { timeout: 15000 }).toBe(true);
+    // v251b: it tries sound FIRST (default); muted only if the browser refused sound
+    const m0 = await page.evaluate(() => document.querySelector('.soc-vin video').muted);
     await page.screenshot({ path: path.join(__dirname, '..', 'test-results', 'v251-feed-video.png') });
     await page.click('.soc-vin .soc-vin-snd');
-    expect(await page.evaluate(() => document.querySelector('.soc-vin video').muted)).toBe(false);
+    const after = await page.evaluate(() => ({ m: document.querySelector('.soc-vin video').muted, ls: localStorage.getItem('clv_vf_sound') }));
+    expect(after.m).toBe(!m0);                 // the speaker button flips sound
+    expect(after.ls).toBe(m0 ? '1' : '0');     // and remembers the viewer's choice
     await page.click('.soc-vin .soc-vin-tap');
     await expect(page.locator('#soc-reels.on')).toHaveCount(1, { timeout: 5000 });
     expect(await page.evaluate(() => document.querySelector('.soc-vin video').paused)).toBe(true); // inline paused behind the Reels viewer

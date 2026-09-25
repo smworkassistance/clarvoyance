@@ -13247,16 +13247,18 @@ function renderNoOverindulgence(){
     });
     return slot;
   }
-  function _vfvWantsSound(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}}
+  /* v251b (owner: "videos mute hona hi nahi chahiye"): sound is ON by default; only the viewer's own mute ('0') keeps it off */
+  function _vfvWantsSound(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}}
   function _vfvPlay(slot){
     var pl=slot.player;if(!pl)return;
     try{
       if(_vfvWantsSound()){pl.unMute();pl.setVolume(100);slot.lastSet=false;}else{pl.mute();slot.lastSet=true;}
+      slot.setAt=Date.now(); /* v251b: isMuted() lags our own (un)mute for a moment — ignore mismatches right after we set it */
       pl.playVideo();
     }catch(e){}
     clearTimeout(slot.guard);
     /* browsers may refuse UNMUTED autoplay — then PLAYING never fires; fall back to muted rather than a video that just sits there */
-    slot.guard=setTimeout(function(){try{if(slot.active&&slot.startedAt==null){pl.mute();slot.lastSet=true;pl.playVideo();}}catch(e){}},1500);
+    slot.guard=setTimeout(function(){try{if(slot.active&&slot.startedAt==null){pl.mute();slot.lastSet=true;slot.setAt=Date.now();pl.playVideo();}}catch(e){}},1500);
   }
   function _vfvOnPlaying(slot){
     if(slot.startedAt==null){
@@ -13279,7 +13281,7 @@ function renderNoOverindulgence(){
       if(f>=0.95&&!slot.completed){slot.completed=true;_vfvSignal(slot,'complete');}
     }
     slot.lastF=f;
-    try{var m=pl.isMuted();if(slot.lastSet!=null&&m!==slot.lastSet){slot.lastSet=m;try{localStorage.setItem('clv_vf_sound',m?'0':'1');}catch(e){}}}catch(e){}
+    try{var m=pl.isMuted();if(slot.lastSet!=null&&m!==slot.lastSet&&!(slot.setAt&&Date.now()-slot.setAt<2500)){slot.lastSet=m;try{localStorage.setItem('clv_vf_sound',m?'0':'1');}catch(e){}}}catch(e){}
   }
   /* each pass over 50% pays again; the first pass unlocks the card (so leaving is not a "skip"), later passes are bonus XP — all under the daily cap */
   function _vfvPass(slot){
@@ -13531,7 +13533,7 @@ function renderNoOverindulgence(){
 
   function _setupVideoPlayer(card){
     _wireVideoSwipe();
-    _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}})();
+    _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}})();
     _vfRenderMute(); /* icon is there from the first frame, not only once the player reports ready */
     _loadYT(function(){
       var el=document.getElementById('vf-yt-player-el');
@@ -13551,7 +13553,7 @@ function renderNoOverindulgence(){
            browser (autoplay-with-sound is blocked on phones until a real
            tap); controls:0 because we draw our own (see .vf-vid-* CSS);
            fs/disablekb/iv_load_policy trim YouTube's own chrome. */
-        playerVars:{autoplay:1,mute:(function(){try{return localStorage.getItem('clv_vf_sound')==='1'?0:1;}catch(e){return 1;}})(),playsinline:1,controls:0,rel:0,modestbranding:1,fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:card.video_id},
+        playerVars:{autoplay:1,mute:(function(){try{return localStorage.getItem('clv_vf_sound')==='0'?1:0;}catch(e){return 0;}})(),playsinline:1,controls:0,rel:0,modestbranding:1,fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:card.video_id},
         events:{
           /* v207: mobile browsers are stricter about honoring the
              declarative autoplay=1 URL param for UNMUTED playback than
@@ -13562,7 +13564,7 @@ function renderNoOverindulgence(){
              desktop, where it just confirms what already started. */
           onReady:function(e){
             try{e.target.playVideo();}catch(err){}
-            _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}})();
+            _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}})();
             _vfRenderMute();_vfStartProg();
             /* first time (muted start): tell them sound is one tap away, then fade the hint */
             if(_vfMuted){var h=document.getElementById('vf-vid-hint');if(h){h.classList.add('on');setTimeout(function(){h.classList.remove('on');},3500);}}
@@ -21874,8 +21876,11 @@ textarea.soc-in{resize:none;min-height:74px}
     var host=document.createElement('div');box.innerHTML='';box.appendChild(host);
     _ytApi(function(){
       if(!box.classList.contains('live'))return;
-      box._pl=new YT.Player(host,{videoId:id,width:'100%',height:'100%',playerVars:{autoplay:1,mute:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
-        events:{onError:function(){_ytUnmount(box);},onReady:function(e){try{e.target.mute();e.target.playVideo();}catch(er){}}}});
+      /* v251b: starts WITH sound (owner's call) unless the viewer muted before; if the browser refuses sound, fall back to muted after 1.5 s */
+      var snd=true;try{snd=localStorage.getItem('clv_vf_sound')!=='0';}catch(er){}
+      box._pl=new YT.Player(host,{videoId:id,width:'100%',height:'100%',playerVars:{autoplay:1,mute:snd?0:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
+        events:{onError:function(){_ytUnmount(box);},onReady:function(e){try{if(snd){e.target.unMute();e.target.setVolume(100);}else e.target.mute();e.target.playVideo();}catch(er){}
+          if(snd)setTimeout(function(){try{var st=e.target.getPlayerState();if(box.classList.contains('live')&&st!==1&&st!==3){e.target.mute();e.target.playVideo();}}catch(er){}},1500);}}});
     });
   }
   function _wireYtInline(){
@@ -22565,7 +22570,7 @@ textarea.soc-in{resize:none;min-height:74px}
   function _vidPosterHtml(r){
     if(!r.video||!vGuidOk(r.video.guid)||!videoEnabled())return '';
     var th=esc(vUrl(r.video.guid,'thumbnail.jpg'));
-    var muted=true;try{muted=localStorage.getItem('clv_vf_sound')!=='1';}catch(e){}
+    var muted=false;try{muted=localStorage.getItem('clv_vf_sound')==='0';}catch(e){}
     return '<div class="soc-vid-poster soc-vin" data-guid="'+esc(r.video.guid)+'" data-id="'+r.id+'">'
       +'<img src="'+th+'" alt="" loading="lazy" onerror="_socThumbFail(this)" onload="_socThumbOk(this);_socVinShape(this)">'
       +'<video muted playsinline loop preload="none" poster="'+th+'"></video>'
@@ -22584,7 +22589,7 @@ textarea.soc-in{resize:none;min-height:74px}
   };
   /* inline autoplay: the one video that is >=60% on screen plays, everything else pauses (one at a time, like Instagram) */
   var VIN={io:null,cur:null};
-  function _vinMuted(){try{return localStorage.getItem('clv_vf_sound')!=='1';}catch(e){return true;}}
+  function _vinMuted(){try{return localStorage.getItem('clv_vf_sound')==='0';}catch(e){return false;}} /* v251b: sound on unless the viewer muted */
   function _vinPlay(box){
     if(VIN.cur&&VIN.cur!==box)_vinPause(VIN.cur);
     VIN.cur=box;
@@ -22639,7 +22644,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var list=(S.feedRows||[]).filter(function(r){return r._kind==='ach'&&r.video&&vGuidOk(r.video.guid);});
     if(!list.length)return;
     var idx=Math.max(0,list.findIndex(function(r){return String(r.id)===String(startId);}));
-    try{RL.muted=localStorage.getItem('clv_vf_sound')!=='1';}catch(e){RL.muted=true;} /* same remembered choice as the Vibe feed videos */
+    try{RL.muted=localStorage.getItem('clv_vf_sound')==='0';}catch(e){RL.muted=false;} /* same remembered choice as the Vibe feed videos */
     var el=_rlEl();
     el.innerHTML='<div class="rl-scroll" id="rl-scroll">'+list.map(function(r,i){
       return '<section class="rl-item" data-i="'+i+'" data-id="'+r.id+'" data-guid="'+esc(r.video.guid)+'">'
