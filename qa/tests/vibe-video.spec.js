@@ -78,7 +78,7 @@ test.describe('Vibe video card (v250)', () => {
     expect(g.uiBelow, 'our UI sits below the player').toBe(true);
     expect(g.ratio).toBeGreaterThan(0.5); expect(g.ratio).toBeLessThan(0.6);
     expect(g.oldOverlays, 'the old overlay elements are gone').toBe(0);
-    expect(g.btns).toBe('like,save,share,next');
+    expect(g.btns).toBe('back,feed,noop,like,share,save,next'); // v251: top bar (back · Feed | Vibe) + Instagram order like · share · save
     // the player is created with YouTube's own controls visible
     const opts = await page.evaluate(() => window.__yt.players.length);
     expect(opts).toBeGreaterThanOrEqual(1);
