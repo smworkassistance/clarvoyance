@@ -455,7 +455,7 @@ async function collectArticles(env, bp, usedUrls, seed) {
   const relevant = all.filter((it) => !usedUrls.has(it.url) && scoreItem(it, kw) >= 1);
   if (bp.topic || bp.intention) { /* always: the member's own topic is searched every time, so generic startup/wellbeing feeds never crowd it out */
     try {
-      const q = String(bp.topic || bp.intention).replace(/[^ws-]/g, ' ').replace(/s+/g, ' ').trim().slice(0, 80) + ' tips guide';
+      const q = String(bp.topic || bp.intention).replace(/[^\w\s-]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) + ' tips guide';
       const r = await fetchTimeout('https://news.google.com/rss/search?hl=en-IN&gl=IN&ceid=IN:en&q=' + encodeURIComponent(q), { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ClarGuides/1.0; +https://clar.co.in)' } }, 9000);
       if (r.ok) all.push(...parseFeed(await r.text(), 'Google News').map((it) => ({ ...it, intent: true, publisher: (it.title.split(' - ').pop() || 'News').slice(0, 40) })));
     } catch (e) { /* the fixed feeds still stand */ }
@@ -667,9 +667,7 @@ async function finishRun(env, guide, res) {
   let waitMs = res.ok ? (24 / perDay) * 3600000 : 3 * 3600000;
   if (!res.ok && guide.kind === 'user') {
     const have = await sbFetch(env, 'guide_posts?select=id&guide_id=eq.' + guide.id + '&limit=1').catch(() => [1]);
-    const tries = await sbFetch(env, 'guides?select=last_error&id=eq.' + guide.id).catch(() => []);
     if (!have.length) waitMs = 10 * 60000; /* no post yet: try again soon (cron runs every 15 min) */
-    void tries;
   }
   const next = new Date(Date.now() + waitMs).toISOString();
   await sbFetch(env, 'guides?id=eq.' + guide.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ last_run_at: nowIso(), next_run_at: next, last_error: res.ok ? null : String(res.reason || 'failed').slice(0, 300) }) });
