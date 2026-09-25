@@ -2,9 +2,11 @@
   "project": "clarvoyance",
   "schema": 1,
   "run": {
-    "active": false,
-    "last_batch": "B6",
-    "finished_at": "2026-09-25T08:31:27.970Z"
+    "active": true,
+    "batch": "B7",
+    "started_at": "2026-09-25T13:30:11.488Z",
+    "max_hours": 12,
+    "max_iterations": 200
   },
   "batches": {
     "B1": {
@@ -43,6 +45,12 @@
       "frozen": true,
       "frozen_at": "2026-09-25T08:15:58.362Z",
       "frozen_hash": "b97e23f5a377fd0a1aac766215169029b67343e0e0cb60b991b2d5c179fa64f4"
+    },
+    "B7": {
+      "created": "2026-09-25T13:30:09.448Z",
+      "frozen": true,
+      "frozen_at": "2026-09-25T13:30:11.189Z",
+      "frozen_hash": "c39649c06d5e867b2232587d8c7da32638fb430fb5a37990a5a343bd7ba1ae33"
     }
   },
   "tasks": [
@@ -519,7 +527,7 @@
       "title": "Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it",
       "added": "2026-09-24T23:24:35.449Z",
       "done_when": "Full ops/verify.js passes on clarvoyance_v247.html; node ops/promote.js clarvoyance_v247.html --push succeeds (tag pre-v247); live https://clar.co.in/ serves label v247 and sw cache clv-v247 (curl); default experience for a fresh visitor identical to v246 except the fixed video upload.",
-      "status": "BLOCKED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [
         "T-011",
@@ -529,8 +537,8 @@
         "T-005d"
       ],
       "verify": false,
-      "result": "",
-      "completed": null,
+      "result": "Superseded: v247 content was promoted inside v248 (commit 4580fc8) and v249; live confirmed v249.",
+      "completed": "2026-09-25T13:30:08.195Z",
       "history": [
         {
           "at": "2026-09-24T23:24:35.465Z",
@@ -541,6 +549,11 @@
           "at": "2026-09-25T02:15:53.235Z",
           "status": "BLOCKED",
           "note": "Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step."
+        },
+        {
+          "at": "2026-09-25T13:30:08.207Z",
+          "status": "DONE",
+          "note": "Superseded: v247 content was promoted inside v248 (commit 4580fc8) and v249; live confirmed v249."
         }
       ],
       "blocked_reason": "Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step."
@@ -550,19 +563,24 @@
       "title": "Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory",
       "added": "2026-09-24T23:24:35.785Z",
       "done_when": "CLAUDE.md has a v247 entry (what, verified how, rollback, owner steps); docs/PROJECT.md mentions nav_v2 + usage rpc; TASKS.md rendered; memory index updated.",
-      "status": "QUEUED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [
         "T-013"
       ],
       "verify": false,
-      "result": "",
-      "completed": null,
+      "result": "Release docs written (CLAUDE.md v247/v248/v249 entries, PROJECT.md, RUNLOG).",
+      "completed": "2026-09-25T13:30:08.475Z",
       "history": [
         {
           "at": "2026-09-24T23:24:35.805Z",
           "status": "QUEUED",
           "note": "created"
+        },
+        {
+          "at": "2026-09-25T13:30:08.476Z",
+          "status": "DONE",
+          "note": "Release docs written (CLAUDE.md v247/v248/v249 entries, PROJECT.md, RUNLOG)."
         }
       ]
     },
@@ -707,6 +725,310 @@
           "at": "2026-09-25T08:31:27.852Z",
           "status": "DONE",
           "note": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: whole existing suite unchanged + flag-OFF Community overlay regression test passes"
+        }
+      ]
+    },
+    {
+      "id": "T-040",
+      "title": "Video card rebuilt policy-compliant and fast",
+      "added": "2026-09-25T13:30:09.447Z",
+      "done_when": "no overlays on the YouTube player; own UI below; poster-first; API warm at Vibe open; next player preloaded; muted autoplay without tap; audio choice remembered; YT native seek; swipe/next works; measured swipe-to-motion <=1.2s vs 3.3s baseline on real Chrome",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.448Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-041",
+      "title": "Video XP each 50% pass with daily cap",
+      "added": "2026-09-25T13:30:09.542Z",
+      "done_when": "XP awarded on each pass of 50% (loops included), cap enforced and admin-editable, tested",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.543Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-042",
+      "title": "Video like/save/share + signals + topic preference score",
+      "added": "2026-09-25T13:30:09.632Z",
+      "done_when": "like/save/share buttons below player; signals stored per topic; score merges admin+manifestation+likes; next topic chosen 70/30; tested",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.633Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-043",
+      "title": "Share a video to feed (inline player) and WhatsApp/native invite",
+      "added": "2026-09-25T13:30:09.722Z",
+      "done_when": "feed post plays YouTube inline muted in view (one at a time); native/WhatsApp share uses the approved text with ?ref",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.723Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-044",
+      "title": "Referral system",
+      "added": "2026-09-25T13:30:09.805Z",
+      "done_when": "?ref captured; inviter +100 / invitee +50 after first engaged day of a Google-signed-in account; self/duplicate referrals blocked; verified against real DB",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.806Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-045",
+      "title": "Admin Clar Posts tab",
+      "added": "2026-09-25T13:30:09.892Z",
+      "done_when": "create/edit/schedule/disable Clar posts from admin.html via relay worker; visible in Feed",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.893Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-046",
+      "title": "Disclaimers",
+      "added": "2026-09-25T13:30:09.989Z",
+      "done_when": "one-time start screen, Help/Profile text, feed footer text; existing onboarding unaffected",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:09.991Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-050",
+      "title": "DB schema for guides and video signals",
+      "added": "2026-09-25T13:30:10.072Z",
+      "done_when": "one additive SQL file db/schema_v250_guides_video.sql; parsed by real Postgres; RLS tests pass on pglite; owner runs it early",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.073Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-051",
+      "title": "Guides pipeline in admin-relay-worker",
+      "added": "2026-09-25T13:30:10.162Z",
+      "done_when": "blueprint -> collect (RSS/Wikiquote/YouTube) -> generate (grounded) -> verify -> publish; scope guard; cron queue; mock-tested and live-tested",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.163Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-052",
+      "title": "Client: create-a-guide, shelf, subscribe, de-dup",
+      "added": "2026-09-25T13:30:10.259Z",
+      "done_when": "intention flow with confirmed Blueprint; 5 starters; join-existing suggestion; guide page",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.261Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-053",
+      "title": "Guide post card in Feed",
+      "added": "2026-09-25T13:30:10.360Z",
+      "done_when": "sources, AI-curated + disclaimer, why-this-for-you, like/save/share/read XP, inline practice, report, more/less like this",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.361Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-054",
+      "title": "Languages",
+      "added": "2026-09-25T13:30:10.442Z",
+      "done_when": "user language preference; content generated lazily per language; tested with hi and en",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.443Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-055",
+      "title": "Signals -> guide suggestions",
+      "added": "2026-09-25T13:30:10.529Z",
+      "done_when": "suggested guides from likes/topic scores",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.529Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-056",
+      "title": "Admin guide moderation",
+      "added": "2026-09-25T13:30:10.613Z",
+      "done_when": "queue of reported/paused guides, starter management, XP/limit settings",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.614Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-057",
+      "title": "End-to-end verification and docs",
+      "added": "2026-09-25T13:30:10.689Z",
+      "done_when": "full verify green; mock-pipeline tests; live read-only pass; docs updated incl inspired-by list",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.690Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-058",
+      "title": "Promote v250",
+      "added": "2026-09-25T13:30:10.904Z",
+      "done_when": "full verify on exact bytes; promote --push; live confirmed",
+      "status": "DISCUSS",
+      "batch": "B7",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-25T13:30:10.905Z",
+          "status": "DISCUSS",
+          "note": "created"
         }
       ]
     }
