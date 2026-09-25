@@ -20,7 +20,8 @@
 
 ## Feature flags
 `feature_flags` table (key, enabled) — e.g. `social_layer` (Community, currently ON). URL override for testing: `?social=1`.
-New user-visible work ships dark behind a flag (PROCESS §5). Planned: `nav_v2`.
+New user-visible work ships dark behind a flag (PROCESS §5).
+- **`nav_v2`** (v247, default OFF): new 6-button bottom bar (Feed / Vibe / Clar AI raised centre / Goal / Home / You). Activate for everyone: `insert into feature_flags(key,enabled) values ('nav_v2', true) on conflict (key) do update set enabled=true;` — deactivate: set `enabled=false`. Per-device dev override: `?nav=2` on, `?nav=0` off. Feed = Community hosted as a tab (sub-tabs Following/Discover/Board); You = Profile + entries to Fortune and My Community profile; Self plate sits under Non-Negotiables on Home. All code is one self-contained block (`#navv2-css`/`#navv2-js`) at the end of the HTML; it never removes the old nav.
 
 ## Known noise (allow-listed in `qa/app-map.json`)
 - 403 on `admin_insights` (T-010: dead usage-correlation client read), placeholder photo-worker URL, YouTube thumbnail 404s, analytics/fonts.

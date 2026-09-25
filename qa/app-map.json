@@ -53,6 +53,7 @@
     "doubleclick",
     "admin_insights",
     "usage_correlation_me",
+    "auth/v1/signup",
     "replace_with_your_photo_worker_url",
     "i.ytimg.com",
     "youtube.com",

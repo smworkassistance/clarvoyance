@@ -76,6 +76,82 @@ test.describe('nav_v2 — flag ON', () => {
     expect(await page.evaluate(() => document.body.classList.contains('nav-v2'))).toBe(false);
   });
 
+  test('Feed hosts Community as a tab: stops above the bar, no close X, sub-tabs Following/Discover/Board, leaves cleanly', async ({ app }) => {
+    await bootOn(app);
+    const { page } = app;
+    await clickNew(page, 'feed');
+    await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(800);
+    expect(await activeNew(page)).toBe('feed');
+    const g = await page.evaluate(() => {
+      const o = document.getElementById('soc-screen').getBoundingClientRect(), n = document.getElementById('bnav').getBoundingClientRect();
+      const x = n.left + n.width * 0.1, y = n.top + n.height / 2, hit = document.elementFromPoint(x, y);
+      return { overlayBottom: o.bottom, navTop: n.top, hitInNav: !!(hit && hit.closest('#bnav')),
+        closeVis: getComputedStyle(document.querySelector('#soc-top [data-act="close"]')).visibility,
+        tabs: [...document.querySelectorAll('#soc-tabs .soc-tab')].filter(t => getComputedStyle(t).display !== 'none').sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(t => t.textContent.trim()) };
+    });
+    expect(Math.abs(g.overlayBottom - g.navTop), 'overlay ends where the bar begins').toBeLessThan(2);
+    expect(g.hitInNav, 'bar is tappable while Feed is open').toBe(true);
+    expect(g.closeVis).toBe('hidden');
+    expect(g.tabs).toEqual(['Following', 'Discover', 'Board']);
+    // inner sub-tab switch works
+    await page.locator('#soc-tabs .soc-tab[data-tab="board"]').click();
+    await page.waitForTimeout(600);
+    expect(await page.evaluate(() => SOC._state.tab)).toBe('board');
+    // leaving through the main bar closes the overlay and shows the chosen tab
+    await clickNew(page, 'vibe');
+    await page.waitForTimeout(1300);
+    expect(await page.evaluate(() => document.getElementById('soc-screen').classList.contains('hidden'))).toBe(true);
+    expect(await page.evaluate(() => document.body.classList.contains('nv2-feed'))).toBe(false);
+    expect(await sectionShown(page, tab('vibe').section)).toBe(true);
+    expect(await activeNew(page)).toBe('vibe');
+  });
+
+  test('You: profile with entries to Fortune and My Community profile', async ({ app }) => {
+    await bootOn(app);
+    const { page } = app;
+    await clickNew(page, 'you');
+    await page.waitForTimeout(1200);
+    await expect(page.locator('#nv2-you-card')).toBeVisible();
+    await expect(page.locator('#nv2-you-card .nv2-row')).toHaveCount(2);
+    // the existing profile is still there underneath
+    expect(await sectionShown(page, MAP.profileSection)).toBe(true);
+    await page.locator('#nv2-you-card .nv2-row').first().click();
+    await page.waitForTimeout(1500);
+    expect(await sectionShown(page, tab('fortune').section)).toBe(true);
+    expect(await activeNew(page)).toBe('you');
+    // card is not shown on other tabs
+    await clickNew(page, 'goal');
+    await page.waitForTimeout(800);
+    await expect(page.locator('#nv2-you-card')).toBeHidden();
+    // My Community profile opens Community on the profile view
+    await clickNew(page, 'you');
+    await page.waitForTimeout(800);
+    await page.locator('#nv2-you-card .nv2-row').nth(1).click();
+    await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(800);
+    expect(await page.evaluate(() => SOC._state.tab)).toBe('me');
+  });
+
+  test('Self plate sits under Non-Negotiables on Home only, and opens Self', async ({ app }) => {
+    await bootOn(app);
+    const { page } = app;
+    await clickNew(page, 'home');
+    await page.waitForTimeout(1200);
+    const plate = page.locator('#nv2-self-plate');
+    await expect(plate).toBeVisible();
+    const g = await page.evaluate(() => ({ nnBottom: document.getElementById('nn-tab-section').getBoundingClientRect().bottom, plateTop: document.getElementById('nv2-self-plate').getBoundingClientRect().top }));
+    expect(g.plateTop, 'plate is below Non-Negotiables').toBeGreaterThanOrEqual(g.nnBottom - 1);
+    await plate.locator('.nv2-row').click();
+    await page.waitForTimeout(1200);
+    expect(await sectionShown(page, tab('self').section)).toBe(true);
+    expect(await activeNew(page)).toBe('home');
+    await expect(plate).toBeHidden();
+    await clickNew(page, 'vibe');
+    await page.waitForTimeout(800);
+    await expect(plate).toBeHidden();
+  });
+
   test('server flag feature_flags.nav_v2 turns it on without any override', async ({ app }) => {
     await mockCommunity(app.page, { navV2: true });
     await app.boot();

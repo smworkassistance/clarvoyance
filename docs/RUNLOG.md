@@ -26,3 +26,5 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 25/09/2026 04:49:15 IST — attempt 3 on T-020: page.goto waitUntil domcontentloaded - still hangs
 - 25/09/2026 04:49:15 IST — attempt 4 on T-020: removed locale/timezoneId emulation - still hangs ('browserContext.newPage timeout while setting up page'); direct playwright script with same device works
 - 25/09/2026 04:49:51 IST — attempt 5 on T-020: ALTERNATIVE (after online research: known Playwright WebKit-on-Windows newPage hang, issue #18953/#3939): make CI (Linux) the authoritative WebKit lane; local g
+- 25/09/2026 04:58:07 IST — batch B5 FROZEN (scope hash efd44eb29cac)
+- 25/09/2026 04:58:08 IST — RUN START batch B5 (max 8 h)
