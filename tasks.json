@@ -2,11 +2,9 @@
   "project": "clarvoyance",
   "schema": 1,
   "run": {
-    "active": true,
-    "batch": "B5",
-    "started_at": "2026-09-24T23:28:08.404Z",
-    "max_hours": 8,
-    "max_iterations": 200
+    "active": false,
+    "last_batch": "B6",
+    "finished_at": "2026-09-25T08:31:27.970Z"
   },
   "batches": {
     "B1": {
@@ -39,6 +37,12 @@
       "frozen": true,
       "frozen_at": "2026-09-24T23:28:07.673Z",
       "frozen_hash": "efd44eb29cacef4959e405257107ee6ce98fdb2f28ae5e8077216330d832da0a"
+    },
+    "B6": {
+      "created": "2026-09-25T08:15:57.348Z",
+      "frozen": true,
+      "frozen_at": "2026-09-25T08:15:58.362Z",
+      "frozen_hash": "b97e23f5a377fd0a1aac766215169029b67343e0e0cb60b991b2d5c179fa64f4"
     }
   },
   "tasks": [
@@ -381,14 +385,14 @@
       "title": "OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010)",
       "added": "2026-09-24T23:24:32.401Z",
       "done_when": "File exists, parse-checked, and the exact instruction is recorded; marked BLOCKED until the owner runs it.",
-      "status": "BLOCKED",
+      "status": "DONE",
       "batch": "B5",
       "depends_on": [
         "T-010"
       ],
       "verify": false,
-      "result": "",
-      "completed": null,
+      "result": "Owner ran db/schema_v247_usage_correlation_rpc.sql. Live check with a throwaway anonymous session: POST /rest/v1/rpc/usage_correlation_me -> {sampleSize:0,hasEnoughData:false} (works); with the bare anon key -> 401 (correctly refused).",
+      "completed": "2026-09-25T05:42:31.857Z",
       "history": [
         {
           "at": "2026-09-24T23:24:32.413Z",
@@ -399,6 +403,11 @@
           "at": "2026-09-25T01:51:11.426Z",
           "status": "BLOCKED",
           "note": "OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail)."
+        },
+        {
+          "at": "2026-09-25T05:42:31.871Z",
+          "status": "DONE",
+          "note": "Owner ran db/schema_v247_usage_correlation_rpc.sql. Live check with a throwaway anonymous session: POST /rest/v1/rpc/usage_correlation_me -> {sampleSize:0,hasEnoughData:false} (works); with the bare anon key -> 401 (correctly refused)."
         }
       ],
       "blocked_reason": "OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail)."
@@ -554,6 +563,150 @@
           "at": "2026-09-24T23:24:35.805Z",
           "status": "QUEUED",
           "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-030",
+      "title": "You tab hosts the Community me-dashboard (old You), gear opens App Profile, private Fortune card",
+      "added": "2026-09-25T08:15:57.336Z",
+      "done_when": "nav_v2 ON: You shows avatar/XP/followers/momentum/badges dashboard; gear opens the untouched Profile; Fortune card only on own view; Profile section has no injected card",
+      "status": "DONE",
+      "batch": "B6",
+      "depends_on": [],
+      "verify": true,
+      "result": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: hosted You shows stats/momentum/badges; title 'You'; no inner tabs; gear -> untouched App Profile; no injected card; private Fortune card opens Fortune, You stays highlighted",
+      "completed": "2026-09-25T08:31:26.852Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:15:57.348Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-25T08:31:26.864Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: hosted You shows stats/momentum/badges; title 'You'; no inner tabs; gear -> untouched App Profile; no injected card; private Fortune card opens Fortune, You stays highlighted"
+        }
+      ]
+    },
+    {
+      "id": "T-031",
+      "title": "Goal plates split Achievements / Actively working on with per-goal share choice",
+      "added": "2026-09-25T08:15:57.518Z",
+      "done_when": "own view lists ALL goals; achieved under Achievements, others under Actively working on; each plate has a Shared/Private pill that persists; others only ever see public ones",
+      "status": "DONE",
+      "batch": "B6",
+      "depends_on": [],
+      "verify": true,
+      "result": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: Achievements vs Actively working on; 3 goals each with share pill; toggling persists in clv_goal_items; only public goals are shareable set",
+      "completed": "2026-09-25T08:31:27.034Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:15:57.519Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-25T08:31:27.036Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: Achievements vs Actively working on; 3 goals each with share pill; toggling persists in clv_goal_items; only public goals are shareable set"
+        }
+      ]
+    },
+    {
+      "id": "T-032",
+      "title": "Board card in You opens full Board page",
+      "added": "2026-09-25T08:15:57.697Z",
+      "done_when": "attractive rank card (rank, of N, top avatars) -> full Board page with back arrow and one-line explanation; not-on-board state invites joining",
+      "status": "DONE",
+      "batch": "B6",
+      "depends_on": [],
+      "verify": true,
+      "result": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: rank card -> Leaderboard page with 'How the board works', segmented This week/All time, back returns to You",
+      "completed": "2026-09-25T08:31:27.234Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:15:57.698Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-25T08:31:27.235Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: rank card -> Leaderboard page with 'How the board works', segmented This week/All time, back returns to You"
+        }
+      ]
+    },
+    {
+      "id": "T-033",
+      "title": "Signed-out preview instead of bare gate",
+      "added": "2026-09-25T08:15:57.866Z",
+      "done_when": "Community gate shows blurred example Feed/Discover/Board/You content labelled Example plus Continue with Google",
+      "status": "DONE",
+      "batch": "B6",
+      "depends_on": [],
+      "verify": true,
+      "result": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: signed-out Feed and You show 'Example preview' + Continue with Google",
+      "completed": "2026-09-25T08:31:27.410Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:15:57.867Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-25T08:31:27.411Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: signed-out Feed and You show 'Example preview' + Continue with Google"
+        }
+      ]
+    },
+    {
+      "id": "T-034",
+      "title": "Reusable design standard doc",
+      "added": "2026-09-25T08:15:57.982Z",
+      "done_when": "docs/DESIGN-STANDARD.md with principles, Clar tokens, reference apps per screen, UI checklist; PROCESS DoD requires inspired-by list in final report",
+      "status": "DONE",
+      "batch": "B6",
+      "depends_on": [],
+      "verify": true,
+      "result": "docs/DESIGN-STANDARD.md written (principles, Clar tokens, pattern->reference table, UI checklist, inspired-by rule); PROCESS.md DoD item 6",
+      "completed": "2026-09-25T08:31:27.715Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:15:57.983Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-25T08:31:27.716Z",
+          "status": "DONE",
+          "note": "docs/DESIGN-STANDARD.md written (principles, Clar tokens, pattern->reference table, UI checklist, inspired-by rule); PROCESS.md DoD item 6"
+        }
+      ]
+    },
+    {
+      "id": "T-035",
+      "title": "Final regression on v248",
+      "added": "2026-09-25T08:15:58.100Z",
+      "done_when": "full ops/verify.js passes incl. new specs; all pre-existing specs unchanged",
+      "status": "DONE",
+      "batch": "B6",
+      "depends_on": [],
+      "verify": true,
+      "result": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: whole existing suite unchanged + flag-OFF Community overlay regression test passes",
+      "completed": "2026-09-25T08:31:27.851Z",
+      "history": [
+        {
+          "at": "2026-09-25T08:15:58.103Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-25T08:31:27.852Z",
+          "status": "DONE",
+          "note": "fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: whole existing suite unchanged + flag-OFF Community overlay regression test passes"
         }
       ]
     }

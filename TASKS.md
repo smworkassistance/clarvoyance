@@ -2,13 +2,12 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 25/09/2026 07:45:54 IST.
+> Rendered 25/09/2026 14:01:28 IST.
 
 ## Run status
-**ACTIVE** — batch B5, started 25/09/2026 04:58:08 IST, limit 8 h.
+No run active.
 
 ## What the OWNER must do (all BLOCKED items, exact action)
-- **T-012** — OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail).
 - **T-013** — Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step.
 
 ## Batches
@@ -16,7 +15,8 @@
 - **B2** — frozen 24/09/2026 04:50:00 IST — 1/1 done: T-006(DONE)
 - **B3** — frozen 24/09/2026 05:10:00 IST — 1/1 done: T-009(DONE)
 - **B4** — not frozen — 1/1 done: T-020(DONE)
-- **B5** — frozen 25/09/2026 04:58:07 IST — 6/9 done: T-010(DONE), T-011(DONE), T-012(BLOCKED), T-005a(DONE), T-005b(DONE), T-005c(DONE), T-005d(DONE), T-013(BLOCKED), T-014(QUEUED)
+- **B5** — frozen 25/09/2026 04:58:07 IST — 7/9 done: T-010(DONE), T-011(DONE), T-012(DONE), T-005a(DONE), T-005b(DONE), T-005c(DONE), T-005d(DONE), T-013(BLOCKED), T-014(QUEUED)
+- **B6** — frozen 25/09/2026 13:45:58 IST — 6/6 done: T-030(DONE), T-031(DONE), T-032(DONE), T-033(DONE), T-034(DONE), T-035(DONE)
 
 ## Task table
 
@@ -34,13 +34,19 @@
 | T-009 | 24/09/2026 05:10:00 | Vibe Feed video card feels like Instagram/YouTube: starts by itself (muted autoplay is what mobile browsers a… | DONE | B3 | — | 24/09/2026 05:38:00 |
 | T-020 | 25/09/2026 04:49:13 | Infra: get the WebKit (iPhone) lane of the QA gate working, or replace it with a documented equivalent | DONE | B4 | — | 25/09/2026 04:57:46 |
 | T-011 | 25/09/2026 04:54:31 | Video upload no longer looks stuck: chunked upload with real progress, background chip (sheet closes at once)… | DONE | B5 | — | 25/09/2026 07:21:05 |
-| T-012 | 25/09/2026 04:54:32 | OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010) | BLOCKED | B5 | T-010 | — |
+| T-012 | 25/09/2026 04:54:32 | OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010) | DONE | B5 | T-010 | 25/09/2026 11:12:31 |
 | T-005a | 25/09/2026 04:54:32 | nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, H… | DONE | B5 | — | 25/09/2026 07:44:53 |
 | T-005b | 25/09/2026 04:54:33 | nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub… | DONE | B5 | T-005a | 25/09/2026 07:44:53 |
 | T-005c | 25/09/2026 04:54:34 | nav_v2: You tab = Profile + entries for Fortune and My Community profile | DONE | B5 | T-005a | 25/09/2026 07:44:54 |
 | T-005d | 25/09/2026 04:54:34 | nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is) | DONE | B5 | T-005a | 25/09/2026 07:44:54 |
 | T-013 | 25/09/2026 04:54:35 | Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it | BLOCKED | B5 | T-011, T-010, T-005b, T-005c, T-005d | — |
 | T-014 | 25/09/2026 04:54:35 | Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory | QUEUED | B5 | T-013 ⛔ blocked-by T-013 | — |
+| T-030 | 25/09/2026 13:45:57 | You tab hosts the Community me-dashboard (old You), gear opens App Profile, private Fortune card | DONE | B6 | — | 25/09/2026 14:01:26 |
+| T-031 | 25/09/2026 13:45:57 | Goal plates split Achievements / Actively working on with per-goal share choice | DONE | B6 | — | 25/09/2026 14:01:27 |
+| T-032 | 25/09/2026 13:45:57 | Board card in You opens full Board page | DONE | B6 | — | 25/09/2026 14:01:27 |
+| T-033 | 25/09/2026 13:45:57 | Signed-out preview instead of bare gate | DONE | B6 | — | 25/09/2026 14:01:27 |
+| T-034 | 25/09/2026 13:45:57 | Reusable design standard doc | DONE | B6 | — | 25/09/2026 14:01:27 |
+| T-035 | 25/09/2026 13:45:58 | Final regression on v248 | DONE | B6 | — | 25/09/2026 14:01:27 |
 
 ## Task details (acceptance + result evidence)
 
@@ -104,9 +110,10 @@
   clarvoyance_v247.html: chunked tus (1 MB), background progress chip with cancel/retry/stall notice; qa/tests/video-upload.spec.js 5/5 pass against a real local tus server (>=5 distinct progress values, cancel, Worker 429 + retry, stall notice, size hint); full ops/verify.js 14/14 passed
 
 ### T-012 — OWNER STEP: run db/schema_v247_usage_correlation_rpc.sql in the Supabase SQL editor (activates T-010)
-- Status: **BLOCKED**  · Batch: B5  · Depends on: T-010
+- Status: **DONE**  · Batch: B5  · Depends on: T-010
 - Done-when: File exists, parse-checked, and the exact instruction is recorded; marked BLOCKED until the owner runs it.
 - **Blocked — owner action:** OWNER STEP: open Supabase SQL editor, paste and run db/schema_v247_usage_correlation_rpc.sql (one function, additive, safe to re-run). Until then Fortune simply shows no usage-vs-state evidence (soft-fail).
+- Result / evidence: Owner ran db/schema_v247_usage_correlation_rpc.sql. Live check with a throwaway anonymous session: POST /rest/v1/rpc/usage_correlation_me -> {sampleSize:0,hasEnoughData:false} (works); with the bare anon key -> 401 (correctly refused).
 
 ### T-005a — nav_v2 shell behind a flag (default OFF): new 6-button bottom nav (Feed, Vibe, Clar AI raised centre, Goal, Home, You); old nav untouched when the flag is off
 - Status: **DONE**  · Batch: B5  · Depends on: —
@@ -136,3 +143,33 @@
 ### T-014 — Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory
 - Status: **QUEUED**  · Batch: B5  · Depends on: T-013
 - Done-when: CLAUDE.md has a v247 entry (what, verified how, rollback, owner steps); docs/PROJECT.md mentions nav_v2 + usage rpc; TASKS.md rendered; memory index updated.
+
+### T-030 — You tab hosts the Community me-dashboard (old You), gear opens App Profile, private Fortune card
+- Status: **DONE**  · Batch: B6  · Depends on: —
+- Done-when: nav_v2 ON: You shows avatar/XP/followers/momentum/badges dashboard; gear opens the untouched Profile; Fortune card only on own view; Profile section has no injected card
+- Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: hosted You shows stats/momentum/badges; title 'You'; no inner tabs; gear -> untouched App Profile; no injected card; private Fortune card opens Fortune, You stays highlighted
+
+### T-031 — Goal plates split Achievements / Actively working on with per-goal share choice
+- Status: **DONE**  · Batch: B6  · Depends on: —
+- Done-when: own view lists ALL goals; achieved under Achievements, others under Actively working on; each plate has a Shared/Private pill that persists; others only ever see public ones
+- Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: Achievements vs Actively working on; 3 goals each with share pill; toggling persists in clv_goal_items; only public goals are shareable set
+
+### T-032 — Board card in You opens full Board page
+- Status: **DONE**  · Batch: B6  · Depends on: —
+- Done-when: attractive rank card (rank, of N, top avatars) -> full Board page with back arrow and one-line explanation; not-on-board state invites joining
+- Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: rank card -> Leaderboard page with 'How the board works', segmented This week/All time, back returns to You
+
+### T-033 — Signed-out preview instead of bare gate
+- Status: **DONE**  · Batch: B6  · Depends on: —
+- Done-when: Community gate shows blurred example Feed/Discover/Board/You content labelled Example plus Continue with Google
+- Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: signed-out Feed and You show 'Example preview' + Continue with Google
+
+### T-034 — Reusable design standard doc
+- Status: **DONE**  · Batch: B6  · Depends on: —
+- Done-when: docs/DESIGN-STANDARD.md with principles, Clar tokens, reference apps per screen, UI checklist; PROCESS DoD requires inspired-by list in final report
+- Result / evidence: docs/DESIGN-STANDARD.md written (principles, Clar tokens, pattern->reference table, UI checklist, inspired-by rule); PROCESS.md DoD item 6
+
+### T-035 — Final regression on v248
+- Status: **DONE**  · Batch: B6  · Depends on: —
+- Done-when: full ops/verify.js passes incl. new specs; all pre-existing specs unchanged
+- Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: whole existing suite unchanged + flag-OFF Community overlay regression test passes
