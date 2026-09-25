@@ -41,7 +41,9 @@ test.describe('guides (v250)', () => {
     await expect(card.locator('.g-src')).toHaveCount(1); // the javascript: link is dropped
     await expect(card.locator('.g-src')).toHaveAttribute('href', 'https://inc42.com/x');
     await expect(card).toContainText('not advice');
-    await expect(page.locator('.g-entry')).toBeVisible();
+    // v252: Guides is a tab in the Feed tray now (the in-feed entry card is hidden)
+    await expect(page.locator('#soc-tabs .soc-tab[data-tab="guides"]')).toBeVisible();
+    await expect(page.locator('.g-entry')).toBeHidden();
   });
 
   test('like / save / more-less / report record signals; report hides the card', async ({ app }) => {
@@ -91,8 +93,8 @@ test.describe('guides (v250)', () => {
 
   test('Guides page: suggested + all guides; follow and unfollow write the subscription; languages max 3', async ({ app }) => {
     const { page } = app; const writes = await setup(page); await openFeed(app);
-    await page.locator('.g-entry').click();
-    await expect(page.locator('.soc-title')).toHaveText('Guides');
+    await page.locator('#soc-tabs .soc-tab[data-tab="guides"]').click();
+    await expect(page.locator('#soc-tabs .soc-tab[data-tab="guides"].on')).toHaveCount(1);
     await expect(page.locator('.g-row', { hasText: 'Business & Startups' })).toContainText('Following');
     await page.locator('.g-row', { hasText: 'Calm & Focus' }).locator('[data-act="g-sub"]').click();
     await page.waitForTimeout(300);
@@ -102,8 +104,9 @@ test.describe('guides (v250)', () => {
     const langs = await page.evaluate(() => JSON.parse(localStorage.getItem('clv_langs')));
     expect(langs.length).toBeLessThanOrEqual(3);
     expect(langs).toContain('ta');
-    await page.locator('[data-act="g-back"]').click();
-    await expect(page.locator('.soc-title')).toHaveText('Feed');
+    await expect(page.locator('#soc-tabs .soc-tab[data-tab="guides"].on')).toHaveCount(1); // following keeps you on the Guides tab
+    await page.locator('#soc-tabs .soc-tab[data-tab="feed"]').click();
+    await expect(page.locator('#soc-tabs .soc-tab[data-tab="feed"].on')).toHaveCount(1);
   });
 
   test('create wizard: blueprint -> understood text -> private guide inserted, Worker kicked, followed', async ({ app }) => {
@@ -123,14 +126,14 @@ test.describe('guides (v250)', () => {
     await openFeed(app);
     // the wizard needs an access token; the isolated network has none, so stub the auth session
     await page.evaluate(() => { window._sbShared.auth.getSession = async () => ({ data: { session: { access_token: 'tok' } } }); });
-    await page.locator('.g-entry').click();
+    await page.locator('#soc-tabs .soc-tab[data-tab="guides"]').click();
     await page.locator('[data-act="g-create"]').click();
     await page.locator('#gw-int').fill('I want to start a cosmetics brand in India');
     await page.locator('[data-act="gw-next"]').click();
     await expect(page.locator('.g-und')).toContainText('cosmetics brand in India');
     await page.locator('#gw-share').check();
     await page.locator('[data-act="gw-create"]').click();
-    await expect(page.locator('.soc-title')).toHaveText('Feed', { timeout: 8000 });
+    await expect(page.locator('#soc-tabs .soc-tab[data-tab="feed"].on')).toHaveCount(1, { timeout: 8000 }); // back on Following
     const g = writes.filter(w => w.t === 'guides' && w.m === 'POST');
     expect(g.length).toBe(2); // private + generic public twin
     const priv = g.find(w => w.body.visibility === 'private').body, pub = g.find(w => w.body.visibility === 'public').body;

@@ -35,7 +35,8 @@ test.describe('nav_v2 — flag OFF: the existing Community overlay is untouched'
     await page.evaluate(() => SOC.open());
     await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
-    await expect(page.locator('#soc-tabs .soc-tab')).toHaveCount(4);
+    // v252: the Guides tab button exists in the page but is hidden outside the hosted Feed, so the old overlay still SHOWS exactly 4 tabs
+    expect(await page.evaluate(() => [...document.querySelectorAll('#soc-tabs .soc-tab')].filter(t => getComputedStyle(t).display !== 'none').length)).toBe(4);
     expect(await page.evaluate(() => getComputedStyle(document.getElementById('soc-tabs')).display)).toBe('flex');
     await expect(page.locator('#soc-top .soc-title')).toContainText('ClarZone');
     expect(await page.evaluate(() => getComputedStyle(document.querySelector('#soc-top [data-act="close"]')).visibility)).toBe('visible');
@@ -141,14 +142,14 @@ test.describe('nav_v2 — flag ON', () => {
       const o = document.getElementById('soc-screen').getBoundingClientRect(), n = document.getElementById('bnav').getBoundingClientRect();
       const x = n.left + n.width * 0.1, y = n.top + n.height / 2, hit = document.elementFromPoint(x, y);
       return { overlayBottom: o.bottom, navTop: n.top, hitInNav: !!(hit && hit.closest('#bnav')),
-        closeVis: getComputedStyle(document.querySelector('#soc-top [data-act="close"]')).visibility,
+        topShown: getComputedStyle(document.getElementById('soc-top')).display !== 'none',
         tabs: [...document.querySelectorAll('#soc-tabs .soc-tab')].filter(t => getComputedStyle(t).display !== 'none').sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(t => t.textContent.trim()) };
     });
     expect(Math.abs(g.overlayBottom - g.navTop), 'overlay ends where the bar begins').toBeLessThan(2);
     expect(g.hitInNav, 'bar is tappable while Feed is open').toBe(true);
-    expect(g.closeVis).toBe('hidden');
-    expect(g.tabs).toEqual(['Following', 'Discover', 'Board']);
-    await expect(page.locator('#soc-top .soc-title')).toHaveText('Feed');
+    // v252: no title bar at all in the hosted Feed (owner: "Feed likhne ki jarurat nahi") — the tray is the top, and Guides joined it
+    expect(g.topShown).toBe(false);
+    expect(g.tabs).toEqual(['Following', 'Discover', 'Board', 'Guides']);
     await expect(page.locator('#soc-top [data-act="goto-goal"]')).toHaveCount(0); // the ClarZone->Goal shortcut is gone in the hosted Feed
     // inner sub-tab switch works
     await page.locator('#soc-tabs .soc-tab[data-tab="board"]').click();
