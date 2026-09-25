@@ -76,7 +76,7 @@ globalThis.fetch = async (url, init) => {
     const out = geminiReply(b.systemInstruction.parts[0].text, b.contents[0].parts[0].text);
     return json({ candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] } }], usageMetadata: { promptTokenCount: 1000, candidatesTokenCount: 150 } });
   }
-  if (url.startsWith('https://clar-youtube.smworkassistance.workers.dev/')) { DB.calls.yt++; return DB.mode.ytFail ? json({}, 500) : json({ videos: [{ video_id: 'dQw4w9WgXcQ', title: 'Startup founder lessons that help' }] }); }
+  if (url.startsWith('https://clar-youtube.smworkassistance.workers.dev/')) { DB.calls.yt++; return DB.mode.ytFail ? json({}, 500) : json({ videos: [{ video_id: 'dQw4w9WgXcQ', title: 'Building a company: startups lessons' }] }); }
   if (url === 'https://inc42.com/feed/') return new Response(FX('feed-inc42.xml'), { status: 200 });
   if (url === 'https://jamesclear.com/feed') return new Response(FX('feed-jamesclear.xml'), { status: 200 });
   if (url.startsWith('https://en.wikiquote.org/w/api.php')) return DB.mode.wqFail ? new Response('x', { status: 500 }) : new Response(FX('wikiquote-suntzu.json'), { status: 200 });
