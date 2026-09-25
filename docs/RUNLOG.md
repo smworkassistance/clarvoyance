@@ -41,3 +41,6 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 25/09/2026 14:32:36 IST — PROMOTED clarvoyance_v248.html -> index.html, sw clv-v248, rollback tag pre-v248, pushed
 
 - 2026-09-25 (B6) v248 PROMOTED + pushed on owner go-ahead (fresh full verify 27/27, tag pre-v248, commit 4580fc8). Pages built; live sw clv-v248, html v248. Live read-only check in the owner Chrome via qa/cdp-live.js (chrome-devtools MCP bridge timed out, used raw CDP): all nav_v2 screens work with real data. Pre-existing, not from v248: 400s on empty vision-images/revise-images storage URLs; photo-worker placeholder URL.
+- 25/09/2026 15:15:46 IST — PROMOTED clarvoyance_v249.html -> index.html, sw clv-v249, rollback tag pre-v249, pushed
+
+- 2026-09-25 v249 PROMOTED + pushed (owner go-ahead: nav default ON, no ?nav=2). Fresh full verify 28/28, tag pre-v249. Live read-only check (override cleared): v249, nav on, Feed title, 5 Clar posts. Rule added: E2E testing is Claude's job (docs/E2E-ACCESS.md).

@@ -10,9 +10,9 @@ const ev=async e=>{const r=await send('Runtime.evaluate',{expression:e,awaitProm
   ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.id&&pend.has(m.id)){const p=pend.get(m.id);pend.delete(m.id);m.error?p.rej(new Error(m.error.message)):p.res(m.result)}};
   await send('Page.enable');await send('Runtime.enable');
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:2,mobile:true});
-  await send('Page.navigate',{url:'https://clar.co.in/?nav=2&cb='+Date.now()});await sleep(9000);
+  await send('Page.navigate',{url:'https://clar.co.in/?nav=reset&cb='+Date.now()});await sleep(9000);
   await ev("(()=>{try{lifeQuizSkipForever()}catch(e){}return 1})()");
   await ev("document.querySelector('.nv2-tab[data-nv2=\"feed\"]').click()");await sleep(5000);
-  console.log(JSON.stringify(await ev("({tab:SOC._state.tab,clar:document.querySelectorAll('.soc-clar').length,cards:document.querySelectorAll('#soc-body .soc-card').length,rows:(SOC._state.feedRows||[]).map(r=>r._kind+':'+(r.title||r.badge_id||'')).join(' | '),text:document.getElementById('soc-body').innerText.slice(0,500)})"),null,1));
+  console.log(JSON.stringify(await ev("({version:document.getElementById('prof-app-ver').textContent,navV2:document.body.classList.contains('nav-v2'),dev:localStorage.getItem('clv_nav_v2_dev'),title:(document.querySelector('#soc-top .soc-title')||{}).textContent,clarzoneBtn:!!document.querySelector('#soc-top [data-act=goto-goal]'),hdrIconsVisible:[...document.querySelectorAll('#hdr-soc-btn,#chat-soc-btn')].filter(e=>getComputedStyle(e).display!=='none').length,tour:[...document.querySelectorAll('[data-tour-title]')].map(e=>e.dataset.tourTitle).join(','),tab:SOC._state.tab,clar:document.querySelectorAll('.soc-clar').length,cards:document.querySelectorAll('#soc-body .soc-card').length,rows:(SOC._state.feedRows||[]).map(r=>r._kind+':'+(r.title||r.badge_id||'')).join(' | '),text:document.getElementById('soc-body').innerText.slice(0,500)})"),null,1));
   await getJson('http://127.0.0.1:9222/json/close/'+t.id).catch(()=>{});process.exit(0);
 })().catch(e=>{console.error('FAIL',e.message);process.exit(1)});
