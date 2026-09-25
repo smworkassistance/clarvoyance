@@ -22,3 +22,11 @@ Append-only. Every decision the owner and Claude agreed, with date. Newest secti
 - **Rule change:** the old "never promote/push unless told" rule (TASKS v1 rule 7) is replaced by PROCESS §7: after a full verify pass Claude may promote **dark** changes and push, announcing the rollback command; activating a flag for users or promoting a non-dark user-visible change needs the owner's go-ahead.
 - **Owner-facing simplification:** one intake per batch (`docs/templates/BRIEF.md`), one clarification round with recommended defaults, then no more questions except genuine blockers.
 - **Defaults chosen for the first batch (owner may override):** T-010 via a Supabase function (SQL run by owner ⇒ that part BLOCKED, rest continues); T-004 collapses into flag `nav_v2` (T-005 built behind it, 4 stages); T-008 after T-005(b); T-007 deferred to its own discussion; run time box 3 h.
+
+## 2026-09-25 — Guides: how content is chosen (owner's direction)
+
+- **Principle (owner):** do not whitelist a small set of authors. A guide has a *theme* (relationships, motivation, business…); any genuinely helpful content is welcome; content that goes against the app's philosophy is rejected. Philosophy judgement is **AI's job** (verifier `on_philosophy`), not a script's.
+- **Hard rule kept (why):** names, quotes and facts must come from the *sources*, never from the model's memory — the verifier caught a fabricated "Brené Brown" quote. Authors therefore come from real Wikiquote theme pages (speaker read from the attribution line), not from a hand-picked list.
+- **A member's own intention is searched live** (Google News RSS, headline+link only) so niche goals are not limited to our fixed feeds; a private guide is never rejected for being specific (only a NOT-ALLOWED list applies).
+- **First post must not be withheld:** a user guide with no post retries every ~10 min (cron 15 min) instead of waiting 3 h.
+- **Infra rule:** Worker→Worker calls inside one Cloudflare account use service bindings, not workers.dev URLs (404/1042). Every Worker edit bumps `X-Worker-Version` so the deployed code can be verified with curl instead of trusting a paste.

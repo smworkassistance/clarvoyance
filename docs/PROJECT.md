@@ -35,3 +35,10 @@ Anything else in the console during `verify` fails the run.
 ## Verification map
 - `qa/app-map.json` lists tabs/selectors. When navigation changes, update the map (and re-baseline the visual guard with `node ops/verify.js --update-snapshots` **only after** reviewing the screenshots).
 - Real-phone/iOS checks: reported as "not verified" unless the owner tests.
+
+## Guides + Worker deploy facts (v250)
+
+- Tables: `guides`, `guide_subscriptions`, `guide_posts`, `guide_signals`, `guide_reports`, `guide_sources` (allowlist, admin-editable), `app_settings`, `user_prefs_v250`. Signed-in sessions read them; anon gets 42501 by design; writes go through the relay Worker or the member's own RLS rows.
+- Relay Worker `clarvoyance-admin-relay`: secrets ADMIN_TOKEN, SUPABASE_SERVICE_KEY, VAPID_*; **service bindings GEMINI -> cold-frog-d555, YT -> clar-youtube**; cron every 15 min (notifications + `guidesTick`). Members call only `guide.kick` with their Supabase JWT.
+- Verify the deployed Worker: `curl -s -I -X OPTIONS <relay url> | grep -i x-worker` (must equal the string in `corsHeaders()`). The IDE can show a stale buffer — compare line counts / `cmp` before asking the owner to paste.
+- Real-data checks without the admin token: create a throwaway anonymous session (`/auth/v1/signup`), read `guides`/`guide_posts`, insert a private guide, call `guide.kick`.

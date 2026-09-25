@@ -44,3 +44,9 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 25/09/2026 15:15:46 IST — PROMOTED clarvoyance_v249.html -> index.html, sw clv-v249, rollback tag pre-v249, pushed
 
 - 2026-09-25 v249 PROMOTED + pushed (owner go-ahead: nav default ON, no ?nav=2). Fresh full verify 28/28, tag pre-v249. Live read-only check (override cleared): v249, nav on, Feed title, 5 Clar posts. Rule added: E2E testing is Claude's job (docs/E2E-ACCESS.md).
+- 25/09/2026 19:00:11 IST — batch B7 FROZEN (scope hash c39649c06d5e)
+- 25/09/2026 19:00:11 IST — RUN START batch B7 (max 12 h)
+- 25/09/2026 21:38:03 IST — PROMOTED clarvoyance_v250.html -> index.html, sw clv-v250, rollback tag pre-v250, pushed
+
+- 2026-09-25 (B7) v250 PROMOTED + pushed on owner go-ahead (fresh full verify 48/48, 1 flaky; tag pre-v250). Worker deploy findings: sibling-Worker fetch by workers.dev URL = 404/1042 -> service bindings GEMINI/YT; owner pasted a stale IDE buffer 3x -> X-Worker-Version header added (v250-r6). Guides scope changed per owner ("theme + philosophy, not a narrow author list"): theme-based Wikiquote with the real speaker from the attribution line, intention pull (Google News RSS), verifier gained on_philosophy, scope guard never rejects for being specific. Real-network cosmetics-brand guide: first post 3/3.
+- 2026-09-25 (B7) NOT done / carried over: real phone + iOS Safari check; real-Chrome video-speed comparison for v250; leftover 'QA Skincare' throwaway guides in Supabase; niche-topic guides may need 1-2 retries.
