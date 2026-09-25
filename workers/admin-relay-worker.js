@@ -679,6 +679,7 @@ async function finishRun(env, guide, res) {
 const SCOPE_SYSTEM = `You review a proposed "guide" (an automated feed of short posts) for a personal-growth and life-betterment app.
 ALLOWED: personal development, habits, mindset, motivation, learning skills, career and business skills (education, not investment advice), communication, relationships (healthy communication), wellbeing habits, mindfulness, classic wisdom, spirituality practices (non-medical).
 NOT ALLOWED: politics/elections, celebrity gossip, adult content, gambling/betting/trading tips, get-rich-quick or guaranteed-return schemes, medical treatment/diagnosis/medication, weapons, hate, illegal activity, anything targeting a named private person.
+IMPORTANT: being SPECIFIC is never a reason to reject. A person's own goal — a particular business, city, skill, exam, relationship or habit — is exactly what a private guide is for. Judge ONLY against the NOT ALLOWED list above. When unsure, set ok=true.
 Return JSON only: {"ok": boolean, "category": string, "reason": string (short, kind, used to tell the user why not), "sensitive": boolean (true for relationships/grief/anxiety-type topics), "has_personal_details": boolean (true if the text names or identifies a real person, or contains contact/private details), "canonical_key": string (lowercase snake_case, 3-40 chars, the core topic only, e.g. "cosmetics_brand_india")}`;
 async function scopeCheck(env, guide) {
   const bp = guide.blueprint || {};
