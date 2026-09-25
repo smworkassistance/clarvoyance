@@ -2644,7 +2644,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v250</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v251</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -13200,23 +13200,30 @@ function renderNoOverindulgence(){
     heart:'<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.5 8 3.3 5 6.4 5c1.9 0 3.5 1 4.3 2.4h.6C12.1 6 13.7 5 15.6 5c3.1 0 4.9 3 3.7 6.3-1.8 4.6-7.3 9.2-7.3 9.2z"/></svg>',
     mark:'<svg viewBox="0 0 24 24"><path d="M6 3.5h12a1 1 0 0 1 1 1V21l-7-4.5L5 21V4.5a1 1 0 0 1 1-1z"/></svg>',
     send:'<svg viewBox="0 0 24 24"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></svg>',
-    next:'<svg viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></svg>'
+    next:'<svg viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></svg>',
+    back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>'
   };
   function _vfvBuild(card,preload){
     var l=_vfvLayer();if(!l)return null;
     var slot={vid:card.video_id,topic:card.topic||_poolTopic||'general',title:card.title||'',active:false,preload:!!preload,ready:false,armed:true,passes:0,lastF:0,dead:false,createdAt:Date.now()};
     var el=document.createElement('div');el.className='vfv-slot';el.setAttribute('data-vid',slot.vid);
     var p=_vp();
-    el.innerHTML='<div class="vfv-stage"><img class="vfv-poster" alt="" src="https://i.ytimg.com/vi/'+slot.vid+'/hqdefault.jpg"><div class="vfv-yt"><div class="vfv-ytel"></div></div><div class="vfv-load"></div></div>'
-      +'<div class="vfv-ui"><div class="vfv-xp">Watch halfway for XP</div>'
+    /* v251: Instagram-Reels layout — a top bar (back · Feed | Vibe · XP pill), the player edge-to-edge right under it, and the actions +
+       caption under the player. Still NOTHING of ours on top of the YouTube player itself (YouTube embed policy — see the v250 note above). */
+    el.innerHTML='<div class="vfv-top"><button type="button" class="vfv-back" data-vfv="back" aria-label="Back">'+SVG.back+'</button>'
+      +'<div class="vfv-tabs"><button type="button" class="vfv-tab" data-vfv="feed">Feed</button><button type="button" class="vfv-tab on" data-vfv="noop">Vibe</button></div>'
+      +'<div class="vfv-xp">⚡ XP at 50%</div></div>'
+      +'<div class="vfv-stage"><img class="vfv-poster" alt="" src="https://i.ytimg.com/vi/'+slot.vid+'/hqdefault.jpg"><div class="vfv-yt"><div class="vfv-ytel"></div></div><div class="vfv-load"></div></div>'
+      +'<div class="vfv-ui">'
       +'<div class="vfv-row">'
-        +'<button type="button" class="vfv-btn vfv-like'+(p.liked[slot.vid]?' on':'')+'" data-vfv="like" aria-label="Like">'+SVG.heart+'<span>Like</span></button>'
-        +'<button type="button" class="vfv-btn vfv-save'+(p.saved.some(function(v){return v.id===slot.vid;})?' on':'')+'" data-vfv="save" aria-label="Save">'+SVG.mark+'<span>Save</span></button>'
-        +'<button type="button" class="vfv-btn" data-vfv="share" aria-label="Share">'+SVG.send+'<span>Share</span></button>'
+        +'<button type="button" class="vfv-btn vfv-like'+(p.liked[slot.vid]?' on':'')+'" data-vfv="like" aria-label="Like">'+SVG.heart+'</button>'
+        +'<button type="button" class="vfv-btn" data-vfv="share" aria-label="Share">'+SVG.send+'</button>'
+        +'<button type="button" class="vfv-btn vfv-save'+(p.saved.some(function(v){return v.id===slot.vid;})?' on':'')+'" data-vfv="save" aria-label="Save">'+SVG.mark+'</button>'
         +'<span class="vfv-grow"></span>'
         +'<button type="button" class="vfv-btn vfv-next" data-vfv="next" aria-label="Next">'+SVG.next+'<span>Next</span></button>'
       +'</div>'
-      +(slot.title?'<div class="vfv-cap"></div>':'')+'</div>';
+      +(slot.title?'<div class="vfv-cap"></div>':'')
+      +'<div class="vfv-swipehint">Swipe up for next · swipe right for Feed</div></div>';
     if(slot.title)el.querySelector('.vfv-cap').textContent=slot.title;
     slot.el=el;slot.stage=el.querySelector('.vfv-stage');slot.xpEl=el.querySelector('.vfv-xp');
     el.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-vfv]');if(b)window.vfvAct(b.getAttribute('data-vfv'),slot);});
@@ -13240,16 +13247,18 @@ function renderNoOverindulgence(){
     });
     return slot;
   }
-  function _vfvWantsSound(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}}
+  /* v251b (owner: "videos mute hona hi nahi chahiye"): sound is ON by default; only the viewer's own mute ('0') keeps it off */
+  function _vfvWantsSound(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}}
   function _vfvPlay(slot){
     var pl=slot.player;if(!pl)return;
     try{
       if(_vfvWantsSound()){pl.unMute();pl.setVolume(100);slot.lastSet=false;}else{pl.mute();slot.lastSet=true;}
+      slot.setAt=Date.now(); /* v251b: isMuted() lags our own (un)mute for a moment — ignore mismatches right after we set it */
       pl.playVideo();
     }catch(e){}
     clearTimeout(slot.guard);
     /* browsers may refuse UNMUTED autoplay — then PLAYING never fires; fall back to muted rather than a video that just sits there */
-    slot.guard=setTimeout(function(){try{if(slot.active&&slot.startedAt==null){pl.mute();slot.lastSet=true;pl.playVideo();}}catch(e){}},1500);
+    slot.guard=setTimeout(function(){try{if(slot.active&&slot.startedAt==null){pl.mute();slot.lastSet=true;slot.setAt=Date.now();pl.playVideo();}}catch(e){}},1500);
   }
   function _vfvOnPlaying(slot){
     if(slot.startedAt==null){
@@ -13272,7 +13281,7 @@ function renderNoOverindulgence(){
       if(f>=0.95&&!slot.completed){slot.completed=true;_vfvSignal(slot,'complete');}
     }
     slot.lastF=f;
-    try{var m=pl.isMuted();if(slot.lastSet!=null&&m!==slot.lastSet){slot.lastSet=m;try{localStorage.setItem('clv_vf_sound',m?'0':'1');}catch(e){}}}catch(e){}
+    try{var m=pl.isMuted();if(slot.lastSet!=null&&m!==slot.lastSet&&!(slot.setAt&&Date.now()-slot.setAt<2500)){slot.lastSet=m;try{localStorage.setItem('clv_vf_sound',m?'0':'1');}catch(e){}}}catch(e){}
   }
   /* each pass over 50% pays again; the first pass unlocks the card (so leaving is not a "skip"), later passes are bonus XP — all under the daily cap */
   function _vfvPass(slot){
@@ -13333,6 +13342,9 @@ function renderNoOverindulgence(){
     slot=slot||_vfvActive;if(!slot)return;
     var p=_vp();
     if(kind==='next'){window.vfNext();return;}
+    if(kind==='noop')return;
+    if(kind==='feed'){if(window._clvGoFeed)window._clvGoFeed();return;}
+    if(kind==='back'){if(window._clvVibeBack)window._clvVibeBack();return;}
     if(kind==='like'){
       var on=!p.liked[slot.vid];if(on)p.liked[slot.vid]=1;else delete p.liked[slot.vid];
       var first=on&&!p.xpOnce['l'+slot.vid];if(first)p.xpOnce['l'+slot.vid]=1;
@@ -13382,6 +13394,9 @@ function renderNoOverindulgence(){
     });
   };
   /* shared with the Community share sheet + You → Saved videos */
+  /* v251: Feed opens OVER the Vibe tab (it's an overlay, not a bnavSwitch), so the Vibe video must be paused/resumed explicitly */
+  window._vfvPauseActive=function(){var s=_vfvActive;if(s&&s.player)try{s.player.pauseVideo();}catch(e){}};
+  window._vfvResumeActive=function(){var s=_vfvActive;if(s&&s.player&&s.ready)_vfvPlay(s);};
   window._vidSavedList=function(){return _vp().saved;};
   window._vidUnsave=function(id){var p=_vp();p.saved=p.saved.filter(function(v){return v.id!==id;});_vpSave(p);};
   window._vfvDebug={preloadNow:function(){_vfvPreloadNext();},state:function(){return{poolLen:_pool.length,since:_cardsSinceVideo,thr:_nextVideoThreshold,nextVid:_nextVid&&_nextVid.video_id};},forceNextVideo:function(){_cardsSinceVideo=99;},setThreshold:function(n){_nextVideoThreshold=n;},slots:function(){return _vfvSlots.map(function(s){return{vid:s.vid,active:s.active,ready:s.ready,buffered:!!s.buffered,ttp:s.ttp,passes:s.passes};});},lastTtp:function(){return window._vfvLastTtp;}};
@@ -13518,7 +13533,7 @@ function renderNoOverindulgence(){
 
   function _setupVideoPlayer(card){
     _wireVideoSwipe();
-    _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}})();
+    _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}})();
     _vfRenderMute(); /* icon is there from the first frame, not only once the player reports ready */
     _loadYT(function(){
       var el=document.getElementById('vf-yt-player-el');
@@ -13538,7 +13553,7 @@ function renderNoOverindulgence(){
            browser (autoplay-with-sound is blocked on phones until a real
            tap); controls:0 because we draw our own (see .vf-vid-* CSS);
            fs/disablekb/iv_load_policy trim YouTube's own chrome. */
-        playerVars:{autoplay:1,mute:(function(){try{return localStorage.getItem('clv_vf_sound')==='1'?0:1;}catch(e){return 1;}})(),playsinline:1,controls:0,rel:0,modestbranding:1,fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:card.video_id},
+        playerVars:{autoplay:1,mute:(function(){try{return localStorage.getItem('clv_vf_sound')==='0'?1:0;}catch(e){return 0;}})(),playsinline:1,controls:0,rel:0,modestbranding:1,fs:0,disablekb:1,iv_load_policy:3,loop:1,playlist:card.video_id},
         events:{
           /* v207: mobile browsers are stricter about honoring the
              declarative autoplay=1 URL param for UNMUTED playback than
@@ -13549,7 +13564,7 @@ function renderNoOverindulgence(){
              desktop, where it just confirms what already started. */
           onReady:function(e){
             try{e.target.playVideo();}catch(err){}
-            _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')==='1';}catch(e){return false;}})();
+            _vfMuted=!(function(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}})();
             _vfRenderMute();_vfStartProg();
             /* first time (muted start): tell them sound is one tap away, then fade the hint */
             if(_vfMuted){var h=document.getElementById('vf-vid-hint');if(h){h.classList.add('on');setTimeout(function(){h.classList.remove('on');},3500);}}
@@ -21719,13 +21734,13 @@ textarea.soc-in{resize:none;min-height:74px}
     var host=$('soc-sheet-host');
     if(changed&&S.tab==='me'&&!S.prof&&!(host&&host.innerHTML))render();
   }
-  function close(){var r=root();if(r)r.classList.add('hidden');document.body.classList.remove('soc-open');closeSheet();closeReels();}
+  function close(){var r=root();if(r)r.classList.add('hidden');document.body.classList.remove('soc-open');closeSheet();closeReels();try{_vinPauseAll();if(VIN.io){VIN.io.disconnect();VIN.io=null;}}catch(e){}}
   function maybeDeepLink(){ /* ?u=handle on the URL → open that profile once the flag says we're live */
     if(flagOn()&&lsGet(PENDING_U,'')&&window._isGoogleUser)setTimeout(open,600);
   }
 
   /* ── chrome ── */
-  function body(html){var b=$('soc-body');if(b){b.innerHTML=html;b.scrollTop=0;try{_wireYtInline();}catch(e){}}}
+  function body(html){var b=$('soc-body');if(b){b.innerHTML=html;b.scrollTop=0;try{_wireYtInline();}catch(e){}try{_wireVidInline();}catch(e){}}}
   function tabsVisible(on){var t=$('soc-tabs');if(t)t.style.display=on?'flex':'none';}
   window._myHandle=function(){var h='';try{if(S.me&&S.me.handle){h=S.me.handle;lsSet('clv_my_handle',h);}else h=lsGet('clv_my_handle','');}catch(e){}return h;};
   function renderTop(){
@@ -21861,8 +21876,11 @@ textarea.soc-in{resize:none;min-height:74px}
     var host=document.createElement('div');box.innerHTML='';box.appendChild(host);
     _ytApi(function(){
       if(!box.classList.contains('live'))return;
-      box._pl=new YT.Player(host,{videoId:id,width:'100%',height:'100%',playerVars:{autoplay:1,mute:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
-        events:{onError:function(){_ytUnmount(box);},onReady:function(e){try{e.target.mute();e.target.playVideo();}catch(er){}}}});
+      /* v251b: starts WITH sound (owner's call) unless the viewer muted before; if the browser refuses sound, fall back to muted after 1.5 s */
+      var snd=true;try{snd=localStorage.getItem('clv_vf_sound')!=='0';}catch(er){}
+      box._pl=new YT.Player(host,{videoId:id,width:'100%',height:'100%',playerVars:{autoplay:1,mute:snd?0:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
+        events:{onError:function(){_ytUnmount(box);},onReady:function(e){try{if(snd){e.target.unMute();e.target.setVolume(100);}else e.target.mute();e.target.playVideo();}catch(er){}
+          if(snd)setTimeout(function(){try{var st=e.target.getPlayerState();if(box.classList.contains('live')&&st!==1&&st!==3){e.target.mute();e.target.playVideo();}}catch(er){}},1500);}}});
     });
   }
   function _wireYtInline(){
@@ -22545,13 +22563,71 @@ textarea.soc-in{resize:none;min-height:74px}
   };
 
   /* feed: poster + play badge */
+  /* v251: Instagram-feed style — the video plays INLINE (muted, looping) as soon as it is mostly on screen, edge to edge, with a
+     speaker button; tapping the video opens the full-screen Reels viewer (like tapping a reel in the Instagram feed). The poster
+     (Bunny thumbnail) is shown until it plays and also tells us the video's real shape: portrait → 4:5 crop (Instagram's feed
+     shape), landscape → its own 16:9-ish shape, never letterboxed into a tall box. */
   function _vidPosterHtml(r){
     if(!r.video||!vGuidOk(r.video.guid)||!videoEnabled())return '';
-    return '<div class="soc-vid-poster" data-act="open-reels" data-id="'+r.id+'" role="button" aria-label="Play video">'
-      +'<img src="'+esc(vUrl(r.video.guid,'thumbnail.jpg'))+'" alt="" loading="lazy" onerror="_socThumbFail(this)" onload="_socThumbOk(this)">'
-      +'<div class="soc-vid-play">'+PLAY_SVG+'</div>'
+    var th=esc(vUrl(r.video.guid,'thumbnail.jpg'));
+    var muted=false;try{muted=localStorage.getItem('clv_vf_sound')==='0';}catch(e){}
+    return '<div class="soc-vid-poster soc-vin" data-guid="'+esc(r.video.guid)+'" data-id="'+r.id+'">'
+      +'<img src="'+th+'" alt="" loading="lazy" onerror="_socThumbFail(this)" onload="_socThumbOk(this);_socVinShape(this)">'
+      +'<video muted playsinline loop preload="none" poster="'+th+'"></video>'
+      +'<div class="soc-vin-tap" data-act="open-reels" data-id="'+r.id+'" role="button" aria-label="Open video full screen"></div>'
+      +'<div class="soc-vid-play soc-vin-pp">'+PLAY_SVG+'</div>'
+      +'<button class="soc-vin-snd" data-act="vin-mute" aria-label="Sound">'+(muted?SND_OFF:SND_ON)+'</button>'
       +(r.video.duration?'<span class="soc-vid-dur">'+fmtDur(r.video.duration)+'</span>':'')
       +'</div>';
+  }
+  /* shape from the poster image: portrait → 4:5, landscape → its own ratio (capped at 1.91:1 like Instagram) */
+  window._socVinShape=function(img){
+    var box=img&&img.parentNode;if(!box||!img.naturalWidth)return;
+    var r=img.naturalWidth/img.naturalHeight;
+    if(r>1.02){box.classList.add('land');box.style.aspectRatio=String(Math.min(1.91,r));}
+    else{box.classList.remove('land');box.style.aspectRatio='4/5';}
+  };
+  /* inline autoplay: the one video that is >=60% on screen plays, everything else pauses (one at a time, like Instagram) */
+  var VIN={io:null,cur:null};
+  function _vinMuted(){try{return localStorage.getItem('clv_vf_sound')==='0';}catch(e){return false;}} /* v251b: sound on unless the viewer muted */
+  function _vinPlay(box){
+    if(VIN.cur&&VIN.cur!==box)_vinPause(VIN.cur);
+    VIN.cur=box;
+    _rlAttach(box); /* same HLS → MP4 source ladder as the Reels viewer */
+    var v=box.querySelector('video');if(!v)return;
+    v.muted=_vinMuted();
+    var p=v.play();
+    /* only a real "sound not allowed" refusal falls back to muted — an AbortError (the source switched HLS → MP4 mid-play) must not re-mute a video the viewer just unmuted */
+    if(p&&p.catch)p.catch(function(er){if(er&&er.name==='NotAllowedError'&&!v.muted){v.muted=true;_vinSyncSnd();var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});}});
+  }
+  function _vinPause(box){var v=box&&box.querySelector('video');if(v&&!v.paused)try{v.pause();}catch(e){}if(VIN.cur===box)VIN.cur=null;}
+  function _vinPauseAll(){Array.prototype.forEach.call(document.querySelectorAll('.soc-vin'),_vinPause);}
+  function _vinSyncSnd(){
+    var m=_vinMuted();
+    Array.prototype.forEach.call(document.querySelectorAll('.soc-vin'),function(b){
+      var v=b.querySelector('video');if(v&&b===VIN.cur)m=v.muted;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.soc-vin-snd'),function(bt){bt.innerHTML=m?SND_OFF:SND_ON;});
+  }
+  function _wireVidInline(){
+    var boxes=document.querySelectorAll('#soc-body .soc-vin');
+    if(VIN.io){VIN.io.disconnect();VIN.io=null;}
+    if(!boxes.length||!('IntersectionObserver' in window))return;
+    VIN.io=new IntersectionObserver(function(es){es.forEach(function(en){
+      var box=en.target;
+      if(en.isIntersecting&&en.intersectionRatio>=0.6){if(!$('soc-reels')||!$('soc-reels').classList.contains('on'))_vinPlay(box);}
+      else _vinPause(box);
+    });},{threshold:[0,0.6,1]});
+    Array.prototype.forEach.call(boxes,function(b){
+      var v=b.querySelector('video');
+      if(v&&!v._vinw){v._vinw=1;
+        v.addEventListener('playing',function(){b.classList.add('playing');});
+        v.addEventListener('timeupdate',function(){if(!v.paused&&v.currentTime>0)b.classList.add('playing');});
+        v.addEventListener('pause',function(){b.classList.remove('playing');});
+        v.addEventListener('loadedmetadata',function(){if(v.videoWidth&&v.videoHeight){var r=v.videoWidth/v.videoHeight;if(r>1.02){b.classList.add('land');b.style.aspectRatio=String(Math.min(1.91,r));}}});
+      }
+      VIN.io.observe(b);
+    });
   }
 
   /* ── full-screen Reels-style viewer ──
@@ -22568,7 +22644,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var list=(S.feedRows||[]).filter(function(r){return r._kind==='ach'&&r.video&&vGuidOk(r.video.guid);});
     if(!list.length)return;
     var idx=Math.max(0,list.findIndex(function(r){return String(r.id)===String(startId);}));
-    try{RL.muted=localStorage.getItem('clv_vf_sound')!=='1';}catch(e){RL.muted=true;} /* same remembered choice as the Vibe feed videos */
+    try{RL.muted=localStorage.getItem('clv_vf_sound')==='0';}catch(e){RL.muted=false;} /* same remembered choice as the Vibe feed videos */
     var el=_rlEl();
     el.innerHTML='<div class="rl-scroll" id="rl-scroll">'+list.map(function(r,i){
       return '<section class="rl-item" data-i="'+i+'" data-id="'+r.id+'" data-guid="'+esc(r.video.guid)+'">'
@@ -22598,6 +22674,8 @@ textarea.soc-in{resize:none;min-height:74px}
     if(RL.io){RL.io.disconnect();RL.io=null;}
     Array.prototype.forEach.call(el.querySelectorAll('video'),function(v){try{v.pause();if(v._hls){v._hls.destroy();v._hls=null;}v.removeAttribute('src');v.load();}catch(e){}});
     el.classList.remove('on');el.innerHTML='';
+    /* v251: back in the feed → the inline video that is on screen resumes */
+    setTimeout(function(){var r=root();if(r&&!r.classList.contains('hidden'))try{_wireVidInline();}catch(e){}},60);
   }
   /* attach the right source once, the first time an item is needed */
   function _rlAttach(it){
@@ -22636,8 +22714,8 @@ textarea.soc-in{resize:none;min-height:74px}
     var v=it.querySelector('video');if(!v)return;
     v.muted=RL.muted;
     var p=v.play();
-    if(p&&p.catch)p.catch(function(){ /* sound blocked → fall back to muted rather than a frozen frame */
-      if(!v.muted){v.muted=true;RL.muted=true;_rlSyncSnd();var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});}
+    if(p&&p.catch)p.catch(function(er){ /* sound blocked → fall back to muted rather than a frozen frame (v251: only on a real NotAllowedError — an AbortError from the HLS→MP4 switch must not re-mute) */
+      if(er&&er.name==='NotAllowedError'&&!v.muted){v.muted=true;RL.muted=true;_rlSyncSnd();var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});}
     });
   }
   function _rlPause(it){var v=it.querySelector('video');if(v&&!v.paused)v.pause();}
@@ -22889,7 +22967,15 @@ textarea.soc-in{resize:none;min-height:74px}
     },
     /* v246 (T-006): video posts */
     'vid-rm':function(){_vidClear();_vidRenderPreview();},
-    'open-reels':function(el){openReels(el.getAttribute('data-id'));},
+    'open-reels':function(el){_vinPauseAll();openReels(el.getAttribute('data-id'));},
+    /* v251: speaker button on an inline feed video — same remembered sound choice as Vibe + Reels */
+    'vin-mute':function(el){
+      var box=el.closest('.soc-vin'),v=box&&box.querySelector('video');
+      var m=v?!v.muted:!_vinMuted();
+      try{localStorage.setItem('clv_vf_sound',m?'0':'1');}catch(e){}
+      if(v){v.muted=m;if(v.paused&&box)_vinPlay(box);}
+      _vinSyncSnd();
+    },
     'reels-close':function(){closeReels();},
     'reels-mute':function(){
       RL.muted=!RL.muted;
@@ -23929,6 +24015,122 @@ body.nav-v2.home-tab #nv2-self-plate{display:block;order:2}
       apply(decide());
     }).catch(function(){});
   })();
+})();
+</script>
+
+<!-- ═══ v251 — Instagram-style video: Vibe video = full-screen Reel (bottom nav hidden, Feed | Vibe + XP on top), Feed video = edge-to-edge
+     inline autoplay post, and a horizontal swipe between the two (swipe right on Vibe → Feed, swipe left on Feed → Vibe).
+     Additive: every rule below is scoped (body.vf-vid-on / .soc-vin / .soc-yt) so nothing else in the app changes. ═══ -->
+<style id="v251-css">
+/* ── Vibe: a video card takes the whole screen ── */
+body.vf-vid-on #bnav{display:none!important}
+body.vf-vid-on #pwa-card,body.vf-vid-on #side-tray{display:none!important}
+body.vf-vid-on #vibe-feed{bottom:0!important}
+body.vf-vid-on #vfv-layer{top:0!important;height:100%!important;background:#000}
+.vfv-top,.vfv-swipehint{display:none}
+body.vf-vid-on .vfv-slot{--vt:calc(env(safe-area-inset-top,0px) + 52px);--vb:calc(env(safe-area-inset-bottom,0px) + 92px)}
+body.vf-vid-on .vfv-top{display:flex;position:absolute;top:0;left:0;right:0;height:var(--vt);padding:env(safe-area-inset-top,0px) 10px 0;align-items:center;box-sizing:border-box;z-index:2}
+.vfv-back{width:40px;height:40px;border:none;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.vfv-back svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.vfv-tabs{display:flex;gap:20px;margin-left:6px}
+.vfv-tab{background:none;border:none;color:rgba(255,255,255,.55);font:inherit;font-size:1.08rem;font-weight:800;letter-spacing:.01em;padding:6px 2px;cursor:pointer;position:relative;-webkit-tap-highlight-color:transparent;text-shadow:0 1px 6px rgba(0,0,0,.35)}
+.vfv-tab.on{color:#fff}
+.vfv-tab.on::after{content:'';position:absolute;left:25%;right:25%;bottom:0;height:2px;border-radius:2px;background:#fff}
+body.vf-vid-on .vfv-top .vfv-xp{margin-left:auto;font-size:.74rem}
+/* the player: edge to edge, right under the top bar, as big as the screen allows at 9:16 (no rounded corners, like Reels) */
+/* always the full width of the phone (on a slightly shorter screen YouTube just letterboxes a few px inside its own player); on a desktop it stays phone-shaped */
+body.vf-vid-on .vfv-stage{margin-top:var(--vt);height:min(calc(100vw * 16 / 9),calc(100% - var(--vt) - var(--vb)));width:100%;max-width:min(100%,560px);aspect-ratio:auto;border-radius:0}
+body.vf-vid-on .vfv-ui{flex:1;width:100%;max-width:560px;height:auto;min-height:0;padding:4px 10px calc(6px + env(safe-area-inset-bottom,0px))}
+body.vf-vid-on .vfv-row{margin-top:0;gap:2px}
+body.vf-vid-on .vfv-btn{padding:8px}
+body.vf-vid-on .vfv-btn svg{width:27px;height:27px}
+body.vf-vid-on .vfv-next{padding:8px 14px;background:rgba(255,255,255,.16)}
+body.vf-vid-on .vfv-next svg{width:20px;height:20px}
+body.vf-vid-on .vfv-cap{margin-top:0;padding:0 6px;font-size:.9rem}
+body.vf-vid-on .vfv-slot.active .vfv-swipehint{display:block;padding:4px 6px 0;font-size:.72rem;color:rgba(255,255,255,.5);animation:v251Hint 5s forwards}
+@keyframes v251Hint{0%,70%{opacity:1}100%{opacity:0}}
+
+/* ── Feed: a video post is edge to edge (Instagram feed), header / caption / actions keep their side padding ── */
+.soc-stack>.soc-card:has(.soc-vin),.soc-stack>.soc-card:has(.soc-yt){margin:0 -16px;border-radius:0;border-left:0;border-right:0;box-shadow:none;padding:12px 0 10px}
+.soc-card:has(.soc-vin)>:not(.soc-vin):not(.soc-yt),.soc-card:has(.soc-yt)>:not(.soc-vin):not(.soc-yt){margin-left:14px;margin-right:14px}
+.soc-vin{border-radius:0;aspect-ratio:4/5;margin-top:10px;background:#000}
+.soc-vin>img{position:absolute;inset:0}
+.soc-vin video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:transparent;display:block}
+.soc-vin.land video{object-fit:contain}
+.soc-vin-tap{position:absolute;inset:0;z-index:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.soc-vin-pp{pointer-events:none;z-index:1;transition:opacity .2s}
+.soc-vin.playing .soc-vin-pp{opacity:0}
+.soc-vin-snd{position:absolute;right:12px;bottom:12px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2;padding:0;-webkit-tap-highlight-color:transparent}
+.soc-vin-snd svg{width:17px;height:17px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.soc-vin .soc-vid-dur{bottom:auto;top:10px;z-index:2}
+/* shared YouTube video in the feed: full width, tall enough for a Short (9:16), YouTube's own player shows as-is */
+.soc-yt{border-radius:0;aspect-ratio:auto;width:100%;height:min(calc(100vw * 16 / 9),75vh);margin-top:10px}
+.soc-yt .soc-yt-poster{object-fit:contain;background:#000}
+
+/* ── Feed ⇄ Vibe slide (Instagram-style) ── */
+@keyframes v251InL{from{transform:translateX(-28%);opacity:.4}to{transform:none;opacity:1}}
+@keyframes v251InR{from{transform:translateX(28%);opacity:.4}to{transform:none;opacity:1}}
+.clv-sl-l{animation:v251InL .28s cubic-bezier(.2,.8,.2,1)}
+.clv-sl-r{animation:v251InR .28s cubic-bezier(.2,.8,.2,1)}
+</style>
+<script id="v251-js">
+(function(){
+  function B(){return document.body;}
+  function soc(){return document.getElementById('soc-screen');}
+  function socOpen(){var e=soc();return !!(e&&!e.classList.contains('hidden'));}
+  function vibeActive(){var b=document.querySelector('#bnav .bnav-tab.active');return !!(b&&b.getAttribute('data-tab')==='vibe');}
+  function vibeIsVideo(){try{return !!(typeof vfCurCard!=='undefined'&&vfCurCard&&vfCurCard.type==='VIDEO');}catch(e){return false;}}
+  function slide(el,cls){if(!el)return;el.classList.remove('clv-sl-l','clv-sl-r');void el.offsetWidth;el.classList.add(cls);setTimeout(function(){el.classList.remove(cls);},420);}
+  /* Feed = the Community overlay. It opens OVER the Vibe tab, so the Vibe video is paused and the full-screen mode dropped (the bar comes back) */
+  window._clvGoFeed=function(){
+    if(window._vfvPauseActive)window._vfvPauseActive();
+    B().classList.remove('vf-vid-on');
+    if(B().classList.contains('nav-v2')&&window._navV2Feed)window._navV2Feed();
+    else if(window.SOC&&SOC.open)SOC.open();
+    slide(soc(),'clv-sl-l');
+  };
+  window._clvGoVibe=function(){
+    if(vibeActive()&&socOpen()){ /* Vibe is still underneath → just close Feed; the observer below restores the video */
+      if(window._navV2Leave)window._navV2Leave();else if(window.SOC&&SOC.close)SOC.close();
+    }else{
+      var n=document.querySelector('#bnav .nv2-tab[data-nv2="vibe"]');
+      if(B().classList.contains('nav-v2')&&n)n.click();
+      else{if(socOpen()&&window.SOC&&SOC.close)SOC.close();var o=document.querySelector('#bnav .bnav-tab[data-tab="vibe"]');if(o&&window.bnavSwitch)window.bnavSwitch(o);}
+    }
+    slide(document.getElementById('vibe-feed'),'clv-sl-r');
+  };
+  /* back arrow on the full-screen video: leave Vibe for Clar AI (the app's home base) */
+  window._clvVibeBack=function(){
+    var n=document.querySelector('#bnav .nv2-tab[data-nv2="chat"]');
+    if(B().classList.contains('nav-v2')&&n){n.click();return;}
+    var o=document.querySelector('#bnav .bnav-tab[data-tab="chat"]');if(o&&window.bnavSwitch)window.bnavSwitch(o);
+  };
+  /* Feed shown/hidden while the Vibe tab is the real tab underneath → pause/resume and drop/restore full-screen */
+  (function watch(){
+    var e=soc();if(!e){document.addEventListener('DOMContentLoaded',watch);return;}
+    try{new MutationObserver(function(){
+      if(socOpen()){if(B().classList.contains('vf-vid-on')){B().classList.remove('vf-vid-on');if(window._vfvPauseActive)window._vfvPauseActive();}}
+      else if(vibeActive()&&vibeIsVideo()&&!B().classList.contains('vf-vid-on')){B().classList.add('vf-vid-on');if(window._vfvResumeActive)window._vfvResumeActive();}
+    }).observe(e,{attributes:true,attributeFilter:['class']});}catch(x){}
+  })();
+  /* horizontal swipe: right on Vibe → Feed, left on the Feed → Vibe. A swipe that starts on the YouTube player itself never reaches the page
+     (cross-origin iframe), so on a video it works on the top bar / action area — same as swipe-up for next. */
+  var sx=null,sy=0,st=0,tg=null;
+  document.addEventListener('touchstart',function(e){
+    if(!e.touches||e.touches.length!==1){sx=null;return;}
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();tg=e.target;
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(sx==null||!tg||!tg.closest)return;
+    var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;sx=null;
+    if(Math.abs(dx)<70||Math.abs(dx)<Math.abs(dy)*1.6||Date.now()-st>800)return;
+    if(tg.closest('input,textarea,select,[contenteditable="true"],.soc-stories,.soc-sheet-bg,#soc-reels,#vfv-share,.soc-ach-grid,#lb'))return;
+    if(dx>0&&vibeActive()&&!socOpen()&&tg.closest('#vibe-feed')){window._clvGoFeed();return;}
+    if(dx<0&&socOpen()&&tg.closest('#soc-screen')&&!B().classList.contains('nv2-you-host')){
+      var st2=window.SOC&&SOC._state;
+      if(st2&&st2.tab==='feed'&&!st2.prof&&!st2.sub)window._clvGoVibe();
+    }
+  },{passive:true});
 })();
 </script>
 
