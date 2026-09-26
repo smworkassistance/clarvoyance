@@ -69,8 +69,8 @@ test.describe('Instagram-style video (v251)', () => {
     });
     expect(g.navShown).toBe(false);
     expect(g.layer.h).toBeGreaterThanOrEqual(g.vh - 1);          // whole screen, not the old small window
-    expect(g.stage.w).toBeGreaterThanOrEqual(g.vw - 1);          // edge to edge
-    expect(g.stage.h / g.stage.w).toBeGreaterThan(1.6);          // tall portrait (≈9:16)
+    expect(g.stage.w).toBeGreaterThanOrEqual(g.vw * 0.9);        // (almost) edge to edge — the full width when the phone is tall enough, a few px less on a short one
+    expect(g.stage.h / g.stage.w).toBeCloseTo(16 / 9, 1);        // v253: exactly the video's own 9:16 shape -> no letterbox bars inside the player
     expect(g.xp.b).toBeLessThanOrEqual(g.stage.t + 1);           // XP pill above the player (nothing over YouTube's player)
     expect(g.ui.t).toBeGreaterThanOrEqual(g.stage.b - 1);        // actions below the player
     expect(g.ui.b).toBeLessThanOrEqual(g.vh + 1);                // …and still on screen

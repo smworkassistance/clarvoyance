@@ -1,6 +1,11 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- v253 (T-062): open the connections video needs while the app is still booting (saves 100-400 ms on the first video) -->
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://i.ytimg.com">
+<link rel="preconnect" href="https://www.google.com" crossorigin>
+<link rel="preconnect" href="https://vz-07154b7f-e50.b-cdn.net" crossorigin>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-visual">
 <title>Clarvoyance</title>
@@ -255,10 +260,19 @@ body.vf-vid-on #ns-fab,body.vf-vid-on #qc-fab,body.vf-vid-on #pk-fab{display:non
 .vfv-share-b:active{transform:scale(.985)}
 .vfv-share-x{display:block;width:100%;background:none;border:none;color:var(--lt);font:inherit;padding:10px;cursor:pointer}
 /* ═══ v250: policy-compliant Vibe video card. Nothing of ours is ever drawn over the YouTube player; our UI sits below it. ═══ */
-.vfv-layer{position:absolute;left:0;right:0;z-index:5;visibility:hidden;pointer-events:none}
-.vfv-layer.on{visibility:visible}
+.vfv-layer{position:absolute;left:0;right:0;z-index:5;visibility:hidden;pointer-events:none;overflow-y:scroll;overflow-x:hidden;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;scroll-behavior:auto}
+.vfv-layer::-webkit-scrollbar{display:none}
+.vfv-layer.on{visibility:visible;pointer-events:auto}
+/* v253 (T-064): the layer is a native scroll-snap list: [the video] then a "Next" section. A finger that starts on the video (a cross-origin iframe that
+   swallows JS touch events) still scrolls this container natively — no overlay on the player — and reaching the next section advances the feed. */
+.vfv-nextsec{display:none;height:100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;background:#000;color:rgba(255,255,255,.5);align-items:center;justify-content:center;flex-direction:column;gap:8px;font-weight:700;font-size:.95rem}
+.vfv-layer.on .vfv-nextsec{display:flex}
 .vfv-slot{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;visibility:hidden;pointer-events:none;--vfv-ui-h:124px}
-.vfv-slot.active{visibility:visible;pointer-events:auto}
+.vfv-slot.active{visibility:visible;pointer-events:auto;position:relative;inset:auto;width:100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always}
+.vfv-slot{--asp:.5625}
+/* v253: any gap around the video's own shape is filled by a blurred, darkened copy of its thumbnail (YouTube-style ambient look) — no flat black bars */
+.vfv-slot,.exv-page{isolation:isolate;overflow:hidden}
+.vfv-slot::before,.exv-page::before{content:'';position:absolute;inset:-24px;background:var(--bg-img,none) center/cover no-repeat;filter:blur(28px) brightness(.5);z-index:-1;pointer-events:none}
 .vfv-stage{position:relative;height:calc(100% - var(--vfv-ui-h));aspect-ratio:9/16;max-width:calc(100% - 20px);margin-top:4px;border-radius:14px;overflow:hidden;background:#000;flex:0 0 auto}
 .vfv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .vfv-yt{position:absolute;inset:0;opacity:0;transition:opacity .16s}
@@ -12953,9 +12967,26 @@ function renderNoOverindulgence(){
      null so the feed recovers on its own rather than staying stuck. */
   function _pickVideo(){
     var seen=_seenIds();
-    var unseen=_pool.filter(function(v){return seen.indexOf(v.video_id)===-1;});
+    _fillAspects(_poolTopic,_pool);
+    /* v253 (T-062): Vibe shows portrait Shorts only (aspect < 0.95; unknown aspect = allowed, so nothing changes until the Worker/SQL are deployed) —
+       a landscape video in a full-screen portrait card is what produced the black borders */
+    var unseen=_pool.filter(function(v){return seen.indexOf(v.video_id)===-1&&!(v.aspect>0.95);});
     if(!unseen.length)return null;
     return unseen[Math.floor(Math.random()*unseen.length)];
+  }
+  /* v253: ask the Worker once per topic per session for the true shape of cached videos that don't have one yet (1 YouTube unit / 50 ids, remembered server-side) */
+  var _aspectAsked={};
+  function _fillAspects(topic,pool){
+    try{
+      if(!topic||_aspectAsked[topic])return;
+      var unk=pool.filter(function(v){return v.aspect==null;}).map(function(v){return v.video_id;});
+      if(!unk.length)return;
+      _aspectAsked[topic]=1;
+      fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({aspectFor:unk.slice(0,50)})})
+        .then(function(r){return r.json();})
+        .then(function(res){var a=(res&&res.aspects)||{};pool.forEach(function(v){if(a[v.video_id]>0)v.aspect=a[v.video_id];});})
+        .catch(function(){});
+    }catch(e){}
   }
 
   function _unseenCount(pool){
@@ -13078,7 +13109,7 @@ function renderNoOverindulgence(){
       if(v){
         _cardsSinceVideo=0;_nextVideoThreshold=_rand();
         _markSeen(v.video_id);
-        var out={type:'VIDEO',video_id:v.video_id,title:v.title,topic:v.topic||_poolTopic};
+        var out={type:'VIDEO',video_id:v.video_id,title:v.title,topic:v.topic||_poolTopic,aspect:v.aspect};
         /* re-roll the topic pool in the background so the NEXT video (2-3
            cards later) has a chance to draw from a different active topic —
            without this, _ensurePool only ever runs once per vfInit() and
@@ -13207,6 +13238,7 @@ function renderNoOverindulgence(){
     var l=_vfvLayer();if(!l)return null;
     var slot={vid:card.video_id,topic:card.topic||_poolTopic||'general',title:card.title||'',active:false,preload:!!preload,ready:false,armed:true,passes:0,lastF:0,dead:false,createdAt:Date.now()};
     var el=document.createElement('div');el.className='vfv-slot';el.setAttribute('data-vid',slot.vid);
+    slot.aspect=(card.aspect>0.2&&card.aspect<4)?card.aspect:0.5625;el.style.setProperty('--asp',String(slot.aspect));el.style.setProperty('--bg-img','url(https://i.ytimg.com/vi/'+slot.vid+'/hqdefault.jpg)');
     var p=_vp();
     /* v251: Instagram-Reels layout — a top bar (back · Feed | Vibe · XP pill), the player edge-to-edge right under it, and the actions +
        caption under the player. Still NOTHING of ours on top of the YouTube player itself (YouTube embed policy — see the v250 note above). */
@@ -13228,9 +13260,6 @@ function renderNoOverindulgence(){
     if(slot.title)el.querySelector('.vfv-cap').textContent=slot.title;
     slot.el=el;slot.stage=el.querySelector('.vfv-stage');slot.xpEl=el.querySelector('.vfv-xp');
     el.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-vfv]');if(b)window.vfvAct(b.getAttribute('data-vfv'),slot);});
-    /* swipe up on our own UI / the space around the player advances (a swipe on the player itself belongs to the player) */
-    var ty=0;el.addEventListener('touchstart',function(e){ty=e.touches[0].clientY;},{passive:true});
-    el.addEventListener('touchend',function(e){if(e.target.closest&&e.target.closest('.vfv-stage'))return;var dy=ty-e.changedTouches[0].clientY;if(dy>60&&slot.active)window.vfNext();},{passive:true});
     l.appendChild(el);_vfvSlots.push(slot);
     _loadYT(function(){
       if(slot.dead)return;var host=el.querySelector('.vfv-ytel');if(!host||!window.YT||!YT.Player)return;
@@ -13328,7 +13357,25 @@ function renderNoOverindulgence(){
     _vfvFit();l.classList.add('on');
     slot.active=true;slot.activatedAt=Date.now();slot.startedAt=null;_vfvActive=slot;
     slot.el.classList.add('active');
+    _vfvNextSection(l,slot);
     if(slot.player){_ytPlayer=slot.player;if(slot.ready)_vfvPlay(slot);}
+  }
+  /* v253 (T-064): the "Next" section sits right after the active slot; reaching it (>=60% visible, i.e. one swipe) = the same as tapping Next */
+  function _vfvNextSection(l,slot){
+    var ns=document.getElementById('vfv-nextsec');
+    if(!ns){
+      ns=document.createElement('div');ns.id='vfv-nextsec';ns.className='vfv-nextsec';
+      ns.innerHTML='<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 11l6-6 6 6"/></svg><span>Next</span>';
+      l.appendChild(ns);
+      if('IntersectionObserver' in window){
+        var io=new IntersectionObserver(function(es){es.forEach(function(en){
+          if(en.isIntersecting&&en.intersectionRatio>=0.6&&_vfvActive&&!ns._fired){ns._fired=true;window.vfNext();}
+        });},{root:l,threshold:[0,0.6]});
+        io.observe(ns);
+      }
+    }
+    if(slot.el.parentNode)slot.el.parentNode.insertBefore(ns,slot.el.nextSibling);
+    ns._fired=false;l.scrollTop=0;
   }
   function _vfvHideLayer(){var l=document.getElementById('vfv-layer');if(l)l.classList.remove('on');}
   function _vfvShowFor(card){
@@ -13344,7 +13391,7 @@ function renderNoOverindulgence(){
     if(!_nextVid||seen.indexOf(_nextVid.video_id)!==-1){_nextVid=_pickVideo();if(_nextVid)_nextVid._topic=_poolTopic;}
     if(!_nextVid)return;
     for(var i=0;i<_vfvSlots.length;i++)if(_vfvSlots[i].vid===_nextVid.video_id&&!_vfvSlots[i].dead)return;
-    _vfvBuild({video_id:_nextVid.video_id,title:_nextVid.title,topic:_nextVid._topic||_nextVid.topic||_poolTopic},true);
+    _vfvBuild({video_id:_nextVid.video_id,title:_nextVid.title,topic:_nextVid._topic||_nextVid.topic||_poolTopic,aspect:_nextVid.aspect},true);
   }
   function _takeNextVideo(){
     var n=_nextVid;_nextVid=null;
@@ -22169,7 +22216,9 @@ textarea.soc-in{resize:none;min-height:74px}
   }
   async function _expCache(topicKeys){
     var sb=window._sbShared;if(!sb||!topicKeys.length)return [];
-    var r=await sb.from('youtube_topic_cache').select('video_id,title,thumbnail_url,channel_title,topic').in('topic',topicKeys.slice(0,40)).order('fetched_at',{ascending:false}).limit(400);
+    var q0=function(cols){return sb.from('youtube_topic_cache').select(cols).in('topic',topicKeys.slice(0,40)).order('fetched_at',{ascending:false}).limit(400);};
+    var r=await q0('video_id,title,thumbnail_url,channel_title,topic,aspect'); /* v253: aspect = the video's true shape */
+    if(r.error)r=await q0('video_id,title,thumbnail_url,channel_title,topic'); /* the column doesn't exist until the owner runs db/schema_v253_b8.sql */
     return r.error?[]:(r.data||[]);
   }
   function _expWorker(body){
@@ -22322,7 +22371,7 @@ textarea.soc-in{resize:none;min-height:74px}
   };
   ACT['exp-open']=function(el){
     var i=+el.getAttribute('data-i');if(!window._exvOpen)return;
-    window._exvOpen(EXP.items.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore'};}),i,EXP.term||'Explore');
+    window._exvOpen(EXP.items.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore',aspect:v.aspect};}),i,EXP.term||'Explore');
   };
   }
   window.addEventListener('resize',_expFitRows);
@@ -24314,7 +24363,7 @@ body.vf-vid-on .vfv-top{display:flex;position:absolute;top:0;left:0;right:0;heig
 body.vf-vid-on .vfv-top .vfv-xp{margin-left:auto;font-size:.74rem}
 /* the player: edge to edge, right under the top bar, as big as the screen allows at 9:16 (no rounded corners, like Reels) */
 /* always the full width of the phone (on a slightly shorter screen YouTube just letterboxes a few px inside its own player); on a desktop it stays phone-shaped */
-body.vf-vid-on .vfv-stage{margin-top:var(--vt);height:min(calc(100vw * 16 / 9),calc(100% - var(--vt) - var(--vb)));width:100%;max-width:min(100%,560px);aspect-ratio:auto;border-radius:0}
+body.vf-vid-on .vfv-stage{margin-top:var(--vt);height:min(calc(100vw / var(--asp)),calc(100% - var(--vt) - var(--vb)));width:auto;aspect-ratio:var(--asp);max-width:100%;border-radius:0} /* v253 (T-062): exactly the video's own shape (--asp from YouTube's real embed size) -> no black bars */
 body.vf-vid-on .vfv-ui{flex:1;width:100%;max-width:560px;height:auto;min-height:0;padding:4px 10px calc(6px + env(safe-area-inset-bottom,0px))}
 body.vf-vid-on .vfv-row{margin-top:0;gap:2px}
 body.vf-vid-on .vfv-btn{padding:8px}
@@ -24353,6 +24402,13 @@ body.vf-vid-on .vfv-slot.active .vfv-swipehint{display:block;padding:4px 6px 0;f
 .vfv-snd-pill,.exv-ui>.snd-pill{display:inline-block;margin:2px 0 8px 6px;background:rgba(255,255,255,.16)}
 .soc-vin-pill{position:absolute;left:12px;bottom:12px;z-index:3}
 </style>
+<script id="v253-warm-js">
+/* v253 (T-062): fetch YouTube's IFrame API once the app is idle (it was only requested when the first video was shown: ~470 ms on a fast network, more on mobile). */
+(function(){
+  function warm(){try{if(window.YT&&window.YT.Player)return;if(document.querySelector('script[src*="youtube.com/iframe_api"]'))return;var sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';sc.async=true;document.head.appendChild(sc);}catch(e){}}
+  window.addEventListener('load',function(){(window.requestIdleCallback||function(f){setTimeout(f,3500);})(warm,{timeout:6000});});
+})();
+</script>
 <script id="v251-js">
 (function(){
   function B(){return document.body;}
@@ -24469,13 +24525,18 @@ body.nav-v2.nv2-feed .g-entry{display:none} /* Guides has its own tab now */
 .exp-x{border:none;background:none;color:var(--lt);font-size:1.5rem;padding:6px 16px;cursor:pointer;line-height:1}
 
 /* ── Explore player (same layout as the Vibe video: nothing of ours over YouTube's player) ── */
-.exv{position:fixed;inset:0;z-index:9800;background:#000;display:flex;flex-direction:column;align-items:center;--vt:calc(env(safe-area-inset-top,0px) + 52px);--vb:calc(env(safe-area-inset-bottom,0px) + 104px);animation:v251InR .24s cubic-bezier(.2,.8,.2,1)}
-.exv-top{position:absolute;top:0;left:0;right:0;height:var(--vt);padding:env(safe-area-inset-top,0px) 10px 0;display:flex;align-items:center;gap:6px;box-sizing:border-box}
+.exv{position:fixed;inset:0;z-index:9800;background:#000;--vt:calc(env(safe-area-inset-top,0px) + 52px);--vb:calc(env(safe-area-inset-bottom,0px) + 104px);animation:v251InR .24s cubic-bezier(.2,.8,.2,1)}
+.exv-scroll{position:absolute;inset:0;overflow-y:scroll;overflow-x:hidden;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none}
+.exv-scroll::-webkit-scrollbar{display:none}
+.exv-page{position:relative;height:100%;width:100%;scroll-snap-align:start;scroll-snap-stop:always;display:flex;flex-direction:column;align-items:center;background:#000}
+.exv-top{position:absolute;top:0;left:0;right:0;height:var(--vt);padding:env(safe-area-inset-top,0px) 10px 0;display:flex;align-items:center;gap:6px;box-sizing:border-box;z-index:3;pointer-events:none}
+.exv-top>*{pointer-events:auto}
 .exv-title{color:#fff;font-weight:800;font-size:1.05rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.exv-stage{position:relative;margin-top:var(--vt);width:100%;max-width:560px;height:min(calc(100vw * 16 / 9),calc(100% - var(--vt) - var(--vb)));background:#000;overflow:hidden;flex:0 0 auto}
+.exv-stage{position:relative;margin-top:var(--vt);height:min(calc(100vw / var(--asp)),calc(100% - var(--vt) - var(--vb)));width:auto;aspect-ratio:var(--asp);max-width:100%;background:#000;overflow:hidden;flex:0 0 auto} /* v253: the video's own shape -> no black bars */
 .exv-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .exv-yt{position:absolute;inset:0;opacity:0;transition:opacity .16s}
 .exv-yt iframe{width:100%;height:100%;border:0;display:block}
+.exv-host{width:100%;height:100%}
 .exv-stage.playing .exv-yt{opacity:1}
 .exv-ui{flex:1;width:100%;max-width:560px;padding:4px 10px calc(6px + env(safe-area-inset-bottom,0px));box-sizing:border-box;min-height:0;overflow:hidden}
 .exv .vfv-row{margin-top:0;gap:2px}
@@ -24489,8 +24550,13 @@ body.exv-on #bnav{display:none!important}
 .vfv-share{z-index:9900} /* share sheet must sit above the Explore player */
 </style>
 <script id="v252-js">
+/* ═══ Discover player (v252, rebuilt in v253 / T-062+T-064) ═══
+   A vertical scroll-snap list of pages (one per video). Swiping ANYWHERE — including a finger that starts on the YouTube player, which swallows JS touch
+   events but still scrolls this native container — moves to the next/previous video. A POOL of up to 3 YouTube players (previous · current · next) is
+   kept: the neighbours are created early, muted, and paused at 0:00 once they have buffered, so a swipe only has to unmute + play (no fresh player,
+   no loadVideoById). Each page's stage has the video's OWN shape (--asp), so there are no black borders. Nothing of ours is drawn over a player. */
 (function(){
-  var X={list:[],i:0,pl:null,ready:false,lastSet:null,setAt:0,guard:null,tick:null,startedAt:null,title:''};
+  var X={list:[],cur:-1,pages:[],title:'',io:null,tick:null,lastSet:null,setAt:0,guard:null};
   var SVG={
     back:'<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
     heart:'<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.5 8 3.3 5 6.4 5c1.9 0 3.5 1 4.3 2.4h.6C12.1 6 13.7 5 15.6 5c3.1 0 4.9 3 3.7 6.3-1.8 4.6-7.3 9.2-7.3 9.2z"/></svg>',
@@ -24501,58 +24567,93 @@ body.exv-on #bnav{display:none!important}
   function api(){return window._vidPrefApi||{isLiked:function(){return false;},isSaved:function(){return false;},toggleLike:function(){return false;},toggleSave:function(){return false;},signal:function(){}};}
   function wantSound(){try{return localStorage.getItem('clv_vf_sound')!=='0';}catch(e){return true;}}
   function root(){return document.getElementById('exv');}
-  function cur(){return X.list[X.i];}
   function loadYT(cb){
     if(window.YT&&window.YT.Player)return cb();
-    if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){var s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);}
+    if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){var sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);}
     var n=0;(function p(){if(window.YT&&window.YT.Player)cb();else if(++n<75)setTimeout(p,200);})();
   }
-  function applySound(){
-    var pl=X.pl;if(!pl)return;
+  function aspOf(v){return (v&&v.aspect>0.2&&v.aspect<4)?v.aspect:0.5625;}
+  function pageHtml(v,i){
+    return '<section class="exv-page" data-i="'+i+'" style="--asp:'+aspOf(v)+';--bg-img:url(https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg)">'
+      +'<div class="exv-stage"><img class="exv-poster" alt="" loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg"><div class="exv-yt"><div class="exv-host"></div></div></div>'
+      +'<div class="exv-ui"><button type="button" class="snd-pill" data-x="sound" hidden>🔊 Tap for sound</button><div class="vfv-row">'
+        +'<button type="button" class="vfv-btn vfv-like'+(api().isLiked(v.id)?' on':'')+'" data-x="like" aria-label="Like">'+SVG.heart+'</button>'
+        +'<button type="button" class="vfv-btn" data-x="share" aria-label="Share">'+SVG.send+'</button>'
+        +'<button type="button" class="vfv-btn vfv-save'+(api().isSaved(v.id)?' on':'')+'" data-x="save" aria-label="Save">'+SVG.mark+'</button>'
+        +'<span class="vfv-grow"></span>'
+        +'<button type="button" class="vfv-btn vfv-next" data-x="next" aria-label="Next">'+SVG.next+'<span>Next</span></button>'
+      +'</div><div class="vfv-cap"></div><div class="exv-ch"></div></div></section>';
+  }
+  /* ── the player pool ── */
+  function curPage(){return X.pages[X.cur];}
+  function applySound(pg){
+    var pl=pg&&pg.player;if(!pl)return;
     try{if(wantSound()){pl.unMute();pl.setVolume(100);X.lastSet=false;}else{pl.mute();X.lastSet=true;}}catch(e){}
     X.setAt=Date.now();
-    clearTimeout(X.guard); /* sound refused by the browser → muted rather than a frozen video */
-    X.guard=setTimeout(function(){try{var st=pl.getPlayerState();if(root()&&st!==1&&st!==3){pl.mute();X.lastSet=true;X.setAt=Date.now();pl.playVideo();setTimeout(soundPill,1200);}}catch(e){}},1500);
+    clearTimeout(X.guard); /* sound refused by the browser -> muted rather than a frozen video */
+    X.guard=setTimeout(function(){try{if(pg!==curPage())return;var st=pl.getPlayerState();if(st!==1&&st!==3){pl.mute();X.lastSet=true;X.setAt=Date.now();pl.playVideo();setTimeout(soundPill,1200);}}catch(e){}},1500);
   }
-  function soundPill(){ /* v253 (T-061): same idea as the Vibe card — only when the video plays muted although sound is wanted */
-    var r=root();if(!r||!X.pl)return;var b=r.querySelector('.snd-pill');if(!b)return;
-    var m=true;try{m=X.pl.isMuted();}catch(e){}
+  function soundPill(){ /* v253 (T-061): only when the video plays muted although sound is wanted */
+    var pg=curPage();if(!pg||!pg.player)return;var b=pg.el.querySelector('.snd-pill');if(!b)return;
+    var m=true;try{m=pg.player.isMuted();}catch(e){}
     if(m&&wantSound()){b.textContent='🔊 Tap for sound';b.hidden=false;}else b.hidden=true;
   }
-  function paint(){
-    var r=root(),v=cur();if(!r||!v)return;
-    r.querySelector('.exv-poster').src='https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg';
-    r.querySelector('.exv-stage').classList.remove('playing');
-    r.querySelector('.vfv-cap').textContent=v.title||'';
-    r.querySelector('.exv-ch').textContent=v.channel||'';
-    r.querySelector('.vfv-like').classList.toggle('on',api().isLiked(v.id));
-    r.querySelector('.vfv-save').classList.toggle('on',api().isSaved(v.id));
-  }
-  function show(i){
-    if(i<0||i>=X.list.length)return;
-    var prev=cur();if(prev&&X.startedAt!=null&&Date.now()-X.startedAt<2000&&i!==X.i)api().signal(prev,'skip_fast');
-    X.i=i;X.startedAt=null;paint();
-    var v=cur();
-    if(!X.pl){
-      loadYT(function(){
-        var host=document.getElementById('exv-host');if(!host||X.pl)return;
-        X.pl=new YT.Player(host,{videoId:v.id,playerVars:{autoplay:1,mute:wantSound()?0:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3},
-          events:{
-            onReady:function(){X.ready=true;applySound();try{X.pl.playVideo();}catch(e){}},
-            onStateChange:function(e){
-              var r=root();if(!r)return;
-              if(e.data===1){r.querySelector('.exv-stage').classList.add('playing');if(X.startedAt==null){X.startedAt=Date.now();api().signal(cur(),'play');}
-                setTimeout(soundPill,900);}
-              if(e.data===0){try{X.pl.seekTo(0,true);X.pl.playVideo();}catch(er){}} /* loop, like a reel */
+  function ensure(i){
+    var pg=X.pages[i];if(!pg||pg.player||pg.making)return;
+    pg.making=true;
+    loadYT(function(){
+      if(!X.pages[i]||pg.player||!root())return;
+      var host=pg.el.querySelector('.exv-host');if(!host)return;
+      var v=X.list[i],isCur=(i===X.cur);
+      pg.player=new YT.Player(host,{videoId:v.id,playerVars:{autoplay:1,mute:(isCur&&wantSound())?0:1,playsinline:1,controls:1,rel:0,modestbranding:1,fs:1,iv_load_policy:3,loop:1,playlist:v.id},
+        events:{
+          onReady:function(){
+            pg.ready=true;
+            if(i===X.cur){applySound(pg);try{pg.player.playVideo();}catch(e){}}
+            else{try{pg.player.mute();pg.player.playVideo();}catch(e){}} /* neighbour: buffer muted, then pause at 0:00 (see PLAYING below) */
+          },
+          onStateChange:function(e){
+            if(e.data===1){
+              if(i!==X.cur){try{pg.player.pauseVideo();pg.player.seekTo(0,true);}catch(er){}pg.buffered=true;return;}
+              pg.el.querySelector('.exv-stage').classList.add('playing');
+              if(pg.startedAt==null){pg.startedAt=Date.now();api().signal({id:v.id,topic:v.topic},'play');}
+              setTimeout(soundPill,900);
             }
-          }});
-      });
-    }else if(X.ready){try{X.pl.loadVideoById(v.id);}catch(e){}applySound();}
+          }}});
+    });
+  }
+  function drop(i){
+    var pg=X.pages[i];if(!pg||!pg.player)return;
+    try{pg.player.destroy();}catch(e){}
+    pg.player=null;pg.ready=false;pg.making=false;pg.buffered=false;pg.startedAt=null;
+    var st=pg.el.querySelector('.exv-stage');if(st){st.classList.remove('playing');var y=st.querySelector('.exv-yt');if(y)y.innerHTML='<div class="exv-host"></div>';}
+  }
+  function setCurrent(i){
+    if(i<0||i>=X.list.length||i===X.cur)return;
+    var prev=X.pages[X.cur];
+    if(prev){
+      if(prev.player){try{prev.player.pauseVideo();}catch(e){}}
+      if(prev.startedAt!=null&&Date.now()-prev.startedAt<2000)api().signal({id:X.list[X.cur].id,topic:X.list[X.cur].topic},'skip_fast');
+      prev.startedAt=null;var ps=prev.el.querySelector('.exv-stage');if(ps)ps.classList.remove('playing');
+    }
+    X.cur=i;
+    var pg=X.pages[i],r=root();
+    if(r){r.querySelector('.exv-title').textContent=X.title;}
+    /* pool = previous + current + next; everything else is destroyed */
+    for(var k=0;k<X.pages.length;k++){if(Math.abs(k-i)>1)drop(k);}
+    ensure(i);ensure(i+1);ensure(i-1);
+    if(pg.player&&pg.ready){
+      applySound(pg);
+      try{pg.player.seekTo(0,true);pg.player.playVideo();}catch(e){}
+      if(pg.buffered){pg.el.querySelector('.exv-stage').classList.add('playing');pg.startedAt=Date.now();api().signal({id:X.list[i].id,topic:X.list[i].topic},'play');setTimeout(soundPill,900);}
+    }
+    var b=pg.el.querySelector('.snd-pill');if(b)b.hidden=true;
   }
   function close(){
     var r=root();clearTimeout(X.guard);clearInterval(X.tick);
-    try{if(X.pl&&X.pl.destroy)X.pl.destroy();}catch(e){}
-    X.pl=null;X.ready=false;
+    if(X.io){try{X.io.disconnect();}catch(e){}X.io=null;}
+    X.pages.forEach(function(pg){try{if(pg.player)pg.player.destroy();}catch(e){}});
+    X.pages=[];X.cur=-1;
     if(r)r.remove();
     document.body.classList.remove('exv-on');
   }
@@ -24560,50 +24661,46 @@ body.exv-on #bnav{display:none!important}
   window._exvOpen=function(list,i,title){
     if(!list||!list.length)return;
     close();
-    X.list=list;X.title=title||'Explore';
+    X.list=list.slice(0,80);X.title=title||'Explore';i=Math.max(0,Math.min(i,X.list.length-1));
     try{document.querySelectorAll('.soc-vin video').forEach(function(v){if(!v.paused)v.pause();});}catch(e){}
     var r=document.createElement('div');r.id='exv';r.className='exv';r.setAttribute('role','dialog');r.setAttribute('aria-label','Video');
     r.innerHTML='<div class="exv-top"><button type="button" class="vfv-back" data-x="close" aria-label="Back">'+SVG.back+'</button><span class="exv-title"></span></div>'
-      +'<div class="exv-stage"><img class="exv-poster" alt=""><div class="exv-yt"><div id="exv-host"></div></div></div>'
-      +'<div class="exv-ui"><button type="button" class="snd-pill" data-x="sound" hidden>🔊 Tap for sound</button><div class="vfv-row">'
-        +'<button type="button" class="vfv-btn vfv-like" data-x="like" aria-label="Like">'+SVG.heart+'</button>'
-        +'<button type="button" class="vfv-btn" data-x="share" aria-label="Share">'+SVG.send+'</button>'
-        +'<button type="button" class="vfv-btn vfv-save" data-x="save" aria-label="Save">'+SVG.mark+'</button>'
-        +'<span class="vfv-grow"></span>'
-        +'<button type="button" class="vfv-btn vfv-next" data-x="next" aria-label="Next">'+SVG.next+'<span>Next</span></button>'
-      +'</div><div class="vfv-cap"></div><div class="exv-ch"></div></div>';
+      +'<div class="exv-scroll" id="exv-scroll">'+X.list.map(pageHtml).join('')+'</div>';
     r.querySelector('.exv-title').textContent=X.title;
     document.body.appendChild(r);document.body.classList.add('exv-on');
+    var sc=r.querySelector('#exv-scroll');
+    X.pages=[].map.call(sc.querySelectorAll('.exv-page'),function(el,k){
+      el.querySelector('.vfv-cap').textContent=X.list[k].title||'';el.querySelector('.exv-ch').textContent=X.list[k].channel||'';
+      return {el:el,player:null,ready:false,making:false,buffered:false,startedAt:null};
+    });
     r.addEventListener('click',function(e){
-      var b=e.target.closest&&e.target.closest('[data-x]');if(!b)return;var k=b.getAttribute('data-x'),v=cur();
+      var b=e.target.closest&&e.target.closest('[data-x]');if(!b)return;var k=b.getAttribute('data-x'),v=X.list[X.cur],pg=curPage();
       if(k==='close')return close();
-      if(k==='sound'){ /* v253: inside the tap = a real gesture */
-        try{X.pl.unMute();X.pl.setVolume(100);X.pl.playVideo();}catch(er){}
+      if(k==='next'){var t=Math.min(X.cur+1,X.list.length-1);if(t!==X.cur)X.pages[t].el.scrollIntoView({behavior:'smooth',block:'start'});return;}
+      if(k==='sound'){ /* inside the tap = a real gesture */
+        try{pg.player.unMute();pg.player.setVolume(100);pg.player.playVideo();}catch(er){}
         X.lastSet=false;X.setAt=Date.now();try{localStorage.setItem('clv_vf_sound','1');}catch(er){}
-        setTimeout(function(){var m=true;try{m=X.pl.isMuted();}catch(er){}if(m){b.textContent='🔇 Tap the speaker on the video';b.hidden=false;}else b.hidden=true;},700);
+        setTimeout(function(){var m=true;try{m=pg.player.isMuted();}catch(er){}if(m){b.textContent='🔇 Tap the speaker on the video';b.hidden=false;}else b.hidden=true;},700);
         return;
       }
-      if(k==='next')return show(X.i+1<X.list.length?X.i+1:0);
       if(k==='like'){b.classList.toggle('on',api().toggleLike(v));return;}
       if(k==='save'){b.classList.toggle('on',api().toggleSave(v));return;}
       if(k==='share'&&window._vfvOpenShare){
-        try{if(X.pl)X.pl.pauseVideo();}catch(er){}
+        try{if(pg&&pg.player)pg.player.pauseVideo();}catch(er){}
         window._vfvOpenShare({id:v.id,title:v.title,topic:v.topic},function(){api().signal(v,'share');});
         var sh=document.getElementById('vfv-share');
-        if(sh)sh.addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('[data-s="feed"]'))close();},true); /* "Post to my feed" opens the Feed composer — step out of the player so it is visible */
+        if(sh)sh.addEventListener('click',function(ev){if(ev.target.closest&&ev.target.closest('[data-s="feed"]'))close();},true);
       }
     });
-    /* swipe on our own strips (the player itself swallows touches): up = next, down = previous, right = back */
-    var sx=0,sy=0;
-    r.addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-    r.addEventListener('touchend',function(e){
-      var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
-      if(Math.abs(dy)>60&&Math.abs(dy)>Math.abs(dx)){show(dy<0?Math.min(X.i+1,X.list.length-1):Math.max(X.i-1,0));}
-      else if(dx>80&&Math.abs(dx)>Math.abs(dy)*1.6)close();
-    },{passive:true});
+    /* which page is showing (>=60% visible) is the current video — works for finger swipes AND the Next button */
+    X.io=new IntersectionObserver(function(es){es.forEach(function(en){
+      if(en.isIntersecting&&en.intersectionRatio>=0.6){var k=+en.target.getAttribute('data-i');if(k!==X.cur)setCurrent(k);}
+    });},{root:sc,threshold:[0.6]});
+    X.pages.forEach(function(pg){X.io.observe(pg.el);});
+    sc.scrollTop=i*sc.clientHeight; /* jump to the tapped tile's page (instant) */
+    setCurrent(i);
     /* the viewer's own mute/unmute in YouTube's control is remembered (ignoring the moment right after we set it ourselves) */
-    X.tick=setInterval(function(){try{var m=X.pl&&X.pl.isMuted&&X.pl.isMuted();if(X.pl&&X.lastSet!=null&&m!==X.lastSet&&Date.now()-X.setAt>2500){X.lastSet=m;localStorage.setItem('clv_vf_sound',m?'0':'1');}}catch(e){}},1000);
-    show(Math.max(0,Math.min(i,list.length-1)));
+    X.tick=setInterval(function(){try{var pg=curPage(),m=pg&&pg.player&&pg.player.isMuted&&pg.player.isMuted();if(pg&&pg.player&&X.lastSet!=null&&m!==X.lastSet&&Date.now()-X.setAt>2500){X.lastSet=m;localStorage.setItem('clv_vf_sound',m?'0':'1');}}catch(e){}},1000);
   };
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root())close();});
 })();

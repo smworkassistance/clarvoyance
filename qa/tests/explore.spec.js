@@ -13,10 +13,10 @@ const FAKE_YT = () => {
     const me = this; me.vid = opts.videoId; me.state = -1; me.muted = false;
     const f = document.createElement('div'); f.className = 'fake-yt'; f.style.cssText = 'width:100%;height:100%;background:#234'; host.replaceWith(f);
     const emit = st => { me.state = st; opts.events && opts.events.onStateChange && opts.events.onStateChange({ data: st, target: me }); };
-    me.playVideo = () => setTimeout(() => emit(1), 20); me.pauseVideo = () => emit(2); me.seekTo = () => {};
+    me.playVideo = () => { me.playCalls++; setTimeout(() => { if (!me.destroyed) emit(1); }, 20); }; me.pauseVideo = () => emit(2); me.seekTo = () => {};
     me.loadVideoById = v => { me.vid = v; window.__yt.loads.push(v); setTimeout(() => emit(1), 20); };
     me.mute = () => { me.muted = true; }; me.unMute = () => { me.muted = false; }; me.isMuted = () => me.muted; me.setVolume = () => {};
-    me.getPlayerState = () => me.state; me.getDuration = () => 20; me.getCurrentTime = () => 0; me.destroy = () => f.remove();
+    me.getPlayerState = () => me.state; me.getDuration = () => 20; me.getCurrentTime = () => 0; me.destroyed = false; me.playCalls = 0; me.destroy = () => { me.destroyed = true; f.remove(); };
     window.__yt.players.push(me);
     setTimeout(() => opts.events && opts.events.onReady && opts.events.onReady({ target: me }), 20);
   }
@@ -127,28 +127,54 @@ test.describe('Feed top + Explore (v252)', () => {
     expect(app.pageErrors).toEqual([]);
   });
 
-  test('a tile opens the full-screen player; Next loads the next video in the same player; back closes', async ({ app }) => {
+  test('a tile opens the full-screen player with a 3-player pool; Next reveals an already-buffered player (no new load); back closes', async ({ app }) => {
     const { page } = app;
     await setup(app);
     await page.click('#soc-tabs .soc-tab[data-tab="find"]');
     await expect.poll(() => page.locator('#exp-grid .exp-tile:not(.sk)').count(), { timeout: 10000 }).toBeGreaterThan(3);
     await page.click('#exp-grid .exp-tile[data-i="1"]');
     await expect(page.locator('#exv')).toHaveCount(1);
-    await expect(page.locator('#exv .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
-    const g = await page.evaluate(() => { const s = document.querySelector('#exv .exv-stage').getBoundingClientRect(), u = document.querySelector('#exv .exv-ui').getBoundingClientRect(); return { w: s.width, vw: innerWidth, uiBelow: u.top >= s.bottom - 1, nav: getComputedStyle(document.getElementById('bnav')).display, n: window.__yt.players.length, muted: window.__yt.players[0].muted }; });
-    expect(g.w).toBeGreaterThanOrEqual(g.vw - 1);
+    await expect(page.locator('#exv .exv-page[data-i="1"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
+    // pool: previous (0) + current (1) + next (2) exist, the neighbours already buffered (paused at 0:00), nothing else
+    await expect.poll(() => page.evaluate(() => window.__yt.players.filter(p => !p.destroyed).length), { timeout: 5000 }).toBe(3);
+    const g = await page.evaluate(() => { const s = document.querySelector('#exv .exv-page[data-i="1"] .exv-stage').getBoundingClientRect(), u = document.querySelector('#exv .exv-page[data-i="1"] .exv-ui').getBoundingClientRect(); return { w: s.width, h: s.height, vw: innerWidth, uiBelow: u.top >= s.bottom - 1, nav: getComputedStyle(document.getElementById('bnav')).display, muted: window.__yt.players[0].muted }; });
+    expect(g.w).toBeGreaterThanOrEqual(g.vw * 0.9);
+    expect(g.h / g.w, 'the video\'s own 9:16 shape, no letterbox').toBeCloseTo(16 / 9, 1);
     expect(g.uiBelow).toBe(true);
     expect(g.nav).toBe('none');
     expect(g.muted, 'starts with sound by default').toBe(false);
-    await page.screenshot({ path: path.join(__dirname, '..', 'test-results', 'v252-player.png') });
+    await page.screenshot({ path: path.join(__dirname, '..', 'test-results', 'v253-player.png') });
+    const playsBefore = await page.evaluate(() => window.__yt.players.length);
     await page.click('#exv [data-x="next"]');
-    await expect.poll(() => page.evaluate(() => window.__yt.loads.length)).toBe(1);
-    expect(await page.evaluate(() => window.__yt.players.length)).toBe(1); // same player, just the next video
-    await page.click('#exv [data-x="like"]');
-    expect(await page.evaluate(() => document.querySelector('#exv .vfv-like').classList.contains('on'))).toBe(true);
+    await expect(page.locator('#exv .exv-page[data-i="2"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
+    expect(await page.evaluate(() => window.__yt.loads.length), 'no loadVideoById — the next player was already there').toBe(0);
+    // the page that just became current was created BEFORE the swipe (buffered), and the pool moved on: page 3 created, page 0 destroyed
+    await expect.poll(() => page.evaluate(() => window.__yt.players.filter(p => !p.destroyed).length), { timeout: 5000 }).toBe(3);
+    expect(await page.evaluate(() => window.__yt.players.length)).toBeGreaterThan(playsBefore);
+    await page.click('#exv .exv-page[data-i="2"] [data-x="like"]');
+    expect(await page.evaluate(() => document.querySelector('#exv .exv-page[data-i="2"] .vfv-like').classList.contains('on'))).toBe(true);
     await page.click('#exv [data-x="close"]');
     await expect(page.locator('#exv')).toHaveCount(0);
     expect(await page.evaluate(() => getComputedStyle(document.getElementById('bnav')).display)).not.toBe('none');
+    expect(app.pageErrors).toEqual([]);
+  });
+
+  test('a real touch swipe that STARTS ON THE VIDEO moves to the next / previous video (native scroll-snap)', async ({ app }) => {
+    const { page } = app;
+    await setup(app);
+    await page.click('#soc-tabs .soc-tab[data-tab="find"]');
+    await expect.poll(() => page.locator('#exp-grid .exp-tile:not(.sk)').count(), { timeout: 10000 }).toBeGreaterThan(3);
+    await page.click('#exp-grid .exp-tile[data-i="1"]');
+    await expect(page.locator('#exv .exv-page[data-i="1"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
+    const cdp = await page.context().newCDPSession(page);
+    const swipe = async (dir) => {
+      const b = await page.locator('#exv .exv-page[data-i="' + (await page.evaluate(() => [...document.querySelectorAll('#exv .exv-stage.playing')].map(e => e.closest('.exv-page').getAttribute('data-i'))[0])) + '"] .exv-stage').boundingBox();
+      await cdp.send('Input.synthesizeScrollGesture', { x: Math.round(b.x + b.width / 2), y: Math.round(b.y + b.height * (dir < 0 ? 0.9 : 0.1)), yDistance: dir * Math.round(b.height * 1.05), speed: 1500, gestureSourceType: 'default' });
+    };
+    await swipe(-1); // finger moves up = next
+    await expect(page.locator('#exv .exv-page[data-i="2"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
+    await swipe(+1); // finger moves down = previous
+    await expect(page.locator('#exv .exv-page[data-i="1"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
     expect(app.pageErrors).toEqual([]);
   });
 });

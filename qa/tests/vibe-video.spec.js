@@ -78,7 +78,7 @@ test.describe('Vibe video card (v250)', () => {
     expect(g.uiBelow, 'our UI sits below the player').toBe(true);
     expect(g.ratio).toBeGreaterThan(0.5); expect(g.ratio).toBeLessThan(0.6);
     expect(g.oldOverlays, 'the old overlay elements are gone').toBe(0);
-    expect(g.btns).toBe('back,feed,noop,like,share,save,next'); // v251: top bar (back · Feed | Vibe) + Instagram order like · share · save
+    expect(g.btns).toBe('back,feed,noop,sound,like,share,save,next'); // v251: top bar (back · Feed | Vibe) + Instagram order like · share · save
     // the player is created with YouTube's own controls visible
     const opts = await page.evaluate(() => window.__yt.players.length);
     expect(opts).toBeGreaterThanOrEqual(1);
@@ -152,16 +152,15 @@ test.describe('Vibe video card (v250)', () => {
     expect(next.muted).toBe(true);
   });
 
-  test('swipe up on our own UI advances; Next button advances; leaving early is a fast-skip signal', async ({ app }) => {
+  // v253 (T-064): the swipe is a NATIVE scroll of a snap list, so it works with the finger starting ON the video (a cross-origin iframe swallows JS touch events)
+  test('a real touch swipe that STARTS ON THE VIDEO advances to the next card (native scroll-snap); Next button too', async ({ app }) => {
     await setup(app);
     const { page } = app;
     await page.evaluate(() => { window.__nextCalls = 0; const o = window.vfNext; window.vfNext = function () { window.__nextCalls++; return o.apply(this, arguments); }; });
-    await page.evaluate(() => {
-      const ui = document.querySelector('.vfv-slot.active .vfv-ui');
-      const mk = (type, y) => new TouchEvent(type, { bubbles: true, cancelable: true, touches: type === 'touchend' ? [] : [new Touch({ identifier: 1, target: ui, clientX: 100, clientY: y })], changedTouches: [new Touch({ identifier: 1, target: ui, clientX: 100, clientY: y })] });
-      ui.dispatchEvent(mk('touchstart', 400)); ui.dispatchEvent(mk('touchend', 300));
-    });
-    expect(await page.evaluate(() => window.__nextCalls)).toBe(1);
+    const b = await page.locator('.vfv-slot.active .vfv-stage').boundingBox();
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.synthesizeScrollGesture', { x: Math.round(b.x + b.width / 2), y: Math.round(b.y + b.height * 0.9), yDistance: -Math.round(b.height * 1.05), speed: 1500, gestureSourceType: 'default' });
+    await expect.poll(() => page.evaluate(() => window.__nextCalls), { timeout: 5000 }).toBe(1);
     await page.waitForTimeout(500);
   });
 });

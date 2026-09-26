@@ -55,6 +55,8 @@
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
+      'X-Worker-Version': 'v253-r1',
+      'Access-Control-Expose-Headers': 'X-Worker-Version',
     };
   }
   function json(body, status = 200) {
@@ -106,6 +108,19 @@
     return Array.isArray(rows) ? rows : [];
   }
 
+  /* v253: save cache rows. The new `aspect` column may not exist yet (the SQL is run by the owner after the Worker is pasted) — if the database
+     complains about it, save the same rows without it instead of failing every search. */
+  async function saveRows(env, rows) {
+    const post = (r) => sbFetch(env, 'youtube_topic_cache?on_conflict=topic,video_id', {
+      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(r),
+    });
+    try { await post(rows); }
+    catch (e) {
+      if (!/aspect/i.test(String(e && e.message))) throw e;
+      await post(rows.map(({ aspect, ...rest }) => rest));
+    }
+  }
+
   async function getTopicState(env, topic) {
     const rows = await sbFetch(env, 'youtube_topic_state?topic=eq.' + encodeURIComponent(topic) + '&limit=1');
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
@@ -123,6 +138,15 @@
         updated_at: new Date().toISOString(),
       }]),
     });
+  }
+
+  /* v253: width/height of the embed as YouTube reports it (`player.embedWidth/embedHeight` are strings, sized to maxHeight) -> aspect = w/h.
+     A Short is ~0.56 (9:16); landscape ~1.78. null when YouTube doesn't say. */
+  function aspectOf(v) {
+    const p = v && v.player;
+    const w = p && Number(p.embedWidth), h = p && Number(p.embedHeight);
+    if (!(w > 0) || !(h > 0)) return null;
+    return Math.round((w / h) * 1000) / 1000;
   }
 
   /* Runs one YouTube search page (optionally continuing from pageToken)
@@ -149,7 +173,7 @@
       duration for real Shorts-length filtering, since search.list's own
       videoDuration=short filter only means "under 4 minutes". */
     const detailsUrl = 'https://www.googleapis.com/youtube/v3/videos'
-      + '?part=contentDetails,snippet&id=' + ids.join(',')
+      + '?part=contentDetails,snippet,player&maxHeight=1280&id=' + ids.join(',') /* v253: `player` gives the TRUE embed size -> aspect ratio, at no extra quota (same call) */
       + '&key=' + env.YOUTUBE_API_KEY;
     const detailsRes = await fetch(detailsUrl);
     const detailsData = await detailsRes.json();
@@ -168,6 +192,7 @@
         thumbnail_url: (thumb && thumb.url) || null,
         channel_title: (sn.channelTitle || '').slice(0, 150),
         duration_seconds: seconds,
+        aspect: aspectOf(v),
         fetched_at: new Date().toISOString(),
       });
       if (rows.length >= RESULTS_PER_TOPIC) break;
@@ -185,11 +210,7 @@
     const q = query || topic;
     const page = await searchYouTubePage(env, topic, q, null);
     if (page.rows.length) {
-      await sbFetch(env, 'youtube_topic_cache?on_conflict=topic,video_id', {
-        method: 'POST',
-        headers: { Prefer: 'resolution=merge-duplicates' },
-        body: JSON.stringify(page.rows),
-      });
+      await saveRows(env, page.rows);
     }
     await saveTopicState(env, topic, q, page.nextPageToken, !page.nextPageToken);
     return { source: 'live', videos: page.rows, count: page.rows.length };
@@ -240,17 +261,28 @@
     const pageToken = freshQuery ? null : (state ? (state.next_page_token || null) : null);
     const page = await searchYouTubePage(env, topic, q, pageToken);
     if (page.rows.length) {
-      await sbFetch(env, 'youtube_topic_cache?on_conflict=topic,video_id', {
-        method: 'POST',
-        headers: { Prefer: 'resolution=merge-duplicates' },
-        body: JSON.stringify(page.rows),
-      });
+      await saveRows(env, page.rows);
     }
     await saveTopicState(env, topic, q, page.nextPageToken, !page.nextPageToken);
 
     const cached = await fetchAllFromCache(env, topic);
     const source = freshQuery ? 'fresh_variant' : (state ? 'grown' : 'bootstrapped');
     return { source, videos: cached, count: cached.length, grew: page.rows.length > 0, added: page.rows.length };
+  }
+
+  async function fillAspects(env, ids) {
+    const clean = [...new Set(ids.map(String).filter((x) => /^[A-Za-z0-9_-]{11}$/.test(x)))].slice(0, 50);
+    if (!clean.length || !env.YOUTUBE_API_KEY) return { aspects: {} };
+    const url = 'https://www.googleapis.com/youtube/v3/videos?part=player&maxHeight=1280&id=' + clean.join(',') + '&key=' + env.YOUTUBE_API_KEY;
+    const res = await fetch(url); const data = await res.json();
+    if (!res.ok) throw new Error((data.error && data.error.message) || 'YouTube video details failed');
+    const aspects = {};
+    for (const v of data.items || []) { const a = aspectOf(v); if (a) aspects[v.id] = a; }
+    // remember them (best effort — silently skipped if the column does not exist yet)
+    for (const id of Object.keys(aspects)) {
+      try { await sbFetch(env, 'youtube_topic_cache?video_id=eq.' + encodeURIComponent(id), { method: 'PATCH', body: JSON.stringify({ aspect: aspects[id] }) }); } catch (e) { break; }
+    }
+    return { aspects };
   }
 
   export default {
@@ -260,6 +292,11 @@
 
       let body;
       try { body = await request.json(); } catch (e) { return json({ error: 'invalid JSON' }, 400); }
+
+      /* v253: fill in the missing shape (aspect) of already-cached videos — 1 YouTube unit per 50 ids, only for ids that have no aspect yet */
+      if (Array.isArray(body.aspectFor)) {
+        try { return json(await fillAspects(env, body.aspectFor)); } catch (e) { return json({ error: e.message }, 500); }
+      }
 
       const topic = String(body.topic || '').trim().toLowerCase();
       if (!topic) return json({ error: 'topic is required' }, 400);
