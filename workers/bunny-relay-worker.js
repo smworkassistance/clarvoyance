@@ -78,6 +78,73 @@ function sb(env, path, init = {}) {
   });
 }
 
+/* ═══ v253 (T-063) — CLAR REELS: instant, self-hosted stock clips ═══════════════════════════════════════════════════════════════════════
+   Every 30 minutes (Cron Trigger: every 30 minutes, cron expression star-slash-30 on this Worker) it (1) marks clips Bunny has finished transcoding as 'ready', then (2) for 2 themes
+   per run asks Pexels (free API, 200 requests/hour) for portrait clips and asks BUNNY to fetch each one from its URL into our library (Bunny
+   "Fetch Video" — the file never passes through this Worker), recording it in clar_reels as 'processing'. The app only ever shows 'ready' clips,
+   from OUR CDN, so they start instantly (YouTube cannot be re-hosted; Pexels' licence allows free use). Needs the secret PEXELS_API_KEY;
+   without it the job does nothing (the app simply has no Reels). Caps: 6 new clips per run, 400 in total (Bunny storage stays ~3 GB = cents). */
+const REEL_THEMES = ['sunrise', 'ocean waves', 'forest', 'mountains', 'city night lights', 'rain on window', 'running', 'yoga', 'fireplace', 'clouds',
+  'desert', 'waterfall', 'starry sky', 'flowers', 'road trip', 'coffee'];
+const REEL_MAX_TOTAL = 400, REEL_PER_RUN = 6, REEL_MIN_S = 6, REEL_MAX_S = 30;
+
+async function reelsTick(env) {
+  const out = { promoted: 0, failed: 0, added: 0, skipped: null };
+  if (!env.PEXELS_API_KEY) { out.skipped = 'PEXELS_API_KEY is not set'; return out; }
+  const lib = need(env, 'BUNNY_LIBRARY_ID'), apiKey = need(env, 'BUNNY_API_KEY');
+  const bunny = (path, init = {}) => fetch('https://video.bunnycdn.com/library/' + lib + path, { ...init, headers: { AccessKey: apiKey, 'Content-Type': 'application/json', Accept: 'application/json', ...(init.headers || {}) } });
+
+  /* 1) clips Bunny has finished (status 4) become 'ready' with their real size; errors (5/6) become 'failed' */
+  const proc = await sb(env, 'clar_reels?select=id,bunny_guid&status=eq.processing&order=id.asc&limit=20');
+  if (proc.ok) {
+    for (const r of await proc.json()) {
+      const vr = await bunny('/videos/' + encodeURIComponent(r.bunny_guid));
+      if (!vr.ok) continue;
+      const v = await vr.json();
+      if (v.status === 4) {
+        await sb(env, 'clar_reels?id=eq.' + r.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ status: 'ready', width: v.width || null, height: v.height || null, duration: Math.round(v.length || 0) || null }) });
+        out.promoted++;
+      } else if (v.status === 5 || v.status === 6) {
+        await sb(env, 'clar_reels?id=eq.' + r.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ status: 'failed' }) });
+        out.failed++;
+      }
+    }
+  }
+
+  /* 2) add new clips (unless the library is already full) */
+  const cr = await sb(env, 'clar_reels?select=id', { headers: { Prefer: 'count=exact', Range: '0-0' } });
+  const total = Number((cr.headers.get('content-range') || '').split('/')[1]) || 0;
+  if (total >= REEL_MAX_TOTAL) { out.skipped = 'library full (' + total + ')'; return out; }
+  const slot = Math.floor(Date.now() / (30 * 60 * 1000));
+  const themes = [REEL_THEMES[slot % REEL_THEMES.length], REEL_THEMES[(slot + 1) % REEL_THEMES.length]];
+  const page = 1 + (Math.floor(slot / REEL_THEMES.length) % 4); // walk deeper into each theme's results over the days
+  for (const theme of themes) {
+    if (out.added >= REEL_PER_RUN) break;
+    const pr = await fetch('https://api.pexels.com/v1/videos/search?query=' + encodeURIComponent(theme) + '&orientation=portrait&size=medium&per_page=10&page=' + page, { headers: { Authorization: env.PEXELS_API_KEY } });
+    if (!pr.ok) continue;
+    const list = ((await pr.json()).videos || []).filter((v) => v.duration >= REEL_MIN_S && v.duration <= REEL_MAX_S);
+    if (!list.length) continue;
+    const have = await sb(env, 'clar_reels?select=pexels_id&pexels_id=in.(' + list.map((v) => v.id).join(',') + ')');
+    const haveIds = new Set(have.ok ? (await have.json()).map((x) => Number(x.pexels_id)) : []);
+    for (const v of list) {
+      if (out.added >= REEL_PER_RUN) break;
+      if (haveIds.has(v.id)) continue;
+      // the best portrait rendition: tall enough for a phone (>=1280) but not a 4K monster; prefer 'hd'
+      const files = (v.video_files || []).filter((f) => f.file_type === 'video/mp4' && f.height > f.width && f.height >= 1280 && f.height <= 2200).sort((a, b) => (a.quality === 'hd' ? -1 : 1) - (b.quality === 'hd' ? -1 : 1) || a.height - b.height);
+      const f = files[0];
+      if (!f || !f.link) continue;
+      const fr = await bunny('/videos/fetch', { method: 'POST', body: JSON.stringify({ url: f.link, title: 'reel-' + v.id }) });
+      if (!fr.ok) continue;
+      const fj = await fr.json().catch(() => ({}));
+      const guid = fj.id || fj.guid;
+      if (!guid) continue;
+      const ins = await sb(env, 'clar_reels', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ pexels_id: v.id, bunny_guid: guid, theme, width: f.width, height: f.height, duration: Math.round(v.duration), photographer: (v.user && v.user.name) || null, photographer_url: (v.user && v.user.url) || null, pexels_url: v.url || null, status: 'processing' }) });
+      if (ins.ok) out.added++;
+    }
+  }
+  return out;
+}
+
 export default {
   async fetch(request, env) {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(request) });
@@ -132,5 +199,11 @@ export default {
     } catch (e) {
       return json(request, { error: String(e && e.message || e) }, 500);
     }
+  },
+
+  /* v253: the Cron Trigger (every 30 minutes) */
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(reelsTick(env).catch(() => {}));
   }
 };
+export { reelsTick };

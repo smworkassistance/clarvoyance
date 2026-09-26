@@ -20096,6 +20096,7 @@ body.home-tab #nn-tab-section{order:2;}
     _markSeen('q'+_hash(pick.quote));
     return pick;
   }
+  window._clvPickQuote=_pickQuote; /* v253: Clar Reels shows a real, attributed quote from the same pool */
 
   /* ── Photo pool — reuses the existing, unchanged Photo Worker/theme
      system from v215. A photo that fails to load client-side just hides
@@ -22226,6 +22227,7 @@ textarea.soc-in{resize:none;min-height:74px}
   }
   function _expTileHtml(v,i){
     var tall=(i%10===2||i%10===5); /* Instagram's rhythm: a tall tile now and then */
+    if(v.reel)return '<button class="exp-tile'+(tall?' tall':'')+'" data-act="exp-open" data-i="'+i+'" aria-label="Play reel"><img loading="lazy" alt="" src="'+esc(window._clvReels.thumb(v.reel.bunny_guid))+'" onerror="this.parentNode.remove()"><span class="exp-reel">'+EXP_REEL+'</span><span class="exp-rl">REEL</span></button>';
     return '<button class="exp-tile'+(tall?' tall':'')+'" data-act="exp-open" data-i="'+i+'" aria-label="Play video">'
       /* hqdefault (~15 KB) instead of the full 1080x1920 upright thumbnail (~150-400 KB each, too heavy for a grid on mobile data);
          CSS zooms it so the Short fills the tile without its black side bars. A deleted video returns YouTube's 120x90 grey stand-in: drop that tile. */
@@ -22286,6 +22288,8 @@ textarea.soc-in{resize:none;min-height:74px}
     }
     if(EXP.term!==(term||''))return; /* user moved on */
     EXP.items=_expOrder(rows);
+    /* v253 (T-063): Clar Reels mixed into the grid (about every 5th tile) — own-hosted, so they open instantly */
+    try{if(!term&&window._clvReels){var rl=window._clvReels.some(Math.max(1,Math.floor(EXP.items.length/5)));rl.forEach(function(row,k){var pos=Math.min(EXP.items.length,2+k*5);EXP.items.splice(pos,0,{video_id:'reel_'+row.bunny_guid,title:'',channel_title:'',topic:'reel',reel:row});});}}catch(e){}
     if(g)g.innerHTML='';
     if(!EXP.items.length){if(m)m.innerHTML='<div class="exp-end">'+(term?'No videos for “'+esc(term)+'” yet.':'Add a few interests in Profile → Clar AI and your Explore fills up.')+'</div>';return;}
     _expRenderMore();_expWireScroll();
@@ -22340,6 +22344,7 @@ textarea.soc-in{resize:none;min-height:74px}
     clearTimeout(EXP.accT);EXP.accT=setTimeout(function(){_expAccounts(term);},term?250:0);
   }
   function loadExplore(){
+    try{if(window._clvReels)window._clvReels.load();}catch(e){}
     body('<div id="exp-wrap" class="exp-wrap"><div class="exp-top"><div class="exp-search">'+ICO.search+'<input id="exp-in" type="search" placeholder="Search" autocomplete="off" autocapitalize="none" enterkeyhint="search"></div><button class="exp-cancel" data-act="exp-cancel" type="button">Cancel</button></div>'
       +'<div id="exp-termbar" class="exp-termbar" style="display:none"></div>'
       +'<div id="exp-sug" class="exp-sug"></div><div id="exp-grid" class="exp-grid"></div><div id="exp-more" class="exp-more"></div></div>');
@@ -22371,7 +22376,7 @@ textarea.soc-in{resize:none;min-height:74px}
   };
   ACT['exp-open']=function(el){
     var i=+el.getAttribute('data-i');if(!window._exvOpen)return;
-    window._exvOpen(EXP.items.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore',aspect:v.aspect};}),i,EXP.term||'Explore');
+    window._exvOpen(EXP.items.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore',aspect:v.aspect,reel:v.reel||null};}),i,EXP.term||'Explore');
   };
   }
   window.addEventListener('resize',_expFitRows);
@@ -24572,14 +24577,16 @@ body.exv-on #bnav{display:none!important}
     if(!document.querySelector('script[src*="youtube.com/iframe_api"]')){var sc=document.createElement('script');sc.src='https://www.youtube.com/iframe_api';document.head.appendChild(sc);}
     var n=0;(function p(){if(window.YT&&window.YT.Player)cb();else if(++n<75)setTimeout(p,200);})();
   }
-  function aspOf(v){return (v&&v.aspect>0.2&&v.aspect<4)?v.aspect:0.5625;}
+  function aspOf(v){if(v&&v.reel&&v.reel.width>0&&v.reel.height>0)return v.reel.width/v.reel.height;return (v&&v.aspect>0.2&&v.aspect<4)?v.aspect:0.5625;}
   function pageHtml(v,i){
-    return '<section class="exv-page" data-i="'+i+'" style="--asp:'+aspOf(v)+';--bg-img:url(https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg)">'
-      +'<div class="exv-stage"><img class="exv-poster" alt="" loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg"><div class="exv-yt"><div class="exv-host"></div></div></div>'
+    return '<section class="exv-page" data-i="'+i+'" style="--asp:'+aspOf(v)+';--bg-img:url('+(v.reel?window._clvReels.thumb(v.reel.bunny_guid):'https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg')+')">'
+      +(v.reel
+        ?'<div class="exv-stage"><img class="exv-poster" alt="" loading="lazy" src="'+window._clvReels.thumb(v.reel.bunny_guid)+'"><div class="exv-reelbox"></div><div class="exv-reelcredit">'+window._clvReels.credit(v.reel)+'</div></div>'
+        :'<div class="exv-stage"><img class="exv-poster" alt="" loading="lazy" src="https://i.ytimg.com/vi/'+v.id+'/hqdefault.jpg"><div class="exv-yt"><div class="exv-host"></div></div></div>')
       +'<div class="exv-ui"><button type="button" class="snd-pill" data-x="sound" hidden>🔊 Tap for sound</button><div class="vfv-row">'
         +'<button type="button" class="vfv-btn vfv-like'+(api().isLiked(v.id)?' on':'')+'" data-x="like" aria-label="Like">'+SVG.heart+'</button>'
-        +'<button type="button" class="vfv-btn" data-x="share" aria-label="Share">'+SVG.send+'</button>'
-        +'<button type="button" class="vfv-btn vfv-save'+(api().isSaved(v.id)?' on':'')+'" data-x="save" aria-label="Save">'+SVG.mark+'</button>'
+        +(v.reel?'':'<button type="button" class="vfv-btn" data-x="share" aria-label="Share">'+SVG.send+'</button>'
+        +'<button type="button" class="vfv-btn vfv-save'+(api().isSaved(v.id)?' on':'')+'" data-x="save" aria-label="Save">'+SVG.mark+'</button>')
         +'<span class="vfv-grow"></span>'
         +'<button type="button" class="vfv-btn vfv-next" data-x="next" aria-label="Next">'+SVG.next+'<span>Next</span></button>'
       +'</div><div class="vfv-cap"></div><div class="exv-ch"></div></div></section>';
@@ -24600,6 +24607,16 @@ body.exv-on #bnav{display:none!important}
   }
   function ensure(i){
     var pg=X.pages[i];if(!pg||pg.player||pg.making)return;
+    if(X.list[i]&&X.list[i].reel){ /* v253: an own-hosted Reel — a plain <video>, preloaded as a neighbour, played when current */
+      if(pg.vid)return;
+      var rv=window._clvReels.makeVideo(X.list[i].reel);rv.className='exv-vid';pg.vid=rv;
+      pg.el.querySelector('.exv-reelbox').appendChild(rv);
+      var q=null;try{q=window._clvPickQuote&&window._clvPickQuote();}catch(e){}
+      if(q){var qd=document.createElement('div');qd.className='exv-reelq';qd.innerHTML='<div class="t"></div><div class="a"></div>';qd.querySelector('.t').textContent=q.quote;qd.querySelector('.a').textContent='— '+(q.author||'');pg.el.querySelector('.exv-stage').appendChild(qd);}
+      rv.addEventListener('playing',function(){var st=pg.el.querySelector('.exv-stage');if(st&&X.pages[X.cur]===pg)st.classList.add('playing');});
+      if(i===X.cur){try{var pp=rv.play();if(pp&&pp.catch)pp.catch(function(){});}catch(e){}}
+      return;
+    }
     pg.making=true;
     loadYT(function(){
       if(!X.pages[i]||pg.player||!root())return;
@@ -24623,7 +24640,9 @@ body.exv-on #bnav{display:none!important}
     });
   }
   function drop(i){
-    var pg=X.pages[i];if(!pg||!pg.player)return;
+    var pg=X.pages[i];
+    if(pg&&pg.vid){try{pg.vid.pause();pg.vid.removeAttribute('src');pg.vid.load();}catch(e){}var rb=pg.el.querySelector('.exv-reelbox');if(rb)rb.innerHTML='';var rq=pg.el.querySelector('.exv-reelq');if(rq)rq.remove();pg.vid=null;var rs=pg.el.querySelector('.exv-stage');if(rs)rs.classList.remove('playing');return;}
+    if(!pg||!pg.player)return;
     try{pg.player.destroy();}catch(e){}
     pg.player=null;pg.ready=false;pg.making=false;pg.buffered=false;pg.startedAt=null;
     var st=pg.el.querySelector('.exv-stage');if(st){st.classList.remove('playing');var y=st.querySelector('.exv-yt');if(y)y.innerHTML='<div class="exv-host"></div>';}
@@ -24632,6 +24651,7 @@ body.exv-on #bnav{display:none!important}
     if(i<0||i>=X.list.length||i===X.cur)return;
     var prev=X.pages[X.cur];
     if(prev){
+      if(prev.vid){try{prev.vid.pause();}catch(e){}}
       if(prev.player){try{prev.player.pauseVideo();}catch(e){}}
       if(prev.startedAt!=null&&Date.now()-prev.startedAt<2000)api().signal({id:X.list[X.cur].id,topic:X.list[X.cur].topic},'skip_fast');
       prev.startedAt=null;var ps=prev.el.querySelector('.exv-stage');if(ps)ps.classList.remove('playing');
@@ -24642,6 +24662,7 @@ body.exv-on #bnav{display:none!important}
     /* pool = previous + current + next; everything else is destroyed */
     for(var k=0;k<X.pages.length;k++){if(Math.abs(k-i)>1)drop(k);}
     ensure(i);ensure(i+1);ensure(i-1);
+    if(pg.vid){try{pg.vid.currentTime=0;var pp=pg.vid.play();if(pp&&pp.catch)pp.catch(function(){});}catch(e){}pg.el.querySelector('.exv-stage').classList.add('playing');api().signal({id:X.list[i].id,topic:'reel'},'play');}
     if(pg.player&&pg.ready){
       applySound(pg);
       try{pg.player.seekTo(0,true);pg.player.playVideo();}catch(e){}
@@ -24652,7 +24673,7 @@ body.exv-on #bnav{display:none!important}
   function close(){
     var r=root();clearTimeout(X.guard);clearInterval(X.tick);
     if(X.io){try{X.io.disconnect();}catch(e){}X.io=null;}
-    X.pages.forEach(function(pg){try{if(pg.player)pg.player.destroy();}catch(e){}});
+    X.pages.forEach(function(pg){try{if(pg.player)pg.player.destroy();}catch(e){}try{if(pg.vid){pg.vid.pause();pg.vid.removeAttribute('src');pg.vid.load();}}catch(e){}});
     X.pages=[];X.cur=-1;
     if(r)r.remove();
     document.body.classList.remove('exv-on');
@@ -24705,6 +24726,125 @@ body.exv-on #bnav{display:none!important}
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&root())close();});
 })();
 </script>
+<style id="v253-reels-css">
+/* ── Clar Reels (T-063): our own stock clips with a real quote on top ── */
+.vf-reel-wrap{position:relative;height:min(70vh,560px);aspect-ratio:9/16;max-width:100%;margin:0 auto;border-radius:16px;overflow:hidden;background:#111}
+.vf-reel-wrap video,.vf-reel-wrap .vf-reel-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
+.vf-reel-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.12) 40%,rgba(0,0,0,.72) 100%);z-index:1;pointer-events:none}
+.vf-reel-q{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:22px 22px 34px;color:#fff;pointer-events:none}
+.vf-reel-q .t{font-weight:700;line-height:1.32;text-shadow:0 2px 14px rgba(0,0,0,.6)}
+.vf-reel-q .t.s1{font-size:1.6rem}.vf-reel-q .t.s2{font-size:1.32rem}.vf-reel-q .t.s3{font-size:1.1rem}.vf-reel-q .t.s4{font-size:.95rem}
+.vf-reel-q .a{margin-top:10px;text-align:right;font-size:.85rem;font-weight:600;opacity:.92;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.vf-reel-credit{position:absolute;left:12px;bottom:9px;z-index:3;font-size:.62rem;color:rgba(255,255,255,.7)}
+.vf-reel-credit a{color:inherit;text-decoration:underline}
+.vf-reel-timer{position:absolute;top:10px;right:12px;font-size:.72rem;color:rgba(255,255,255,.75);background:rgba(0,0,0,.4);padding:3px 10px;border-radius:10px;z-index:3;letter-spacing:.04em}
+/* Discover: a Reel tile + the reel page inside the full-screen player */
+.exp-tile .exp-rl{position:absolute;left:6px;bottom:6px;font-size:.62rem;font-weight:800;color:#fff;background:rgba(0,0,0,.5);padding:2px 7px;border-radius:9px;letter-spacing:.04em}
+.exv-page .exv-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111}
+.exv-reelq{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:18px 18px 22px;color:#fff;background:linear-gradient(0deg,rgba(0,0,0,.7),rgba(0,0,0,0));pointer-events:none}
+.exv-reelq .t{font-weight:700;font-size:1.05rem;line-height:1.32;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.exv-reelq .a{margin-top:6px;text-align:right;font-size:.8rem;opacity:.9}
+.exv-reelcredit{position:absolute;left:10px;top:8px;z-index:3;font-size:.6rem;color:rgba(255,255,255,.8);text-shadow:0 1px 4px rgba(0,0,0,.6)}
+</style>
+<script id="v253-reels-js">
+/* ═══ v253 (T-063) — Clar Reels: instant, self-hosted stock clips ═══
+   Rows come from the public table clar_reels (status='ready'), filled by the bunny Worker's cron from Pexels. The NEXT reel's <video> is created early
+   (preload=auto, muted) in an off-screen host and MOVED into the card when it is shown — its data is already buffered, so play() starts at once. */
+(function(){
+  var CDN='https://vz-07154b7f-e50.b-cdn.net',LADDER=['play_720p.mp4','play_480p.mp4','play_360p.mp4','play_240p.mp4'];
+  var R={rows:[],loaded:false,loading:false,next:null,nextEl:null};
+  function lsGet(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+  function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+  function thumb(g){return CDN+'/'+g+'/thumbnail.jpg';}
+  function src(g,i){return CDN+'/'+g+'/'+LADDER[i];}
+  function seen(){return lsGet('clv_reel_seen',[]);}
+  function markSeen(g){var s=seen();if(s.indexOf(g)<0){s.push(g);if(s.length>200)s=s.slice(-200);lsSet('clv_reel_seen',s);}}
+  function host(){var h=document.getElementById('clv-reel-host');if(!h){h=document.createElement('div');h.id='clv-reel-host';h.style.cssText='position:fixed;left:-9999px;top:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none';document.body.appendChild(h);}return h;}
+  /* soft-fails everywhere: no table / no rows / offline = no reels (the feed just behaves as before) */
+  function load(cb){
+    cb=cb||function(){};
+    if(R.loaded)return cb();
+    var c=lsGet('clv_reels_cache',null);
+    if(c&&Array.isArray(c.rows)&&Date.now()-c.ts<3600000){R.rows=c.rows;R.loaded=true;return cb();}
+    if(R.loading)return cb();
+    var n=0;
+    (function go(){
+      var sb=window._sbShared;
+      if(!sb){if(++n<40)return setTimeout(go,250);return cb();}
+      R.loading=true;
+      Promise.resolve(sb.from('clar_reels').select('bunny_guid,theme,width,height,duration,photographer,photographer_url,pexels_url').eq('status','ready').limit(300))
+        .then(function(r){R.loading=false;R.loaded=true;if(r&&!r.error&&Array.isArray(r.data)){R.rows=r.data;lsSet('clv_reels_cache',{ts:Date.now(),rows:r.data});}cb();})
+        .catch(function(){R.loading=false;R.loaded=true;cb();});
+    })();
+  }
+  function pickRow(){
+    var s=seen(),un=R.rows.filter(function(r){return s.indexOf(r.bunny_guid)<0;});
+    var pool=un.length?un:R.rows;if(!pool.length)return null;
+    var row=pool[Math.floor(Math.random()*pool.length)];markSeen(row.bunny_guid);return row;
+  }
+  function attach(v,g){var i=0;v.addEventListener('error',function(){if(i<LADDER.length-1){i++;v.src=src(g,i);}else v._failed=true;});v.src=src(g,0);}
+  function makeVideo(row){
+    var v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');
+    v.preload='auto';v.poster=thumb(row.bunny_guid);attach(v,row.bunny_guid);return v;
+  }
+  /* prefetch: choose the NEXT reel now and start buffering it off-screen */
+  function prefetch(){
+    if(R.next||!R.rows.length)return;
+    var row=pickRow();if(!row)return;
+    R.next=row;R.nextEl=makeVideo(row);host().appendChild(R.nextEl);
+  }
+  function tier(len){return len<=60?'s1':len<=110?'s2':len<=170?'s3':'s4';}
+  function esc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function credit(row){return row.photographer?'Video: '+(row.photographer_url?'<a href="'+esc(row.photographer_url)+'" target="_blank" rel="noopener">'+esc(row.photographer)+'</a>':esc(row.photographer))+' / <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a>':'Video: <a href="https://www.pexels.com" target="_blank" rel="noopener">Pexels</a>';}
+  window._clvReels={
+    load:load,rows:function(){return R.rows;},thumb:thumb,src:src,ladder:LADDER,makeVideo:makeVideo,credit:credit,
+    /* n unseen-first rows for Discover tiles */
+    some:function(n){var s=seen(),un=R.rows.filter(function(r){return s.indexOf(r.bunny_guid)<0;}),pool=(un.length?un:R.rows).slice();for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=pool[i];pool[i]=pool[j];pool[j]=t;}return pool.slice(0,n);}
+  };
+
+  /* ── Vibe card ── */
+  function register(){
+    if(typeof VF_PTS!=='undefined')VF_PTS.REEL=3;
+    if(typeof VF_BG!=='undefined')VF_BG.REEL='vf-wrap-quote';
+    if(typeof VF_CBG!=='undefined')VF_CBG.REEL='vf-bg-quote';
+    if(typeof VF_TYPE_LABELS!=='undefined')VF_TYPE_LABELS.REEL='Reel';
+  }
+  var since=0,thr=Math.floor(Math.random()*2)+3,timer=null;
+  var origPick=window.vfPickCard,origRender=window.vfRender;
+  window.vfPickCard=function(){
+    since++;
+    if(since>=thr&&R.next&&R.nextEl){
+      since=0;thr=Math.floor(Math.random()*2)+3;
+      var row=R.next,el=R.nextEl;R.next=null;R.nextEl=null;
+      var q=null;try{q=window._clvPickQuote&&window._clvPickQuote();}catch(e){}
+      setTimeout(prefetch,400);
+      return {type:'REEL',row:row,el:el,quote:q?q.quote:'',author:q?q.author:''};
+    }
+    if(!R.loaded)load(prefetch);else prefetch();
+    return origPick?origPick():{type:'AFFIRMATION',content:'Keep going.',timer:15};
+  };
+  window.vfRender=function(){
+    clearInterval(timer);
+    if(origRender)origRender();
+    var card=(typeof vfCurCard!=='undefined')?vfCurCard:null;
+    if(!card||card.type!=='REEL')return;
+    var elCard=document.getElementById('vf-card');if(!elCard)return;
+    elCard.innerHTML='<div class="vf-reel-wrap" id="vf-reel-wrap"><img class="vf-reel-poster" alt="" src="'+esc(thumb(card.row.bunny_guid))+'"><div class="vf-reel-vid"></div><div class="vf-reel-scrim"></div>'
+      +'<div class="vf-reel-timer" id="vf-reel-timer">5s</div>'
+      +(card.quote?'<div class="vf-reel-q"><div class="t '+tier(card.quote.length)+'">'+esc(card.quote)+'</div><div class="a">— '+esc(card.author||'')+'</div></div>':'')
+      +'<div class="vf-reel-credit">'+credit(card.row)+'</div></div>';
+    var box=elCard.querySelector('.vf-reel-vid'),v=card.el||makeVideo(card.row);
+    box.appendChild(v);v.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+    try{var p=v.play();if(p&&p.catch)p.catch(function(){});}catch(e){}
+    var t=5;
+    timer=setInterval(function(){t--;var e=document.getElementById('vf-reel-timer');if(e)e.textContent=t<=0?'✓':t+'s';if(t<=0){clearInterval(timer);if(window.vfUnlockXP)vfUnlockXP();}},1000);
+  };
+  register();
+  /* start loading a little after boot so the first reel is buffered before it is needed */
+  window.addEventListener('load',function(){setTimeout(function(){load(prefetch);},4000);});
+})();
+</script>
+
 
 </body>
 </html>
