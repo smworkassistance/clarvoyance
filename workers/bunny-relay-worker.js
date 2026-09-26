@@ -32,7 +32,9 @@
 const ALLOWED_ORIGINS = [
   'https://clar.co.in',
   'https://smworkassistance.github.io',
-  'http://localhost:8787'          // local testing
+  'http://localhost:8787',         // local testing
+  'https://localhost',             // v253: the Android app (Capacitor WebView) — its origin was being refused by CORS
+  'capacitor://localhost'          // v253: iOS Capacitor (future)
 ];
 const MAX_BYTES    = 100 * 1024 * 1024; // 100 MB — Bunny re-encodes, so phone clips are fine; this stops abuse
 const MAX_SECONDS  = 35;                // app enforces 30 s; small slack for rounding in browsers

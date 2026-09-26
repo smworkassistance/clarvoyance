@@ -3,9 +3,9 @@
   "schema": 1,
   "run": {
     "active": true,
-    "batch": "B7",
-    "started_at": "2026-09-25T13:30:11.488Z",
-    "max_hours": 12,
+    "batch": "B8",
+    "started_at": "2026-09-26T03:43:10.857Z",
+    "max_hours": 10,
     "max_iterations": 200
   },
   "batches": {
@@ -51,6 +51,12 @@
       "frozen": true,
       "frozen_at": "2026-09-25T13:30:11.189Z",
       "frozen_hash": "c39649c06d5e867b2232587d8c7da32638fb430fb5a37990a5a343bd7ba1ae33"
+    },
+    "B8": {
+      "created": "2026-09-26T03:43:08.698Z",
+      "frozen": true,
+      "frozen_at": "2026-09-26T03:43:10.586Z",
+      "frozen_hash": "7fa1b3d43443a30acbd886531ecaaaa340d4f9b6aa579bc20ebbd430362dd116"
     }
   },
   "tasks": [
@@ -1028,6 +1034,251 @@
         {
           "at": "2026-09-25T13:30:10.905Z",
           "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-060",
+      "title": "Video upload fixed with real Bunny proof, background upload",
+      "added": "2026-09-26T03:43:08.680Z",
+      "done_when": "A real ~4 MB upload against real Bunny reaches 100% (CDP script qa/cdp-upload-real.js proves chunkSize choice); tests green",
+      "status": "IN_PROGRESS",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:08.698Z",
+          "status": "QUEUED",
+          "note": "created"
+        },
+        {
+          "at": "2026-09-26T03:43:25.007Z",
+          "status": "IN_PROGRESS",
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "T-061",
+      "title": "Sound on all three devices (Android WebView, Chrome, iPhone tap-for-sound pill)",
+      "added": "2026-09-26T03:43:08.890Z",
+      "done_when": "MainActivity.java sets mediaPlaybackRequiresUserGesture(false); pill appears only when playing-but-muted and one tap unmutes (tests)",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:08.891Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-062",
+      "title": "YouTube: true aspect, no black borders, 2-player pool for fast start",
+      "added": "2026-09-26T03:43:09.037Z",
+      "done_when": "Tests prove portrait-only picking, exact-aspect stage (no bars), next player already buffered before swipe; timing numbers recorded",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.038Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-063",
+      "title": "Clar Reels: instant own-hosted stock clips with real quote",
+      "added": "2026-09-26T03:43:09.171Z",
+      "done_when": "REEL card starts playing <150ms after reveal in test with seeded rows; quote + credit visible; XP after 5s; cron logic unit-tested with mocked Pexels/Bunny",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.172Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-064",
+      "title": "Swipe on the video itself (scroll-snap players)",
+      "added": "2026-09-26T03:43:09.323Z",
+      "done_when": "Playwright touch swipe starting on the video advances Discover player and Vibe video; Next button/keyboard still work",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.325Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-065",
+      "title": "Feed Bunny videos start fast (MP4 first, prefetch, poster until playing)",
+      "added": "2026-09-26T03:43:09.477Z",
+      "done_when": "Test shows poster until playing, MP4 requested before post reaches 60% visible, muted only when browser refuses",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.478Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-066",
+      "title": "Guides: text posts and video posts separated",
+      "added": "2026-09-26T03:43:09.644Z",
+      "done_when": "Pipeline tests assert a text post never has yt_video and a video post caption cites only the video; guides.spec updated",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.645Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-067",
+      "title": "Post time on every post",
+      "added": "2026-09-26T03:43:09.800Z",
+      "done_when": "Every post kind (achievement, badge, video, guide, Clar, shared video) shows a small time line at the bottom; tests",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.801Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-068",
+      "title": "Feed always fresh + pull-to-refresh",
+      "added": "2026-09-26T03:43:09.963Z",
+      "done_when": "Unseen-first ordering with caught-up divider and suggestions; pull-to-refresh works on Feed/Discover/Guides/Board/Notifications; tests",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:09.964Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-069",
+      "title": "Board becomes weekly leagues",
+      "added": "2026-09-26T03:43:10.168Z",
+      "done_when": "SQL tested on pglite (join/promote/demote/masking); UI tests for zones, countdown, pinned row, empty merge",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:10.169Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-070",
+      "title": "Notifications (activity) screen",
+      "added": "2026-09-26T03:43:10.303Z",
+      "done_when": "Triggers tested on pglite; UI test: unread dot, grouping, mark-read, deep link",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:10.304Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-071",
+      "title": "Verify, document, publish v253",
+      "added": "2026-09-26T03:43:10.442Z",
+      "done_when": "Full verify passes; CLAUDE.md/RUNLOG/DECISIONS/PROJECT updated; promoted; live confirmed",
+      "status": "QUEUED",
+      "batch": "B8",
+      "depends_on": [
+        "T-060",
+        "T-061",
+        "T-062",
+        "T-063",
+        "T-064",
+        "T-065",
+        "T-066",
+        "T-067",
+        "T-068",
+        "T-069",
+        "T-070"
+      ],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-26T03:43:10.443Z",
+          "status": "QUEUED",
           "note": "created"
         }
       ]

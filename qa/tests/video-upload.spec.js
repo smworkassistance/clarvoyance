@@ -24,6 +24,7 @@ async function mockUploadBackend(page, opts = {}) {
     if (req.method === 'POST') { st.total = Number(req.headers['upload-length'] || 0); st.offset = 0; res.writeHead(201, { ...H, Location: st.base + '/up1' }); return res.end(); }
     if (req.method === 'HEAD') { res.writeHead(200, { ...H, 'Upload-Offset': String(st.offset), 'Upload-Length': String(st.total) }); return res.end(); }
     if (req.method === 'PATCH') {
+      if (opts.hangFirstPatch && !st.hung) { st.hung = true; req.on('data', () => {}); return; } // a dead connection: never answered
       let n = 0; req.on('data', c => { n += c.length; });
       req.on('end', () => setTimeout(() => { st.patches++; st.offset += n; res.writeHead(204, { ...H, 'Upload-Offset': String(st.offset) }); res.end(); }, opts.patchDelayMs || 300));
       return;
@@ -129,7 +130,7 @@ test.describe('video upload (T-011)', () => {
     await openComposeWithVideo(app);
     await page.click('[data-act="post-achievement"]');
     await expect(page.locator('#uc-t')).toContainText(/[1-9]\d*%/, { timeout: 20000 });
-    await page.evaluate(() => { const u = window._socUpload.get(); u.lastProg = Date.now() - 30000; }); // simulate 30 s of silence
+    await page.evaluate(() => { const u = window._socUpload.get(); u.lastProg = Date.now() - 27000; }); // simulate 27 s of silence (v253: the notice shows at 25 s; the watchdog restarts the upload at 30 s)
     await expect(page.locator('#uc-t')).toContainText('slow connection', { timeout: 5000 });
     await page.evaluate(() => window._socUpload.cancel());
   });
@@ -139,5 +140,66 @@ test.describe('video upload (T-011)', () => {
     await mockCommunity(page);
     await openComposeWithVideo(app);
     await expect(page.locator('#soc-ach-hint')).toContainText(/MB · \d+ s/);
+  });
+
+  // ── v253 (T-060): the upload libraries come from OUR OWN copy (vendor/), never depending on a public CDN that a mobile network may block ──
+  test('tus loads from our own vendor/ copy — no CDN request at all', async ({ app }) => {
+    const { page } = app;
+    const cdn = [], own = [];
+    page.on('request', r => { const u = r.url(); if (/cdn\.jsdelivr\.net\/npm\/tus-js-client/.test(u)) cdn.push(u); if (/\/vendor\/tus\.min\.js/.test(u)) own.push(u); });
+    await mockCommunity(page);
+    await mockUploadBackend(page, { patchDelayMs: 100 });
+    await openComposeWithVideo(app);
+    await page.click('[data-act="post-achievement"]');
+    await expect(page.locator('#soc-upchip')).toHaveCount(0, { timeout: 30000 });
+    expect(own.length, 'tus came from vendor/').toBeGreaterThanOrEqual(1);
+    expect(cdn.length, 'no CDN request').toBe(0);
+  });
+
+  test('if our own copy is unreachable the CDN copy is used as a fallback', async ({ app }) => {
+    const { page } = app;
+    const fs = require('fs'), path = require('path');
+    const tusSrc = fs.readFileSync(path.join(__dirname, '..', '..', 'vendor', 'tus.min.js'));
+    await page.route(/\/vendor\/tus\.min\.js/, r => r.fulfill({ status: 404, body: 'nope' }));
+    await page.route(/cdn\.jsdelivr\.net\/npm\/tus-js-client/, r => r.fulfill({ status: 200, contentType: 'text/javascript', body: tusSrc }));
+    const { inserts } = await mockCommunity(page);
+    await mockUploadBackend(page, { patchDelayMs: 100 });
+    await openComposeWithVideo(app);
+    await page.click('[data-act="post-achievement"]');
+    await expect(page.locator('#soc-upchip')).toHaveCount(0, { timeout: 30000 });
+    expect(inserts.length).toBe(1);
+  });
+
+  test('if the upload tool can never load, the chip says so instead of sitting at 0% forever', async ({ app }) => {
+    const { page } = app;
+    await page.route(/\/vendor\/tus\.min\.js/, r => r.fulfill({ status: 404, body: 'nope' }));
+    await page.route(/cdn\.jsdelivr\.net\/npm\/tus-js-client/, r => r.abort());
+    await mockCommunity(page);
+    await mockUploadBackend(page, {});
+    await openComposeWithVideo(app);
+    await page.click('[data-act="post-achievement"]');
+    await expect(page.locator('#uc-t')).toContainText('could not load', { timeout: 20000 });
+    await expect(page.locator('#uc-act [data-uc="retry"]')).toBeVisible();
+  });
+
+  test('a dead connection is restarted by the watchdog and the upload still completes (resume)', async ({ app }) => {
+    const { page } = app;
+    const { inserts } = await mockCommunity(page);
+    const st = await mockUploadBackend(page, { patchDelayMs: 100, hangFirstPatch: true });
+    await openComposeWithVideo(app);
+    await page.evaluate(() => { SOC._cfg.stallMs = 2500; });
+    await page.click('[data-act="post-achievement"]');
+    await expect(page.locator('#soc-upchip')).toHaveCount(0, { timeout: 45000 });
+    expect(st.hung).toBe(true);
+    expect(inserts.length).toBe(1);
+  });
+
+  test('an upload that can never start reports a clear error (ticket server not answering)', async ({ app }) => {
+    const { page } = app;
+    await mockCommunity(page);
+    await page.route('https://clar-bunny.smworkassistance.workers.dev/**', r => r.request().method() === 'OPTIONS' ? r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } }) : r.abort());
+    await openComposeWithVideo(app);
+    await page.click('[data-act="post-achievement"]');
+    await expect(page.locator('#uc-t')).toContainText(/not answering|interrupted|connection/i, { timeout: 20000 });
   });
 });

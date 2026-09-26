@@ -64,6 +64,17 @@ self.addEventListener('fetch', e => {
     return;
   }
 
+  /* ── v253: our own vendor scripts (tus upload, hls.js): cache-first, stored the first time they are fetched — later loads are instant/offline ── */
+  if(url.origin === self.location.origin && url.pathname.indexOf('/vendor/') > -1){
+    e.respondWith(
+      caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+        if(res.ok) caches.open(CACHE_VERSION).then(c => c.put(e.request, res.clone()));
+        return res;
+      }))
+    );
+    return;
+  }
+
   /* ── Everything else: cache-first ── */
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
