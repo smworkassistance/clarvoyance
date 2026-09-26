@@ -21180,6 +21180,53 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-ach-grid img,.soc-badge-tile{-webkit-tap-highlight-color:transparent}
 .soc-time{font-size:.8rem;color:var(--lt);margin-left:auto}
 
+/* v253 (T-070): the Activity bell in the tray + unread dot */
+.soc-tab[data-tab="notif"]{position:relative}
+.soc-tab[data-tab="notif"] .soc-dot{display:none;position:absolute;top:2px;right:4px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#ed4956;color:#fff;font-size:.62rem;font-weight:800;line-height:16px;text-align:center;box-sizing:border-box}
+body.soc-unread .soc-tab[data-tab="notif"] .soc-dot{display:block}
+body.soc-unread .nv2-tab[data-nv2="feed"]::after{content:'';position:absolute;top:6px;left:calc(50% + 8px);width:9px;height:9px;border-radius:50%;background:#ed4956;border:2px solid var(--bg,#fff)}
+body:not(.nv2-feed) #soc-tabs .soc-tab[data-tab="notif"],body.nv2-you-host #soc-tabs .soc-tab[data-tab="notif"]{display:none!important}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="notif"]{order:5;margin-left:auto;padding:7px 10px}
+body.nav-v2.nv2-feed #soc-tabs .soc-tab[data-tab="notif"] svg{display:block;width:22px;height:22px}
+.nf-page{padding:0 0 20px}
+.nf-h{font-size:.92rem;font-weight:800;margin:16px 16px 6px}
+.nf-row{display:flex;align-items:center;gap:12px;padding:9px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nf-row:active{background:color-mix(in srgb,var(--tx) 6%,transparent)}
+.nf-row.new{background:color-mix(in srgb,var(--acc) 7%,transparent)}
+.nf-tx{flex:1;min-width:0;font-size:.92rem;line-height:1.3}
+.nf-tx b{font-weight:750}.nf-tx small{display:block;color:var(--lt);font-size:.76rem;margin-top:2px}
+.nf-th{width:46px;height:46px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--ca)}
+.nf-ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--t-xlt,color-mix(in srgb,var(--acc) 14%,transparent));font-size:1.3rem;flex-shrink:0}
+.soc-card.flash{animation:socFlash 1.6s ease}
+@keyframes socFlash{0%,60%{box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 55%,transparent)}100%{box-shadow:var(--sh)}}
+/* v253 (T-069): weekly leagues */
+.lg-head{display:flex;align-items:center;gap:14px;margin:8px 16px 0;padding:16px;border-radius:20px;color:#fff;background:linear-gradient(135deg,#6b7280,#4b5563)}
+.lg-head.t0{background:linear-gradient(135deg,#8d6e4a,#5f4a30)}.lg-head.t1{background:linear-gradient(135deg,#34a06a,#1f7a4d)}.lg-head.t2{background:linear-gradient(135deg,#e56b9a,#b8437a)}
+.lg-head.t3{background:linear-gradient(135deg,#7d5ac9,#4f3a94)}.lg-head.t4{background:linear-gradient(135deg,#e0a03d,#b9761c)}.lg-head.t5{background:linear-gradient(135deg,#1f1f2e,#4a3a10)}
+.lg-badge{font-size:2.3rem;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
+.lg-title{font-size:1.25rem;font-weight:850}.lg-sub{font-size:.85rem;opacity:.9;margin-top:2px}
+.lg-vs{margin:12px 16px 0;padding:12px 14px;border-radius:16px;background:var(--su);border:1px solid var(--bo)}
+.lg-vs-t{display:flex;justify-content:space-between;font-size:.88rem}.lg-vs-t span{color:var(--lt)}
+.lg-vs-bar{height:8px;border-radius:5px;background:var(--bo);overflow:hidden;margin-top:8px}.lg-vs-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--acc),#f0c987)}
+.lg-goal{margin:10px 16px 0;font-size:.92rem;font-weight:650;color:var(--tx)}
+.lg-note{margin:6px 16px 0;font-size:.82rem;color:var(--lt)}
+.lg-list{margin:12px 0 0}
+.lg-zone{margin:10px 16px 4px;font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lt)}
+.lg-zone.up{color:#2e9d6a}.lg-zone.dn{color:#d1495b}
+.lg-row{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.lg-row.up{background:color-mix(in srgb,#2e9d6a 8%,transparent)}.lg-row.dn{background:color-mix(in srgb,#d1495b 8%,transparent)}
+.lg-row.me{background:color-mix(in srgb,var(--acc) 12%,transparent)}
+.lg-rk{width:22px;text-align:center;font-weight:800;color:var(--lt)}
+.lg-nm{flex:1;min-width:0;line-height:1.2}.lg-nm b{font-size:.95rem}.lg-nm small{display:block;color:var(--lt);font-size:.78rem}
+.lg-xp{font-weight:800;text-align:right;font-size:.95rem}.lg-xp small{display:block;font-weight:600;color:var(--lt);font-size:.68rem}
+.lg-cheer{border:none;background:none;font-size:1.25rem;padding:4px 6px;cursor:pointer;opacity:.75;-webkit-tap-highlight-color:transparent}
+.lg-cheer.on{opacity:1;filter:none}.lg-cheer:disabled{opacity:.4}
+.lg-mepin{position:sticky;bottom:0;margin-top:8px;background:var(--bg);border-top:1px solid var(--bo);box-shadow:0 -6px 14px rgba(0,0,0,.06)}
+.lg-hall{display:block;margin:14px 16px 6px;padding:10px 14px;border-radius:12px;border:1px solid var(--bo);background:var(--su);color:var(--tx);font:inherit;font-weight:650;cursor:pointer;text-align:center;width:calc(100% - 32px)}
+.lg-hall.back{margin-top:8px;text-align:left}
+.lg-recap{position:relative;display:flex;gap:12px;align-items:center;margin:8px 16px 0;padding:14px;border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,#f0c987 30%,var(--su)),color-mix(in srgb,var(--acc) 16%,var(--su)));border:1px solid color-mix(in srgb,var(--acc) 30%,transparent)}
+.lg-recap-ic{font-size:2rem}.lg-recap-t{display:flex;flex-direction:column;gap:2px;font-size:.9rem}.lg-recap-t small{color:var(--sub)}
+.lg-recap-x{position:absolute;top:6px;right:10px;border:none;background:none;font-size:1.3rem;color:var(--lt);cursor:pointer}
 /* v253 (T-068): fresh feed — divider + suggestions; pull-to-refresh indicator */
 .soc-caught{display:flex;flex-direction:column;align-items:center;gap:2px;padding:18px 16px 6px;text-align:center;color:var(--tx)}
 .soc-caught b{font-size:1rem;font-weight:750}.soc-caught span{font-size:.82rem;color:var(--lt)}
@@ -21493,6 +21540,7 @@ textarea.soc-in{resize:none;min-height:74px}
     <button class="soc-tab" data-tab="board" type="button"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v1a3 3 0 0 0 3 3M16 6h4v1a3 3 0 0 1-3 3M12 13v4M8 21h8M10 17h4"/></svg><span>Board</span></button>
     <button class="soc-tab" data-tab="find" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg><span>Discover</span></button>
     <button class="soc-tab" data-tab="me" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>You</span></button>
+    <button class="soc-tab" data-tab="notif" type="button" aria-label="Activity"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="soc-dot"></span></button>
     <button class="soc-tab" data-tab="guides" type="button"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z"/></svg><span>Guides</span></button>
   </nav>
   <div id="soc-sheet-host"></div>
@@ -21880,6 +21928,7 @@ textarea.soc-in{resize:none;min-height:74px}
     t.innerHTML=lead+'<button class="soc-title soc-title-btn" data-act="goto-goal"><b>✦</b> ClarZone</button>'+trail;
   }
   function setTab(t){
+    if(t!=='board')S.hall=false;
     S.tab=t;S.prof=null;if(S.sub==='guides'||S.sub==='gcreate')S.sub=null;
     var ts=document.querySelectorAll('#soc-tabs .soc-tab');
     for(var i=0;i<ts.length;i++)ts[i].classList.toggle('on',ts[i].getAttribute('data-tab')===t);
@@ -21893,10 +21942,11 @@ textarea.soc-in{resize:none;min-height:74px}
     if(S.prof)return renderProfile(S.prof);
     if(S.sub==='guides')return renderGuidesPage();
     if(S.sub==='gcreate')return renderCreate();
-    if(S.sub==='board'&&v2()&&hostYou())return loadBoard();
+    if(S.sub==='board'&&v2()&&hostYou())return loadBoardClassic();
     if(S.tab==='feed')return loadFeed();
     if(S.tab==='board')return loadBoard();
     if(S.tab==='guides')return renderGuidesPage(); /* v252: Guides is a tab in the tray now */
+    if(S.tab==='notif')return loadNotifs(); /* v253: Activity */
     if(S.tab==='find')return (v2()&&document.body.classList.contains('nv2-feed'))?loadExplore():loadFind(''); /* v252: Instagram-style Explore in the Feed tab */
     return renderProfile(S.me);
   }
@@ -22136,12 +22186,13 @@ textarea.soc-in{resize:none;min-height:74px}
       }
       h+='<div class="soc-disc">Posts here are general information and community sharing to help you build a positive mindset. They are not advice — for specific help, please consult a qualified professional.</div>';
       body(h);try{wireGuideDwell();}catch(e){}
+      try{if(S.focusPost){var fp=document.querySelector('[data-ach-id="'+S.focusPost+'"]');S.focusPost=null;if(fp){fp.scrollIntoView({block:'center'});fp.classList.add('flash');setTimeout(function(){fp.classList.remove('flash');},1800);}}}catch(e){}
       try{wireSeen(keys);}catch(e){}try{if($('soc-suggest'))loadSuggest();}catch(e){}
     }catch(e){console.warn('[soc] feed',e);renderError('Couldn’t load your feed.');}
   }
 
   /* ═══ LEADERBOARD ═══ */
-  async function loadBoard(){
+  async function loadBoardClassic(){
     skeleton();
     try{
       var col=S.range==='week'?'xp_week':'xp';
@@ -22149,7 +22200,7 @@ textarea.soc-in{resize:none;min-height:74px}
         .eq('on_leaderboard',true).order(col,{ascending:false}).limit(100);
       if(r.error)throw r.error;
       var rows=(r.data||[]).filter(function(x){return x[col]!=null;});
-      var h=(S.sub==='board'&&v2()?'<div class="v2-lbintro"><b>How the board works</b><p>Everyone here chose to share their XP. Ranked by XP earned — this week or all time. Tap anyone to see their journey. You can leave the board anytime in Privacy.</p></div>':'')+'<div class="soc-seg" data-on="'+(S.range==='week'?0:1)+'"><i></i><button data-act="range" data-r="week" class="'+(S.range==='week'?'on':'')+'">This week</button><button data-act="range" data-r="all" class="'+(S.range==='all'?'on':'')+'">All time</button></div>';
+      var h=(S.hall?'<button class="lg-hall back" data-act="lg-back">‹ My league</button>':'')+(S.sub==='board'&&v2()?'<div class="v2-lbintro"><b>How the board works</b><p>Everyone here chose to share their XP. Ranked by XP earned — this week or all time. Tap anyone to see their journey. You can leave the board anytime in Privacy.</p></div>':'')+'<div class="soc-seg" data-on="'+(S.range==='week'?0:1)+'"><i></i><button data-act="range" data-r="week" class="'+(S.range==='week'?'on':'')+'">This week</button><button data-act="range" data-r="all" class="'+(S.range==='all'?'on':'')+'">All time</button></div>';
       if(!rows.length){
         h+='<div class="soc-empty"><span class="em">🏆</span><b>Be the first on the board</b><p>Share your XP and badges — someone out there needs to see what’s possible.</p></div>';
       }else{
@@ -22561,6 +22612,186 @@ textarea.soc-in{resize:none;min-height:74px}
     toast('Following ✦');var row=el.closest('.g-row');if(row)row.remove();
   };
     wirePtr();
+  }
+  /* ═══ v253 (T-069) — WEEKLY LEAGUES: the new Board ═══════════════════════════════════════════════════════════════════════════════════
+     A small group (up to 20) of the same tier competes on XP GAINED THIS WEEK. Top 5 move up, bottom 3 move down (cohorts of 10+), a weekly recap shows the
+     result. Built on the SQL functions league_join_me / league_board / league_me / league_cheer (db/schema_v253_b8.sql); if they don't exist yet the old
+     global board is shown instead. */
+  var LG_NAMES=['Seed','Sprout','Bloom','Radiant','Luminous','Sovereign'],LG_ICONS=['🌰','🌱','🌸','✨','🌟','👑'];
+  function lgRpc(name,args){var sb=window._sbShared;if(!sb||!sb.rpc)return Promise.resolve({error:{message:'no client'}});return Promise.resolve(sb.rpc(name,args||{}));}
+  /* time left in the league week (it ends Monday 00:00 IST) */
+  function lgTimeLeft(){
+    var now=Date.now()+19800000,d=new Date(now),dow=(d.getUTCDay()+6)%7,msLeft=(7-dow)*86400000-(now%86400000);
+    var days=Math.floor(msLeft/86400000),hrs=Math.floor((msLeft%86400000)/3600000);
+    return days>=1?(days+(days===1?' day':' days')+' left'):(Math.max(1,hrs)+'h left');
+  }
+  function lgOptInHtml(){
+    return '<div class="soc-empty"><span class="em">🏆</span><b>Join the weekly league</b><p>Share your XP on the leaderboard and you’ll be placed in a small group. Each week the ones who grow the most move up a league.</p><button class="soc-btn pri" data-act="privacy">Choose</button></div>'
+      +'<button class="lg-hall" data-act="lg-hall">All-time hall ›</button>';
+  }
+  function lgRowHtml(r,cls){
+    var nm=esc((r.display_name||'').split(' ')[0]||r.handle);
+    return '<div class="lg-row'+(cls?' '+cls:'')+(r.is_me?' me':'')+'" data-act="open-profile" data-handle="'+esc(r.handle)+'">'
+      +'<div class="lg-rk">'+r.rank+'</div>'+avatar(r,42,true)
+      +'<div class="lg-nm"><b>'+esc(r.display_name||r.handle)+'</b>'+(r.is_me?' <span class="soc-chip">You</span>':'')+'<small>@'+esc(r.handle)+'</small></div>'
+      +'<div class="lg-xp">+'+nfmt(r.gain)+'<small>XP</small></div>'
+      +(r.is_me?'':'<button class="lg-cheer'+(r.cheered?' on':'')+'" data-act="lg-cheer" data-uid="'+esc(r.user_id)+'" aria-label="Cheer '+nm+'"'+(r.cheered?' disabled':'')+'>👏</button>')
+      +'</div>';
+  }
+  function renderLeague(rows,me){
+    var tier=me.tier|0,n=rows.length,mine=rows.filter(function(r){return r.is_me;})[0];
+    var promoteN=n>=6?5:1,demoteN=(tier>0&&n>=10)?3:0;
+    var gain=mine?mine.gain:(me.gain|0),rank=mine?mine.rank:n;
+    var line='';
+    if(mine){
+      if(rank<=promoteN&&gain>0)line='You’re in the promotion zone ✦ keep going';
+      else if(demoteN&&rank>n-demoteN)line='You’re in the demotion zone — a little XP lifts you out';
+      else{var edge=rows[promoteN-1],need=Math.max(1,(edge?edge.gain:0)-gain+1);line='You’re '+nfmt(need)+' XP from the promotion zone';}
+    }
+    var h='';
+    /* weekly recap: shown once, the first time this new week's board is opened */
+    if(me.last_result&&lsGet('clv_league_recap','')!==String(me.last_week)){
+      var lt=LG_NAMES[me.last_tier|0]||'League';
+      var msg=me.last_result==='promoted'?'You moved up! Welcome to '+LG_NAMES[Math.min(5,(me.last_tier|0)+1)]+' League':me.last_result==='demoted'?'A fresh start in '+LG_NAMES[Math.max(0,(me.last_tier|0)-1)]+' League':'You stayed in '+lt+' League';
+      h+='<div class="lg-recap"><div class="lg-recap-ic">'+(me.last_result==='promoted'?'🎉':me.last_result==='demoted'?'🌱':'💪')+'</div><div class="lg-recap-t"><b>Last week</b><span>'+esc(msg)+'</span><small>Finished #'+(me.last_rank||'–')+' · '+nfmt(me.last_xp||0)+' XP</small></div><button class="lg-recap-x" data-act="lg-recap-x" data-w="'+esc(String(me.last_week))+'" aria-label="Dismiss">×</button></div>';
+    }
+    h+='<div class="lg-head t'+tier+'"><div class="lg-badge">'+LG_ICONS[tier]+'</div><div class="lg-ht"><div class="lg-title">'+LG_NAMES[tier]+' League</div><div class="lg-sub">'+lgTimeLeft()+' · '+n+' member'+(n===1?'':'s')+'</div></div></div>';
+    /* you vs last week */
+    if(me.last_xp!=null){
+      var pct=Math.min(100,Math.round(gain/Math.max(1,me.last_xp)*100));
+      h+='<div class="lg-vs"><div class="lg-vs-t"><b>You vs last week</b><span>'+nfmt(gain)+' / '+nfmt(me.last_xp)+' XP</span></div><div class="lg-vs-bar"><i style="width:'+Math.max(3,pct)+'%"></i></div></div>';
+    }else{
+      h+='<div class="lg-vs"><div class="lg-vs-t"><b>Your first league week</b><span>'+nfmt(gain)+' XP so far</span></div></div>';
+    }
+    if(line)h+='<div class="lg-goal">'+line+'</div>';
+    if(n<6)h+='<div class="lg-note">Small league this week — invite a friend to make it livelier.</div>';
+    h+='<div class="lg-list">';
+    rows.forEach(function(r,i){
+      var inUp=i<promoteN&&n>=2,inDn=demoteN&&i>=n-demoteN;
+      if(i===0&&n>=2)h+='<div class="lg-zone up">▲ Promotion zone</div>';
+      else if(i===promoteN&&n>promoteN)h+='<div class="lg-zone">Stay in '+LG_NAMES[tier]+'</div>';
+      if(demoteN&&i===n-demoteN)h+='<div class="lg-zone dn">▼ Demotion zone</div>';
+      h+=lgRowHtml(r,inUp?'up':inDn?'dn':'');
+    });
+    h+='</div>';
+    if(mine)h+='<div class="lg-mepin">'+lgRowHtml(mine,'')+'</div>';
+    h+='<button class="lg-hall" data-act="lg-hall">All-time hall ›</button>';
+    body(h);
+  }
+  async function loadLeague(){
+    skeleton();
+    try{
+      var j=await lgRpc('league_join_me');
+      if(j.error)return loadBoardClassic(); /* the SQL isn't installed yet: the old board still works */
+      if(!j.data||!j.data.length)return body(lgOptInHtml());
+      var res=await Promise.all([lgRpc('league_board'),lgRpc('league_me')]);
+      if(res[0].error||res[1].error)return loadBoardClassic();
+      renderLeague(res[0].data||[],(res[1].data||[])[0]||{});
+    }catch(e){console.warn('[soc] league',e);return loadBoardClassic();}
+  }
+  function loadBoard(){return S.hall?loadBoardClassic():loadLeague();}
+
+  /* ═══ v253 (T-070) — NOTIFICATIONS (the Activity screen) ═══════════════════════════════════════════════════════════════════════════
+     Rows are created by database triggers (likes, comments, follows, league cheers/results). Grouped New / This week / Earlier; likes on one post collapse into
+     one row; opening the screen marks everything read; a red dot on the bell (and the Feed tab) shows unread. */
+  var NF={n:0,timer:null};
+  async function pollUnread(){
+    try{
+      if(!window._sbShared||!window._isGoogleUser)return;
+      var r=await q('user_notifications').select('id',{count:'exact',head:true}).is('read_at',null);
+      if(r.error)return;
+      NF.n=r.count||0;
+      document.body.classList.toggle('soc-unread',NF.n>0);
+      var d=document.querySelector('#soc-tabs .soc-tab[data-tab="notif"] .soc-dot');if(d)d.textContent=NF.n>9?'9+':String(NF.n);
+    }catch(e){}
+  }
+  function nfThumb(p){
+    if(!p)return '';
+    var im=(p.images||[]).filter(function(x){return x&&x.src;})[0];
+    if(im)return '<img class="nf-th" alt="" loading="lazy" src="'+esc(im.src)+'">';
+    if(p.video&&vGuidOk(p.video.guid)&&videoEnabled())return '<img class="nf-th" alt="" loading="lazy" src="'+esc(vUrl(p.video.guid,'thumbnail.jpg'))+'">';
+    if(p.yt_video&&YT_ID.test(p.yt_video.id||''))return '<img class="nf-th" alt="" loading="lazy" src="https://i.ytimg.com/vi/'+p.yt_video.id+'/hqdefault.jpg">';
+    return '';
+  }
+  function nfItems(rows,actors,posts){
+    /* likes on the same post collapse into one row */
+    var items=[],likeBy={};
+    rows.forEach(function(r){
+      if(r.kind==='like'){
+        var k=r.target_id;
+        if(likeBy[k]){likeBy[k].actors.push(r.actor_id);likeBy[k].unread=likeBy[k].unread||!r.read_at;return;}
+        likeBy[k]={kind:'like',target:r.target_id,actors:[r.actor_id],created_at:r.created_at,unread:!r.read_at};items.push(likeBy[k]);return;
+      }
+      items.push({kind:r.kind,actors:r.actor_id?[r.actor_id]:[],target:r.target_id,text:r.text,created_at:r.created_at,unread:!r.read_at});
+    });
+    return items;
+  }
+  function nfRowHtml(it,actors,posts){
+    var a=actors[it.actors[0]]||null,name=a?esc(a.display_name||a.handle):'Someone',others=Math.max(0,it.actors.length-1);
+    var txt='',lead='',trail='',handle=a?esc(a.handle):'';
+    if(it.kind==='like')txt='<b>'+name+'</b>'+(others?' and '+others+(others===1?' other':' others'):'')+' liked your post';
+    else if(it.kind==='comment')txt='<b>'+name+'</b> commented: “'+esc(it.text||'')+'”';
+    else if(it.kind==='follow'){txt='<b>'+name+'</b> started following you';if(a&&!a.is_me)trail=followBtn(a,true);}
+    else if(it.kind==='cheer')txt='<b>'+name+'</b> cheered you on in your league 👏';
+    else if(it.kind==='league')txt='<b>League</b> '+esc(it.text||'Your league result is in');
+    else if(it.kind==='badge')txt='<b>New badge</b> '+esc(it.text||'You earned a badge');
+    else txt='<b>Clar</b> '+esc(it.text||'');
+    if(a)lead=avatar(a,44,it.unread);
+    else lead='<span class="nf-ic">'+(it.kind==='league'?'🏆':it.kind==='badge'?'🏅':'✦')+'</span>';
+    var th=(it.kind==='like'||it.kind==='comment')?nfThumb(posts[it.target]):'';
+    return '<div class="nf-row'+(it.unread?' new':'')+'" data-act="nf-open" data-kind="'+it.kind+'" data-target="'+esc(it.target||'')+'" data-handle="'+handle+'">'
+      +lead+'<div class="nf-tx"><div>'+txt+'</div><small>'+ago(it.created_at)+'</small></div>'+(trail||th)+'</div>';
+  }
+  async function loadNotifs(){
+    skeleton();
+    try{
+      var r=await q('user_notifications').select('*').order('created_at',{ascending:false}).limit(80);
+      if(r.error)throw r.error;
+      var rows=r.data||[];
+      if(!rows.length)return body('<div class="soc-empty"><span class="em">🔔</span><b>No activity yet</b><p>Likes, comments and new followers will show up here. Share a win and see who cheers you on.</p></div>');
+      var aIds=[],pIds=[];
+      rows.forEach(function(x){if(x.actor_id&&aIds.indexOf(x.actor_id)<0)aIds.push(x.actor_id);if((x.kind==='like'||x.kind==='comment')&&pIds.indexOf(x.target_id)<0)pIds.push(x.target_id);});
+      var rs=await Promise.all([aIds.length?q('social_public_profiles').select('user_id,handle,display_name,avatar_url,i_follow,follows_me,is_me').in('user_id',aIds):Promise.resolve({data:[]}),
+                                pIds.length?q('social_achievement_feed').select('id,images,video,yt_video').in('id',pIds.map(Number)):Promise.resolve({data:[]})]);
+      var actors={},posts={};
+      (rs[0].data||[]).forEach(function(p){actors[p.user_id]=p;});(rs[1].data||[]).forEach(function(p){posts[String(p.id)]=p;});
+      var items=nfItems(rows,actors,posts),wk=Date.now()-7*86400000,sec={n:[],w:[],e:[]};
+      items.forEach(function(it){(it.unread?sec.n:Date.parse(it.created_at)>wk?sec.w:sec.e).push(it);});
+      var h='<div class="nf-page">';
+      [['n','New'],['w','This week'],['e','Earlier']].forEach(function(s){
+        if(!sec[s[0]].length)return;
+        h+='<div class="nf-h">'+s[1]+'</div>'+sec[s[0]].map(function(it){return nfRowHtml(it,actors,posts);}).join('');
+      });
+      body(h+'</div>');
+      /* opening the screen = read; the "New" section stays visible for this visit */
+      setTimeout(async function(){
+        try{await q('user_notifications').update({read_at:new Date().toISOString()}).is('read_at',null);}catch(e){}
+        pollUnread();
+      },1500);
+    }catch(e){console.warn('[soc] notifs',e);renderError('Couldn’t load your activity.');}
+  }
+  window._socNotifRefresh=loadNotifs;
+  window._socNotif={poll:pollUnread,unread:function(){return NF.n;}};
+  function _lgActs(){
+    ACT['lg-hall']=function(){S.hall=true;loadBoardClassic();};
+    ACT['lg-back']=function(){S.hall=false;loadBoard();};
+    ACT['lg-recap-x']=function(el){lsSet('clv_league_recap',el.getAttribute('data-w'));var c=el.closest('.lg-recap');if(c)c.remove();};
+    ACT['lg-cheer']=async function(el){
+      var to=el.getAttribute('data-uid');el.disabled=true;
+      var r=await lgRpc('league_cheer',{p_to:to});
+      if(r.error||r.data===false){el.disabled=false;toast('Couldn’t cheer just now');return;}
+      el.classList.add('on');toast('Cheered 👏');
+    };
+    ACT['nf-open']=function(el,e){
+      if(e&&e.target&&e.target.closest&&e.target.closest('[data-act="follow"]'))return;
+      var k=el.getAttribute('data-kind'),t=el.getAttribute('data-target'),h=el.getAttribute('data-handle');
+      if((k==='follow'||k==='cheer')&&h)return openProfile(h);
+      if(k==='like'||k==='comment'){S.focusPost=t;return setTab('feed');}
+      if(k==='league')return setTab('board');
+    };
+    /* the shared client / sign-in may not be ready yet at boot: try a few times, then every 60 s */
+    [1500,4000,8000].forEach(function(ms){setTimeout(pollUnread,ms);});
+    if(!NF.timer)NF.timer=setInterval(function(){if(!document.hidden)pollUnread();},60000);
   }
   function personCard(p,i){
     var sh=(p._shared||[]).slice(0,2).map(function(x){return '<span class="soc-chip">✦ '+esc(x)+'</span>';}).join('');
@@ -23384,7 +23615,7 @@ textarea.soc-in{resize:none;min-height:74px}
     retry:function(){open();},
     signin:function(){if(window._signInWithGoogle)window._signInWithGoogle();},
     tab:function(el){setTab(el.getAttribute('data-tab'));},
-    range:function(el){S.range=el.getAttribute('data-r');loadBoard();},
+    range:function(el){S.range=el.getAttribute('data-r');loadBoardClassic();},
     'open-profile':function(el,e){if(e.target.closest&&e.target.closest('[data-act="follow"]'))return;openProfile(el.getAttribute('data-handle'));},
     follow:async function(el,e){
       e.stopPropagation();var id=el.getAttribute('data-uid'),on=el.getAttribute('data-on')==='1';
@@ -24005,6 +24236,7 @@ textarea.soc-in{resize:none;min-height:74px}
 
   _expActs(); /* v252 */
   _freshActs(); /* v253 (T-068) */
+  _lgActs(); /* v253 (T-069/T-070) */
   window.SOC={shareYt:shareYt,openInvite:openInvite,open:open,close:close,_cfg:CFG,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
   document.addEventListener('DOMContentLoaded',function(){
     wire();refreshFlag();
