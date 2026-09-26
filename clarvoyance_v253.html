@@ -22912,8 +22912,9 @@ textarea.soc-in{resize:none;min-height:74px}
   function _vinPlay(box){
     if(VIN.cur&&VIN.cur!==box)_vinPause(VIN.cur);
     VIN.cur=box;
-    _rlAttach(box); /* same HLS → MP4 source ladder as the Reels viewer */
+    _rlAttach(box,{inline:true}); /* v253: MP4 first (see _rlAttach) */
     var v=box.querySelector('video');if(!v)return;
+    v.preload='auto';
     v.muted=_vinMuted();
     var p=v.play();
     /* only a real "sound not allowed" refusal falls back to muted — an AbortError (the source switched HLS → MP4 mid-play) must not re-mute a video the viewer just unmuted */
@@ -22931,8 +22932,16 @@ textarea.soc-in{resize:none;min-height:74px}
     });
     Array.prototype.forEach.call(document.querySelectorAll('.soc-vin-snd'),function(bt){bt.innerHTML=m?SND_OFF:SND_ON;});
   }
+  /* v253 (T-065): a video post that is about to scroll into view (within ~1.5 screens) starts buffering ahead of time (MP4, muted, no play), so
+     when it is 60% visible it starts at once instead of after a download. */
+  function _vinPrefetch(box){var v=box&&box.querySelector('video');if(!v||v._att)return;v.preload='auto';_rlAttach(box,{inline:true,noPlay:true});}
   function _wireVidInline(){
     var boxes=document.querySelectorAll('#soc-body .soc-vin');
+    if(VIN.io2){VIN.io2.disconnect();VIN.io2=null;}
+    if(boxes.length&&'IntersectionObserver' in window){
+      VIN.io2=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting)_vinPrefetch(en.target);});},{root:$('soc-body'),rootMargin:'150% 0px 150% 0px'});
+      Array.prototype.forEach.call(boxes,function(b){VIN.io2.observe(b);});
+    }
     if(VIN.io){VIN.io.disconnect();VIN.io=null;}
     if(!boxes.length||!('IntersectionObserver' in window))return;
     VIN.io=new IntersectionObserver(function(es){es.forEach(function(en){
@@ -22999,37 +23008,43 @@ textarea.soc-in{resize:none;min-height:74px}
     /* v251: back in the feed → the inline video that is on screen resumes */
     setTimeout(function(){var r=root();if(r&&!r.classList.contains('hidden'))try{_wireVidInline();}catch(e){}},60);
   }
-  /* attach the right source once, the first time an item is needed */
-  function _rlAttach(it){
-    var v=it.querySelector('video');if(!v||v._att)return;v._att=1;
+  /* attach the right source once, the first time an item is needed.
+     v253 (T-065): PROGRESSIVE MP4 FIRST. These clips are <=30 s, and a plain MP4 starts as soon as its first bytes arrive; the old order (HLS via a
+     library fetched on demand from a CDN, then a manifest, then a variant, then the first segment) was the 5-6 s of black owners saw. HLS is now only
+     the fallback when no MP4 rendition exists. opts.inline starts at 480p (light on mobile data); the full-screen viewer starts at 720p.
+     opts.noPlay = just start buffering (prefetch), don't play. */
+  function _rlAttach(it,opts){
+    var v=it.querySelector('video');if(!v||v._att)return;v._att=1;opts=opts||{};
     var guid=it.getAttribute('data-guid'),hls=vUrl(guid,'playlist.m3u8');
-    /* MP4 fallback: Bunny only makes renditions up to the SOURCE resolution (verified live: a 360p test clip had play_480p/360p/240p but
-       no play_720p), so try high → low instead of assuming 720p exists */
-    var mp4s=['play_720p.mp4','play_480p.mp4','play_360p.mp4','play_240p.mp4'],mi=0;
-    function nextMp4(){
-      if(mi>=mp4s.length){ /* every rendition 404s → the video is most likely still being processed by Bunny */
-        if(!it.querySelector('.rl-proc')){var m=document.createElement('div');m.className='rl-proc';m.textContent='Still processing — try again in a minute';it.appendChild(m);}
+    /* Bunny only makes renditions up to the SOURCE resolution (a 360p clip has no play_720p), so walk the ladder instead of assuming */
+    var mp4s=opts.inline?['play_480p.mp4','play_360p.mp4','play_240p.mp4','play_720p.mp4']:['play_720p.mp4','play_480p.mp4','play_360p.mp4','play_240p.mp4'],mi=0,tried=false;
+    function processing(){
+      if(!it.querySelector('.rl-proc')){var m=document.createElement('div');m.className='rl-proc';m.textContent='Still processing — try again in a minute';it.appendChild(m);}
+    }
+    function useHls(){
+      if(v._hlsTried)return processing();v._hlsTried=1;
+      if(v.canPlayType('application/vnd.apple.mpegurl')){
+        v.addEventListener('error',processing,{once:true});v.src=hls;
+        if(!opts.noPlay){var p0=v.play();if(p0&&p0.catch)p0.catch(function(){});}
         return;
       }
-      v.src=vUrl(guid,mp4s[mi++]);
-      var p=v.play();if(p&&p.catch)p.catch(function(){});
+      _loadHls().then(function(Hls){
+        if(!Hls.isSupported())return processing();
+        var h=new Hls({maxBufferLength:8});v._hls=h;
+        h.on(Hls.Events.ERROR,function(_e,d){if(d&&d.fatal){try{h.destroy();}catch(x){}v._hls=null;processing();}});
+        h.loadSource(hls);h.attachMedia(v);
+        if(!opts.noPlay){var p1=v.play();if(p1&&p1.catch)p1.catch(function(){});}
+      }).catch(processing);
     }
-    function useMp4(){
-      if(v._mp4)return;v._mp4=1;
-      v.addEventListener('error',function(){nextMp4();}); /* this rendition doesn't exist → next one down */
-      nextMp4();
+    function nextMp4(){
+      if(mi>=mp4s.length)return useHls(); /* no MP4 rendition at all -> HLS */
+      v.src=vUrl(guid,mp4s[mi++]);
+      if(!opts.noPlay&&!tried){tried=true;}
+      if(!opts.noPlay){var p=v.play();if(p&&p.catch)p.catch(function(){});}
     }
     v.addEventListener('loadedmetadata',function(){v.classList.toggle('land',v.videoWidth>v.videoHeight);});
-    if(v.canPlayType('application/vnd.apple.mpegurl')){
-      v.src=hls;v.addEventListener('error',function(){useMp4();},{once:true});
-    }else{
-      _loadHls().then(function(Hls){
-        if(!Hls.isSupported())return useMp4();
-        var h=new Hls({maxBufferLength:8});v._hls=h;
-        h.on(Hls.Events.ERROR,function(_e,d){if(d&&d.fatal){try{h.destroy();}catch(x){}v._hls=null;useMp4();}});
-        h.loadSource(hls);h.attachMedia(v);
-      }).catch(useMp4);
-    }
+    v.addEventListener('error',function(){if(v._hlsTried)return;nextMp4();}); /* this rendition doesn't exist -> next one down */
+    nextMp4();
   }
   function _rlPlay(it){
     _rlAttach(it);
