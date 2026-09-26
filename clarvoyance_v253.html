@@ -13215,6 +13215,7 @@ function renderNoOverindulgence(){
       +'<div class="vfv-xp">⚡ XP at 50%</div></div>'
       +'<div class="vfv-stage"><img class="vfv-poster" alt="" src="https://i.ytimg.com/vi/'+slot.vid+'/hqdefault.jpg"><div class="vfv-yt"><div class="vfv-ytel"></div></div><div class="vfv-load"></div></div>'
       +'<div class="vfv-ui">'
+      +'<button type="button" class="snd-pill vfv-snd-pill" data-vfv="sound" hidden>🔊 Tap for sound</button>'
       +'<div class="vfv-row">'
         +'<button type="button" class="vfv-btn vfv-like'+(p.liked[slot.vid]?' on':'')+'" data-vfv="like" aria-label="Like">'+SVG.heart+'</button>'
         +'<button type="button" class="vfv-btn" data-vfv="share" aria-label="Share">'+SVG.send+'</button>'
@@ -13258,7 +13259,7 @@ function renderNoOverindulgence(){
     }catch(e){}
     clearTimeout(slot.guard);
     /* browsers may refuse UNMUTED autoplay — then PLAYING never fires; fall back to muted rather than a video that just sits there */
-    slot.guard=setTimeout(function(){try{if(slot.active&&slot.startedAt==null){pl.mute();slot.lastSet=true;slot.setAt=Date.now();pl.playVideo();}}catch(e){}},1500);
+    slot.guard=setTimeout(function(){try{if(slot.active&&slot.startedAt==null){pl.mute();slot.lastSet=true;slot.setAt=Date.now();pl.playVideo();setTimeout(function(){_vfvSoundPill(slot);},1200);}}catch(e){}},1500);
   }
   function _vfvOnPlaying(slot){
     if(slot.startedAt==null){
@@ -13266,7 +13267,19 @@ function renderNoOverindulgence(){
       slot.stage.classList.add('playing');
       _vfvSignal(slot,'play');
       clearInterval(slot.poll);slot.poll=setInterval(function(){_vfvTick(slot);},400);
+      setTimeout(function(){_vfvSoundPill(slot);},900);
     }
+  }
+  /* v253 (T-061): if the viewer wants sound but the browser started the video muted anyway (iPhone Safari always, Chrome before the first tap),
+     say so with one clear pill instead of a silently muted video. The tap is a real user gesture on OUR page, so unMute() can work; if the browser
+     still keeps it muted (a cross-origin iframe on iOS) the pill points at YouTube's own speaker button. */
+  function _vfvSoundPill(slot){
+    try{
+      if(!slot||!slot.active||!slot.player||!slot.el)return;
+      var pill=slot.el.querySelector('.vfv-snd-pill');if(!pill)return;
+      var m=true;try{m=slot.player.isMuted();}catch(e){}
+      if(m&&_vfvWantsSound()){pill.textContent='🔊 Tap for sound';pill.hidden=false;}else pill.hidden=true;
+    }catch(e){}
   }
   /* 400 ms tick while this card is on screen: XP passes, replay/complete signals, and noticing when the viewer changes sound in YouTube's own control */
   function _vfvTick(slot){
@@ -13343,6 +13356,15 @@ function renderNoOverindulgence(){
     var p=_vp();
     if(kind==='next'){window.vfNext();return;}
     if(kind==='noop')return;
+    if(kind==='sound'){ /* v253: runs synchronously inside the tap (a real user gesture) */
+      try{slot.player.unMute();slot.player.setVolume(100);slot.player.playVideo();}catch(e){}
+      slot.lastSet=false;slot.setAt=Date.now();
+      try{localStorage.setItem('clv_vf_sound','1');}catch(e){}
+      var pl0=slot.el.querySelector('.vfv-snd-pill');
+      setTimeout(function(){var m=true;try{m=slot.player.isMuted();}catch(e){}
+        if(pl0){if(m){pl0.textContent='🔇 Tap the speaker on the video';pl0.hidden=false;}else pl0.hidden=true;}},700);
+      return;
+    }
     if(kind==='feed'){if(window._clvGoFeed)window._clvGoFeed();return;}
     if(kind==='back'){if(window._clvVibeBack)window._clvVibeBack();return;}
     if(kind==='like'){
@@ -22819,6 +22841,7 @@ textarea.soc-in{resize:none;min-height:74px}
       +'<div class="soc-vin-tap" data-act="open-reels" data-id="'+r.id+'" role="button" aria-label="Open video full screen"></div>'
       +'<div class="soc-vid-play soc-vin-pp">'+PLAY_SVG+'</div>'
       +'<button class="soc-vin-snd" data-act="vin-mute" aria-label="Sound">'+(muted?SND_OFF:SND_ON)+'</button>'
+      +'<button class="snd-pill soc-vin-pill" data-act="vin-unmute" type="button" hidden>🔊 Tap for sound</button>'
       +(r.video.duration?'<span class="soc-vid-dur">'+fmtDur(r.video.duration)+'</span>':'')
       +'</div>';
   }
@@ -22840,8 +22863,11 @@ textarea.soc-in{resize:none;min-height:74px}
     v.muted=_vinMuted();
     var p=v.play();
     /* only a real "sound not allowed" refusal falls back to muted — an AbortError (the source switched HLS → MP4 mid-play) must not re-mute a video the viewer just unmuted */
-    if(p&&p.catch)p.catch(function(er){if(er&&er.name==='NotAllowedError'&&!v.muted){v.muted=true;_vinSyncSnd();var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});}});
+    if(p&&p.catch)p.catch(function(er){if(er&&er.name==='NotAllowedError'&&!v.muted){v.muted=true;_vinSyncSnd();var p2=v.play();if(p2&&p2.catch)p2.catch(function(){});_vinPill(box,true);}});
+    else if(p&&p.then)p.then(function(){_vinPill(box,v.muted&&!_vinMuted());});
   }
+  /* v253 (T-061): the "Tap for sound" pill — shown only while the video plays muted although the viewer wants sound; one tap unmutes (a real gesture on our own <video>, works on iPhone too) */
+  function _vinPill(box,show){var b=box&&box.querySelector('.soc-vin-pill');if(b)b.hidden=!show;}
   function _vinPause(box){var v=box&&box.querySelector('video');if(v&&!v.paused)try{v.pause();}catch(e){}if(VIN.cur===box)VIN.cur=null;}
   function _vinPauseAll(){Array.prototype.forEach.call(document.querySelectorAll('.soc-vin'),_vinPause);}
   function _vinSyncSnd(){
@@ -23211,6 +23237,12 @@ textarea.soc-in{resize:none;min-height:74px}
     'vid-rm':function(){_vidClear();_vidRenderPreview();},
     'open-reels':function(el){_vinPauseAll();openReels(el.getAttribute('data-id'));},
     /* v251: speaker button on an inline feed video — same remembered sound choice as Vibe + Reels */
+    'vin-unmute':function(el){ /* v253: tap for sound */
+      var box=el.closest('.soc-vin'),v=box&&box.querySelector('video');if(!v)return;
+      v.muted=false;try{localStorage.setItem('clv_vf_sound','1');}catch(e){}
+      var p=v.play();if(p&&p.catch)p.catch(function(){});
+      el.hidden=true;_vinSyncSnd();
+    },
     'vin-mute':function(el){
       var box=el.closest('.soc-vin'),v=box&&box.querySelector('video');
       var m=v?!v.muted:!_vinMuted();
@@ -24315,6 +24347,11 @@ body.vf-vid-on .vfv-slot.active .vfv-swipehint{display:block;padding:4px 6px 0;f
 @keyframes v251InR{from{transform:translateX(28%);opacity:.4}to{transform:none;opacity:1}}
 .clv-sl-l{animation:v251InL .28s cubic-bezier(.2,.8,.2,1)}
 .clv-sl-r{animation:v251InR .28s cubic-bezier(.2,.8,.2,1)}
+/* ── v253 (T-061): "Tap for sound" pill ── */
+.snd-pill{border:none;background:rgba(0,0,0,.68);color:#fff;font:inherit;font-size:.8rem;font-weight:700;padding:8px 14px;border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.snd-pill[hidden]{display:none!important}
+.vfv-snd-pill,.exv-ui>.snd-pill{display:inline-block;margin:2px 0 8px 6px;background:rgba(255,255,255,.16)}
+.soc-vin-pill{position:absolute;left:12px;bottom:12px;z-index:3}
 </style>
 <script id="v251-js">
 (function(){
@@ -24475,7 +24512,12 @@ body.exv-on #bnav{display:none!important}
     try{if(wantSound()){pl.unMute();pl.setVolume(100);X.lastSet=false;}else{pl.mute();X.lastSet=true;}}catch(e){}
     X.setAt=Date.now();
     clearTimeout(X.guard); /* sound refused by the browser → muted rather than a frozen video */
-    X.guard=setTimeout(function(){try{var st=pl.getPlayerState();if(root()&&st!==1&&st!==3){pl.mute();X.lastSet=true;X.setAt=Date.now();pl.playVideo();}}catch(e){}},1500);
+    X.guard=setTimeout(function(){try{var st=pl.getPlayerState();if(root()&&st!==1&&st!==3){pl.mute();X.lastSet=true;X.setAt=Date.now();pl.playVideo();setTimeout(soundPill,1200);}}catch(e){}},1500);
+  }
+  function soundPill(){ /* v253 (T-061): same idea as the Vibe card — only when the video plays muted although sound is wanted */
+    var r=root();if(!r||!X.pl)return;var b=r.querySelector('.snd-pill');if(!b)return;
+    var m=true;try{m=X.pl.isMuted();}catch(e){}
+    if(m&&wantSound()){b.textContent='🔊 Tap for sound';b.hidden=false;}else b.hidden=true;
   }
   function paint(){
     var r=root(),v=cur();if(!r||!v)return;
@@ -24499,7 +24541,8 @@ body.exv-on #bnav{display:none!important}
             onReady:function(){X.ready=true;applySound();try{X.pl.playVideo();}catch(e){}},
             onStateChange:function(e){
               var r=root();if(!r)return;
-              if(e.data===1){r.querySelector('.exv-stage').classList.add('playing');if(X.startedAt==null){X.startedAt=Date.now();api().signal(cur(),'play');}}
+              if(e.data===1){r.querySelector('.exv-stage').classList.add('playing');if(X.startedAt==null){X.startedAt=Date.now();api().signal(cur(),'play');}
+                setTimeout(soundPill,900);}
               if(e.data===0){try{X.pl.seekTo(0,true);X.pl.playVideo();}catch(er){}} /* loop, like a reel */
             }
           }});
@@ -24522,7 +24565,7 @@ body.exv-on #bnav{display:none!important}
     var r=document.createElement('div');r.id='exv';r.className='exv';r.setAttribute('role','dialog');r.setAttribute('aria-label','Video');
     r.innerHTML='<div class="exv-top"><button type="button" class="vfv-back" data-x="close" aria-label="Back">'+SVG.back+'</button><span class="exv-title"></span></div>'
       +'<div class="exv-stage"><img class="exv-poster" alt=""><div class="exv-yt"><div id="exv-host"></div></div></div>'
-      +'<div class="exv-ui"><div class="vfv-row">'
+      +'<div class="exv-ui"><button type="button" class="snd-pill" data-x="sound" hidden>🔊 Tap for sound</button><div class="vfv-row">'
         +'<button type="button" class="vfv-btn vfv-like" data-x="like" aria-label="Like">'+SVG.heart+'</button>'
         +'<button type="button" class="vfv-btn" data-x="share" aria-label="Share">'+SVG.send+'</button>'
         +'<button type="button" class="vfv-btn vfv-save" data-x="save" aria-label="Save">'+SVG.mark+'</button>'
@@ -24534,6 +24577,12 @@ body.exv-on #bnav{display:none!important}
     r.addEventListener('click',function(e){
       var b=e.target.closest&&e.target.closest('[data-x]');if(!b)return;var k=b.getAttribute('data-x'),v=cur();
       if(k==='close')return close();
+      if(k==='sound'){ /* v253: inside the tap = a real gesture */
+        try{X.pl.unMute();X.pl.setVolume(100);X.pl.playVideo();}catch(er){}
+        X.lastSet=false;X.setAt=Date.now();try{localStorage.setItem('clv_vf_sound','1');}catch(er){}
+        setTimeout(function(){var m=true;try{m=X.pl.isMuted();}catch(er){}if(m){b.textContent='🔇 Tap the speaker on the video';b.hidden=false;}else b.hidden=true;},700);
+        return;
+      }
       if(k==='next')return show(X.i+1<X.list.length?X.i+1:0);
       if(k==='like'){b.classList.toggle('on',api().toggleLike(v));return;}
       if(k==='save'){b.classList.toggle('on',api().toggleSave(v));return;}
