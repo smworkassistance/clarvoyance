@@ -21180,6 +21180,19 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-ach-grid img,.soc-badge-tile{-webkit-tap-highlight-color:transparent}
 .soc-time{font-size:.8rem;color:var(--lt);margin-left:auto}
 
+/* v253 (T-068): fresh feed — divider + suggestions; pull-to-refresh indicator */
+.soc-caught{display:flex;flex-direction:column;align-items:center;gap:2px;padding:18px 16px 6px;text-align:center;color:var(--tx)}
+.soc-caught b{font-size:1rem;font-weight:750}.soc-caught span{font-size:.82rem;color:var(--lt)}
+#soc-suggest{padding:0 0 6px}
+.soc-sg-h{font-size:.78rem;font-weight:750;letter-spacing:.1em;text-transform:uppercase;color:var(--lt);margin:14px 4px 8px}
+.soc-sg-vids{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:14px;overflow:hidden}
+.soc-sg-vids .exp-tile{aspect-ratio:3/4;height:auto}
+.soc-sg-gd .g-row{margin:0 0 8px}
+#soc-ptr{position:absolute;left:50%;top:64px;transform:translate(-50%,-56px);z-index:8;width:40px;height:40px;border-radius:50%;background:var(--su);box-shadow:0 4px 16px rgba(0,0,0,.2);display:grid;place-items:center;color:var(--acc);font-size:1.15rem;pointer-events:none;will-change:transform}
+#soc-ptr.ready{color:#fff;background:var(--acc)}
+#soc-ptr.spin .ptr-ic{display:inline-block;animation:ptrSpin .8s linear infinite}
+@keyframes ptrSpin{to{transform:rotate(360deg)}}
+#soc-body{overscroll-behavior-y:contain}
 /* v253 (T-067): small date + time line, last line of every post (Instagram-style); the old header "now / 3h" is hidden on cards that have it */
 .soc-ptime{display:block;margin-top:10px;font-size:.74rem;color:var(--lt);letter-spacing:.01em}
 .soc-card:has(.soc-ptime)>.soc-post-hd .soc-time{display:none}
@@ -22088,7 +22101,10 @@ textarea.soc-in{resize:none;min-height:74px}
   }
   function renderFeed(rows,follows){
     try{
-      S.feedRows=rows;
+      var ord=orderFresh(rows);rows=ord.rows;S.feedRows=rows; /* v253 (T-068): unseen first */
+      var keys=[],dvDone=false;
+      /* the divider + suggestions go right before the first already-seen post (or at the very end if everything is new) */
+      function dv(i){if(dvDone||i<ord.split||ord.split>=rows.length)return '';dvDone=true;return suggestBoxHtml(true);}
       var recent={};rows.forEach(function(r){if(Date.now()-Date.parse(r.created_at)<172800000)recent[r.user_id]=1;});
       var h='<div class="soc-stories"><button class="soc-story" data-act="tab" data-tab="me"><span class="soc-plus">'+avatar(S.me,58,'glow')+'<i>+</i></span><span>Your story</span></button>';
       follows.forEach(function(f){h+='<button class="soc-story" data-act="open-profile" data-handle="'+esc(f.handle)+'">'+avatar(f,58,recent[f.user_id]?true:'quiet')+'<span>'+esc(f.display_name.split(' ')[0])+'</span></button>';});
@@ -22100,24 +22116,27 @@ textarea.soc-in{resize:none;min-height:74px}
       }else{
         h+='<div class="soc-stack">';
         rows.forEach(function(r,i){
-          if(r._kind==='clar'){h+=_clarCardHtml(r,i);return;} /* v246 (T-003) */
-          if(r._kind==='guide'){h+=guideCardHtml(r,i);return;} /* v250 */
+          if(r._kind==='clar'){h+=dv(i)+_clarCardHtml(r,i);keys.push(pkey(r));return;} /* v246 (T-003) */
+          if(r._kind==='guide'){h+=dv(i)+guideCardHtml(r,i);keys.push(pkey(r));return;} /* v250 */
           var mine=r.user_id===uid();
           var hd='<div class="soc-post-hd"><button class="soc-story" style="width:auto;flex-direction:row;gap:10px" data-act="open-profile" data-handle="'+esc(r.handle)+'">'+avatar(r,40,true)+'</button>'
             +'<div class="soc-grow"><div class="soc-name">'+esc(r.display_name)+(mine?' <span class="soc-chip">You</span>':'')+'</div><div class="soc-sub">@'+esc(r.handle)+'</div></div><span class="soc-time">'+ago(r.created_at)+'</span></div>';
           if(r._kind==='ach'){
-            h+=_achCardHtml(r,i,hd);
+            h+=dv(i)+_achCardHtml(r,i,hd);keys.push(pkey(r));
           }else{
             var bd=BMAP[r.badge_id];if(!bd)return;
-            h+='<div class="soc-card" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd
+            keys.push(pkey(r));
+            h+=dv(i)+'<div class="soc-card" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd
               +'<div class="soc-badge-tile"><div class="soc-badge-ic">'+bd.ic+'</div><div><div class="soc-badge-t">'+esc(bd.t)+'</div><div class="soc-badge-d">'+esc(bd.d)+'</div></div></div>'
               +'<div class="soc-post-ft"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'">'+HEART_SVG+'<span class="n">'+(r.cheers||0)+'</span> Like</button></div>'+postTimeHtml(r.created_at)+'</div>';
           }
         });
+        if(!dvDone){dvDone=true;h+=suggestBoxHtml(false);} /* everything on screen is new: suggestions still follow it */
         h+='</div>';
       }
       h+='<div class="soc-disc">Posts here are general information and community sharing to help you build a positive mindset. They are not advice — for specific help, please consult a qualified professional.</div>';
       body(h);try{wireGuideDwell();}catch(e){}
+      try{wireSeen(keys);}catch(e){}try{if($('soc-suggest'))loadSuggest();}catch(e){}
     }catch(e){console.warn('[soc] feed',e);renderError('Couldn’t load your feed.');}
   }
 
@@ -22398,6 +22417,151 @@ textarea.soc-in{resize:none;min-height:74px}
   };
   }
   window.addEventListener('resize',_expFitRows);
+  /* ═══ v253 (T-068) — a Feed that is always fresh + pull-to-refresh ═══════════════════════════════════════════════════════════════════════
+     • posts already seen (≥60% visible for 1 s → remembered, last 500) sink below unseen ones; a divider says "You're all caught up ✦" and a block of
+       SUGGESTIONS (fresh videos from Discover, guides you don't follow yet, people you might vibe with — reshuffled on every visit) follows it,
+       so every time the Feed opens there is something new.
+     • pull-to-refresh (Instagram-style) on every list here: pull down at the top, release past the mark, the list reloads. */
+  var SEEN_KEY='clv_seen_posts';
+  function seenPosts(){return jparse(lsGet(SEEN_KEY,'[]'),[]);}
+  function markPostSeen(k){var a=seenPosts();if(a.indexOf(k)<0){a.push(k);if(a.length>500)a=a.slice(-500);lsSet(SEEN_KEY,JSON.stringify(a));}}
+  function pkey(r){return r._kind+':'+r.id;}
+  function orderFresh(rows){
+    var seen=seenPosts(),un=[],old=[];
+    rows.forEach(function(r){(seen.indexOf(pkey(r))<0?un:old).push(r);});
+    return {rows:un.concat(old),unseen:un.length,split:un.length};
+  }
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function suggestBoxHtml(caughtUp){
+    return '<div class="soc-caught">'+(caughtUp?'<b>You’re all caught up ✦</b><span>Here’s something new for you</span>':'<b>Suggested for you</b>')+'</div><div id="soc-suggest"></div>';
+  }
+  /* fresh videos from the same shared cache Discover reads (0 YouTube quota) */
+  async function suggestVideos(){
+    var topics=_expTopics(),rows=await _expCache(topics.map(function(t){return t.topic;}));
+    rows=rows.filter(function(r){return r&&r.video_id&&!(r.aspect>0.95);});
+    var seenV=jparse(lsGet('clv_sug_vids','[]'),[]);
+    var pool=shuffle(rows.filter(function(r){return seenV.indexOf(r.video_id)<0;}));
+    if(pool.length<3)pool=shuffle(rows);
+    var pick=pool.slice(0,6);
+    if(!pick.length)return '';
+    lsSet('clv_sug_vids',JSON.stringify(seenV.concat(pick.slice(0,3).map(function(r){return r.video_id;})).slice(-120)));
+    S._sugVids=pick.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore',aspect:v.aspect};});
+    return '<div class="soc-sg-h">Videos for you</div><div class="soc-sg-vids">'+pick.slice(0,3).map(function(v,i){
+      return '<button class="exp-tile" data-act="sug-open" data-i="'+i+'" aria-label="Play video"><img loading="lazy" alt="" src="https://i.ytimg.com/vi/'+esc(v.video_id)+'/hqdefault.jpg" onerror="this.parentNode.remove()"><span class="exp-reel">'+EXP_REEL+'</span></button>';}).join('')+'</div>';
+  }
+  async function suggestGuides(){
+    if(!guidesOn())return '';
+    await loadGuides(false);
+    var top=shuffle(scoreGuides().slice(0,6)).slice(0,2);
+    if(!top.length)return '';
+    return '<div class="soc-sg-h">Guides you might like</div><div class="soc-sg-gd">'+top.map(function(x){
+      var g=x.g;return '<div class="g-row"><div class="g-row-t"><b>'+esc(g.title)+'</b><em>'+esc(g.description||'')+'</em>'+(x.why&&x.why.length?'<small>Because you like '+esc(x.why[0])+'</small>':'')+'</div><button class="soc-btn pri sm" data-act="sg-follow" data-id="'+g.id+'">Follow</button></div>';}).join('')+'</div>';
+  }
+  async function suggestPeople(){
+    var cols='user_id,handle,display_name,avatar_url,xp_week,streak,interests,i_follow,is_me,follows_me';
+    var r=await q('social_public_profiles').select(cols).eq('is_listed',true).order('updated_at',{ascending:false}).limit(40);
+    if(r.error)return '';
+    var mine=myInterestTokens();
+    var list=(r.data||[]).filter(function(p){return !p.is_me&&!p.i_follow;}).map(function(p){
+      var it=p.interests||{},all=[].concat(it.topics||[],it.mentors||[],it.strengths||[],it.books||[]),sh=[];
+      all.forEach(function(x){if(mine[String(x).toLowerCase()])sh.push(x);});p._shared=sh;return p;});
+    var pick=shuffle(list).slice(0,2);
+    if(!pick.length)return '';
+    return '<div class="soc-sg-h">People you might vibe with</div><div class="soc-stack" style="padding:0">'+pick.map(personCard).join('')+'</div>';
+  }
+  async function loadSuggest(){
+    var parts=await Promise.all([suggestVideos().catch(function(){return '';}),suggestGuides().catch(function(){return '';}),suggestPeople().catch(function(){return '';})]);
+    var box=$('soc-suggest');if(!box)return;
+    var html=parts.join('');
+    if(!html){var cu=box.previousElementSibling;if(cu&&cu.classList.contains('soc-caught')&&!/caught up/.test(cu.textContent))cu.remove();}
+    box.innerHTML=html;
+  }
+  /* mark posts as seen once ≥60% visible for 1 s */
+  var _seenIO=null;
+  function wireSeen(keys){
+    try{
+      if(_seenIO){_seenIO.disconnect();_seenIO=null;}
+      var cards=document.querySelectorAll('#soc-body>.soc-stack>.soc-card');
+      if(!cards.length||!('IntersectionObserver' in window))return;
+      _seenIO=new IntersectionObserver(function(es){es.forEach(function(en){
+        var el=en.target;
+        if(en.intersectionRatio>=0.6){if(el._sT)return;el._sT=setTimeout(function(){var i=[].indexOf.call(document.querySelectorAll('#soc-body>.soc-stack>.soc-card'),el);if(i>-1&&keys[i])markPostSeen(keys[i]);},1000);}
+        else if(el._sT){clearTimeout(el._sT);el._sT=null;}
+      });},{root:$('soc-body'),threshold:[0,0.6]});
+      [].forEach.call(cards,function(c){_seenIO.observe(c);});
+    }catch(e){}
+  }
+
+  /* ── pull-to-refresh: one component for every scrolling list in the Community screen ── */
+  var PTR={y:0,pull:0,on:false,busy:false};
+  function ptrEl(){
+    var e=$('soc-ptr');
+    if(!e){e=document.createElement('div');e.id='soc-ptr';e.innerHTML='<span class="ptr-ic">✦</span>';var r=root();if(r)r.appendChild(e);}
+    return e;
+  }
+  function ptrHandler(){
+    /* which reload runs for the list that is showing */
+    if(S.prof)return null;
+    if(S.tab==='feed')return refreshFeed;
+    if(S.tab==='find')return function(){try{EXP.seen={};}catch(e){}return loadExplore();};
+    if(S.tab==='guides')return function(){G.list=null;G.subs=null;return renderGuidesPage();};
+    if(S.tab==='board')return loadBoard;
+    if(S.tab==='notif'&&window._socNotifRefresh)return window._socNotifRefresh;
+    return null;
+  }
+  async function refreshFeed(){
+    try{
+      cacheDropFeed();
+      var d=await fetchFeedData();
+      cachePut({rows:d.rows.slice(0,30),follows:d.follows});
+      if(!(S.tab==='feed'&&!S.prof))return;
+      renderFeed(d.rows,d.follows);
+      var b=$('soc-body');if(b)b.scrollTop=0;
+    }catch(e){toast('Couldn’t refresh just now');}
+  }
+  function wirePtr(){
+    var b=$('soc-body');if(!b||b._ptr)return;b._ptr=1;
+    var TH=64;
+    b.addEventListener('touchstart',function(e){
+      if(PTR.busy||b.scrollTop>0||!ptrHandler()||e.touches.length!==1||(e.target.closest&&e.target.closest('input,textarea,.soc-stories,.soc-sg-vids')&&false)){PTR.on=false;return;}
+      PTR.y=e.touches[0].clientY;PTR.pull=0;PTR.on=true;
+    },{passive:true});
+    b.addEventListener('touchmove',function(e){
+      if(!PTR.on)return;
+      var dy=e.touches[0].clientY-PTR.y;
+      if(dy<=0||b.scrollTop>0){PTR.on=dy>0&&b.scrollTop<=0?PTR.on:false;if(dy<=0){var p0=ptrEl();p0.style.transform='translate(-50%,-56px)';}return;}
+      PTR.pull=Math.min(110,dy*0.5);
+      var p=ptrEl();p.classList.remove('spin','done');p.style.transition='none';p.style.transform='translate(-50%,'+(PTR.pull-40)+'px) rotate('+(PTR.pull*4)+'deg)';p.classList.toggle('ready',PTR.pull>=TH);
+      if(e.cancelable)e.preventDefault(); /* stop the browser's own overscroll bounce while we own the gesture */
+    },{passive:false});
+    var end=async function(){
+      if(!PTR.on)return;PTR.on=false;
+      var p=ptrEl(),h=ptrHandler();
+      p.style.transition='transform .25s ease';
+      if(PTR.pull>=TH&&h&&!PTR.busy){
+        PTR.busy=true;p.classList.add('spin');p.style.transform='translate(-50%,10px)';
+        var t0=Date.now();
+        try{await h();}catch(e){}
+        var wait=Math.max(0,500-(Date.now()-t0));await new Promise(function(r){setTimeout(r,wait);});
+        PTR.busy=false;
+      }
+      p.classList.remove('spin','ready');p.style.transform='translate(-50%,-56px)';PTR.pull=0;
+    };
+    b.addEventListener('touchend',end,{passive:true});b.addEventListener('touchcancel',end,{passive:true});
+  }
+  window._socPtr={handler:ptrHandler,refreshFeed:refreshFeed};
+  function _freshActs(){
+  ACT['sug-open']=function(el){if(window._exvOpen&&S._sugVids)window._exvOpen(S._sugVids,+el.getAttribute('data-i'),'For you');};
+  ACT['sg-follow']=async function(el){
+    var id=el.getAttribute('data-id');el.disabled=true;
+    var r=await q('guide_subscriptions').insert({user_id:uid(),guide_id:id,languages:myLangs(),per_day:2});
+    if(r.error&&!/duplicate/i.test(r.error.message||'')){el.disabled=false;toast('Couldn’t follow just now');return;}
+    G.list=null;G.subs=null;S.feedRows=null;cacheDropFeed();
+    guideKick({guide_id:id,languages:myLangs()}).catch(function(){});
+    toast('Following ✦');var row=el.closest('.g-row');if(row)row.remove();
+  };
+    wirePtr();
+  }
   function personCard(p,i){
     var sh=(p._shared||[]).slice(0,2).map(function(x){return '<span class="soc-chip">✦ '+esc(x)+'</span>';}).join('');
     return '<div class="soc-card" data-act="open-profile" data-handle="'+esc(p.handle)+'" style="cursor:pointer;padding:12px">'
@@ -23840,6 +24004,7 @@ textarea.soc-in{resize:none;min-height:74px}
   function _gAff(pid,by){var p=findPost(pid);if(!p)return;var a=jparse(lsGet('clv_guide_aff','{}'),{});a[p.guide_id]=(a[p.guide_id]||0)+by;lsSet('clv_guide_aff',JSON.stringify(a));}
 
   _expActs(); /* v252 */
+  _freshActs(); /* v253 (T-068) */
   window.SOC={shareYt:shareYt,openInvite:openInvite,open:open,close:close,_cfg:CFG,_state:S,_computeStats:computeStats,_syncStats:syncStats,_badges:BADGES,openAchievementCompose:openAchievementCompose,openCreatePost:openCreatePost};
   document.addEventListener('DOMContentLoaded',function(){
     wire();refreshFlag();
