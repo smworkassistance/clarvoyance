@@ -28,7 +28,7 @@ async function mockCommunity(page, opts = {}) {
   for (const t of ['social_feed', 'social_achievement_feed', 'social_clar_posts', 'social_comments_feed', 'referrals', 'guides', 'guide_subscriptions', 'guide_posts', 'guide_signals']) {
     await page.route(new RegExp('/rest/v1/' + t), route => {
       if (route.request().method() !== 'GET') return route.fallback();
-      const rows = (t === 'social_achievement_feed' && opts.achFeed) || (t === 'guides' && opts.guides) || (t === 'guide_posts' && opts.guidePosts) || (t === 'guide_subscriptions' && opts.guideSubs) || [];
+      const rows = (t === 'social_achievement_feed' && opts.achFeed) || (t === 'social_feed' && opts.badgeFeed) || (t === 'social_clar_posts' && opts.clarPosts) || (t === 'guides' && opts.guides) || (t === 'guide_posts' && opts.guidePosts) || (t === 'guide_subscriptions' && opts.guideSubs) || [];
       return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify(rows) });
     });
   }

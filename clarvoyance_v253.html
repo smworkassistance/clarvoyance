@@ -21180,6 +21180,9 @@ document.addEventListener('DOMContentLoaded', function(){ setTimeout(notifRefres
 .soc-ach-grid img,.soc-badge-tile{-webkit-tap-highlight-color:transparent}
 .soc-time{font-size:.8rem;color:var(--lt);margin-left:auto}
 
+/* v253 (T-067): small date + time line, last line of every post (Instagram-style); the old header "now / 3h" is hidden on cards that have it */
+.soc-ptime{display:block;margin-top:10px;font-size:.74rem;color:var(--lt);letter-spacing:.01em}
+.soc-card:has(.soc-ptime)>.soc-post-hd .soc-time{display:none}
 /* v243: achievement posts (Goal Items shared to the feed / shown on a profile) */
 .soc-ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;border-radius:14px;overflow:hidden}
 .soc-ach-grid.one{grid-template-columns:1fr}
@@ -21597,6 +21600,20 @@ textarea.soc-in{resize:none;min-height:74px}
     if(s<60)return 'now';if(s<3600)return Math.floor(s/60)+'m';if(s<86400)return Math.floor(s/3600)+'h';
     if(s<604800)return Math.floor(s/86400)+'d';return Math.floor(s/604800)+'w';
   }
+  /* v253 (T-067): the small Instagram-style date + time line at the bottom of every post. Recent = "3 hours ago · 9:14 AM"; older = "24 September · 9:14 AM"
+     (year added when it isn't this year). Shown in the viewer's own local time. */
+  function postTime(iso){
+    var d=new Date(iso);if(isNaN(d.getTime()))return '';
+    var s=Math.max(0,(Date.now()-d.getTime())/1000);
+    var t=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+    if(s<60)return 'Just now';
+    if(s<3600){var m=Math.floor(s/60);return m+(m===1?' minute':' minutes')+' ago';}
+    if(s<86400){var h=Math.floor(s/3600);return h+(h===1?' hour':' hours')+' ago · '+t;}
+    var same=d.getFullYear()===new Date().getFullYear();
+    return d.toLocaleDateString('en-GB',same?{day:'numeric',month:'long'}:{day:'numeric',month:'long',year:'numeric'})+' · '+t;
+  }
+  function postTimeHtml(iso){var t=postTime(iso);return t?'<time class="soc-ptime" datetime="'+esc(iso)+'">'+esc(t)+'</time>':'';}
+  window._socPostTime=postTime;
   function fmtMin(m){
     if(m==null||isNaN(m))return '—';m=Number(m);
     if(m<1)return m>0?'<1 min':'0 min';
@@ -21994,6 +22011,7 @@ textarea.soc-in{resize:none;min-height:74px}
       +'<button class="soc-cmtbtn" data-act="toggle-comments" data-id="'+r.id+'"><span>💬</span><span class="n">'+(r.comments||0)+'</span> Comment</button>'
       +'</div>'
       +'<div class="soc-comments" id="ach-comments-'+r.id+'" style="display:none"></div>'
+      +postTimeHtml(r.created_at)
       +'</div>';
     return h;
   }
@@ -22048,7 +22066,7 @@ textarea.soc-in{resize:none;min-height:74px}
     if(r.title)h+='<div class="soc-ach-title">'+esc(r.title)+'</div>';
     if(r.message)h+='<div class="soc-ach-msg">'+esc(r.message).replace(/\n/g,'<br>')+'</div>';
     if(r.cta_label&&CLAR_TABS[r.cta_tab])h+='<div class="soc-clar-cta"><button class="soc-btn pri sm" data-act="clar-cta" data-tab="'+esc(r.cta_tab)+'">'+esc(r.cta_label)+'</button></div>';
-    return h+'</div>';
+    return h+postTimeHtml(r.created_at)+'</div>';
   }
   async function loadFeed(){
     var c=cacheGet(),shown=false;
@@ -22093,7 +22111,7 @@ textarea.soc-in{resize:none;min-height:74px}
             var bd=BMAP[r.badge_id];if(!bd)return;
             h+='<div class="soc-card" style="animation-delay:'+Math.min(i,8)*45+'ms">'+hd
               +'<div class="soc-badge-tile"><div class="soc-badge-ic">'+bd.ic+'</div><div><div class="soc-badge-t">'+esc(bd.t)+'</div><div class="soc-badge-d">'+esc(bd.d)+'</div></div></div>'
-              +'<div class="soc-post-ft"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'">'+HEART_SVG+'<span class="n">'+(r.cheers||0)+'</span> Like</button></div></div>';
+              +'<div class="soc-post-ft"><button class="soc-cheer'+(r.i_cheered?' on':'')+'" data-act="cheer" data-id="'+r.id+'" data-on="'+(r.i_cheered?1:0)+'">'+HEART_SVG+'<span class="n">'+(r.cheers||0)+'</span> Like</button></div>'+postTimeHtml(r.created_at)+'</div>';
           }
         });
         h+='</div>';
@@ -23596,6 +23614,7 @@ textarea.soc-in{resize:none;min-height:74px}
       +'</div>'
       +'<div class="g-more" id="g-more-'+r.id+'" style="display:none"><button data-act="g-more" data-id="'+r.id+'">More like this</button><button data-act="g-less" data-id="'+r.id+'">Less like this</button><button data-act="g-report" data-id="'+r.id+'" class="g-rep">Report</button></div>'
       +'<div class="g-disc">General information, not advice. For specific help, please consult a qualified professional.'+(g.sensitive?' '+esc(HELPLINE):'')+'</div>'
+      +postTimeHtml(r.created_at)
       +'</div>';
     return h;
   }
