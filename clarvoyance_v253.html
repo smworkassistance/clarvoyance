@@ -23580,12 +23580,14 @@ textarea.soc-in{resize:none;min-height:74px}
       +'<div class="soc-post-hd"><span class="soc-ring"><div class="soc-av clar" style="--s:40px">'+esc((g.title||'G').charAt(0))+'</div></span>'
       +'<div class="soc-grow"><div class="soc-name">'+esc(g.title||'Guide')+' <span class="soc-chip official">Guide</span></div><div class="soc-sub">AI-curated · from the sources below</div></div>'
       +'<span class="soc-time">'+ago(r.created_at)+'</span></div>'
-      +'<div class="soc-ach-title">'+esc(r.title)+'</div>'
-      +'<div class="soc-ach-msg">'+esc(r.body).replace(/\n/g,'<br>')+'</div>'
-      +(r.why?'<div class="g-why"><b>Why this for you</b> '+esc(r.why)+'</div>':'')
-      +(r.yt_video&&r.yt_video.id?_ytInlineHtml({yt_video:r.yt_video}):'')
+      /* v253 (T-066): a post is EITHER a video post (player + a caption written from that video, nothing else attached) OR a text post (never a video) */
+      +(r.yt_video&&r.yt_video.id
+        ?_ytInlineHtml({yt_video:r.yt_video})+'<div class="soc-ach-msg">'+esc(r.body).replace(/\n/g,'<br>')+'</div>'
+        :'<div class="soc-ach-title">'+esc(r.title)+'</div>'
+          +'<div class="soc-ach-msg">'+esc(r.body).replace(/\n/g,'<br>')+'</div>'
+          +(r.why?'<div class="g-why"><b>Why this for you</b> '+esc(r.why)+'</div>':''))
       +'<div class="g-srcs">'+srcLinks(r.sources)+'</div>'
-      +practiceHtml(r)
+      +(r.yt_video&&r.yt_video.id?'':practiceHtml(r))
       +'<div class="soc-post-ft g-ft">'
         +'<button class="soc-cheer'+(sg.like?' on':'')+'" data-act="g-like" data-id="'+r.id+'">'+HEART_SVG+'<span class="n"></span> Like</button>'
         +'<button class="soc-cmtbtn'+(sg.save?' g-on':'')+'" data-act="g-save" data-id="'+r.id+'"><span>'+(sg.save?'🔖':'🏷️')+'</span> '+(sg.save?'Saved':'Save')+'</button>'

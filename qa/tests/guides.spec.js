@@ -142,4 +142,26 @@ test.describe('guides (v250)', () => {
     expect(kicks[0]).toMatchObject({ action: 'guide.kick', guide_id: GID2 });
     expect(writes.some(w => w.t === 'guide_subscriptions' && w.body.guide_id === GID2)).toBe(true);
   });
+
+  // v253 (T-066): a video is its OWN post — player + a caption made from the video; never mixed with the text post's practice / why-line
+  test('a video post shows the player and its caption only (no practice, no why-line); a text post has no player', async ({ app }) => {
+    const { page } = app;
+    const VPOST = { id: 502, guide_id: GID, lang: 'en', dedupe_key: 'yt:AAAAAAAAAAA', title: 'Building a company: startups lessons', body: 'A short, warm invitation to watch this video about building a company.', why: null, sources: [{ publisher: 'Startup Channel', url: 'https://www.youtube.com/watch?v=AAAAAAAAAAA', title: 'x' }], practice: null, yt_video: { id: 'AAAAAAAAAAA', title: 'Building a company: startups lessons' }, created_at: new Date(Date.now() - 1000).toISOString() };
+    await setup(page, { guidePosts: [POST, VPOST] });
+    await page.route(/i\.ytimg\.com|youtube\.com/, r => r.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') }));
+    await app.boot();
+    await app.page.evaluate(() => document.querySelector('.nv2-tab[data-nv2="feed"]').click());
+    await expect(page.locator('.g-card')).toHaveCount(2, { timeout: 8000 });
+    const video = page.locator('.g-card', { has: page.locator('.soc-yt') });
+    const text = page.locator('.g-card', { hasNot: page.locator('.soc-yt') });
+    await expect(video).toHaveCount(1);
+    await expect(video).toContainText('invitation to watch');
+    await expect(video.locator('.g-pr')).toHaveCount(0);
+    await expect(video.locator('.g-why')).toHaveCount(0);
+    await expect(video.locator('.g-src')).toHaveAttribute('href', 'https://www.youtube.com/watch?v=AAAAAAAAAAA');
+    await expect(text).toHaveCount(1);
+    await expect(text).toContainText('Start smaller than you think');
+    await expect(text.locator('.g-pr')).toHaveCount(1);
+    await expect(text.locator('.soc-yt')).toHaveCount(0);
+  });
 });

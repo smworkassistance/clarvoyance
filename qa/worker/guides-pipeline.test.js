@@ -17,12 +17,13 @@ function reset() {
     { name: 'Inc42', url: 'https://inc42.com/feed/', tags: ['startup', 'business', 'india'], active: true },
     { name: 'James Clear', url: 'https://jamesclear.com/feed', tags: ['habits', 'growth', 'wisdom'], active: true },
   ];
-  DB.mode = { verifier: 'ok', gen: 'ok', scope: 'ok', ytFail: false, wqFail: false };
+  DB.mode = { verifier: 'ok', gen: 'ok', scope: 'ok', ytFail: false, wqFail: false, cap: 'ok' };
 }
-const GEN_SYS = 'You write ONE short post', VER_SYS = 'strict fact-and-safety checker', SCOPE_SYS = 'review a proposed "guide"', TR_SYS = 'Translate the JSON values';
+const CAP_SYS = 'caption for ONE video', GEN_SYS = 'You write ONE short post', VER_SYS = 'strict fact-and-safety checker', SCOPE_SYS = 'review a proposed "guide"', TR_SYS = 'Translate the JSON values';
 
 function geminiReply(sys, user) {
   const u = JSON.parse(user);
+  if (sys.includes(CAP_SYS)) { DB.calls.gemini.push('caption'); return DB.mode.cap === 'short' ? { caption: 'Watch.' } : { caption: 'A short, warm invitation to watch this video about building a company, from the channel below.' }; }
   if (sys.includes(GEN_SYS)) {
     DB.calls.gemini.push('gen');
     if (DB.mode.gen === 'nocite') return { title: 'Idea', body: 'Some words that are long enough to pass the length check for sure.', used: [], practice: { type: 'writing', prompt: 'Write', seconds: 60 } };
@@ -76,7 +77,7 @@ globalThis.fetch = async (url, init) => {
     const out = geminiReply(b.systemInstruction.parts[0].text, b.contents[0].parts[0].text);
     return json({ candidates: [{ content: { parts: [{ text: JSON.stringify(out) }] } }], usageMetadata: { promptTokenCount: 1000, candidatesTokenCount: 150 } });
   }
-  if (url.startsWith('https://clar-youtube.smworkassistance.workers.dev/')) { DB.calls.yt++; return DB.mode.ytFail ? json({}, 500) : json({ videos: [{ video_id: 'dQw4w9WgXcQ', title: 'Building a company: startups lessons' }] }); }
+  if (url.startsWith('https://clar-youtube.smworkassistance.workers.dev/')) { DB.calls.yt++; return DB.mode.ytFail ? json({}, 500) : json({ videos: [{ video_id: 'dQw4w9WgXcQ', title: 'Building a company: startups lessons', channel_title: 'Startup Channel' }] }); }
   if (url === 'https://inc42.com/feed/') return new Response(FX('feed-inc42.xml'), { status: 200 });
   if (url === 'https://jamesclear.com/feed') return new Response(FX('feed-jamesclear.xml'), { status: 200 });
   if (url.startsWith('https://en.wikiquote.org/w/api.php')) return DB.mode.wqFail ? new Response('x', { status: 500 }) : new Response(FX('wikiquote-suntzu.json'), { status: 200 });
@@ -110,10 +111,18 @@ const STARTER = () => ({ id: '11111111-1111-4111-8111-111111111111', slug: 'busi
   DB.guide_subscriptions.push({ guide_id: g.id, user_id: 'u1', languages: ['en', 'hi'] });
   let r = await call('guides.runNow', { id: g.id });
   ok(r.status === 200 && r.body.data.run.ok === true, 'happy path publishes: ' + JSON.stringify(r.body).slice(0, 200));
-  ok(DB.guide_posts.length === 2 && DB.guide_posts.map(p => p.lang).sort().join() === 'en,hi', 'one post per needed language (en + hi)');
-  const en = DB.guide_posts.find(p => p.lang === 'en');
+  const textPosts = DB.guide_posts.filter(p => !p.yt_video), videoPosts = DB.guide_posts.filter(p => p.yt_video);
+  ok(textPosts.length === 2 && textPosts.map(p => p.lang).sort().join() === 'en,hi', 'one TEXT post per needed language (en + hi)');
+  const en = textPosts.find(p => p.lang === 'en');
   ok(en.sources.length >= 1 && en.sources.every(s => /^https:\/\//.test(s.url)), 'every post cites at least one https source');
-  ok(en.yt_video && en.yt_video.id === 'dQw4w9WgXcQ', 'a YouTube pick is attached');
+  // v253 (T-066): text and video are SEPARATE posts
+  ok(textPosts.every(p => p.yt_video === null), 'a text post never carries a video');
+  ok(videoPosts.length === 2 && videoPosts.every(p => p.yt_video.id === 'dQw4w9WgXcQ'), 'the video is its OWN post (one per language): ' + videoPosts.length);
+  const vEn = videoPosts.find(p => p.lang === 'en');
+  ok(vEn && vEn.practice === null && vEn.why === null, 'a video post has no practice and no "why" (nothing unrelated attached)');
+  ok(vEn && vEn.sources.length === 1 && vEn.sources[0].url === 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' && vEn.sources[0].publisher === 'Startup Channel', 'a video post cites only the video itself (its watch link + channel)');
+  ok(vEn && vEn.title === 'Building a company: startups lessons' && vEn.body.length >= 20 && vEn.dedupe_key === 'yt:dQw4w9WgXcQ', 'a video post = the video title + a caption written from it');
+  ok(DB.calls.gemini.includes('caption'), 'the caption was generated from the video');
   ok(en.practice && ['writing', 'affirmation', 'breathing'].includes(en.practice.type) && en.practice.seconds >= 30, 'the post ends with a valid practice');
   ok(DB.calls.gemini.filter(x => x === 'verify').length >= 1, 'the verifier ran');
   ok(r.body.data.run.tokens > 0, 'token usage is reported (cost visibility)');
@@ -134,6 +143,10 @@ const STARTER = () => ({ id: '11111111-1111-4111-8111-111111111111', slug: 'busi
   reset(); DB.guides.push(STARTER()); DB.mode.gen = 'nocite';
   r = await call('guides.runNow', { id: DB.guides[0].id });
   ok(r.body.data.run.ok === false && /cited source/.test(r.body.data.run.reason) && DB.guide_posts.length === 0, 'no cited source => nothing published');
+  // a bad/too-short caption never blocks the text post and never publishes a video post
+  reset(); DB.guides.push(STARTER()); DB.mode.cap = 'short';
+  r = await call('guides.runNow', { id: DB.guides[0].id });
+  ok(r.body.data.run.ok === true && DB.guide_posts.every(p => !p.yt_video), 'a bad video caption => text post published, no video post');
   reset(); const gq = STARTER(); DB.guides.push(gq); DB.mode.ytFail = true;
   r = await call('guides.runNow', { id: gq.id });
   ok(r.body.data.run.ok === true && DB.guide_posts[0].yt_video === null, 'a YouTube failure does not block the post');
