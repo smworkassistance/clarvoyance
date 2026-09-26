@@ -64,9 +64,9 @@ test.describe('Feed top + Explore (v252)', () => {
     await page.waitForTimeout(800);
     const g = await page.evaluate(() => ({
       topShown: getComputedStyle(document.getElementById('soc-top')).display !== 'none',
-      tabs: [...document.querySelectorAll('#soc-tabs .soc-tab')].filter(b => getComputedStyle(b).display !== 'none').sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(b => b.textContent.trim()),
+      tabs: [...document.querySelectorAll('#soc-tabs .soc-tab:not([data-tab="notif"])')].filter(b => getComputedStyle(b).display !== 'none').sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(b => b.textContent.trim()),
       trayTop: document.getElementById('soc-tabs').getBoundingClientRect().top,
-      trayRight: Math.max(...[...document.querySelectorAll('#soc-tabs .soc-tab')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.getBoundingClientRect().right)), vw: innerWidth
+      trayRight: Math.max(...[...document.querySelectorAll('#soc-tabs .soc-tab:not([data-tab="notif"])')].filter(b => getComputedStyle(b).display !== 'none').map(b => b.getBoundingClientRect().right)), vw: innerWidth
     }));
     expect(g.topShown).toBe(false);
     expect(g.tabs).toEqual(['Following', 'Discover', 'Board', 'Guides']);

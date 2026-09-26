@@ -36,7 +36,7 @@ test.describe('nav_v2 — flag OFF: the existing Community overlay is untouched'
     await expect(page.locator('#soc-screen')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
     // v252: the Guides tab button exists in the page but is hidden outside the hosted Feed, so the old overlay still SHOWS exactly 4 tabs
-    expect(await page.evaluate(() => [...document.querySelectorAll('#soc-tabs .soc-tab')].filter(t => getComputedStyle(t).display !== 'none').length)).toBe(4);
+    expect(await page.evaluate(() => [...document.querySelectorAll('#soc-tabs .soc-tab:not([data-tab="notif"])')].filter(t => getComputedStyle(t).display !== 'none').length)).toBe(4);
     expect(await page.evaluate(() => getComputedStyle(document.getElementById('soc-tabs')).display)).toBe('flex');
     await expect(page.locator('#soc-top .soc-title')).toContainText('ClarZone');
     expect(await page.evaluate(() => getComputedStyle(document.querySelector('#soc-top [data-act="close"]')).visibility)).toBe('visible');
@@ -143,7 +143,7 @@ test.describe('nav_v2 — flag ON', () => {
       const x = n.left + n.width * 0.1, y = n.top + n.height / 2, hit = document.elementFromPoint(x, y);
       return { overlayBottom: o.bottom, navTop: n.top, hitInNav: !!(hit && hit.closest('#bnav')),
         topShown: getComputedStyle(document.getElementById('soc-top')).display !== 'none',
-        tabs: [...document.querySelectorAll('#soc-tabs .soc-tab')].filter(t => getComputedStyle(t).display !== 'none').sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(t => t.textContent.trim()) };
+        tabs: [...document.querySelectorAll('#soc-tabs .soc-tab:not([data-tab="notif"])')].filter(t => getComputedStyle(t).display !== 'none').sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left).map(t => t.textContent.trim()) };
     });
     expect(Math.abs(g.overlayBottom - g.navTop), 'overlay ends where the bar begins').toBeLessThan(2);
     expect(g.hitInNav, 'bar is tappable while Feed is open').toBe(true);

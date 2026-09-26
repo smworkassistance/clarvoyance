@@ -130,6 +130,8 @@ test.describe('fresh feed + pull-to-refresh (v253)', () => {
     await page.route(/\/rest\/v1\/youtube_topic_cache/, route => { counts.cache++; return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify(VIDS) }); });
     await page.route(/\/rest\/v1\/guides(\?|$)/, route => { if (route.request().method() === 'GET') counts.guides++; return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify(GUIDES) }); });
     await page.route(/\/rest\/v1\/social_public_profiles.*on_leaderboard/, route => { counts.board++; return route.fulfill({ status: 200, headers: JSON_H, body: JSON.stringify(PEOPLE.map(p => ({ ...p, xp: 5, xp_week: 5, badges: [] }))) }); });
+    // the league SQL is 'not installed' in this test, so Board falls back to the classic global board (which is what this test counts)
+    await page.route(/\/rest\/v1\/rpc\/league_/, route => route.fulfill({ status: 404, headers: JSON_H, body: JSON.stringify({ message: 'missing' }) }));
     const cdp = await page.context().newCDPSession(page);
     async function pull() {
       const b = await page.locator('#soc-body').boundingBox();
