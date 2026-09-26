@@ -30,3 +30,13 @@ Append-only. Every decision the owner and Claude agreed, with date. Newest secti
 - **A member's own intention is searched live** (Google News RSS, headline+link only) so niche goals are not limited to our fixed feeds; a private guide is never rejected for being specific (only a NOT-ALLOWED list applies).
 - **First post must not be withheld:** a user guide with no post retries every ~10 min (cron 15 min) instead of waiting 3 h.
 - **Infra rule:** Worker→Worker calls inside one Cloudflare account use service bindings, not workers.dev URLs (404/1042). Every Worker edit bumps `X-Worker-Version` so the deployed code can be verified with curl instead of trusting a paste.
+
+## 2026-09-26 — Batch B8 (v253): video speed/sound, Guides split, fresh feed, leagues, notifications (owner decisions)
+
+- **Devices:** Android app (Capacitor) + Android Chrome/PWA + iPhone Safari. Sound on by default; a real browser refusal falls back to muted with a "Tap for sound" pill (iOS needs a tap).
+- **Zero-delay video:** keep YouTube (optimised: true aspect ratio so no black bars, a 2-player pool so the next video starts in ~50 ms) and add **Clar Reels** — free Pexels stock clips re-hosted on our Bunny library with a real quote on top (own files, so overlays are allowed). YouTube files are never re-hosted (ToS).
+- **Swipe on the video:** native CSS scroll-snap pages — a cross-origin iframe swallows JS touch events but not native scrolling.
+- **Guides:** a post is either text or video, never both; the video post gets its own short caption written from the video's title.
+- **Board = weekly leagues** (Duolingo-style): cohorts of up to 20 of the same tier, ranked by XP *gained* this week (IST Monday start); top 5 up, bottom 3 down (cohorts of 10+); recap card, cheers, all-time hall kept. Falls back to the old global board if the SQL is not installed.
+- **Feed is always fresh:** unseen posts first, "all caught up" divider, rotating suggestions; pull-to-refresh on Feed/Discover/Guides/Board. **Notifications** are database-trigger rows (likes collapse per post), bell + unread dot, opening marks read.
+- **Every new query soft-fails** to the previous behaviour when its table/RPC is missing, so the code can ship before the owner runs `db/schema_v253_b8.sql`.
