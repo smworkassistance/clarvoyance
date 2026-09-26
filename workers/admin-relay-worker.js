@@ -756,6 +756,11 @@ async function activatePending(env, guide) {
 }
 
 /* ── scheduler (cron): new guides first, then whatever is due (guides nobody follows are not run — they cost money for nobody) ── */
+/* v253 (T-069): closes LAST week's leagues (promotion/demotion + result notifications). The SQL function is idempotent — it only touches members whose
+   result is still empty — so calling it on every 15-minute tick is free once the week has been closed. Soft-fails if the SQL has not been run yet. */
+async function leagueCloseTick(env) {
+  try { await sbFetch(env, 'rpc/league_close_week', { method: 'POST', body: JSON.stringify({}) }); } catch (e) { /* schema_v253_b8.sql not run yet */ }
+}
 async function guidesTick(env) {
   const out = { activated: [], ran: [] };
   const pending = await sbFetch(env, 'guides?select=*&status=eq.pending&order=created_at.asc&limit=3');
@@ -1280,6 +1285,6 @@ export default {
      Triggers invoke this directly, there's no incoming request to check. */
   async scheduled(event, env, ctx) {
     _env = env;
-    ctx.waitUntil(Promise.allSettled([evaluateAndSendAll(env), guidesTick(env)])); /* v250: notifications + guides */
+    ctx.waitUntil(Promise.allSettled([evaluateAndSendAll(env), guidesTick(env), leagueCloseTick(env)])); /* v250: notifications + guides; v253: league week close */
   },
 };
