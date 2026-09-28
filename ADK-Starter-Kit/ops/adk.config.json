@@ -1,5 +1,6 @@
 {
-  "project": "acceptance-test-project",
+  "_about": "Agentic Delivery Kit (ADK) — project-specific settings. Everything project-specific lives HERE; the scripts in ops/ are generic and should not need editing. Fill in every <<FILL_IN: ...>> value below during bootstrap (see ../CLAUDE.md.template's bootstrap question set), then delete this _about key.",
+  "project": "<<FILL_IN: project-slug-lowercase-hyphenated>>",
   "tasksFile": "tasks.json",
   "renderedTasksFile": "TASKS.md",
   "runLogFile": "docs/RUNLOG.md",
@@ -7,9 +8,26 @@
   "verifyMaxAgeMinutes": 60,
   "defaultRunMaxHours": 3,
   "defaultRunMaxIterations": 200,
+  "_app_comment": "The 'app' block assumes a single-entry-file architecture with a service worker (Clarvoyance's own shape). If this project is a different shape (a CLI tool, an API, a multi-file app), delete this whole 'app' block and adapt verify.js's steps 1-2 to whatever 'the thing a user sees' actually is for this project, or drop them and rely on step 3 (the real test suite) alone.",
+  "app": {
+    "liveEntry": "<<FILL_IN: the file users actually load, e.g. index.html>>",
+    "serviceWorker": "<<FILL_IN: e.g. sw.js -- omit this whole key if there is no service worker>>",
+    "versionFilePattern": "<<FILL_IN: candidate file naming pattern, e.g. myapp_v{N}.html>>",
+    "versionLabelRegex": "<<FILL_IN: a JS regex STRING with exactly one capture group that finds the version label text inside liveEntry -- copy Clarvoyance's own ops/adk.config.json for a worked example>>",
+    "swCacheRegex": "<<FILL_IN: a JS regex STRING with exactly one capture group that finds the cache-name constant inside serviceWorker>>",
+    "swCacheTemplate": "<<FILL_IN: e.g. myapp-cache-v{N}>>",
+    "inlineScriptFiles": ["<<FILL_IN: liveEntry again, if it has inline script blocks worth a syntax check -- else make this an empty array>>"]
+  },
+  "verify": {
+    "qaDir": "qa",
+    "browsers": ["chromium"],
+    "playwrightBrowsersPath": "qa/.browsers"
+  },
   "promote": {
     "tagPrefix": "pre-",
-    "commitMessageTemplate": "{ver}: promote",
-    "coAuthor": "Claude Sonnet 5 <noreply@anthropic.com>"
-  }
+    "commitMessageTemplate": "{ver}: promote to {liveEntry} + {serviceWorker} {swCache}",
+    "coAuthor": "<<FILL_IN: your assistant's required attribution line for commits, if your host has one -- else delete this key and the matching join in promote.js>>"
+  },
+  "protectedPaths": ["<<FILL_IN: files a promote is allowed to touch, e.g. index.html, sw.js>>"],
+  "hostingNote": "<<FILL_IN: e.g. GitHub Pages serves the repo root; CDN caches ~10 min after a push -- or delete this key if not relevant>>"
 }
