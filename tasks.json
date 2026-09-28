@@ -1417,6 +1417,25 @@
           "note": "created"
         }
       ]
+    },
+    {
+      "id": "T-075",
+      "title": "Full account-delete flow (not just Community 'delete profile')",
+      "added": "2026-09-28T11:34:25.351Z",
+      "done_when": "a real in-app way to delete the whole account and all its data across every Supabase table/bucket exists (self-service button, or at minimum a tracked admin-fulfilled request flow), and privacy.html's section 7 is updated from the current email/WhatsApp-request wording to describe it",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": true,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-09-28T11:34:25.356Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 28/09/2026 11:30:46 IST.
+> Rendered 28/09/2026 17:04:31 IST.
 
 ## Run status
 No run active.
@@ -81,6 +81,7 @@ _Nothing — no blocked tasks._
 | T-072 | 28/09/2026 09:55:39 | Machine-setup & dependency audit | DONE | B9 | — | — |
 | T-073 | 28/09/2026 09:55:39 | ADK Starter Kit (day-1 ready framework for new projects) | IN_PROGRESS | B9 | — | — |
 | T-074 | 28/09/2026 09:55:39 | First CEO-Review pass + recurring-cadence template | DISCUSS | B9 | — | — |
+| T-075 | 28/09/2026 17:04:25 | Full account-delete flow (not just Community 'delete profile') | DISCUSS | — | — | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -343,3 +344,7 @@ _Nothing — no blocked tasks._
 
 ### T-074 — First CEO-Review pass + recurring-cadence template
 - Status: **DISCUSS**  · Batch: B9  · Depends on: —
+
+### T-075 — Full account-delete flow (not just Community 'delete profile')
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: a real in-app way to delete the whole account and all its data across every Supabase table/bucket exists (self-service button, or at minimum a tracked admin-fulfilled request flow), and privacy.html's section 7 is updated from the current email/WhatsApp-request wording to describe it
