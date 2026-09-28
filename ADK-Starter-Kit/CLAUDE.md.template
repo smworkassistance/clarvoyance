@@ -1,0 +1,82 @@
+# <Project Name> — Project Blueprint
+
+> This file is the single source of truth for architecture, data flow, and decisions.
+> Update it whenever a significant feature is added, changed, or removed.
+> Claude reads this at the start of every session.
+
+---
+
+## FIRST SESSION IN THIS FOLDER — bootstrap (do this before anything else)
+
+If `## Project Facts` below still says `<FILL IN>`, this is a fresh copy of the ADK Starter Kit
+and nothing project-specific has been answered yet. Ask the owner these questions, one message,
+batched (not one at a time) — then write the answers into `## Project Facts` below, replace
+`<Project Name>` above, and fill `ops/adk.config.json`'s placeholders from the same answers:
+
+1. **What is this project, in one sentence?** (what it does, for whom)
+2. **What does "success" look like?** (a concrete outcome, not a feature list)
+3. **Who is the user, and what's the core loop they repeat?**
+4. **Tech stack / architecture** — single file? multi-file? backend? hosting? (this decides how
+   `ops/adk.config.json`'s `app` block and `ops/verify.js` should be shaped — see its own header
+   comment)
+5. **Hard constraints / non-negotiables** — anything that must never break, any compliance/safety
+   line that can't be crossed, anything the owner has already decided and doesn't want re-litigated
+6. **Current stage** — idea / prototype / shipping to real users / has revenue? (this tells the
+   assistant how much process rigor is proportionate right now — see `docs/PROCESS.md`)
+
+Once answered: delete this whole bootstrap section from this file (it's a one-time-use flow, not
+part of the ongoing blueprint), run `node ops/tasks.js init`, and confirm `node ops/verify.js
+--quick` runs (even if there's nothing to verify yet, the harness should execute cleanly).
+
+---
+
+## Project Facts
+<FILL IN — from the bootstrap answers above: what it is, the outcome, the user, the stack, the
+non-negotiables, the stage.>
+
+---
+
+## Delivery process (READ FIRST every session) — Agentic Delivery Kit
+
+- **Rulebook:** `docs/PROCESS.md` (lifecycle, Definition of Done, permissions, blocked-handling).
+  **Why built this way:** `docs/INFRA-PLAN.md`. **Decisions:** `docs/DECISIONS.md`. **Run
+  history:** `docs/RUNLOG.md`.
+- **Tasks:** `tasks.json` is the source of truth (only `node ops/tasks.js …` edits it); `TASKS.md`
+  is a generated view — never hand-edit. Session start: `node ops/tasks.js run status` and
+  `node ops/tasks.js list`.
+- **Work flow:** brief (`docs/templates/BRIEF.md`) → one clarification round with defaults →
+  freeze batch contract (`docs/batches/Bn.md`, `node ops/tasks.js batch freeze Bn`) → `run start`
+  → per task: build, `node ops/verify.js`, `set <id> DONE --evidence …` → promote (`ops/promote.js`,
+  if this project has that shape) → report. Rollback: `node ops/rollback.js pre-vN`.
+- **Enforced by code:** DONE needs evidence + a fresh full verify on the current bytes; frozen
+  batches reject new tasks; a Stop hook (`.claude/hooks/stop-guard.js`, active only during a
+  declared run) stops early exit.
+- **Anti-stuck:** same problem failing 3× ⇒ record `node ops/tasks.js attempt <id> "…"`, then STOP
+  retrying: research online, change approach, and if still stuck mark BLOCKED with the exact help
+  needed and continue with other tasks.
+
+---
+
+## Four hats — switch explicitly, internally, before calling anything done
+- 👨‍💻 **Developer:** Does this work correctly?
+- 🔨 **Attacker:** Where does this fail?
+- 🎨 **Designer:** Does this look and feel right?
+- 📦 **PM:** Does this solve the real problem?
+Run all four checks internally — only report failures. If all pass, say so in one line.
+
+## Communication rules
+- Direct, no filler. Peer, not assistant. Push back when wrong.
+- Lead with what matters most. Recommend one option, don't just list pros/cons.
+- Never say "I'll try". Never pad responses.
+- Git push: only when the owner has clearly authorized it for this batch/session — ask if unsure.
+
+---
+
+## Machine setup
+Anything this project needs on a fresh machine that git doesn't carry (MCP servers, local
+profiles, where each token/secret comes from) belongs in `docs/MACHINE-SETUP.md` — create it
+the first time such a thing exists, and add to it, in the same commit, every time a new one does.
+
+---
+
+*Last updated: <date> — bootstrap.*

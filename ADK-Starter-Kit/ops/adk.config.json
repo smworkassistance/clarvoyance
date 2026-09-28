@@ -1,0 +1,15 @@
+{
+  "project": "acceptance-test-project",
+  "tasksFile": "tasks.json",
+  "renderedTasksFile": "TASKS.md",
+  "runLogFile": "docs/RUNLOG.md",
+  "staleAfterHours": 24,
+  "verifyMaxAgeMinutes": 60,
+  "defaultRunMaxHours": 3,
+  "defaultRunMaxIterations": 200,
+  "promote": {
+    "tagPrefix": "pre-",
+    "commitMessageTemplate": "{ver}: promote",
+    "coAuthor": "Claude Sonnet 5 <noreply@anthropic.com>"
+  }
+}

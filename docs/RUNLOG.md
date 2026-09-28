@@ -60,3 +60,5 @@ Append-only. Newest at the bottom. Written by `node ops/tasks.js log` and by the
 - 2026-09-26 (B8) T-060..T-070 DONE; full verify 88/88; v253 promoted. Owner steps pending: run db/schema_v253_b8.sql; redeploy 3 Workers (+PEXELS_API_KEY, cron */30 on clar-bunny); rebuild APK. Not verified: real phone / iOS Safari.
 - 26/09/2026 11:28:56 IST — PROMOTED clarvoyance_v253.html -> index.html, sw clv-v253, rollback tag pre-v253, pushed
 - 26/09/2026 11:33:31 IST — RUN FINISH
+- 28/09/2026 09:55:40 IST — batch B9 FROZEN (scope hash bdc7503c724d)
+- 28/09/2026 09:55:40 IST — RUN START batch B9 (max 10 h)
