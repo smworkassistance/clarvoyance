@@ -1,22 +1,25 @@
-# TASKS — Clarvoyance task queue
+# TASKS — clarvoyance task queue
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 25/09/2026 14:01:28 IST.
+> Rendered 28/09/2026 11:30:46 IST.
 
 ## Run status
 No run active.
 
 ## What the OWNER must do (all BLOCKED items, exact action)
-- **T-013** — Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step.
+_Nothing — no blocked tasks._
 
 ## Batches
 - **B1** — frozen 24/09/2026 04:20:00 IST — 2/2 done: T-002(DONE), T-003(DONE)
 - **B2** — frozen 24/09/2026 04:50:00 IST — 1/1 done: T-006(DONE)
 - **B3** — frozen 24/09/2026 05:10:00 IST — 1/1 done: T-009(DONE)
 - **B4** — not frozen — 1/1 done: T-020(DONE)
-- **B5** — frozen 25/09/2026 04:58:07 IST — 7/9 done: T-010(DONE), T-011(DONE), T-012(DONE), T-005a(DONE), T-005b(DONE), T-005c(DONE), T-005d(DONE), T-013(BLOCKED), T-014(QUEUED)
+- **B5** — frozen 25/09/2026 04:58:07 IST — 9/9 done: T-010(DONE), T-011(DONE), T-012(DONE), T-005a(DONE), T-005b(DONE), T-005c(DONE), T-005d(DONE), T-013(DONE), T-014(DONE)
 - **B6** — frozen 25/09/2026 13:45:58 IST — 6/6 done: T-030(DONE), T-031(DONE), T-032(DONE), T-033(DONE), T-034(DONE), T-035(DONE)
+- **B7** — frozen 25/09/2026 19:00:11 IST — 0/16 done: T-040(DISCUSS), T-041(DISCUSS), T-042(DISCUSS), T-043(DISCUSS), T-044(DISCUSS), T-045(DISCUSS), T-046(DISCUSS), T-050(DISCUSS), T-051(DISCUSS), T-052(DISCUSS), T-053(DISCUSS), T-054(DISCUSS), T-055(DISCUSS), T-056(DISCUSS), T-057(DISCUSS), T-058(DISCUSS)
+- **B8** — frozen 26/09/2026 09:13:10 IST — 12/12 done: T-060(DONE), T-061(DONE), T-062(DONE), T-063(DONE), T-064(DONE), T-065(DONE), T-066(DONE), T-067(DONE), T-068(DONE), T-069(DONE), T-070(DONE), T-071(DONE)
+- **B9** — frozen 28/09/2026 09:55:40 IST — 1/3 done: T-072(DONE), T-073(IN_PROGRESS), T-074(DISCUSS)
 
 ## Task table
 
@@ -39,14 +42,45 @@ No run active.
 | T-005b | 25/09/2026 04:54:33 | nav_v2: Feed tab hosts Community as a real tab (nav stays visible) with slim Following / Discover / Board sub… | DONE | B5 | T-005a | 25/09/2026 07:44:53 |
 | T-005c | 25/09/2026 04:54:34 | nav_v2: You tab = Profile + entries for Fortune and My Community profile | DONE | B5 | T-005a | 25/09/2026 07:44:54 |
 | T-005d | 25/09/2026 04:54:34 | nav_v2: Self becomes a plate under Non-Negotiables on Home (opens the whole Self tab as-is) | DONE | B5 | T-005a | 25/09/2026 07:44:54 |
-| T-013 | 25/09/2026 04:54:35 | Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it | BLOCKED | B5 | T-011, T-010, T-005b, T-005c, T-005d | — |
-| T-014 | 25/09/2026 04:54:35 | Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory | QUEUED | B5 | T-013 ⛔ blocked-by T-013 | — |
+| T-013 | 25/09/2026 04:54:35 | Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it | DONE | B5 | T-011, T-010, T-005b, T-005c, T-005d | 25/09/2026 19:00:08 |
+| T-014 | 25/09/2026 04:54:35 | Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory | DONE | B5 | T-013 | 25/09/2026 19:00:08 |
 | T-030 | 25/09/2026 13:45:57 | You tab hosts the Community me-dashboard (old You), gear opens App Profile, private Fortune card | DONE | B6 | — | 25/09/2026 14:01:26 |
 | T-031 | 25/09/2026 13:45:57 | Goal plates split Achievements / Actively working on with per-goal share choice | DONE | B6 | — | 25/09/2026 14:01:27 |
 | T-032 | 25/09/2026 13:45:57 | Board card in You opens full Board page | DONE | B6 | — | 25/09/2026 14:01:27 |
 | T-033 | 25/09/2026 13:45:57 | Signed-out preview instead of bare gate | DONE | B6 | — | 25/09/2026 14:01:27 |
 | T-034 | 25/09/2026 13:45:57 | Reusable design standard doc | DONE | B6 | — | 25/09/2026 14:01:27 |
 | T-035 | 25/09/2026 13:45:58 | Final regression on v248 | DONE | B6 | — | 25/09/2026 14:01:27 |
+| T-040 | 25/09/2026 19:00:09 | Video card rebuilt policy-compliant and fast | DISCUSS | B7 | — | — |
+| T-041 | 25/09/2026 19:00:09 | Video XP each 50% pass with daily cap | DISCUSS | B7 | — | — |
+| T-042 | 25/09/2026 19:00:09 | Video like/save/share + signals + topic preference score | DISCUSS | B7 | — | — |
+| T-043 | 25/09/2026 19:00:09 | Share a video to feed (inline player) and WhatsApp/native invite | DISCUSS | B7 | — | — |
+| T-044 | 25/09/2026 19:00:09 | Referral system | DISCUSS | B7 | — | — |
+| T-045 | 25/09/2026 19:00:09 | Admin Clar Posts tab | DISCUSS | B7 | — | — |
+| T-046 | 25/09/2026 19:00:09 | Disclaimers | DISCUSS | B7 | — | — |
+| T-050 | 25/09/2026 19:00:10 | DB schema for guides and video signals | DISCUSS | B7 | — | — |
+| T-051 | 25/09/2026 19:00:10 | Guides pipeline in admin-relay-worker | DISCUSS | B7 | — | — |
+| T-052 | 25/09/2026 19:00:10 | Client: create-a-guide, shelf, subscribe, de-dup | DISCUSS | B7 | — | — |
+| T-053 | 25/09/2026 19:00:10 | Guide post card in Feed | DISCUSS | B7 | — | — |
+| T-054 | 25/09/2026 19:00:10 | Languages | DISCUSS | B7 | — | — |
+| T-055 | 25/09/2026 19:00:10 | Signals -> guide suggestions | DISCUSS | B7 | — | — |
+| T-056 | 25/09/2026 19:00:10 | Admin guide moderation | DISCUSS | B7 | — | — |
+| T-057 | 25/09/2026 19:00:10 | End-to-end verification and docs | DISCUSS | B7 | — | — |
+| T-058 | 25/09/2026 19:00:10 | Promote v250 | DISCUSS | B7 | — | — |
+| T-060 | 26/09/2026 09:13:08 | Video upload fixed with real Bunny proof, background upload | DONE | B8 | — | 26/09/2026 11:28:25 |
+| T-061 | 26/09/2026 09:13:08 | Sound on all three devices (Android WebView, Chrome, iPhone tap-for-sound pill) | DONE | B8 | — | 26/09/2026 11:28:25 |
+| T-062 | 26/09/2026 09:13:09 | YouTube: true aspect, no black borders, 2-player pool for fast start | DONE | B8 | — | 26/09/2026 11:28:25 |
+| T-063 | 26/09/2026 09:13:09 | Clar Reels: instant own-hosted stock clips with real quote | DONE | B8 | — | 26/09/2026 11:28:25 |
+| T-064 | 26/09/2026 09:13:09 | Swipe on the video itself (scroll-snap players) | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-065 | 26/09/2026 09:13:09 | Feed Bunny videos start fast (MP4 first, prefetch, poster until playing) | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-066 | 26/09/2026 09:13:09 | Guides: text posts and video posts separated | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-067 | 26/09/2026 09:13:09 | Post time on every post | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-068 | 26/09/2026 09:13:09 | Feed always fresh + pull-to-refresh | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-069 | 26/09/2026 09:13:10 | Board becomes weekly leagues | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-070 | 26/09/2026 09:13:10 | Notifications (activity) screen | DONE | B8 | — | 26/09/2026 11:28:26 |
+| T-071 | 26/09/2026 09:13:10 | Verify, document, publish v253 | DONE | B8 | T-060, T-061, T-062, T-063, T-064, T-065, T-066, T-067, T-0… | 26/09/2026 11:28:43 |
+| T-072 | 28/09/2026 09:55:39 | Machine-setup & dependency audit | DONE | B9 | — | — |
+| T-073 | 28/09/2026 09:55:39 | ADK Starter Kit (day-1 ready framework for new projects) | IN_PROGRESS | B9 | — | — |
+| T-074 | 28/09/2026 09:55:39 | First CEO-Review pass + recurring-cadence template | DISCUSS | B9 | — | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -136,13 +170,15 @@ No run active.
 - Result / evidence: fresh full ops/verify.js 23/23 passed on final bytes incl. qa/tests/nav-v2.spec.js: Self plate below Non-Negotiables on Home only, opens Self, Home stays highlighted, hidden on other tabs
 
 ### T-013 — Promote v247 (dark: nav_v2 OFF by default) with rollback tag and push; confirm the live site serves it
-- Status: **BLOCKED**  · Batch: B5  · Depends on: T-011, T-010, T-005b, T-005c, T-005d
+- Status: **DONE**  · Batch: B5  · Depends on: T-011, T-010, T-005b, T-005c, T-005d
 - Done-when: Full ops/verify.js passes on clarvoyance_v247.html; node ops/promote.js clarvoyance_v247.html --push succeeds (tag pre-v247); live https://clar.co.in/ serves label v247 and sw cache clv-v247 (curl); default experience for a fresh visitor identical to v246 except the fixed video upload.
 - **Blocked — owner action:** Promotion to production was denied by the permission system (production deploy needs the owner's go-ahead). OWNER ACTION: tell Claude 'promote v247' (Claude re-runs verify if >60 min old, then: node ops/promote.js clarvoyance_v247.html --push) or run that command yourself. Candidate clarvoyance_v247.html is fully verified (23/23) and committed (ca53b8f); rollback tag pre-v247 is created by the promote step.
+- Result / evidence: Superseded: v247 content was promoted inside v248 (commit 4580fc8) and v249; live confirmed v249.
 
 ### T-014 — Documentation of the release: CLAUDE.md v247 entry, PROJECT.md, RUNLOG, TASKS render, memory
-- Status: **QUEUED**  · Batch: B5  · Depends on: T-013
+- Status: **DONE**  · Batch: B5  · Depends on: T-013
 - Done-when: CLAUDE.md has a v247 entry (what, verified how, rollback, owner steps); docs/PROJECT.md mentions nav_v2 + usage rpc; TASKS.md rendered; memory index updated.
+- Result / evidence: Release docs written (CLAUDE.md v247/v248/v249 entries, PROJECT.md, RUNLOG).
 
 ### T-030 — You tab hosts the Community me-dashboard (old You), gear opens App Profile, private Fortune card
 - Status: **DONE**  · Batch: B6  · Depends on: —
@@ -173,3 +209,137 @@ No run active.
 - Status: **DONE**  · Batch: B6  · Depends on: —
 - Done-when: full ops/verify.js passes incl. new specs; all pre-existing specs unchanged
 - Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: whole existing suite unchanged + flag-OFF Community overlay regression test passes
+
+### T-040 — Video card rebuilt policy-compliant and fast
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: no overlays on the YouTube player; own UI below; poster-first; API warm at Vibe open; next player preloaded; muted autoplay without tap; audio choice remembered; YT native seek; swipe/next works; measured swipe-to-motion <=1.2s vs 3.3s baseline on real Chrome
+
+### T-041 — Video XP each 50% pass with daily cap
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: XP awarded on each pass of 50% (loops included), cap enforced and admin-editable, tested
+
+### T-042 — Video like/save/share + signals + topic preference score
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: like/save/share buttons below player; signals stored per topic; score merges admin+manifestation+likes; next topic chosen 70/30; tested
+
+### T-043 — Share a video to feed (inline player) and WhatsApp/native invite
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: feed post plays YouTube inline muted in view (one at a time); native/WhatsApp share uses the approved text with ?ref
+
+### T-044 — Referral system
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: ?ref captured; inviter +100 / invitee +50 after first engaged day of a Google-signed-in account; self/duplicate referrals blocked; verified against real DB
+
+### T-045 — Admin Clar Posts tab
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: create/edit/schedule/disable Clar posts from admin.html via relay worker; visible in Feed
+
+### T-046 — Disclaimers
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: one-time start screen, Help/Profile text, feed footer text; existing onboarding unaffected
+
+### T-050 — DB schema for guides and video signals
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: one additive SQL file db/schema_v250_guides_video.sql; parsed by real Postgres; RLS tests pass on pglite; owner runs it early
+
+### T-051 — Guides pipeline in admin-relay-worker
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: blueprint -> collect (RSS/Wikiquote/YouTube) -> generate (grounded) -> verify -> publish; scope guard; cron queue; mock-tested and live-tested
+
+### T-052 — Client: create-a-guide, shelf, subscribe, de-dup
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: intention flow with confirmed Blueprint; 5 starters; join-existing suggestion; guide page
+
+### T-053 — Guide post card in Feed
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: sources, AI-curated + disclaimer, why-this-for-you, like/save/share/read XP, inline practice, report, more/less like this
+
+### T-054 — Languages
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: user language preference; content generated lazily per language; tested with hi and en
+
+### T-055 — Signals -> guide suggestions
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: suggested guides from likes/topic scores
+
+### T-056 — Admin guide moderation
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: queue of reported/paused guides, starter management, XP/limit settings
+
+### T-057 — End-to-end verification and docs
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: full verify green; mock-pipeline tests; live read-only pass; docs updated incl inspired-by list
+
+### T-058 — Promote v250
+- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Done-when: full verify on exact bytes; promote --push; live confirmed
+
+### T-060 — Video upload fixed with real Bunny proof, background upload
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: A real ~4 MB upload against real Bunny reaches 100% (CDP script qa/cdp-upload-real.js proves chunkSize choice); tests green
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-061 — Sound on all three devices (Android WebView, Chrome, iPhone tap-for-sound pill)
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: MainActivity.java sets mediaPlaybackRequiresUserGesture(false); pill appears only when playing-but-muted and one tap unmutes (tests)
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-062 — YouTube: true aspect, no black borders, 2-player pool for fast start
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Tests prove portrait-only picking, exact-aspect stage (no bars), next player already buffered before swipe; timing numbers recorded
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-063 — Clar Reels: instant own-hosted stock clips with real quote
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: REEL card starts playing <150ms after reveal in test with seeded rows; quote + credit visible; XP after 5s; cron logic unit-tested with mocked Pexels/Bunny
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-064 — Swipe on the video itself (scroll-snap players)
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Playwright touch swipe starting on the video advances Discover player and Vibe video; Next button/keyboard still work
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-065 — Feed Bunny videos start fast (MP4 first, prefetch, poster until playing)
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Test shows poster until playing, MP4 requested before post reaches 60% visible, muted only when browser refuses
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-066 — Guides: text posts and video posts separated
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Pipeline tests assert a text post never has yt_video and a video post caption cites only the video; guides.spec updated
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-067 — Post time on every post
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Every post kind (achievement, badge, video, guide, Clar, shared video) shows a small time line at the bottom; tests
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-068 — Feed always fresh + pull-to-refresh
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Unseen-first ordering with caught-up divider and suggestions; pull-to-refresh works on Feed/Discover/Guides/Board/Notifications; tests
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-069 — Board becomes weekly leagues
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: SQL tested on pglite (join/promote/demote/masking); UI tests for zones, countdown, pinned row, empty merge
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-070 — Notifications (activity) screen
+- Status: **DONE**  · Batch: B8  · Depends on: —
+- Done-when: Triggers tested on pglite; UI test: unread dot, grouping, mark-read, deep link
+- Result / evidence: B8 built in clarvoyance_v253.html; full ops/verify.js 88/88 (0 flaky); task specs in qa/tests + qa/worker + qa/sql; real-Chrome CDP proofs logged in docs/RUNLOG.md
+
+### T-071 — Verify, document, publish v253
+- Status: **DONE**  · Batch: B8  · Depends on: T-060, T-061, T-062, T-063, T-064, T-065, T-066, T-067, T-068, T-069, T-070
+- Done-when: Full verify passes; CLAUDE.md/RUNLOG/DECISIONS/PROJECT updated; promoted; live confirmed
+- Result / evidence: verify 88/88, docs written
+
+### T-072 — Machine-setup & dependency audit
+- Status: **DONE**  · Batch: B9  · Depends on: —
+
+### T-073 — ADK Starter Kit (day-1 ready framework for new projects)
+- Status: **IN_PROGRESS**  · Batch: B9  · Depends on: —
+- Result / evidence: kit built, acceptance-tested, committed; marking DONE next after a second confirmation pass
+
+### T-074 — First CEO-Review pass + recurring-cadence template
+- Status: **DISCUSS**  · Batch: B9  · Depends on: —
