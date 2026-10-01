@@ -2678,7 +2678,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v258</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v259</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -17921,7 +17921,11 @@ body.home-tab #nn-tab-section{order:2;}
     }catch(e){}
   }
 
-  function _buildSystemPrompt(){
+  /* v259 (T-089): _buildSystemPrompt('parts') returns {static,dynamic}: the big shared part
+     (frameworks, rules, tools, JSON format, ~9.5k tokens, identical for every user) can then be
+     cached by Gemini while only the small per-user part changes. Called with no argument it
+     returns exactly the same string as v258. \u0001..\u0004 are private markers, stripped before use. */
+  function _buildSystemPrompt(mode){
     var sd=window.SHEETS_DATA||{};
     var ctx={};
     (sd.ai_context||[]).forEach(function(row){if(row.key)ctx[row.key]=row.content||row.value||'';});
@@ -17984,10 +17988,10 @@ body.home-tab #nn-tab-section{order:2;}
     /* v180: active Practice Plan(s) — precomputed cache (see PRACTICE PLANS
        block), read synchronously since this function itself is sync */
     var planContext=(window._practicePlanContextForChat&&window._practicePlanContextForChat())||'';
-    return identity+'\n\n'
+    var _full='\u0001'+identity+'\n\n\u0002'
       +(philosophy?'APP PHILOSOPHY:\n'+philosophy+'\n\n':'')
       +(chartsBlock?'YOUR PERSONAL FRAMEWORKS — use these to decide how to read and respond to the user. Each one may only be partly relevant to a given moment; use the part that fits what the user is actually saying right now:\n'+chartsBlock+'\n\n':'')
-      +'USER CONTEXT:\n'
+      +'\u0001USER CONTEXT:\n'
       +'- Name: '+nick+'\n'
       +'- Current mood: '+moodLabel+'\n'
       +(idData.age?'- Age: '+idData.age+'\n':'')
@@ -18005,9 +18009,9 @@ body.home-tab #nn-tab-section{order:2;}
       +((profile.custom_topics&&profile.custom_topics.length)?'- Other interests: '+profile.custom_topics.join(', ')+'\n':'')
       +'\nPAST 7-DAY CONTEXT:\n'+summaryText+'\n\n'
       +(planContext?'ACTIVE PRACTICE PLAN(S) — a specific practice they already committed to, with your own read of how it\'s going:\n'+planContext+'\nIf a plan is "behind", you may gently and warmly notice the gap once, naturally, if the conversation makes room for it — never as a scolding, never repeated every message, never if it would interrupt what they\'re actually here to talk about right now. If "on_track", a brief genuine acknowledgment is welcome if it fits. Never state raw day-counts or numbers to the user — speak about it the way a supportive friend would, not a tracker.\n\n':'')
-      +'PERSONALITY:\n- Warm, brief, real. Never lecture.\n- DEFAULT LENGTH IS 1-2 SHORT SENTENCES. This is not about matching how long their message was — a long message often still only needs a short reply, and a short message can occasionally need a little more. Length is decided ONLY by what actually needs saying right now, never by mirroring them, never by habit, never to sound thorough.\n- Before sending, cut anything that does not need to be there: no restating what they just said, no explaining the obvious, no stacking three ways of saying the same supportive thing. If a shorter version says the same thing, send the shorter version. Real people texting a friend do not pad messages — say the one true thing and stop.\n- Only reflect a feeling back when it genuinely adds insight (naming something they haven\'t named themselves) — never as a routine opener.\n- ALWAYS use the user\'s name ('+nick+') naturally in the opening greeting — after that, use it only occasionally (every few messages), not in every single reply.\n- Listen first, suggest second. Validate before redirecting — but validating is ONE short sentence, not a paragraph.\n- ALWAYS respond in English regardless of what language the user writes in.\n'
+      +'\u0002PERSONALITY:\n- Warm, brief, real. Never lecture.\n- DEFAULT LENGTH IS 1-2 SHORT SENTENCES. This is not about matching how long their message was — a long message often still only needs a short reply, and a short message can occasionally need a little more. Length is decided ONLY by what actually needs saying right now, never by mirroring them, never by habit, never to sound thorough.\n- Before sending, cut anything that does not need to be there: no restating what they just said, no explaining the obvious, no stacking three ways of saying the same supportive thing. If a shorter version says the same thing, send the shorter version. Real people texting a friend do not pad messages — say the one true thing and stop.\n- Only reflect a feeling back when it genuinely adds insight (naming something they haven\'t named themselves) — never as a routine opener.\n- ALWAYS use the user\'s name (\u0003'+nick+'\u0004) naturally in the opening greeting — after that, use it only occasionally (every few messages), not in every single reply.\n- Listen first, suggest second. Validate before redirecting — but validating is ONE short sentence, not a paragraph.\n- ALWAYS respond in English regardless of what language the user writes in.\n'
       +'FORMATTING — this renders as real formatting (bold/lists), not literal symbols, so use it like a normal WhatsApp chat: **bold** for a word or two when it genuinely helps something land, a short numbered or dash-prefixed list ONLY when you are actually giving multiple distinct points or steps (not every reply — most replies stay plain short text), and a natural emoji here and there where it feels human, never forced into every line.\n\n'
-      +'CONVERSATION FLOW:\n'+flow+(intentNote?'\n'+intentNote:'')+(experienceNote?'\n'+experienceNote:'')+'\n\n'
+      +'CONVERSATION FLOW:\n'+flow+(intentNote?'\n\u0001'+intentNote+'\u0002':'')+(experienceNote?'\n'+experienceNote:'')+'\n\n'
       +'ACTIVITY CARDS YOU CAN SUGGEST (1 per message, in "cards" array):\n'
       +'Generic types — app picks content randomly:\n'
       +'  {"type":"BREATHING"} — breathing/relaxation exercise\n'
@@ -18034,6 +18038,13 @@ body.home-tab #nn-tab-section{order:2;}
       +'frameworks_used: REQUIRED array, empty [] is fine and expected. Before writing your message, decide which of YOUR PERSONAL FRAMEWORKS above (if any) genuinely shaped this specific reply — not ones that are just topically related, only ones that actually influenced what you said or how you said it. This means ONLY entries from the "YOUR PERSONAL FRAMEWORKS" list above — never a tool name, charger name, or anything else. Copy the exact name character-for-character as shown after the — — marks; never paraphrase, guess, or invent a name that sounds plausible. If you cannot recall the EXACT name of a framework you drew on, leave this array empty rather than write your best guess at its name — a wrong name here is worse than an honest empty array. Usually 0-2 items.\n'
       +'pace: REQUIRED on every reply, matches the PACING instruction above. "fast" only when THIS conversation has actually shown you they follow your terminology/frameworks — otherwise "slow". Never shown to the user, but must genuinely match how you just wrote the message (a "fast" tag on a slow, over-explaining message is dishonest).\n'
       +'practice_plan: OPTIONAL — omit this key entirely on almost every reply, this is rare, not routine. Only include it when a real, recurring pattern (not a single passing moment) has genuinely earned a short committed practice, per the trust-earning rules above — never in the first exchanges, never as a question. Two situations: (1) the person names a recurring tension/struggle — suggest a specific existing practice (a tool/charger/breathing exercise by exact name, more Clar conversation time, or a Non-Negotiables commitment) for a short defined stretch; (2) the person is working toward a stated goal and keeps returning to it — suggest consistency (e.g. zero-skip on Non-Negotiables) for a longer defined stretch. When you do include it: {"practice_type":"clar_chat|nn_zero_skip|tool|charger|vibe_card|self_practice","practice_name":"exact name of the specific practice","target_value":10,"target_unit":"daily_minutes|zero_skip|daily_count","duration_days":7,"source":"chat_problem|goal","display_text":"one short warm sentence describing the plan, in your own voice"}. duration_days: 5-7 for clar_chat, 5-14 for tool/charger/vibe_card/self_practice, up to 30 for nn_zero_skip. Never frame it as medical, therapeutic, or clinical advice, and never imply you are diagnosing anything — you are offering a small, repeatable practice, stated as a confident warm invitation, not a demand. If they show hesitation, don\'t insist.';
+    if(mode==='parts'){
+      var _dyn=[];
+      var _stat=_full.replace(/\u0001([\s\S]*?)\u0002/g,function(_m,seg){_dyn.push(seg);return '';});
+      _stat=_stat.replace(/\(\u0003[^\u0004]*\u0004\)/g,'(the Name given in USER CONTEXT)').replace(/[\u0003\u0004]/g,'').replace(/\n{3,}/g,'\n\n');
+      return {static:_stat,dynamic:_dyn.join('\n\n')};
+    }
+    return _full.replace(/[\u0001-\u0004]/g,'');
   }
 
   window.initChat=function(){
@@ -18158,28 +18169,61 @@ body.home-tab #nn-tab-section{order:2;}
     _sendToAI();
   };
 
+  /* v259: cache is ON by default now that the proxy (gem-v259-r3) supports _cache; set localStorage
+     clv_gemini_cache='0' to force it off. Also switches itself off for the session on any error. */
+  function _geminiCacheOn(){
+    try{return localStorage.getItem('clv_gemini_cache')!=='0'&&sessionStorage.getItem('clv_gemini_cache_bad')!=='1';}catch(e){return false;}
+  }
+  function _hashStr(str){ /* FNV-1a, enough to name a cache entry */
+    var h=2166136261;
+    for(var k=0;k<str.length;k++){h^=str.charCodeAt(k);h=Math.imul(h,16777619);}
+    return (h>>>0).toString(16)+'-'+str.length;
+  }
+  window._geminiCacheOn=_geminiCacheOn;
+
   var _retries=0;
   function _sendToAI(){
     if(busy)return;
     busy=true;
     _showTyping();
-    var systemPrompt=_buildSystemPrompt();
+    /* v259 (T-089): when the Gemini-cache proxy is live (flag clv_gemini_cache=1) the shared prompt
+       goes in _cache (proxy caches it, ~90% cheaper input) and the small per-user part rides as the
+       last user turn. Any failure flips a session flag and this call re-sends the old way. */
+    var _cacheOn=_geminiCacheOn();
     var geminiMsgs=chatHistory.slice(-6).map(function(m){
       return {role:m.role==='assistant'?'model':'user',parts:[{text:String(m.content).slice(0,400)}]};
     });
-    var payload={
-      _model:'gemini-2.5-flash',
-      system_instruction:{parts:[{text:systemPrompt}]},
-      contents:geminiMsgs,
-      generationConfig:{maxOutputTokens:400,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
-    };
+    var payload;
+    if(_cacheOn){
+      var _pp=_buildSystemPrompt('parts');
+      payload={
+        _model:'gemini-2.5-flash',
+        _cache:{key:_hashStr(_pp.static),text:_pp.static,ttl:600},
+        contents:geminiMsgs.map(function(gm,gi){
+          /* per-user block rides on the LAST user turn (tested: reply length/persona match the old system-prompt way) */
+          if(gi!==geminiMsgs.length-1||gm.role!=='user')return gm;
+          return {role:'user',parts:[{text:gm.parts[0].text+'\n\n[Context for this reply — background info, not said by the user]\n'+_pp.dynamic+'\nReminder: stay in the COMMUNICATION STYLE above; default reply is 1-2 short sentences.'}]};
+        }),
+        generationConfig:{maxOutputTokens:400,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
+      };
+    } else {
+      var systemPrompt=_buildSystemPrompt();
+      payload={
+        _model:'gemini-2.5-flash',
+        system_instruction:{parts:[{text:systemPrompt}]},
+        contents:geminiMsgs,
+        generationConfig:{maxOutputTokens:400,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
+      };
+    }
     var controller=new AbortController();
     var reqTimer=setTimeout(function(){controller.abort();},30000);
     fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal})
     .then(function(r){clearTimeout(reqTimer);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
       _retries=0;
+      window._lastGeminiUsage=data.usageMetadata||null; /* v259: cachedContentTokenCount shows whether the cache hit */
       if(data.error){
+        if(_cacheOn){try{sessionStorage.setItem('clv_gemini_cache_bad','1');}catch(e){} setTimeout(function(){_hideTyping();busy=false;_sendToAI();},300);return;}
         var msg=data.error.message||'';
         var retryMatch=msg.match(/retry in (\d+(?:\.\d+)?)s/i);
         if(retryMatch){
@@ -18248,6 +18292,7 @@ body.home-tab #nn-tab-section{order:2;}
     })
     .catch(function(err){
       clearTimeout(reqTimer);
+      if(_cacheOn){try{sessionStorage.setItem('clv_gemini_cache_bad','1');}catch(e){}}
       if(_retries<2){
         _retries++;
         setTimeout(function(){_hideTyping();busy=false;_sendToAI();},4000);
