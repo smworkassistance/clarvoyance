@@ -2518,6 +2518,26 @@ html[data-theme="dark"] .chat-msgs{
         </div>
       </div>
 
+      <!-- v255 (T-075): self-service full account delete. Shown regardless of Google sign-in
+           state, since an anonymous (never-signed-in) session still has real cloud data. -->
+      <div class="prof-card" style="border:1.5px solid #e0455540;background:color-mix(in srgb, #e04555 6%, var(--su))">
+        <div style="font-family:'Inter Tight',sans-serif;font-weight:700;font-size:.95rem;color:#e04555">Danger Zone</div>
+        <div style="font-size:.85rem;color:var(--sub);margin:6px 0 12px;line-height:1.45">Permanently delete your account and every piece of data tied to it — profile, chat history, goals, streak, photos, Community, guides. This cannot be undone.</div>
+        <button onclick="window.delAccOpen()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #e04555;background:transparent;color:#e04555;font-weight:700;font-size:.88rem;cursor:pointer">Delete my account</button>
+      </div>
+
+      <div id="delacc-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;padding:24px;box-sizing:border-box;overflow-y:auto">
+        <div style="max-width:420px;margin:auto;width:100%">
+          <div style="font-size:1.35rem;font-weight:700;color:var(--tx);margin-bottom:10px">Delete your account?</div>
+          <div style="font-size:.9rem;color:var(--sub);line-height:1.6;margin-bottom:16px">This permanently deletes your profile, chat history, goals, streak, XP, Non-Negotiables, uploaded photos and videos, Community posts/follows, and every guide you created or subscribed to. There is no undo.</div>
+          <div style="font-size:.85rem;color:var(--sub);margin-bottom:6px">Type <b style="color:var(--tx)">DELETE</b> to confirm:</div>
+          <input id="delacc-input" type="text" autocomplete="off" oninput="window.delAccCheck()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--bo);background:var(--su);color:var(--tx);font-size:1rem;box-sizing:border-box;margin-bottom:12px">
+          <div id="delacc-err" style="display:none;color:#e04555;font-size:.85rem;margin-bottom:12px;line-height:1.4"></div>
+          <button id="delacc-go" disabled onclick="window.delAccGo()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#e04555;color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:10px;opacity:.5">Delete my account</button>
+          <button onclick="window.delAccClose()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bo);background:transparent;color:var(--tx);font-weight:600;font-size:.95rem;cursor:pointer">Cancel</button>
+        </div>
+      </div>
+
       <div class="prof-card">
         <div class="prof-avatar-row">
           <div class="prof-avatar-wrap" onclick="document.getElementById('prof-photo-file').click()">
@@ -2658,7 +2678,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v253</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v258</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -9916,6 +9936,50 @@ function renderNoOverindulgence(){
        localStorage is already wiped by this point, so this just guarantees every tab's
        in-memory state (chat history, goal/NN/revise renders) resets too, not just profile/XP. */
     window.location.reload();
+  };
+
+  /* ── v255 (T-075): full self-service account delete ──────────────────────────────
+     Own local copy of the relay URL rather than reaching into the Community/Guides
+     script's own `RELAY_URL` variable (that's a separate closure) — matches this
+     file's own established convention (see the v211/v215 changelog entries) of never
+     reaching across script-block scope boundaries. */
+  var DELACC_RELAY = 'https://clarvoyance-admin-relay.smworkassistance.workers.dev/';
+  window.delAccOpen = function(){
+    var el = document.getElementById('delacc-screen'); if(!el) return;
+    document.getElementById('delacc-input').value = '';
+    window.delAccCheck();
+    document.getElementById('delacc-err').style.display = 'none';
+    el.style.display = 'flex';
+  };
+  window.delAccClose = function(){
+    var el = document.getElementById('delacc-screen'); if(el) el.style.display = 'none';
+  };
+  window.delAccCheck = function(){
+    var inp = document.getElementById('delacc-input'), btn = document.getElementById('delacc-go');
+    var ok = inp && inp.value.trim() === 'DELETE';
+    if(btn){ btn.disabled = !ok; btn.style.opacity = ok ? '1' : '.5'; }
+  };
+  window.delAccGo = async function(){
+    var btn = document.getElementById('delacc-go'), err = document.getElementById('delacc-err');
+    btn.disabled = true; btn.style.opacity = '.5'; var origText = btn.textContent; btn.textContent = 'Deleting…';
+    err.style.display = 'none';
+    try {
+      var sb = _getSb();
+      var sess = await sb.auth.getSession();
+      var tok = sess && sess.data && sess.data.session && sess.data.session.access_token;
+      if(!tok) throw new Error('Could not verify your session — please reload and try again.');
+      var r = await fetch(DELACC_RELAY, { method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+tok}, body: JSON.stringify({ action:'account.deleteMe' }) });
+      var j = null; try{ j = await r.json(); }catch(e){}
+      if(!r.ok || !(j && j.data && j.data.authDeleted)) throw new Error((j && j.data && j.data.errors && j.data.errors.join('; ')) || (j && j.error) || ('HTTP '+r.status));
+      _clearUserLocalStorage();
+      try{ await sb.auth.signOut(); }catch(e){}
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;text-align:center;padding:24px;color:#666">Your account and data have been deleted.<br>Reloading…</div>';
+      setTimeout(function(){ window.location.reload(); }, 1800);
+    } catch(e) {
+      btn.disabled = false; btn.style.opacity = '1'; btn.textContent = origText;
+      err.textContent = 'Something went wrong: ' + (e && e.message || e) + '. Please try again, or contact us (Profile → Contact) and we will delete it for you.';
+      err.style.display = 'block';
+    }
   };
 
   // ── Auth UI update ────────────────────────────────────────────
@@ -22185,7 +22249,7 @@ textarea.soc-in{resize:none;min-height:74px}
         h+='</div>';
       }
       h+='<div class="soc-disc">Posts here are general information and community sharing to help you build a positive mindset. They are not advice — for specific help, please consult a qualified professional.</div>';
-      body(h);try{wireGuideDwell();}catch(e){}
+      body(h);try{wireGuideDwell();}catch(e){}try{wireGuideImages();}catch(e){}
       try{if(S.focusPost){var fp=document.querySelector('[data-ach-id="'+S.focusPost+'"]');S.focusPost=null;if(fp){fp.scrollIntoView({block:'center'});fp.classList.add('flash');setTimeout(function(){fp.classList.remove('flash');},1800);}}}catch(e){}
       try{wireSeen(keys);}catch(e){}try{if($('soc-suggest'))loadSuggest();}catch(e){}
     }catch(e){console.warn('[soc] feed',e);renderError('Couldn’t load your feed.');}
@@ -23987,9 +24051,68 @@ textarea.soc-in{resize:none;min-height:74px}
       +(done?'<div class="g-pr-done">✓ Practice done</div>':'<button class="g-pr-go" data-act="g-practice" data-id="'+p.id+'">Try this · '+mins+' min</button>')
       +'<div class="g-pr-body" style="display:none"></div></div>';
   }
+  /* ── v257 wave 3: per-guide multicolor identity (a stable hue pair
+     derived from the guide's own title/key — same guide always gets
+     the same two hues, no new state to store) drives both the avatar
+     ring's "aura" glow and the fallback gradient for its text-post
+     image below. ── */
+  function _strHue(s){
+    var h=0;s=String(s||'');
+    for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}
+    return Math.abs(h)%360;
+  }
+  /* ── relevant image for text-only posts — own local copy of the
+     v215/v216 Photo Worker call (generic Pixabay theme-search-and-
+     rehost endpoint already proven for QPHOTO), reused per this file's
+     own "own local copy across script/file boundaries" convention
+     rather than reaching into that IIFE's scope. Until the Worker is
+     deployed (confirmed empty in production this pass) this quietly
+     shows the guide's own gradient instead — never a broken image. ── */
+  var G_PHOTO_WORKER='https://photo-relay-worker.smworkassistance.workers.dev/';
+  var _gImgCache={},_gImgWait={};
+  function _guideTheme(g){
+    var t=(g.blueprint&&g.blueprint.topic)||g.title||'growth';
+    return String(t).toLowerCase().slice(0,60);
+  }
+  function _gImgFetch(theme,done){
+    if(G_PHOTO_WORKER.indexOf('REPLACE_WITH')>-1){done(null);return;}
+    fetch(G_PHOTO_WORKER,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({theme:theme})})
+      .then(function(r){return r.json();})
+      .then(function(res){done((res&&Array.isArray(res.photos)&&res.photos[0])||null);})
+      .catch(function(){done(null);});
+  }
+  function _gImgPaint(el,photo){
+    if(el._painted)return;el._painted=true;
+    var img=document.createElement('img');
+    img.loading='lazy';img.alt='';
+    img.onload=function(){el.classList.add('has-img');};
+    img.onerror=function(){img.remove();};
+    img.src=photo.url;
+    el.appendChild(img);
+    if(photo.photographer)el.insertAdjacentHTML('beforeend','<span class="g-img-credit">📷 '+esc(photo.photographer)+'</span>');
+  }
+  function wireGuideImages(){
+    var els=document.querySelectorAll('#soc-body .g-img[data-theme]');
+    for(var k=0;k<els.length;k++){(function(el){
+      if(el._painted||el._pending)return;
+      var theme=el.getAttribute('data-theme')||'';
+      var hit=_gImgCache[theme];
+      if(hit==='none')return;
+      if(hit&&hit.url){_gImgPaint(el,hit);return;}
+      el._pending=true;
+      if(hit==='pending'){_gImgWait[theme].push(el);return;}
+      _gImgCache[theme]='pending';_gImgWait[theme]=[el];
+      _gImgFetch(theme,function(photo){
+        _gImgCache[theme]=photo||'none';
+        _gImgWait[theme].forEach(function(e2){e2._pending=false;if(photo)_gImgPaint(e2,photo);});
+        _gImgWait[theme]=[];
+      });
+    })(els[k]);}
+  }
   function guideCardHtml(r,i){
     var g=r._guide||{},sg=r._sig||{};
-    var h='<div class="soc-card g-card" data-gid="'+r.id+'" style="animation-delay:'+Math.min(i,8)*45+'ms">'
+    var h1=_strHue(g.title||g.canonical_key||r.guide_id),h2=(h1+130)%360;
+    var h='<div class="soc-card g-card" data-gid="'+r.id+'" style="animation-delay:'+Math.min(i,8)*45+'ms;--h1:'+h1+';--h2:'+h2+'">'
       +'<div class="soc-post-hd"><span class="soc-ring"><div class="soc-av clar" style="--s:40px">'+esc((g.title||'G').charAt(0))+'</div></span>'
       +'<div class="soc-grow"><div class="soc-name">'+esc(g.title||'Guide')+' <span class="soc-chip official">Guide</span></div><div class="soc-sub">AI-curated · from the sources below</div></div>'
       +'<span class="soc-time">'+ago(r.created_at)+'</span></div>'
@@ -23997,6 +24120,7 @@ textarea.soc-in{resize:none;min-height:74px}
       +(r.yt_video&&r.yt_video.id
         ?_ytInlineHtml({yt_video:r.yt_video})+'<div class="soc-ach-msg">'+esc(r.body).replace(/\n/g,'<br>')+'</div>'
         :'<div class="soc-ach-title">'+esc(r.title)+'</div>'
+          +'<div class="g-img" data-theme="'+esc(_guideTheme(g))+'"></div>'
           +'<div class="soc-ach-msg">'+esc(r.body).replace(/\n/g,'<br>')+'</div>'
           +(r.why?'<div class="g-why"><b>Why this for you</b> '+esc(r.why)+'</div>':''))
       +'<div class="g-srcs">'+srcLinks(r.sources)+'</div>'
@@ -25178,6 +25302,350 @@ body.exv-on #bnav{display:none!important}
 .exv-reelq .t{font-weight:700;font-size:1.05rem;line-height:1.32;text-shadow:0 2px 10px rgba(0,0,0,.6)}
 .exv-reelq .a{margin-top:6px;text-align:right;font-size:.8rem;opacity:.9}
 .exv-reelcredit{position:absolute;left:10px;top:8px;z-index:3;font-size:.6rem;color:rgba(255,255,255,.8);text-shadow:0 1px 4px rgba(0,0,0,.6)}
+</style>
+<style id="cv-v256-glass">
+/* ═══ v256 (T-084) — WORLD-CLASS GLASS DESIGN SYSTEM, wave 1 ═══
+   Research-grounded (docs/PLANNER.md #2, real WebSearch 2026-10-01, sources listed
+   there): a translucent "glass" surface (blur + partial-opacity fill) reads as more
+   premium than a flat card with a hard border — but ONLY with verified contrast, not
+   assumed. Apple's own Liquid Glass (iOS 26) keeps a documented 4.5:1 minimum and
+   deliberately reduced its own default transparency in 2026 after real feedback; real
+   accessibility research is blunt that no glass style passes WCAG for text without a
+   scrim. This block therefore only touches UI CHROME sitting over the app's own plain
+   --bg (never a photo/video) — the one case where glass is genuinely safe. Vibe's
+   photo/video quote cards already carry their own dedicated scrim (v215/v216) and are
+   deliberately left untouched here.
+   Purely additive CSS, appended LAST in the file so it wins the existing cascade
+   without editing a single earlier rule, and zero HTML/JS changed — only how already-
+   existing classes render. Every color derives from the app's own --su/--bg/--tx/--acc
+   variables, so this automatically matches whichever of the 24 accent colors is
+   selected (_applyAccent()) and both light/dark mode, with no new theme logic needed.
+   Scope (wave 1, deliberately not "every screen" in one pass — see docs/PLANNER.md):
+   bottom nav, Profile cards, and the .sacc-row/.sacc-body accordion shared by
+   Self/Goal/Chargers/etc. Vibe Feed cards, Fortune's own cosmic theme, Guides' own
+   paper theme, and Community/Feed are intentionally NOT touched this wave — each has
+   its own established, deliberately different visual language (confirmed by reading
+   their own scoped CSS blocks above) that a generic pass would risk flattening. */
+
+/* Real, fixed bug found while reading the cascade for this redesign, not assumed:
+   .bnav (line ~1220) was originally built as a glass surface (backdrop-filter:
+   blur(20px)) — but a LATER, unscoped .bnav{} rule elsewhere in this file (from a
+   since-forgotten pass) set its background to a fully OPAQUE var(--su), which makes
+   that blur invisible (blurring 100%-opaque fill changes nothing visible). Restoring
+   real translucency here brings back the glass nav the original rule always intended. */
+.bnav{
+  background: color-mix(in srgb, var(--su) 78%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+}
+
+/* Profile cards (Identity/Contact/Updates, incl. the Danger Zone) — same info,
+   same spacing, only the flat-opaque-plus-hard-border surface becomes glass. */
+.prof-card{
+  background: color-mix(in srgb, var(--su) 78%, transparent) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid color-mix(in srgb, var(--tx) 8%, transparent) !important;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--tx) 10%, transparent), 0 2px 8px color-mix(in srgb, var(--tx) 5%, transparent) !important;
+}
+
+/* Accordion rows (Self/Goal/Chargers/etc.) — a flat fill + hard bottom border read
+   boxy; a faint tint of the current accent (Material 3's "tonal elevation over heavy
+   shadow" reasoning, docs/PLANNER.md #2) plus a softer hairline reads calmer without
+   changing row height, padding, or the click target. */
+.sacc-body{
+  background: color-mix(in srgb, var(--acc) 4%, var(--ca)) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--tx) 6%, transparent) !important;
+}
+.sacc-row{ border-bottom: 1px solid color-mix(in srgb, var(--tx) 6%, transparent) !important; }
+
+/* Mandatory scrim utility (the WCAG finding above, made reusable) for any future
+   text-over-photo surface — existing photo/video cards already have their own and
+   are untouched; this just makes the primitive available app-wide going forward. */
+.cv-scrim{ background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--su) 88%, transparent) 65%); }
+
+/* v256b — fix: glass was technically active (verified via computed style) but
+   genuinely INVISIBLE to the eye, because blurring a near-uniform flat background
+   (this app's default --bg is almost the same tone as --su) shows nothing — a real,
+   basic optics fact about backdrop-filter, not a styling mistake in the cards
+   themselves. Real glass UIs (Apple's own included) always have *something* varied
+   behind the glass for it to refract. Adding a soft, fixed, accent-colored wash
+   behind the whole app gives the existing blur something real to show — subtle
+   enough not to compete with content (6-9% peak opacity), built from the SAME
+   --acc variable as everything else, so it still follows whichever of the 24
+   accent colors the user has picked and both light/dark mode automatically.
+   `background-attachment:fixed` keeps it steady behind scrolling content, exactly
+   like it would behind a real iOS glass nav bar. Lower specificity than any
+   body.<tab>-specific background (Fortune/Guides/Chat already have their own
+   distinct look) so those remain completely untouched — this only shows up on
+   tabs that don't already set their own body background. */
+/* Real cause of "I see no change at all" found by reading computed styles, not
+   assumed: a pre-existing, unrelated `body{background:...!important}` rule
+   (line ~15507, a hardcoded gold "page wash" from an earlier "warm paper" pass)
+   already claims final authority over the body background with `!important` —
+   so the first version of this fix (above, no `!important`) silently lost to it
+   regardless of source order, and the gold wash the screenshot actually showed
+   was THAT pre-existing rule, not mine. Matching that same, already-established
+   pattern (this codebase clearly intends body-background to be settled by
+   `!important`, not cascade order) rather than fighting it. */
+body{
+  background:
+    radial-gradient(circle at 15% 8%, color-mix(in srgb, var(--acc) 42%, transparent), transparent 48%),
+    radial-gradient(circle at 88% 15%, color-mix(in srgb, var(--acl, var(--acc)) 34%, transparent), transparent 46%),
+    radial-gradient(circle at 20% 95%, color-mix(in srgb, var(--acc) 36%, transparent), transparent 50%),
+    radial-gradient(circle at 92% 90%, color-mix(in srgb, var(--acl, var(--acc)) 30%, transparent), transparent 48%),
+    var(--bg) !important;
+  background-attachment: fixed !important;
+}
+/* Bump the glass fill's blur/saturation now that there's real color behind it to
+   refract — this is the step that actually makes it visually read as "glass"
+   rather than "plain card", verified live (not assumed) after the first, too-
+   subtle attempt above looked like no change at all on a real screenshot. */
+.bnav{ backdrop-filter: blur(24px) saturate(200%) !important; -webkit-backdrop-filter: blur(24px) saturate(200%) !important; }
+.prof-card{ backdrop-filter: blur(24px) saturate(180%) !important; -webkit-backdrop-filter: blur(24px) saturate(180%) !important; background: color-mix(in srgb, var(--su) 68%, transparent) !important; }
+
+/* ═══ v256c (T-084 wave 2) — owner's concrete complaints, root-caused before fixing ═══
+   "Goal tab blocky, small fonts, side space waste" and "video upload blocky/old
+   fashioned" — both real, found by reading the actual CSS rather than guessed. */
+
+/* Root cause of the Goal-tab complaint: `.main{max-width:1200px}` (line ~187) was
+   never revisited for desktop after `.goal-row{grid-template-columns:1fr 260px}`
+   was written — on a real laptop-width window the text column stretches to ~900px
+   of mostly-empty textarea while the video/vision column stays a fixed, cramped
+   260px: exactly "blocky" and "side space waste". This affects every tab that uses
+   `.main` (Goal/Home/Self/etc.), not just Goal, so narrowing it is a single,
+   consistent, app-wide fix rather than a per-tab patch. Scoped to a min-width media
+   query — real phones (where this app is actually used day to day) are completely
+   unaffected, since their viewport is already narrower than this cap. The result is
+   the same real, established pattern big mobile-first web apps use on desktop
+   (X/Twitter, Mastodon's web client): a centered, phone-proportioned content column
+   with the app's own background visible either side — which, now that wave 1 gave
+   that background a real glass wash, reads as a deliberate, premium frame rather
+   than empty space. */
+@media (min-width:640px){
+  .main{ max-width:560px !important; }
+}
+
+/* Goal row itself: kept full-width inside that narrower column (so it still looks
+   intentionally edge-to-edge, not double-boxed), but the fixed 260px side column
+   now fits its own content properly instead of fighting a 900px-wide text area;
+   given the new glass system, the card also now matches .prof-card's treatment
+   instead of the old flat fill + hard border. */
+.goal-row{
+  background: color-mix(in srgb, var(--su) 78%, transparent) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid color-mix(in srgb, var(--tx) 8%, transparent) !important;
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--tx) 10%, transparent), 0 2px 8px color-mix(in srgb, var(--tx) 5%, transparent) !important;
+}
+.vis-sec{ background: color-mix(in srgb, var(--acc) 5%, var(--ca)) !important; }
+
+/* The literal "video upload" button the owner pointed at (`_vidBtnHtml()`,
+   "🎬 Add a video") uses the app's generic, shared `.btn` class — a thin 1.5px
+   outline with square-ish 7px corners and no fill, a genuinely dated button
+   convention. Rather than rebuild that one button (which would mean touching the
+   HTML/JS generator function — exactly the "don't disturb structure" line), the
+   SHARED class is modernized once here: every `.btn` app-wide (including this one,
+   with zero HTML/JS changes) gets a real pill shape, a soft fill, and a touch of
+   depth on the primary variant — instantly fixing the reported button, and every
+   other plain-outline button across Goal/Self/Settings/Community at the same time. */
+.btn{
+  border-radius: 999px !important;
+  border: 1.5px solid color-mix(in srgb, var(--tx) 12%, transparent) !important;
+  background: color-mix(in srgb, var(--su) 85%, transparent) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  padding: 9px 18px !important;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--tx) 6%, transparent) !important;
+}
+.btn:hover, .btn:active{ background: color-mix(in srgb, var(--acc) 10%, var(--su)) !important; }
+.btn.pr{
+  background: var(--acc) !important;
+  border-color: var(--acc) !important;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--acc) 35%, transparent) !important;
+}
+
+/* Tools grid cards (.tc) and the Chargers/Tools inline expanded sections (.isec)
+   share the exact same flat-fill-plus-hard-border pattern already fixed on
+   .prof-card/.goal-row above — same recipe applied for consistency across the
+   two other highest-traffic tabs (Chargers, Tools) that hadn't been touched yet. */
+.tc, .isec{
+  background: color-mix(in srgb, var(--su) 80%, transparent) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid color-mix(in srgb, var(--tx) 8%, transparent) !important;
+}
+</style>
+<style id="cv-v257-wave3">
+/* ═══ v257 (T-084) — wave 3: Guides ═══
+   Research grounding (same standard as waves 1-2, real WebSearch before building):
+   (a) a per-item deterministic multicolor identity with a soft contrasting glow
+   ("aura") is a widely-used 2025-26 pattern for telling many similar list rows
+   apart at a glance (Stripe/Linear-style colored avatar rings) without adding a
+   brand-new accent color that would fight whichever of the 24 theme colors the
+   user already picked — so the hue pair is derived from the GUIDE's own
+   title/key (see _strHue in the Guides script), never hardcoded, and the same
+   guide always renders the same identity.
+   (b) wellness/mindfulness color research consistently favors soft, desaturated,
+   mid-lightness tones (muted teal/blue/lavender family) over saturated or dark
+   fills for "practice" UI specifically — read as calmer and lower-pressure.
+   Applied here by taking the user's OWN accent (var(--acc)) and nudging it with
+   a small filter:hue-rotate + saturate(<1), so the practice block is always a
+   genuine, theme-matched color family — just visibly its own "nook" within the
+   card, the way an accent alcove differs from but still belongs to a room's
+   palette — rather than an unrelated fixed color that would clash with a theme
+   choice.
+   (c) per Wave-3 scope, also gives every TEXT-only post (never a video post,
+   which already has its own visual) a relevant themed image slot: an elegant
+   two-hue gradient (the same per-guide identity as the avatar, tying the whole
+   card together) shown immediately, replaced by a real photo once the generic
+   v215/v216 Photo Worker has one cached for that guide's topic — graceful
+   either way, matches this project's own established "ships before the manual
+   deploy step is done" pattern (confirmed live: photo_library is empty in
+   production as of this pass).
+   Purely additive — a NEW style block, appended after wave 1/2, touching only
+   .g-card/.g-img/.g-pr* (Guides-only classes); nothing above this block is
+   edited, and nothing here reaches into Vibe Feed, Fortune, or any non-Guides
+   Community surface. */
+.g-card .soc-ring{
+  background: conic-gradient(from 200deg, hsl(var(--h1) 70% 62%), hsl(var(--h2) 62% 58%), hsl(calc(var(--h1) + 40) 68% 66%), hsl(var(--h1) 70% 62%)) !important;
+  box-shadow: 0 0 0 5px hsla(var(--h1),70%,62%,.16), 0 0 16px 3px hsla(var(--h2),65%,58%,.30);
+}
+.g-card .soc-av.clar{
+  background: linear-gradient(135deg, hsl(var(--h1) 55% 48%), hsl(var(--h2) 50% 42%)) !important;
+}
+.g-img{
+  margin: 10px 16px 0;
+  border-radius: 14px;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(135deg, hsl(var(--h1) 48% 86%), hsl(var(--h2) 42% 90%));
+}
+html[data-theme="dark"] .g-img{
+  background: linear-gradient(135deg, hsl(var(--h1) 32% 22%), hsl(var(--h2) 28% 18%));
+}
+.g-img img{ width:100%; height:100%; object-fit:cover; display:block; opacity:0; transition: opacity .35s ease; }
+.g-img.has-img img{ opacity:1; }
+.g-img .g-img-credit{ position:absolute; right:8px; bottom:7px; font-size:.65rem; color:#fff; background:rgba(0,0,0,.35); padding:2px 7px; border-radius:999px; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); }
+.g-pr{ margin: 12px 16px 0 !important; }
+.g-pr-body{
+  padding: 13px 14px !important;
+  border-radius: 14px !important;
+  background: color-mix(in srgb, var(--acc) 9%, var(--su)) !important;
+  border: 1px solid color-mix(in srgb, var(--acc) 16%, transparent) !important;
+  filter: hue-rotate(16deg) saturate(.85);
+}
+.g-pr-go{
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: 999px !important;
+  border: none !important;
+  background: var(--acc) !important;
+  color: var(--dktx, #fff) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--acc) 35%, transparent);
+}
+.g-pr-done{
+  color: var(--acc) !important;
+  background: color-mix(in srgb, var(--acc) 10%, var(--su));
+  border-radius: 999px;
+  padding: 8px 14px !important;
+  display: inline-block;
+  font-weight: 700;
+}
+</style>
+<style id="cv-v258-wave4">
+/* ═══ v258 (T-086) — wave 4: Vibe Feed, Fortune, and the rest of Community ═══
+   Scope deliberately narrower than it could be: each of these 3 surfaces already
+   has its own established, intentional visual language (Vibe's full-bleed per-type
+   colour gradients, Fortune's deliberately cardless "open oracle" style from v136,
+   Community's card-based Instagram-style feed) — a blanket glass re-skin would
+   flatten exactly what makes each one distinct, the same risk the v256 entry
+   explicitly flagged and avoided. So this wave does two things only:
+   (1) extends the SAME proven glass-pill recipe from waves 1-3 to the plain,
+   genuinely-flat-and-boxy elements each surface still has (Community's post
+   cards/action pills/search bars/Board summary card — identical shape to
+   .prof-card/.tc/.isec before v256 fixed them); (2) gives Vibe Feed's and
+   Fortune's own translucent/bordered chrome (topbar, bottom bar, action
+   buttons) a frosted blur + pill treatment consistent with the rest of the
+   app, WITHOUT touching the colour-coded gradient backgrounds, the photo/
+   video scrim system, the cardless oracle reading, or the cosmic particle
+   theme — those stay exactly as designed. */
+
+/* ── Vibe Feed: frosted chrome bars + pill action buttons; per-type
+   gradient backgrounds and the photo/video scrim system (v215/v216) are
+   completely untouched — only the translucent UI sitting ON TOP of them. ── */
+.vf-topbar, .vf-bottom{
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+.vf-next-btn, .vf-done-btn, .vf-open-btn, .vf-skip-btn, .vf-claim-btn{
+  border-radius: 999px !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.vf-streak{
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.vf-card{
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 20px 50px rgba(0,0,0,.30);
+}
+
+/* ── Fortune: the oracle reading stays cardless (v136's own deliberate
+   choice) and the cosmic background is untouched — only its small bordered
+   buttons get the same pill+frost language the rest of the app now has. ── */
+.ft-range-go{
+  border-radius: 999px !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.pulse-share-btn{
+  border-radius: 999px !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* ── Community: Board, Discover and plain/achievement/official/guide posts
+   (.soc-card) were the one place in the app that never got the v256 glass
+   pass — same flat-opaque-plus-hard-border recipe .prof-card/.tc/.isec had
+   before that fix, applied here identically. The Instagram-grid Discover
+   tiles (.exp-tile) are deliberately left alone — they're always covered by
+   a real thumbnail image, so a glass treatment on them would never be seen
+   and isn't worth the risk. .soc-cheer.on / .lg-head / .lg-recap / .v2-rank /
+   .v2-fortune already carry their own deliberate colour identity (gold-liked
+   state, league-tier colour, warm highlight, cosmic Fortune preview) and are
+   untouched — this only reaches their plain, uncoloured default state. ── */
+.soc-card{
+  background: color-mix(in srgb, var(--su) 80%, transparent) !important;
+  backdrop-filter: blur(18px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+  /* border/box-shadow deliberately NOT !important: the v251 edge-to-edge video-post
+     rule (.soc-stack>.soc-card:has(.soc-vin){border-left:0;border-right:0;box-shadow:none})
+     is more specific and must keep winning for a video post so it stays truly full-bleed;
+     against the plain base .soc-card rule, this one still wins on source order alone. */
+  border: 1px solid color-mix(in srgb, var(--tx) 8%, transparent);
+  box-shadow: 0 10px 32px color-mix(in srgb, var(--tx) 8%, transparent);
+}
+.lg-vs{
+  background: color-mix(in srgb, var(--su) 80%, transparent) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid color-mix(in srgb, var(--tx) 8%, transparent) !important;
+}
+.soc-cheer, .soc-cmtbtn{
+  background: color-mix(in srgb, var(--su) 85%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.soc-search, .exp-search{
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.soc-search{
+  background: color-mix(in srgb, var(--su) 85%, transparent) !important;
+}
 </style>
 <script id="v253-reels-js">
 /* ═══ v253 (T-063) — Clar Reels: instant, self-hosted stock clips ═══
