@@ -2035,6 +2035,63 @@
           "note": "created"
         }
       ]
+    },
+    {
+      "id": "T-100",
+      "title": "XP economy made trustworthy before it is money: server-side XP ledger (earn caps/day, anti-farming, spend ledger), XP never purchasable with cash, calibrate XP prices from real user_progress distribution",
+      "added": "2026-10-01T22:08:00.926Z",
+      "done_when": "xp awards validated server-side; a user cannot edit localStorage/Supabase XP to get a plan; price in XP chosen from measured earn rates",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T22:08:00.940Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-101",
+      "title": "Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must verify the user's Supabase JWT + plan + daily limit (today anyone with the URL can call it, and limits are client-side localStorage only)",
+      "added": "2026-10-01T22:08:01.153Z",
+      "done_when": "free-of-plan user gets rejected by the proxy, not just hidden in the UI; limits per plan editable in admin",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T22:08:01.154Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-102",
+      "title": "Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per country, XP+cash mixed payment spec, annual price, store-fee impact (Play 15%)",
+      "added": "2026-10-01T22:08:01.245Z",
+      "done_when": "demand signal per plan + decision recorded in docs/DECISIONS.md",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T22:08:01.246Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
     }
   ]
 }

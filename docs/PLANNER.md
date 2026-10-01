@@ -490,3 +490,19 @@ when quota is out: own Reels, quote/photo cards, Guides.
 - Guardrails: affirmations only; admin "kill row"; every generated line stored with its
   prompt version for audit.
 - See docs/AI-MODELS.md for the measured caching results, per-call-site model tiers and the proxy rollout (T-089/T-099).
+
+### 3.10 Owner's pricing model v2 (2026-10-02) — XP-funded Plus, cash Pro
+Owner idea: no permanent free tier; new users get starting XP; two plans — Plus Rs99/mo (almost all
+features) that XP can fully pay for, and Pro Rs199/mo (advanced features) that needs cash (idea: 50% XP /
+50% cash). Engaged users get Plus "almost free" and keep earning XP; Pro is the real revenue.
+Assessment: strong fit with the product philosophy (engagement is the payment) but needs, in order:
+(1) server-trusted XP (today XP is client-computed and pushed - editable) = T-100; (2) enforcement: the
+Gemini proxy is unauthenticated and limits live in localStorage, so a paywall is only cosmetic until
+the proxy checks JWT + plan = T-101; (3) a soft landing instead of a hard zero: starting XP = 7-14 day
+reverse trial, then a thin Basic (streak, NN, a few chargers, Community read) rather than nothing,
+because the feed/Community need people and conversion in India is low (RevenueCat 1.4%); (4) Pro must
+be clearly different or all revenue vanishes into XP-paid Plus; (5) never sell XP for cash; (6) test
+Rs199 vs Rs149 and an annual price; Rs199 is high for India for a young app = T-102.
+Illustrative economics (assumptions, not data): 1000 active users, avg AI+silent cost Rs30/user/mo =
+Rs30k. 60% XP-paid Plus (Rs0), 25% cash Plus, 10% Pro at ~Rs199 -> revenue ~Rs44.6k, margin ~Rs13k.
+If only 3% reach Pro -> revenue ~Rs30.7k = break-even. The whole model hangs on Pro conversion.
