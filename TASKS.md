@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 02/10/2026 03:23:07 IST.
+> Rendered 02/10/2026 03:26:48 IST.
 
 ## Run status
 No run active.
@@ -94,7 +94,7 @@ _Nothing — no blocked tasks._
 | T-086 | 01/10/2026 18:11:56 | UX/UI wave 4: Vibe Feed, Fortune, and remaining Community (Board/Discover/plain posts) glass/visual pass | DONE | — | T-084 ⛔ blocked-by T-084 | 01/10/2026 19:07:05 |
 | T-087 | 01/10/2026 18:11:56 | Run full ops/verify.js Playwright regression suite against v255/v256/v257 candidates before any promotion dec… | DONE | — | — | 01/10/2026 18:26:25 |
 | T-088 | 02/10/2026 00:43:27 | Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, … | DISCUSS | — | — | — |
-| T-089 | 02/10/2026 00:43:28 | Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash… | IN_PROGRESS | — | — | — |
+| T-089 | 02/10/2026 00:43:28 | Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash… | DONE | — | — | 02/10/2026 03:26:47 |
 | T-090 | 02/10/2026 00:43:28 | Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-… | DISCUSS | — | — | — |
 | T-091 | 02/10/2026 00:43:28 | Any-language support: Clar replies in user's language (already partly), UI i18n for top languages, Guides laz… | DISCUSS | — | — | — |
 | T-092 | 02/10/2026 00:43:28 | Free content-source stack (beyond Pixabay/Pexels/Wikiquote): Openverse, Wikimedia Commons, Pexels video, Free… | DISCUSS | — | — | — |
@@ -442,11 +442,12 @@ _Nothing — no blocked tasks._
 - Done-when: admin tab shows measured cost per call site and per active user/day from real logs; PLANNER pricing table re-based on it
 
 ### T-089 — Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash-Lite-class model, batch API (50% off) for cron/Guides; CHECK which model the cold-frog proxy uses (Flash-Lite 2.5 retires 2026-10-16)
-- Status: **IN_PROGRESS**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: measured Rs/msg and Rs/user/day before vs after, no quality regression on a replayed real-conversation set
 - Result / evidence: v259 candidate built (client side, flag OFF). Needs cold-frog-d555 source pasted to merge workers/gemini-cache-snippet.js, then enable flag and measure cachedContentTokenCount
   MEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount
   Proxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts
+  v259 promoted + live (sw clv-v259, tag pre-v259). Full ops/verify.js 88/88. Live browser on clar.co.in: chat sends _cache, proxy gem-v259-r3 returned cache created then hit, 10,341 cached tokens of ~10.5k. Quality A/B 24 turns: valid JSON 24/24, similar length/tone.
 
 ### T-090 — Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-door Plus taps, regional PPP pricing) instead of guesses
 - Status: **DISCUSS**  · Batch: —  · Depends on: —

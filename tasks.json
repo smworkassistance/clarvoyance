@@ -1807,12 +1807,12 @@
       "title": "Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash-Lite-class model, batch API (50% off) for cron/Guides; CHECK which model the cold-frog proxy uses (Flash-Lite 2.5 retires 2026-10-16)",
       "added": "2026-10-01T19:13:28.065Z",
       "done_when": "measured Rs/msg and Rs/user/day before vs after, no quality regression on a replayed real-conversation set",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "batch": null,
       "depends_on": [],
       "verify": false,
-      "result": "v259 candidate built (client side, flag OFF). Needs cold-frog-d555 source pasted to merge workers/gemini-cache-snippet.js, then enable flag and measure cachedContentTokenCount\nMEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount\nProxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts",
-      "completed": null,
+      "result": "v259 candidate built (client side, flag OFF). Needs cold-frog-d555 source pasted to merge workers/gemini-cache-snippet.js, then enable flag and measure cachedContentTokenCount\nMEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount\nProxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts\nv259 promoted + live (sw clv-v259, tag pre-v259). Full ops/verify.js 88/88. Live browser on clar.co.in: chat sends _cache, proxy gem-v259-r3 returned cache created then hit, 10,341 cached tokens of ~10.5k. Quality A/B 24 turns: valid JSON 24/24, similar length/tone.",
+      "completed": "2026-10-01T21:56:47.828Z",
       "history": [
         {
           "at": "2026-10-01T19:13:28.066Z",
@@ -1833,6 +1833,11 @@
           "at": "2026-10-01T21:19:48.320Z",
           "status": "IN_PROGRESS",
           "note": "Proxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts"
+        },
+        {
+          "at": "2026-10-01T21:56:47.842Z",
+          "status": "DONE",
+          "note": "v259 promoted + live (sw clv-v259, tag pre-v259). Full ops/verify.js 88/88. Live browser on clar.co.in: chat sends _cache, proxy gem-v259-r3 returned cache created then hit, 10,341 cached tokens of ~10.5k. Quality A/B 24 turns: valid JSON 24/24, similar length/tone."
         }
       ]
     },
