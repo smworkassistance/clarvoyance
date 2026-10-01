@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v253-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v255-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -359,7 +359,8 @@ const HELPLINE_NOTE = 'If things feel heavy, you are not alone — please reach 
 function nowIso() { return new Date().toISOString(); }
 /* Cloudflare blocks a Worker from calling another *.workers.dev Worker of the same account by URL (error 1042, shown as HTTP 404).
    The supported way is a SERVICE BINDING: dashboard → this Worker → Settings → Bindings → Add → Service binding
-   (variable GEMINI → cold-frog-d555, variable YT → clar-youtube). callSibling() uses the binding when present, else falls back to the URL. */
+   (variable GEMINI → cold-frog-d555, variable YT → clar-youtube, variable BUNNY → clar-bunny [v255, T-075: deleting a
+   member's uploaded videos on account-delete] — new binding, owner step, harmless no-op without it). callSibling() uses the binding when present, else falls back to the URL. */
 let _env = null;
 function callSibling(name, url, init, signal) {
   const b = _env && _env[name];
@@ -399,6 +400,42 @@ async function geminiJSON(system, user, opts) {
   if (!data) throw new Error('gemini returned no JSON');
   const u = j.usageMetadata || {};
   return { data, tokens: (u.promptTokenCount || 0) + (u.candidatesTokenCount || 0) };
+}
+
+/* ── T-076: admin email alerts (Resend) — scope for this pass is the Guides pipeline only
+   (the actual, confirmed, live incident: 5 starter guides retried every 3h for 4 straight
+   days after the Gemini account's prepaid credits ran out, producing nothing). Chat/Fortune/
+   Pulse each call the Gemini worker directly from 9+ separate script blocks in index.html
+   (their own closures, by this file's own established convention) — wiring failure-reporting
+   into every one of those hot paths is deliberately deferred to its own careful pass rather
+   than bundled in here, since a mistake in any of them regresses the app's core feature.
+   Owner must set two new Worker secrets for this to actually send: RESEND_API_KEY (from
+   resend.com, free tier), ADMIN_ALERT_EMAIL (a plain-text variable, the owner's own inbox).
+   Without them this fails closed (caught, logged in the return value, never throws upward). */
+async function sendAdminEmail(env, subject, text) {
+  if (!env.RESEND_API_KEY || !env.ADMIN_ALERT_EMAIL) throw new Error('RESEND_API_KEY/ADMIN_ALERT_EMAIL not set on this Worker');
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.RESEND_API_KEY, 'Content-Type': 'application/json' },
+    /* Resend's shared onboarding@resend.dev sender works with zero setup but is rate-limited
+       and best-effort; verifying the owner's own domain (clar.co.in) with Resend is the real
+       fix for reliable delivery — noted here, not done, since it's a Resend-dashboard step. */
+    body: JSON.stringify({ from: 'Clar Alerts <onboarding@resend.dev>', to: [env.ADMIN_ALERT_EMAIL], subject, text }),
+  });
+  if (!r.ok) throw new Error('resend HTTP ' + r.status + ' ' + (await r.text().catch(() => '')).slice(0, 200));
+}
+/* One email per distinct `key`, at most once per `cooldownHours` — a persisted table (not an
+   in-memory counter) because a Cloudflare Worker can cold-start at any moment, which would
+   silently reset any in-memory cooldown mid-outage and defeat the whole point of this. */
+async function maybeSendAlert(env, key, subject, text, cooldownHours) {
+  try {
+    const rows = await sbFetch(env, 'admin_alert_log?select=last_sent_at&key=eq.' + encodeURIComponent(key));
+    const last = rows[0] && rows[0].last_sent_at ? new Date(rows[0].last_sent_at).getTime() : 0;
+    if (Date.now() - last < cooldownHours * 3600000) return { sent: false, reason: 'cooldown' };
+    await sendAdminEmail(env, subject, text);
+    await sbFetch(env, 'admin_alert_log?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key, last_sent_at: nowIso() }) });
+    return { sent: true };
+  } catch (e) { return { sent: false, reason: e.message }; }
 }
 
 /* ── feeds ── */
@@ -717,15 +754,23 @@ async function runGuide(env, guide, opts) {
   }
   return { ok: published > 0, published, tokens, langs, angle, title: post.title, videoPosted: videoRes ? videoRes.published : 0, videoSkipped: videoRes && videoRes.skipped, reason: published ? '' : 'insert failed' };
 }
+/* T-077: found live (2026-09-30) that a persistent failure — the real case being the Gemini
+   account running out of prepaid credits — made every guide retry every fixed 3h FOREVER
+   (5 starters x ~8 attempts/day x several days, all producing nothing), needlessly burning
+   real API calls on a failure that could not possibly resolve itself between retries. Real
+   consecutive failures now back off (3h -> 6h -> 12h -> 24h cap) instead of hammering at a
+   flat interval; any success resets it back to the normal posts_per_day cadence immediately. */
+const FAIL_BACKOFF_HOURS = [3, 6, 12, 24];
 async function finishRun(env, guide, res) {
   const perDay = guide.posts_per_day || 2;
-  let waitMs = res.ok ? (24 / perDay) * 3600000 : 3 * 3600000;
+  const fails = res.ok ? 0 : (Number(guide.consecutive_fails) || 0) + 1;
+  let waitMs = res.ok ? (24 / perDay) * 3600000 : FAIL_BACKOFF_HOURS[Math.min(fails - 1, FAIL_BACKOFF_HOURS.length - 1)] * 3600000;
   if (!res.ok && guide.kind === 'user') {
     const have = await sbFetch(env, 'guide_posts?select=id&guide_id=eq.' + guide.id + '&limit=1').catch(() => [1]);
-    if (!have.length) waitMs = 10 * 60000; /* no post yet: try again soon (cron runs every 15 min) */
+    if (!have.length) waitMs = 10 * 60000; /* first post still pending: keep trying soon regardless of backoff */
   }
   const next = new Date(Date.now() + waitMs).toISOString();
-  await sbFetch(env, 'guides?id=eq.' + guide.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ last_run_at: nowIso(), next_run_at: next, last_error: res.ok ? null : String(res.reason || 'failed').slice(0, 300) }) });
+  await sbFetch(env, 'guides?id=eq.' + guide.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ last_run_at: nowIso(), next_run_at: next, last_error: res.ok ? null : String(res.reason || 'failed').slice(0, 300), consecutive_fails: fails }) });
 }
 
 /* ── scope guard for a new (pending) guide ── */
@@ -773,8 +818,16 @@ async function guidesTick(env) {
     if (ran >= 2) break;
     if (g.kind !== 'starter' && !(g.subscribers > 0)) { await sbFetch(env, 'guides?id=eq.' + g.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ next_run_at: new Date(Date.now() + 12 * 3600000).toISOString() }) }); continue; }
     ran++;
-    try { const res = await runGuide(env, g); await finishRun(env, g, res); out.ran.push({ id: g.id, slug: g.slug, ...res }); }
-    catch (e) { await finishRun(env, g, { ok: false, reason: e.message }); out.ran.push({ id: g.id, slug: g.slug, error: e.message }); }
+    let res;
+    try { res = await runGuide(env, g); await finishRun(env, g, res); out.ran.push({ id: g.id, slug: g.slug, ...res }); }
+    catch (e) { res = { ok: false, reason: e.message }; await finishRun(env, g, res); out.ran.push({ id: g.id, slug: g.slug, error: e.message }); }
+    /* T-076: one admin email per distinct failure reason, at most every 6h — not one per guide
+       per tick, since the real incident (a billing outage) hit all 5 starters identically. */
+    if (!res.ok) {
+      const reason = String(res.reason || 'unknown').slice(0, 200);
+      const key = 'guides:' + reason.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 60);
+      await maybeSendAlert(env, key, 'Clar: a Guide failed to post', 'Guide "' + (g.title || g.slug) + '" failed: ' + reason + '\n\nThis repeats for every guide hitting the same reason, but this email repeats at most once every 6 hours per distinct reason.', 6);
+    }
   }
   return out;
 }
@@ -833,6 +886,83 @@ async function memberKick(request, env, body) {
     return json({ data: { status: 'active', translated: filled } });
   }
   return json({ data: { status: g.status } });
+}
+
+/* ── T-075: full self-service account delete (a member's own session token, NOT the admin token) ──
+   Most per-user tables already have `user_id/owner_id uuid references auth.users(id) on delete cascade`
+   (confirmed by reading every db/*.sql file, not assumed) — deleting the actual auth user therefore
+   already cascades: user_profile, user_progress, user_goals, user_nn, user_clar, user_revise,
+   user_daily_log, user_practice_log, user_usage_log, user_prefs_v250, user_video_signals, referrals,
+   social_profiles/follows/blocks/reports/activity/cheers, user_goal_items, social_achievements/
+   reactions/comments, guide_subscriptions/signals/reports, league_members/cheers, user_notifications.
+   Only a handful of tables were created WITHOUT that FK (checked, not guessed) and need an explicit
+   delete first: social_video_uploads, user_practice_plans, user_push_subscriptions,
+   notification_send_log, admin_insights. `guides.owner_id` is `ON DELETE SET NULL` (a deliberate
+   earlier design choice, not an oversight — a public guide others follow should survive its creator
+   leaving) — so only the member's PRIVATE guides are explicitly deleted here (which cascades their
+   own posts/subscriptions/signals/reports via guide_id FKs), public ones are left to be orphaned
+   exactly as the schema already intends. */
+async function deleteStorageFolder(env, bucket, uid) {
+  const key = env.SUPABASE_SERVICE_KEY;
+  const listRes = await fetch(SB_URL + '/storage/v1/object/list/' + bucket, {
+    method: 'POST', headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prefix: uid + '/', limit: 1000 }),
+  });
+  if (!listRes.ok) throw new Error('list HTTP ' + listRes.status);
+  const items = await listRes.json();
+  if (!Array.isArray(items) || !items.length) return { bucket, removed: 0 };
+  const paths = items.map((it) => uid + '/' + it.name);
+  const delRes = await fetch(SB_URL + '/storage/v1/object/' + bucket, {
+    method: 'DELETE', headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prefixes: paths }),
+  });
+  if (!delRes.ok) throw new Error('delete HTTP ' + delRes.status);
+  return { bucket, removed: paths.length };
+}
+async function deleteMyAccount(env, request) {
+  const user = await verifyUser(env, request);
+  if (!user) return json({ error: 'invalid session' }, 401); /* a real Response here, matching memberKick's own pattern below */
+  const uid = user.id;
+  const out = { uid, storage: [], bunny: null, tables: [], privateGuidesDeleted: 0, authDeleted: false, errors: [] };
+
+  for (const bucket of ['vision-images', 'revise-images', 'goal-item-images']) {
+    try { out.storage.push(await deleteStorageFolder(env, bucket, uid)); }
+    catch (e) { out.errors.push('storage:' + bucket + ': ' + e.message); }
+  }
+
+  /* best-effort — needs a BUNNY service binding (same pattern as GEMINI/YT); harmless no-op without it */
+  try {
+    const authHeader = request.headers.get('Authorization') || '';
+    const r = await callSibling('BUNNY', 'https://clar-bunny.smworkassistance.workers.dev/', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: authHeader },
+      body: JSON.stringify({ action: 'account.deleteVideos' }),
+    });
+    out.bunny = r && r.ok ? await r.json() : { error: 'HTTP ' + (r && r.status) };
+  } catch (e) { out.errors.push('bunny: ' + e.message); }
+
+  for (const t of ['social_video_uploads', 'user_practice_plans', 'user_push_subscriptions', 'notification_send_log', 'admin_insights']) {
+    try { await sbFetch(env, t + '?user_id=eq.' + uid, { method: 'DELETE', headers: { Prefer: 'return=minimal' } }); out.tables.push(t); }
+    catch (e) { out.errors.push(t + ': ' + e.message); }
+  }
+
+  try {
+    const mine = await sbFetch(env, 'guides?select=id&owner_id=eq.' + uid + '&visibility=eq.private');
+    for (const g of mine) {
+      try { await sbFetch(env, 'guides?id=eq.' + g.id, { method: 'DELETE', headers: { Prefer: 'return=minimal' } }); out.privateGuidesDeleted++; }
+      catch (e) { out.errors.push('guide ' + g.id + ': ' + e.message); }
+    }
+  } catch (e) { out.errors.push('guides lookup: ' + e.message); }
+
+  /* last: deleting the actual auth user cascades every remaining FK-linked table (see comment above) */
+  try {
+    const r = await fetch(SB_URL + '/auth/v1/admin/users/' + uid, {
+      method: 'DELETE', headers: { apikey: env.SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + env.SUPABASE_SERVICE_KEY },
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    out.authDeleted = true;
+  } catch (e) { out.errors.push('auth user: ' + e.message); }
+
+  return json({ data: out }); /* always a real Response, matching memberKick's own pattern */
 }
 
 const ACTIONS = {
@@ -1262,6 +1392,12 @@ export default {
       try { b0 = await request.clone().json(); } catch (e) { /* not JSON */ }
       if (b0 && b0.action === 'guide.kick') {
         try { return await memberKick(request, env, b0); } catch (e) { return json({ error: e.message }, 500); }
+      }
+      /* T-075: a member deleting their own account — their own session token, never the admin token.
+         deleteMyAccount() always returns a real Response itself (like memberKick above) — don't
+         re-wrap it, or a 401/error Response ends up nested inside a 200 {data:...} body by mistake. */
+      if (b0 && b0.action === 'account.deleteMe') {
+        try { return await deleteMyAccount(env, request); } catch (e) { return json({ error: e.message }, 500); }
       }
       return json({ error: 'unauthorized' }, 401);
     }

@@ -160,6 +160,26 @@ export default {
 
       let body = {};
       try { body = await request.json(); } catch (e) {}
+
+      /* v255 (T-075): account-delete calls this (Worker-to-Worker, via admin-relay-worker's BUNNY
+         service binding, forwarding the member's OWN token so getUser() above re-verifies it
+         independently — no shared secret needed). Best-effort: deletes every Bunny video this
+         member owns per the social_video_uploads ledger. The ledger row itself is deleted by the
+         caller afterwards, not here — this only touches the actual video files at Bunny. */
+      if (body.action === 'account.deleteVideos') {
+        const led = await sb(env, 'social_video_uploads?select=guid&user_id=eq.' + encodeURIComponent(user.id));
+        const rows = led.ok ? await led.json() : [];
+        const lib = need(env, 'BUNNY_LIBRARY_ID'), apiKey = need(env, 'BUNNY_API_KEY');
+        let deleted = 0, failed = 0;
+        for (const row of rows) {
+          try {
+            const dr = await fetch('https://video.bunnycdn.com/library/' + lib + '/videos/' + encodeURIComponent(row.guid), { method: 'DELETE', headers: { AccessKey: apiKey, Accept: 'application/json' } });
+            if (dr.ok) deleted++; else failed++;
+          } catch (e) { failed++; }
+        }
+        return json(request, { deleted, failed, total: rows.length });
+      }
+
       if (body.action !== 'create') return json(request, { error: 'Unknown action' }, 400);
 
       const size = Number(body.size) || 0, duration = Number(body.duration) || 0;
