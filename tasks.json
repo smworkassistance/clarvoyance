@@ -1782,6 +1782,254 @@
           "note": "QA_TARGET=clarvoyance_v257.html node ops/verify.js -> VERIFY PASSED, 88 passed, 0 failed, 0 flaky, 0 skipped (13.4m, chromium-android, the configured local gate; webkit-iphone runs on CI only per qa/playwright.config.js). Full output in docs/RUNLOG.md."
         }
       ]
+    },
+    {
+      "id": "T-088",
+      "title": "Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, book summary, Guides cron) -> Rs/user/day + admin Cost view; replaces the single Rs0.15/msg estimate",
+      "added": "2026-10-01T19:13:27.587Z",
+      "done_when": "admin tab shows measured cost per call site and per active user/day from real logs; PLANNER pricing table re-based on it",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:27.593Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-089",
+      "title": "Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash-Lite-class model, batch API (50% off) for cron/Guides; CHECK which model the cold-frog proxy uses (Flash-Lite 2.5 retires 2026-10-16)",
+      "added": "2026-10-01T19:13:28.065Z",
+      "done_when": "measured Rs/msg and Rs/user/day before vs after, no quality regression on a replayed real-conversation set",
+      "status": "IN_PROGRESS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "v259 candidate built (client side, flag OFF). Needs cold-frog-d555 source pasted to merge workers/gemini-cache-snippet.js, then enable flag and measure cachedContentTokenCount\nMEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount\nProxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:28.066Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-01T20:22:46.257Z",
+          "status": "IN_PROGRESS",
+          "note": "v259 candidate built (client side, flag OFF). Needs cold-frog-d555 source pasted to merge workers/gemini-cache-snippet.js, then enable flag and measure cachedContentTokenCount"
+        },
+        {
+          "at": "2026-10-01T20:41:58.812Z",
+          "status": "IN_PROGRESS",
+          "note": "MEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount"
+        },
+        {
+          "at": "2026-10-01T21:19:48.320Z",
+          "status": "IN_PROGRESS",
+          "note": "Proxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts"
+        }
+      ]
+    },
+    {
+      "id": "T-090",
+      "title": "Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-door Plus taps, regional PPP pricing) instead of guesses",
+      "added": "2026-10-01T19:13:28.261Z",
+      "done_when": "written decision in PLANNER: launch markets, languages, regional price table, and the instrumentation that will confirm it",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:28.262Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-091",
+      "title": "Any-language support: Clar replies in user's language (already partly), UI i18n for top languages, Guides lazy translation extended, language auto-detect",
+      "added": "2026-10-01T19:13:28.404Z",
+      "done_when": "spec of which languages, UI string strategy, quality check per language, cost impact",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:28.405Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-092",
+      "title": "Free content-source stack (beyond Pixabay/Pexels/Wikiquote): Openverse, Wikimedia Commons, Pexels video, Freesound/Pixabay music, NASA/Library of Congress etc; license + hotlink rules per source",
+      "added": "2026-10-01T19:13:28.512Z",
+      "done_when": "table of sources with license, limits, which Clar surface each feeds, and 1-2 integrated end-to-end",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:28.513Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-093",
+      "title": "Never-empty app: infinite personalised content from labelled AI/Clar sources (Guides, official Clar posts, quote/photo cards, AI chargers) until real users create content; NO fake human profiles",
+      "added": "2026-10-01T19:13:28.707Z",
+      "done_when": "design + daily cost cap + labelling rule agreed; feed never shows 'nothing here' for a new user",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:28.708Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-094",
+      "title": "AI-generated personal chargers + manifestation furnace: per-user generated affirmation/charger variants from their lacks and desires (e.g. confidence/communication chargers, 'driving my Range Rover' feed), shared-template cache to keep cost fixed",
+      "added": "2026-10-01T19:13:28.796Z",
+      "done_when": "design with cost per user/day, 2 free chargers rule, safety rules, and one working prototype behind a flag",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:13:28.797Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-095",
+      "title": "Audio layer: LibriVox/Internet Archive public-domain self-development audiobooks, podcast discovery (Podcast Index/iTunes Search) with official Spotify embed player, Freesound/Pixabay ambient audio for breathing/focus cards",
+      "added": "2026-10-01T19:26:37.922Z",
+      "done_when": "licence table per source, one working end-to-end (e.g. audiobook chapter player + ambient loop), cost/quota noted",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:26:37.938Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-096",
+      "title": "Personal library: NO unofficial Audible/Kindle access (no public API, ToS/account/store risk); instead user-entered or CSV/Goodreads import of books -> Clar book summaries, quotes (short, attributed), video+audio matches, reading goals",
+      "added": "2026-10-01T19:26:38.268Z",
+      "done_when": "design for import + what Clar does per book, within copyright (short quotes only)",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:26:38.270Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-097",
+      "title": "YouTube quota hardening: curated channel RSS feeds per topic (0 quota), search only for discovery, per-user caps, file free quota-extension audit once users grow",
+      "added": "2026-10-01T19:26:38.449Z",
+      "done_when": "quota use per 100 users measured; RSS path integrated for >=3 topics",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "ADD: fix youtube_topic_cache retention (30-day non-authorized-data rule, likely gap since v205) before filing quota-extension audit",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T19:26:38.450Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-01T20:22:46.455Z",
+          "status": "DISCUSS",
+          "note": "ADD: fix youtube_topic_cache retention (30-day non-authorized-data rule, likely gap since v205) before filing quota-extension audit"
+        }
+      ]
+    },
+    {
+      "id": "T-098",
+      "title": "YouTube quota ceiling: find a real solution before growth (central theme of the app). Leads: playlistItems.list on channel uploads playlists = 1 unit vs search 100; videos.list 1 unit per 50 ids; channel RSS feeds 0 quota; pre-warm popular topics at off-peak; server-side daily budget guard with reserve; fallback sources (Clar Reels, quote cards, Guides) when exhausted; free quota-extension audit (prepare compliance: 30-day cache-retention rule, ToS/Privacy links, embeds only). Do NOT split across multiple Cloud projects to dodge quota (ToS - verify)",
+      "added": "2026-10-01T20:41:58.534Z",
+      "done_when": "measured units/day per 100 users before vs after; written plan incl. audit checklist; cache retention compliant",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T20:41:58.546Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-099",
+      "title": "AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs across Gemini/Gemma(Cloudflare)/Mistral/DeepSeek/GPT-mini incl. Hindi+Hinglish, fallback chain, per-IP rate limit on the proxy, Batch API for Guides + nightly generation",
+      "added": "2026-10-01T20:41:58.690Z",
+      "done_when": "each call site assigned a model by measured pass/fail + cost; client sends _tier; proxy has fallback + rate limit",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T20:41:58.691Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
     }
   ]
 }

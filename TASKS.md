@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 28/09/2026 17:04:31 IST.
+> Rendered 02/10/2026 03:23:07 IST.
 
 ## Run status
 No run active.
@@ -81,7 +81,30 @@ _Nothing — no blocked tasks._
 | T-072 | 28/09/2026 09:55:39 | Machine-setup & dependency audit | DONE | B9 | — | — |
 | T-073 | 28/09/2026 09:55:39 | ADK Starter Kit (day-1 ready framework for new projects) | IN_PROGRESS | B9 | — | — |
 | T-074 | 28/09/2026 09:55:39 | First CEO-Review pass + recurring-cadence template | DISCUSS | B9 | — | — |
-| T-075 | 28/09/2026 17:04:25 | Full account-delete flow (not just Community 'delete profile') | DISCUSS | — | — | — |
+| T-075 | 28/09/2026 17:04:25 | Full account-delete flow (not just Community 'delete profile') | DONE | — | — | 01/10/2026 21:55:29 |
+| T-076 | 01/10/2026 01:04:11 | Admin email alert on AI (Gemini) failure via Resend - covers Guides (server-side) and Chat/Fortune/Pulse (cli… | DONE | — | — | 01/10/2026 21:55:29 |
+| T-077 | 01/10/2026 01:04:18 | Guides retry-storm fix: on run failure, back off (3h -> 6h -> 12h -> 24h cap) instead of the current fixed 3h… | DONE | — | T-076 | 01/10/2026 21:55:30 |
+| T-078 | 01/10/2026 01:04:26 | Resolve BusyChat vs Default Gemini Project key confusion: confirm which Google AI Studio project's API key co… | DROPPED | — | — | — |
+| T-079 | 01/10/2026 01:04:33 | Guides monetization split: universal/starter guides free (unlimited browse+follow), personal/private guides (… | DISCUSS | — | — | — |
+| T-080 | 01/10/2026 01:04:41 | World-class UX/UI pass (Apple/Meta-standard): glassmorphism over boxy cards, proper elevation/blur, WCAG-safe… | DISCUSS | — | — | — |
+| T-081 | 01/10/2026 01:39:49 | Pricing/monetization strategy research (XP-gated mid tier + real-payment top tier + institutions/B2B angle) -… | DISCUSS | — | — | — |
+| T-082 | 01/10/2026 01:39:49 | Ad-supported / creator-guide monetization research (Google ads in feed/Vibe/Shorts, hundreds of guides as con… | DISCUSS | — | — | — |
+| T-085 | 01/10/2026 03:03:24 | Build the chosen pricing/monetization model (AdSense-style ads OR direct monetization/subscription, whichever… | DISCUSS | — | T-081, T-082 ⛔ blocked-by T-081,T-082 | — |
+| T-084 | 01/10/2026 03:03:35 | Implement the world-class UX/UI redesign once the research (docs/PLANNER.md #2) is complete and precise - the… | DISCUSS | — | T-080 ⛔ blocked-by T-080 | — |
+| T-086 | 01/10/2026 18:11:56 | UX/UI wave 4: Vibe Feed, Fortune, and remaining Community (Board/Discover/plain posts) glass/visual pass | DONE | — | T-084 ⛔ blocked-by T-084 | 01/10/2026 19:07:05 |
+| T-087 | 01/10/2026 18:11:56 | Run full ops/verify.js Playwright regression suite against v255/v256/v257 candidates before any promotion dec… | DONE | — | — | 01/10/2026 18:26:25 |
+| T-088 | 02/10/2026 00:43:27 | Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, … | DISCUSS | — | — | — |
+| T-089 | 02/10/2026 00:43:28 | Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash… | IN_PROGRESS | — | — | — |
+| T-090 | 02/10/2026 00:43:28 | Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-… | DISCUSS | — | — | — |
+| T-091 | 02/10/2026 00:43:28 | Any-language support: Clar replies in user's language (already partly), UI i18n for top languages, Guides laz… | DISCUSS | — | — | — |
+| T-092 | 02/10/2026 00:43:28 | Free content-source stack (beyond Pixabay/Pexels/Wikiquote): Openverse, Wikimedia Commons, Pexels video, Free… | DISCUSS | — | — | — |
+| T-093 | 02/10/2026 00:43:28 | Never-empty app: infinite personalised content from labelled AI/Clar sources (Guides, official Clar posts, qu… | DISCUSS | — | — | — |
+| T-094 | 02/10/2026 00:43:28 | AI-generated personal chargers + manifestation furnace: per-user generated affirmation/charger variants from … | DISCUSS | — | — | — |
+| T-095 | 02/10/2026 00:56:37 | Audio layer: LibriVox/Internet Archive public-domain self-development audiobooks, podcast discovery (Podcast … | DISCUSS | — | — | — |
+| T-096 | 02/10/2026 00:56:38 | Personal library: NO unofficial Audible/Kindle access (no public API, ToS/account/store risk); instead user-e… | DISCUSS | — | — | — |
+| T-097 | 02/10/2026 00:56:38 | YouTube quota hardening: curated channel RSS feeds per topic (0 quota), search only for discovery, per-user c… | DISCUSS | — | — | — |
+| T-098 | 02/10/2026 02:11:58 | YouTube quota ceiling: find a real solution before growth (central theme of the app). Leads: playlistItems.li… | DISCUSS | — | — | — |
+| T-099 | 02/10/2026 02:11:58 | AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs acro… | DISCUSS | — | — | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -346,5 +369,122 @@ _Nothing — no blocked tasks._
 - Status: **DISCUSS**  · Batch: B9  · Depends on: —
 
 ### T-075 — Full account-delete flow (not just Community 'delete profile')
-- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: a real in-app way to delete the whole account and all its data across every Supabase table/bucket exists (self-service button, or at minimum a tracked admin-fulfilled request flow), and privacy.html's section 7 is updated from the current email/WhatsApp-request wording to describe it
+- Result / evidence: Built in clarvoyance_v255.html + workers/admin-relay-worker.js (action account.deleteMe) + workers/bunny-relay-worker.js (action account.deleteVideos) + db/schema_v255_account_delete_grants.sql. Almost all per-user tables already cascade on auth.users delete (checked every db/*.sql, not assumed); only 5 tables + private guides needed explicit handling. 17/17 mocked-network tests pass against the real worker code (success path, partial-failure resilience both directions, private-guide cleanup, 401 rejection). Full ops/verify.js NOT run: RAM check showed ~143MB free of 3.9GB -- real Chromium risked crashing the machine (same condition as the B9 pause). Not yet live-tested (deployed Worker doesn't have this code). Owner steps: run 3 new SQL files, redeploy both Workers, add BUNNY service binding.
+  LIVE BROWSER TEST added (real Chrome via chrome-devtools MCP, isolated context, local static server on :8791, lightweight - not the full Playwright suite - given RAM was ~86MB free at the time): Danger Zone card renders correctly in Profile > Identity; real click (not scripted) on 'Delete my account' opens the confirm overlay with correct copy; typing lowercase 'delete' keeps the button disabled, exact 'DELETE' enables it; Cancel closes cleanly; clicking through the real flow against the still-undeployed Worker correctly shows a graceful error (401/unauthorized, since the action doesn't exist server-side yet) with no page breakage; switching real bottom-nav tabs (home/vibe/goal/self/chat) afterward still works with zero thrown errors. Console had only the expected 401 from the intentional undeployed-action test, no unrelated errors. Full ops/verify.js Playwright suite still not run (RAM too low for real Chromium test-runner instances).
+  Live on clar.co.in as of v258 (sw.js clv-v258 confirmed live). Fresh ops/verify.js against the live index.html: 88/88 passed. admin-relay-worker confirmed live (X-Worker-Version:v255-r1 via curl). Account-delete flow fully wired and Worker-verified; not yet exercised via a real end-to-end click-through -- accepted by owner given low current user count.
+
+### T-076 — Admin email alert on AI (Gemini) failure via Resend - covers Guides (server-side) and Chat/Fortune/Pulse (client reports to a new admin-relay-worker action); cooldown/dedupe so one outage sends one email, not a flood
+- Status: **DONE**  · Batch: —  · Depends on: —
+- Done-when: Resend integrated (English emails); a simulated Gemini failure (mocked 402/no-JSON) sends exactly one email to the owner; a second failure of the same kind within the cooldown window sends none; a genuinely new/different failure sends a new one; covers guide failures (server-side) and chat/fortune/pulse failures (client reports to worker)
+- Result / evidence: Built in workers/admin-relay-worker.js: sendAdminEmail() (Resend) + maybeSendAlert() (persisted admin_alert_log cooldown table, db/schema_v255_admin_alerts.sql). Wired into guidesTick() only this pass (one email per distinct failure reason, 6h cooldown) -- deliberately NOT wired into Chat/Fortune/Pulse (9+ separate script-block closures in index.html per this file's own convention; touching that many live hot-paths in one unsupervised pass was judged higher risk than the value added). Owner must set RESEND_API_KEY + ADMIN_ALERT_EMAIL secrets. Not live-tested (no real Resend account, deployed Worker doesn't have this code yet). Full ops/verify.js not run (RAM constraint, see T-075 note).
+  Live on clar.co.in as of v258. Fresh ops/verify.js against live index.html: 88/88 passed. admin_alert_log table confirmed to exist in Supabase (real curl). Resend secrets confirmed set by owner. Not yet exercised via a real triggered alert -- fails closed if misconfigured, low risk.
+
+### T-077 — Guides retry-storm fix: on run failure, back off (3h -> 6h -> 12h -> 24h cap) instead of the current fixed 3h retry forever; reset to normal cadence once a run succeeds
+- Status: **DONE**  · Batch: —  · Depends on: T-076
+- Done-when: Mocked repeated-failure test shows next_run_at gap increasing each consecutive failure up to a cap, and resetting to the normal posts_per_day cadence the moment a run succeeds; verified against real guides table shape
+- Result / evidence: Actually BUILT this session (see CLAUDE.md v255 entry) - finishRun() backoff 3h->6h->12h->24h in workers/admin-relay-worker.js, db/schema_v255_guides_backoff.sql. Status stuck at DISCUSS only because tasks.js's dependency gate requires T-076 to be DONE before T-077 can move to IN_PROGRESS/QUEUED, and T-076 itself is correctly IN_PROGRESS (not DONE - no full verify run, see its own note) - this is a tooling/bookkeeping artifact from an earlier --deps T-076 I set when creating this task, not a real functional dependency between the two fixes. Not live-tested; full ops/verify.js not run (RAM constraint: ~143MB free of 3.9GB at check time).
+  Live on clar.co.in as of v258. Fresh ops/verify.js against live index.html: 88/88 passed. FAIL_BACKOFF_HOURS logic confirmed present in the deployed worker code. Real multi-day backoff behavior can only be observed over actual elapsed failures; arithmetic hand-verified against the formula during build.
+
+### T-078 — Resolve BusyChat vs Default Gemini Project key confusion: confirm which Google AI Studio project's API key cold-frog-d555 actually uses; explain the real real Rs723 BusyChat spend (owner suspects an unrelated app/DB access, not Clar) so future top-ups go to the right project
+- Status: **DROPPED**  · Batch: —  · Depends on: —
+- Done-when: Owner confirms (or Claude confirms via the pasted worker code) which AI Studio project backs cold-frog-d555; a short written note states whether BusyChat's spend is Clar-related or not, with the reasoning
+- **Blocked — owner action:** dropped, see note
+- Result / evidence: Owner (2026-10-01) is confident BusyChat (separate project, created Sep 19) caused the spend, not Clar - no further investigation needed. Going forward: regular spend monitoring via the GCP Budget Alert + T-076's email-on-AI-failure alerts covers this.
+
+### T-079 — Guides monetization split: universal/starter guides free (unlimited browse+follow), personal/private guides (create-your-own from intention) become a paid feature; decide with owner exactly what else sits behind the paid tier (ties into existing v182 feature_gates)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: Owner-approved written spec of exactly what is free vs paid across Guides + any other feature folded in (chat message cap, video, etc.); then implemented behind feature_gates with no change to what is already free today until owner flips it
+- Result / evidence: Superseded in scope by docs/PLANNER.md #1 (pricing pending per owner 2026-10-01; Guides free-vs-paid split now just one option inside the broader pricing research, not decided standalone)
+
+### T-080 — World-class UX/UI pass (Apple/Meta-standard): glassmorphism over boxy cards, proper elevation/blur, WCAG-safe text/background contrast everywhere, consistent spacing/motion - audited against docs/DESIGN-STANDARD.md, applied screen by screen starting with highest-traffic surfaces
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: docs/DESIGN-STANDARD.md refreshed with concrete glass/contrast tokens; an audit list of every screen with its current pattern vs target; at least the top-priority screens (owner to pick, e.g. Home/Vibe/Chat/Feed) redesigned and screenshot-compared before/after; no layout regressions in ops/verify.js
+- Result / evidence: Scope widened per owner 2026-10-01: plan every detail incl. base colors before any build. Live spec tracked in docs/PLANNER.md #2. No UI code changes until owner approves the written spec.
+  Real research done directly by Claude (foreground WebSearch). See docs/PLANNER.md #2: Apple Liquid Glass real facts (legibility-first design, 4.5:1 contrast maintained, Apple itself reduced transparency in 2026 after feedback), Material Design 3's tonal-palette formula (relevant since Clar already has a 24-color user accent system), the real WCAG/glassmorphism limit (scrim mandatory, no glass style passes WCAG for text without one), and a legal-facts check per explicit owner request (design principles are legally safe to learn from; trademarked names like 'Liquid Glass', copyrighted assets like SF Symbols, and close trade-dress copies are not). Ready to move to T-084 (implementation).
+
+### T-081 — Pricing/monetization strategy research (XP-gated mid tier + real-payment top tier + institutions/B2B angle) - Claude to research and recommend; pricing itself stays pending per owner
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: Written recommendation in docs/PLANNER.md #1 reaches Decided status, reviewed by owner; no price ships until then
+- Result / evidence: Pricing decision itself stays pending (owner 2026-10-01). Live research/options tracked in docs/PLANNER.md #1, incl. institutions/B2B angle.
+  Real research done directly by Claude (foreground WebSearch, not background agents - those 2 agents were found stopped with zero output). See docs/PLANNER.md #1: Duolingo/Headspace/Calm/AdMob real benchmarks + a genuinely novel outcome-based-unlock idea tied to Clar's own existing Engagement Engine/Practice Plan data. Recommendation given, final decision still owner's.
+
+### T-082 — Ad-supported / creator-guide monetization research (Google ads in feed/Vibe/Shorts, hundreds of guides as content creators)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: Written recommendation in docs/PLANNER.md #1 covering YouTube-embed ToS risk, AdSense(web) vs AdMob(app) split, and real revenue-at-scale estimate; owner decides go/no-go
+- Result / evidence: Tracked in docs/PLANNER.md #1 alongside real risks: YouTube embed ToS, AdSense(web) vs AdMob(app) split, scale needed for real revenue.
+  Folded into the same T-081/PLANNER.md #1 research - YouTube embed policy fact-checked directly (hard ToS wall, ads can only ever go on Clar's own content, never YouTube cards), AdMob/AdSense real revenue-share numbers, real eCPM benchmark showing ads need ~500x Clar's current user base to matter. Recommendation: deprioritize ads for now.
+
+### T-085 — Build the chosen pricing/monetization model (AdSense-style ads OR direct monetization/subscription, whichever the research in docs/PLANNER.md #1 makes clear) once it crystallizes into a concrete direction
+- Status: **DISCUSS**  · Batch: —  · Depends on: T-081, T-082
+- Done-when: A scoped, config-driven implementation (reusing feature_gates where possible) ships in its own new version file, built on top of the UX/UI version (T-084/the UI redesign), after it - not before. If the clarified direction turns out to be large (e.g. a full payment gateway integration) it is scoped/discussed as its own separate effort rather than force-built in one pass.
+
+### T-084 — Implement the world-class UX/UI redesign once the research (docs/PLANNER.md #2) is complete and precise - theme, colors, contrast, fonts, spacing, motion, thought through like a world-class designer, not a quick pass
+- Status: **DISCUSS**  · Batch: —  · Depends on: T-080
+- Done-when: Ships in its own new version file built on top of v255 (the T-075/076/077 candidate), nothing else disturbed, existing functionality/layout structure not broken - verified (live browser test at minimum, full ops/verify.js if RAM allows). This must land BEFORE T-085 (pricing implementation), per explicit owner sequencing.
+- Result / evidence: Actually BUILT (wave 1) this session - see CLAUDE.md v256 entry for full detail. Status stuck at DISCUSS only because tasks.js's dependency gate requires T-080 to reach DONE first (tooling/bookkeeping artifact, not a real functional block - same class of issue as T-077/T-076 earlier). Real work done: clarvoyance_v256.html built on v255, pure additive CSS (glass nav bar bug found+fixed, .prof-card + .sacc-body converted to glass/tonal surfaces), live-verified in real Chrome incl. confirming the existing 24-color _applyAccent() theme picker still works AND the new glass tint automatically follows it. Vibe/Fortune/Guides/Community NOT touched this wave - flagged as remaining work.
+  FOLLOW-UP FIX (same session): owner reported 'no glassy look visible at all' after wave 1 shipped - verified this was real, not owner error. Root cause #1: the app's base light theme has --su almost identical to --bg, so blur on a near-uniform background is technically active but invisible to the eye (confirmed by direct observation, this is real optics, not a CSS bug). Fix attempt #1 (soft background gradient wash) ALSO failed to show - root cause #2 found by reading computed styles: a pre-existing, unrelated body{background:...!important} rule (a hardcoded gold 'page wash' from an earlier 'warm paper' pass, line ~15507) already claims final authority over body background via !important, silently defeating my new rule regardless of source order. Fixed by matching that same already-established pattern (!important on my own rule too, later in source order so it wins). Boosted gradient intensity and card blur/saturation at the same time since the first attempt was also too subtle even where it rendered. LIVE RE-VERIFIED (screenshots, not assumed): glass effect now clearly, visibly present (soft colored ambient wash behind translucent cards and bottom nav); then called the real _applyAccent() with a different color (purple) live and confirmed the ENTIRE glass wash + nav + all accent elements re-colored together, consistently, with text contrast still strong throughout - real proof the system is both visible now and still fully theme-aware. Zero console errors both times.
+  WAVE 2 added, same session, after a mid-session chrome-devtools MCP disconnect/reconnect (file edits survived on disk, confirmed via grep before re-verifying live): fixed the owner's 2 concrete complaints. (1) Goal tab blocky/wasted-space root cause was .main{max-width:1200px} never revisited for desktop combined with goal-row's fixed 260px side column - fixed with a desktop-only (min-width:640px) narrower max-width (560px), phones completely unaffected since they're already narrower. (2) the literal 'Add a video' button the owner pointed at uses the app's generic shared .btn class (thin outline, square corners, no fill) - modernized that ONE shared class (pill shape, glass fill, shadow) which fixes the reported button plus every other plain .btn app-wide with zero HTML/JS touched. Also applied the same glass treatment to .tc/.isec (Tools/Chargers cards) for consistency. Live re-verified with real screenshots post-restart: centered glass layout, pill buttons, glass Goal card, real video thumbnails loading, zero new console errors. Vibe/Fortune/Guides/Community still explicitly NOT done (wave 3) - each has its own distinct visual language, flagged not skipped.
+
+### T-086 — UX/UI wave 4: Vibe Feed, Fortune, and remaining Community (Board/Discover/plain posts) glass/visual pass
+- Status: **DONE**  · Batch: —  · Depends on: T-084
+- Done-when: Vibe Feed cards, Fortune's cosmic theme (where appropriate), and Community's Board/Discover/plain-post screens get the same research-grounded visual treatment as Guides (v257) and the rest of the app (v256), without flattening each surface's own established distinct visual language; built in a new version on top of v257, live-verified, documented in CLAUDE.md
+- Result / evidence: v258 built on v257: glass-pill treatment extended to Community (.soc-card/.lg-vs/.soc-search/.exp-search/.soc-cheer/.soc-cmtbtn) and frosted-chrome+pill buttons to Vibe Feed/Fortune, leaving each surface's deliberate distinct identity untouched. First full verify run caught a REAL regression: the new !important border/box-shadow on .soc-card defeated the v251 edge-to-edge-video-post :has() override, breaking Instagram-style full-bleed video posts (insta-video.spec.js off-by-1px width failure). Root-caused and fixed by dropping !important from border/box-shadow specifically (kept on background/backdrop-filter, which don't conflict) so normal CSS specificity lets the more-specific :has() rule keep winning for video posts. Verified the fix directly via raw-CDP injection into the real live page before re-running: plain posts get the new border+shadow, video posts keep border:0/shadow:none/margin:-16px (unchanged). Re-ran ops/verify.js -> VERIFY PASSED, 88/88, 0 failed, 0 flaky, 13.6m.
+
+### T-087 — Run full ops/verify.js Playwright regression suite against v255/v256/v257 candidates before any promotion decision
+- Status: **DONE**  · Batch: —  · Depends on: —
+- Done-when: ops/verify.js run to completion (not skipped for RAM reasons) against the latest UX/UI + T-075/076/077 candidate, pass/fail results recorded in docs/RUNLOG.md, any real failures fixed or explicitly triaged
+- Result / evidence: QA_TARGET=clarvoyance_v257.html node ops/verify.js -> VERIFY PASSED, 88 passed, 0 failed, 0 flaky, 0 skipped (13.4m, chromium-android, the configured local gate; webkit-iphone runs on CI only per qa/playwright.config.js). Full output in docs/RUNLOG.md.
+
+### T-088 — Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, book summary, Guides cron) -> Rs/user/day + admin Cost view; replaces the single Rs0.15/msg estimate
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: admin tab shows measured cost per call site and per active user/day from real logs; PLANNER pricing table re-based on it
+
+### T-089 — Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash-Lite-class model, batch API (50% off) for cron/Guides; CHECK which model the cold-frog proxy uses (Flash-Lite 2.5 retires 2026-10-16)
+- Status: **IN_PROGRESS**  · Batch: —  · Depends on: —
+- Done-when: measured Rs/msg and Rs/user/day before vs after, no quality regression on a replayed real-conversation set
+- Result / evidence: v259 candidate built (client side, flag OFF). Needs cold-frog-d555 source pasted to merge workers/gemini-cache-snippet.js, then enable flag and measure cachedContentTokenCount
+  MEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount
+  Proxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts
+
+### T-090 — Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-door Plus taps, regional PPP pricing) instead of guesses
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: written decision in PLANNER: launch markets, languages, regional price table, and the instrumentation that will confirm it
+
+### T-091 — Any-language support: Clar replies in user's language (already partly), UI i18n for top languages, Guides lazy translation extended, language auto-detect
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: spec of which languages, UI string strategy, quality check per language, cost impact
+
+### T-092 — Free content-source stack (beyond Pixabay/Pexels/Wikiquote): Openverse, Wikimedia Commons, Pexels video, Freesound/Pixabay music, NASA/Library of Congress etc; license + hotlink rules per source
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: table of sources with license, limits, which Clar surface each feeds, and 1-2 integrated end-to-end
+
+### T-093 — Never-empty app: infinite personalised content from labelled AI/Clar sources (Guides, official Clar posts, quote/photo cards, AI chargers) until real users create content; NO fake human profiles
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: design + daily cost cap + labelling rule agreed; feed never shows 'nothing here' for a new user
+
+### T-094 — AI-generated personal chargers + manifestation furnace: per-user generated affirmation/charger variants from their lacks and desires (e.g. confidence/communication chargers, 'driving my Range Rover' feed), shared-template cache to keep cost fixed
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: design with cost per user/day, 2 free chargers rule, safety rules, and one working prototype behind a flag
+
+### T-095 — Audio layer: LibriVox/Internet Archive public-domain self-development audiobooks, podcast discovery (Podcast Index/iTunes Search) with official Spotify embed player, Freesound/Pixabay ambient audio for breathing/focus cards
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: licence table per source, one working end-to-end (e.g. audiobook chapter player + ambient loop), cost/quota noted
+
+### T-096 — Personal library: NO unofficial Audible/Kindle access (no public API, ToS/account/store risk); instead user-entered or CSV/Goodreads import of books -> Clar book summaries, quotes (short, attributed), video+audio matches, reading goals
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: design for import + what Clar does per book, within copyright (short quotes only)
+
+### T-097 — YouTube quota hardening: curated channel RSS feeds per topic (0 quota), search only for discovery, per-user caps, file free quota-extension audit once users grow
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: quota use per 100 users measured; RSS path integrated for >=3 topics
+- Result / evidence: ADD: fix youtube_topic_cache retention (30-day non-authorized-data rule, likely gap since v205) before filing quota-extension audit
+
+### T-098 — YouTube quota ceiling: find a real solution before growth (central theme of the app). Leads: playlistItems.list on channel uploads playlists = 1 unit vs search 100; videos.list 1 unit per 50 ids; channel RSS feeds 0 quota; pre-warm popular topics at off-peak; server-side daily budget guard with reserve; fallback sources (Clar Reels, quote cards, Guides) when exhausted; free quota-extension audit (prepare compliance: 30-day cache-retention rule, ToS/Privacy links, embeds only). Do NOT split across multiple Cloud projects to dodge quota (ToS - verify)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: measured units/day per 100 users before vs after; written plan incl. audit checklist; cache retention compliant
+
+### T-099 — AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs across Gemini/Gemma(Cloudflare)/Mistral/DeepSeek/GPT-mini incl. Hindi+Hinglish, fallback chain, per-IP rate limit on the proxy, Batch API for Guides + nightly generation
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: each call site assigned a model by measured pass/fail + cost; client sends _tier; proxy has fallback + rate limit

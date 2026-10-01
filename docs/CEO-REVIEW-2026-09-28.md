@@ -30,8 +30,6 @@ Template for future reviews; see `docs/batches/B9.md` (T-074).
 2. The ADK's own "reuse this in another project" path existed only as a manual checklist in `ops/README.md`, not a ready-to-copy folder — fixed (`ADK-Starter-Kit/`).
 3. A test script silently overwrote a committed file when a `cd` into a scratch folder failed under memory pressure (bash doesn't stop on a failed `cd` by default) — caught and fixed same session; going forward, scripts of mine should `cd X || exit 1`, not continue blind.
 
-## Hardware — stated directly, this is now a standing practice
-This laptop has **3.8GB RAM total**, and was at **0.2GB free right after a fresh restart** with only VS Code + Claude Code + a browser open — before any real work. Real 2026 minimum for this kind of workflow (an editor + an agent + a browser, sometimes Playwright/Chrome testing on top) is **16GB**. This is a genuine, recurring, hardware-level constraint — it already caused a Node heap crash and shell-level failures once this session. I'll keep surfacing this live whenever it's actually limiting what I can safely do, rather than pushing through and risking another crash; it isn't something the software side can fix.
 
 ## New tools/MCPs worth knowing about
 - **Supabase MCP** (official, read-only mode via `read_only=true`) — registered, but still holds the literal placeholder text as its token; needs your real Supabase Personal Access Token swapped in (`docs/MACHINE-SETUP.md` has the safe staged-variable command).
