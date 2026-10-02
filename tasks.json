@@ -2192,6 +2192,25 @@
           "note": "created"
         }
       ]
+    },
+    {
+      "id": "T-108",
+      "title": "Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead, Feedback, or Scholarship application lands in landing_leads/landing_feedback/scholarship_applications -- reuse the existing Resend pattern (RESEND_API_KEY/ADMIN_ALERT_EMAIL, same as gemini-proxy-worker.js alertOnce / admin-relay T-076) via a Supabase trigger -> Worker, or a cron poll in admin-relay-worker.js. Right now these 3 tables are only visible by opening admin.html's Landing tab -- nobody is told a submission arrived.",
+      "added": "2026-10-02T23:43:09.285Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-02T23:43:09.302Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
     }
   ]
 }

@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 03/10/2026 04:58:20 IST.
+> Rendered 03/10/2026 05:16:01 IST.
 
 ## Run status
 No run active.
@@ -113,6 +113,7 @@ _Nothing — no blocked tasks._
 | T-105 | 02/10/2026 05:28:40 | Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing)… | DISCUSS | — | — | — |
 | T-106 | 02/10/2026 05:28:40 | Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_ur… | DISCUSS | — | — | — |
 | T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DISCUSS | — | — | — |
+| T-108 | 03/10/2026 05:13:09 | Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead,… | DISCUSS | — | — | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -528,4 +529,7 @@ _Nothing — no blocked tasks._
 - Done-when: a real test payment upgrades a test account; webhook retried safely; staff can see status
 
 ### T-107 — In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (reason chips + optional box) -> Supabase, skippable. New clarvoyance_vN.html, do not touch index.html/sw.js directly without a verify+promote pass.
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+
+### T-108 — Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead, Feedback, or Scholarship application lands in landing_leads/landing_feedback/scholarship_applications -- reuse the existing Resend pattern (RESEND_API_KEY/ADMIN_ALERT_EMAIL, same as gemini-proxy-worker.js alertOnce / admin-relay T-076) via a Supabase trigger -> Worker, or a cron poll in admin-relay-worker.js. Right now these 3 tables are only visible by opening admin.html's Landing tab -- nobody is told a submission arrived.
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
