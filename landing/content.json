@@ -25,11 +25,11 @@
   "nav": {
     "links": [
       [
-        "How it works",
-        "#how"
+        "Why Clar",
+        "#why"
       ],
       [
-        "Inside Clar",
+        "What's inside",
         "#inside"
       ],
       [
@@ -75,27 +75,6 @@
       "So who is deciding where your attention goes?"
     ],
     "turn": "Scrolling is easy. Becoming asks for a different kind of minute."
-  },
-  "shift": {
-    "title": "A minute here is a minute you chose.",
-    "sub": "Clar is not another feed. It is a quiet place built around one thing: what you want, and who you are becoming.",
-    "cards": [
-      {
-        "icon": "◎",
-        "title": "One point of focus",
-        "text": "Hold your single desire steady, whatever is happening around you."
-      },
-      {
-        "icon": "✦",
-        "title": "A friend who listens first",
-        "text": "Clar asks the right question before it offers any answer."
-      },
-      {
-        "icon": "↗",
-        "title": "Small, daily, real",
-        "text": "Every practice fits inside two minutes. That is the whole point."
-      }
-    ]
   },
   "for_you": {
     "title": "Whoever you are right now, Clar meets you there.",
@@ -227,79 +206,13 @@
       }
     ]
   },
-  "inside": {
-    "title": "A tool for every moment.",
-    "sub": "Real screens from the app. The example conversation and guide post are illustrative.",
-    "items": [
-      {
-        "moment": "When you need to talk it out",
-        "img": "img/app-chat.jpg",
-        "title": "Clar AI",
-        "line": "A friend who listens first.",
-        "text": "Warm, brief and personal. Clar remembers your week, asks the right question, and knows when you simply need to take a break."
-      },
-      {
-        "moment": "When you want content made for you",
-        "mock": "guide",
-        "title": "Guides",
-        "line": "Fresh ideas on what you want to grow in.",
-        "text": "Choose what you want to be guided in. Your guides bring a steady stream of relevant ideas, with their sources always shown."
-      },
-      {
-        "moment": "Before the moments that matter",
-        "img": "img/app-chargers.jpg",
-        "title": "Chargers",
-        "line": "Prepare for your biggest day.",
-        "text": "Short bursts to build confidence and courage before the conversation, the exam or the pitch."
-      },
-      {
-        "moment": "When your mind will not shift",
-        "img": "img/app-tools.jpg",
-        "title": "Tools",
-        "line": "Change your state, fast.",
-        "text": "Simple exercises built to help you shift your mindset and feelings when you cannot think your way out."
-      },
-      {
-        "moment": "When you start to drift",
-        "img": "img/app-goal.jpg",
-        "title": "Goals and vision",
-        "line": "Keep the one thing in view.",
-        "text": "Write your dream life, add images, and let Clar bring matching videos and quotes."
-      },
-      {
-        "moment": "When you want good company",
-        "img": "img/app-vibe.jpg",
-        "title": "Feed and Community",
-        "line": "Grow with people who cheer.",
-        "text": "A feed made for growth, and a community where you follow, share and support each other."
-      },
-      {
-        "moment": "When you want to see it working",
-        "title": "Fortune and progress",
-        "line": "See your own pattern.",
-        "text": "Charts that show how you really spend your days, and how your streak is building.",
-        "mock": "progress"
-      },
-      {
-        "moment": "When you need the basics",
-        "img": "img/app-home.jpg",
-        "title": "Non-Negotiables and Self",
-        "line": "The small things that hold everything up.",
-        "text": "A short daily list, plus stillness practices like Peak State and Non-Doing."
-      }
-    ],
-    "more": [
-      "Daily words from sources you choose",
-      "Short bursts to shift your state",
-      "People who cheer for each other"
-    ]
-  },
   "earn": {
-    "title": "Use Clar daily. Pay less.",
+    "title": "Show up steadily. Pay less.",
     "sub": "Your steady days earn XP. XP lowers your plan price. XP is never sold, and never taken away.",
     "slider_label": "XP you earn in a month",
     "note": "Up to 250 XP count per day, so steady days matter more than one big day. Your target adjusts as you grow.",
-    "invite": "Inviting a friend who becomes a regular earns you XP too."
+    "invite": "Inviting a friend who becomes a regular earns you XP too.",
+    "kicker": "One more thing"
   },
   "plans_section": {
     "title": "Start free. Grow when you want more.",
@@ -429,6 +342,175 @@
         "icon": "∞",
         "t": "Stillness",
         "d": "Make room to hear your own answers."
+      }
+    ]
+  },
+  "intro": {
+    "kicker": "Meet Clar",
+    "title": "Clarity, in three parts.",
+    "words": [
+      "Talk.",
+      "Practice.",
+      "Grow together."
+    ],
+    "sub": "One app. No clutter. Everything built around the person you are becoming."
+  },
+  "features": {
+    "title": "Everything, built around you.",
+    "sub": "Real screens from the app. People, posts and the example conversation are illustrative.",
+    "groups": {
+      "talk": "Talk",
+      "practice": "Practice",
+      "together": "Grow together",
+      "see": "See yourself"
+    },
+    "items": [
+      {
+        "group": "talk",
+        "moment": "When you need to talk it out",
+        "title": "A friend who listens first.",
+        "text": "Say what is on your mind, the way you would to someone who is fully on your side. Clar asks the right question, remembers your week, and knows when you simply need to take a break.",
+        "chips": [
+          "Four voices: best friend, wise guide, coach, nurturer",
+          "Remembers your week",
+          "Never lectures"
+        ],
+        "img": "img/app-chat.jpg",
+        "alt": "Clar AI chat"
+      },
+      {
+        "group": "practice",
+        "moment": "When you want a good scroll",
+        "title": "Scroll with a purpose.",
+        "text": "An endless feed that is actually good for you: short videos picked for your goals, quotes on real photography, and two-minute practices that fit between everything else.",
+        "chips": [
+          "Videos matched to what you want",
+          "Quotes with real attribution",
+          "Every card under two minutes"
+        ],
+        "img": "img/app-vibe.jpg",
+        "alt": "Vibe feed"
+      },
+      {
+        "group": "practice",
+        "moment": "Before the moments that matter",
+        "title": "Change your state, fast.",
+        "text": "Write your way into confidence with a Charger. Reset with a quick mental or physical Tool matched to how you feel. Built to help you shift in minutes, not days.",
+        "chips": [
+          "Confidence, calm, courage and more",
+          "Mental and physical resets",
+          "Matched to your mood"
+        ],
+        "img": "img/app-tools.jpg",
+        "alt": "Tools"
+      },
+      {
+        "group": "practice",
+        "moment": "When you want to go deeper",
+        "title": "Stillness, on demand.",
+        "text": "Peak State, Non-Doing, Walk and Talk, True View, Pure Abundance. And your Non-Negotiables: the few things in your day that never move.",
+        "chips": [
+          "Non-Doing Timer",
+          "Walk and Talk",
+          "Peak State",
+          "True View Chart"
+        ],
+        "img": "img/app-self.jpg",
+        "alt": "Self practices"
+      },
+      {
+        "group": "practice",
+        "moment": "When you start to drift",
+        "title": "Your new story, in full colour.",
+        "text": "Write the life you are building in vivid detail. Add images. Clar brings videos and quotes about the exact things you name. Reach a goal, and share the win.",
+        "chips": [
+          "Vision images",
+          "Goal-matched videos",
+          "Share your achievements",
+          "New Story Zone, one tap away"
+        ],
+        "img": "img/app-goal.jpg",
+        "alt": "Goals and vision"
+      },
+      {
+        "group": "together",
+        "moment": "When you want good company",
+        "title": "Grow with people who cheer.",
+        "text": "Share a win, a thought or a photo. Follow people who inspire you. Every post meets cheers, not comparison.",
+        "chips": [
+          "Stories and posts",
+          "Photos and short videos",
+          "Cheers and comments",
+          "You choose what is public"
+        ],
+        "img": "img/app-feed.jpg",
+        "alt": "Community feed"
+      },
+      {
+        "group": "together",
+        "moment": "When you want something new",
+        "title": "Find your people. Find your videos.",
+        "text": "A calm explore page: search by interest or @name, and an endless grid of videos picked from your own interests.",
+        "chips": [
+          "Search by interest or @name",
+          "Videos from your own topics"
+        ],
+        "img": "img/app-discover.jpg",
+        "alt": "Discover"
+      },
+      {
+        "group": "together",
+        "moment": "When you want a friendly push",
+        "title": "A friendly race. Reset every Monday.",
+        "text": "Every week you join a small league of people at your level. Earn XP, cheer each other on, and move up. No stranger messages. No pressure.",
+        "chips": [
+          "Weekly leagues",
+          "Move up in tiers",
+          "Cheer each other"
+        ],
+        "img": "img/app-board.jpg",
+        "alt": "Weekly Board"
+      },
+      {
+        "group": "together",
+        "moment": "When you want ideas made for you",
+        "title": "A stream made for what you want.",
+        "text": "Choose what you want to be guided in. Guides bring fresh ideas with their sources shown, in your language, with a small practice inside. Or make your own guide from a single sentence.",
+        "chips": [
+          "English · हिन्दी · Hinglish · मराठी",
+          "தமிழ் · తెలుగు · বাংলা · ગુજરાતી",
+          "Sources always shown",
+          "Make your own guide"
+        ],
+        "img": "img/app-guides.jpg",
+        "alt": "Guides"
+      },
+      {
+        "group": "see",
+        "moment": "When you want to see it working",
+        "title": "Your mirror, not a prediction.",
+        "text": "An honest reading of where you are right now, a pattern map of your balance, and charts of your own history. Use it to see your present more clearly.",
+        "chips": [
+          "Reading",
+          "Pattern map",
+          "Weekly Pulse",
+          "Your insights"
+        ],
+        "mock": "progress",
+        "alt": "Progress"
+      },
+      {
+        "group": "see",
+        "moment": "When you want the whole picture",
+        "title": "Your story so far.",
+        "text": "XP, streak, badges and your plan, in one glance. You decide what others can see, and you can invite a friend and earn XP.",
+        "chips": [
+          "Badges and streak",
+          "Privacy board",
+          "Invite a friend, earn XP"
+        ],
+        "img": "img/app-you.jpg",
+        "alt": "Your profile"
       }
     ]
   }
