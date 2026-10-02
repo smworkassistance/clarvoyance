@@ -1,0 +1,109 @@
+{
+  "_readme": "Single source of truth for pricing. Read by the landing page (landing/index.html) and the in-app My Plan card. Later the same shape lives in the Supabase `plans` table (db/schema_v260_plans.sql) so the owner can edit it from admin without a deploy. Change numbers HERE (or in the table), never in code. A limit of null = unlimited, 0 = not included. To add a plan, a limit or a feature: add it here; the UI renders whatever it finds.",
+  "version": 1,
+  "product": "clar",
+  "currency": "INR",
+  "billing": { "period": "month", "payment_providers": ["razorpay"], "cancel_anytime": true },
+  "xp_discount": {
+    "_note": "Discount = cap% x price x min(1, eligible_xp / target_xp). eligible_xp = XP earned in the billing month, counting at most daily_cap per day (so reaching the target needs steady days, not one binge). target_xp ratchets up with the person's own usage: next = clamp(avg of last window months of eligible XP x ratchet, base_target, max_target). XP is never sold for cash and is never spent: level and streak are not reduced by a discount.",
+    "daily_cap": 250,
+    "base_target": 5000,
+    "ratchet": 1.15,
+    "ratchet_window_months": 2,
+    "max_target": 7000,
+    "earn_sources": ["vibe_cards", "chargers_tools", "non_negotiables", "goal_work", "self_practices", "clar_conversation", "community_support", "invites"],
+    "invite": { "_note": "inviter XP is credited only after the invitee signed in with Google and was engaged on 3 days; monthly cap applies (server-side, already built in v250)", "xp_each": 100, "min_engaged_days": 3 }
+  },
+  "plans": [
+    {
+      "id": "free",
+      "name": "Free",
+      "tagline": "Everything that builds the daily habit",
+      "price_monthly": 0,
+      "xp_discount_cap_pct": 0,
+      "badge": null,
+      "limits": {
+        "clar_chat_per_day": 8,
+        "fortune_progress_charts": 2,
+        "goal_images": 5,
+        "universal_guides": 2,
+        "private_guides": 0,
+        "private_guide_posts_per_week": 0,
+        "ai_fortune_reading": false,
+        "ai_pulse_reflection": false
+      },
+      "features": [
+        "Vibe feed with videos, quotes and photo cards",
+        "Chargers and Tools",
+        "Non-Negotiables",
+        "Goals with 5 vision images",
+        "Self practices",
+        "Community: follow, share, cheer",
+        "Clar AI: 8 messages a day",
+        "2 progress charts",
+        "2 universal guides"
+      ]
+    },
+    {
+      "id": "plus",
+      "name": "Plus",
+      "tagline": "More of Clar, every day",
+      "price_monthly": 99,
+      "xp_discount_cap_pct": 50,
+      "badge": "Most popular",
+      "limits": {
+        "clar_chat_per_day": 20,
+        "fortune_progress_charts": null,
+        "goal_images": 8,
+        "universal_guides": 4,
+        "private_guides": 3,
+        "private_guide_posts_per_week": 3,
+        "ai_fortune_reading": false,
+        "ai_pulse_reflection": false
+      },
+      "features": [
+        "Everything in Free",
+        "Clar AI: 20 messages a day",
+        "All progress charts (Fortune, Pulse numbers)",
+        "Goals with 8 vision images",
+        "4 universal guides",
+        "3 guides made just for you"
+      ]
+    },
+    {
+      "id": "pro",
+      "name": "Pro",
+      "tagline": "Clar reads your progress and guides you",
+      "price_monthly": 199,
+      "xp_discount_cap_pct": 25,
+      "badge": "Everything",
+      "limits": {
+        "clar_chat_per_day": 60,
+        "fortune_progress_charts": null,
+        "goal_images": 12,
+        "universal_guides": 8,
+        "private_guides": 5,
+        "private_guide_posts_per_week": 3,
+        "ai_fortune_reading": true,
+        "ai_pulse_reflection": true
+      },
+      "features": [
+        "Everything in Plus",
+        "Clar AI: 60 messages a day",
+        "Fortune report card with AI suggestions on your progress",
+        "Weekly AI reflection (Pulse)",
+        "Goals with 12 vision images",
+        "8 universal guides",
+        "5 guides made just for you",
+        "Early access to new features"
+      ]
+    }
+  ],
+  "limit_labels": {
+    "clar_chat_per_day": "Clar AI messages today",
+    "goal_images": "Goal vision images",
+    "universal_guides": "Universal guides followed",
+    "private_guides": "Your own guides"
+  },
+  "upcoming": ["AI-made chargers and manifestation feed", "Audio: audiobooks and podcasts", "Your book library"]
+}

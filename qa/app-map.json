@@ -54,6 +54,8 @@
     "admin_insights",
     "rest/v1/clar_reels",
     "rpc/league_",
+    "rpc/my_plan",
+    "rest/v1/plan_waitlist",
     "rest/v1/user_notifications",
     "usage_correlation_me",
     "auth/v1/signup",

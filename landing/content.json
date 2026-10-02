@@ -1,0 +1,435 @@
+{
+  "_readme": "ALL landing-page words and brand tokens live here. landing/index.html is a generic renderer: for a new app, copy this folder, replace this file + pricing/plans.json + the images, done. Copy rules: no guaranteed outcomes, no invented numbers or testimonials, no competitor names, plain words, feeling before mechanism. Marketing principles used: StoryBrand (the visitor is the hero, Clar the guide), Schwartz awareness stages (start from the feeling they already have), Cialdini (reciprocity = free plan, commitment = 'one minute', unity, honest authority), Hormozi value equation (clear outcome, low effort, fast first win), Ogilvy/Sugarman (one big idea, slippery-slide short lines), risk reversal (free, no card, cancel anytime, delete your data yourself).",
+  "brand": {
+    "name": "Clar",
+    "domain": "clar.co.in",
+    "tagline": "clarity for the becoming",
+    "app_url": "https://clar.co.in/",
+    "logo": "../clar-logo.jpg.jpg",
+    "accent": "#2E8B57",
+    "accent_light": "#72C293",
+    "accent_dark": "#1A6640",
+    "ink_dark": "#0B1F17",
+    "paper": "#F7F5EF",
+    "gold": "#D9B26D",
+    "fonts": {
+      "display": "'Cormorant Garamond', serif",
+      "ui": "'Inter Tight', -apple-system, 'SF Pro Text', sans-serif"
+    },
+    "contact": {
+      "instagram": "https://instagram.com/beyond._thought",
+      "instagram_handle": "@beyond._thought",
+      "privacy": "../privacy.html"
+    }
+  },
+  "nav": {
+    "links": [
+      [
+        "How it works",
+        "#how"
+      ],
+      [
+        "Inside Clar",
+        "#inside"
+      ],
+      [
+        "Plans",
+        "#plans"
+      ],
+      [
+        "Questions",
+        "#faq"
+      ]
+    ],
+    "cta": "Start free"
+  },
+  "hero": {
+    "eyebrow": "A companion for the person you are becoming",
+    "title_lines": [
+      "You were born with",
+      "more than you remember."
+    ],
+    "title_emphasis": "more than you remember.",
+    "sub": "The world is speeding up. The people who keep pace are not the loudest or the busiest. They are the clearest. Clar helps you hear your own mind again, one small minute at a time.",
+    "cta_primary": "Start free",
+    "cta_secondary": "See how it works",
+    "micro": [
+      "Free plan, forever",
+      "No card needed",
+      "Delete your data any time"
+    ],
+    "chips": [
+      "Clar AI",
+      "Vibe feed",
+      "Chargers",
+      "Goals",
+      "Guides",
+      "Community"
+    ]
+  },
+  "pull": {
+    "lines": [
+      "Everything is getting faster.",
+      "AI writes, draws and answers in seconds.",
+      "Your feed is built to keep you scrolling.",
+      "So who is deciding where your attention goes?"
+    ],
+    "turn": "Scrolling is easy. Becoming asks for a different kind of minute."
+  },
+  "shift": {
+    "title": "A minute here is a minute you chose.",
+    "sub": "Clar is not another feed. It is a quiet place built around one thing: what you want, and who you are becoming.",
+    "cards": [
+      {
+        "icon": "◎",
+        "title": "One point of focus",
+        "text": "Hold your single desire steady, whatever is happening around you."
+      },
+      {
+        "icon": "✦",
+        "title": "A friend who listens first",
+        "text": "Clar asks the right question before it offers any answer."
+      },
+      {
+        "icon": "↗",
+        "title": "Small, daily, real",
+        "text": "Every practice fits inside two minutes. That is the whole point."
+      }
+    ]
+  },
+  "for_you": {
+    "title": "Whoever you are right now, Clar meets you there.",
+    "sub": "Pick the one that sounds like your week.",
+    "tabs": [
+      {
+        "id": "pressure",
+        "label": "Under pressure",
+        "headline": "Life is moving fast and you are carrying a lot.",
+        "text": "Hurry, worry and tension pile up quietly. Clar gives you two calm minutes a day to put the weight down, hear yourself think and take one small step.",
+        "points": [
+          "A place to say it out loud, without being judged",
+          "Short practices to settle your mind",
+          "One next step, not twenty"
+        ]
+      },
+      {
+        "id": "alone",
+        "label": "Building alone",
+        "headline": "You have big things to do and nobody cheering.",
+        "text": "Not everyone has a mentor, a team or a family that understands the dream. Clar is a steady companion, and the Community is people who cheer for each other.",
+        "points": [
+          "A daily check-in that keeps you honest and kind",
+          "Your goal and vision always in front of you",
+          "People who cheer, not compete"
+        ]
+      },
+      {
+        "id": "student",
+        "label": "Students",
+        "headline": "You want better grades. You need better focus first.",
+        "text": "Better marks start with better focus. Clar helps you point your mind at one thing, calm exam nerves and build a small daily study habit you can actually keep.",
+        "points": [
+          "Focus practices that fit between classes",
+          "A streak that rewards showing up",
+          "Goal images to remind you why"
+        ]
+      },
+      {
+        "id": "owner",
+        "label": "Business owners",
+        "headline": "You want results. Clear days make them possible.",
+        "text": "A founder's mind is never quiet. Clar helps you start the day with a clear head, hold your one priority and finish the day without carrying everything home.",
+        "points": [
+          "A two-minute reset before the big decision",
+          "Non-Negotiables that protect your basics",
+          "Progress charts that show how you really spend your days"
+        ]
+      },
+      {
+        "id": "becoming",
+        "label": "Becoming someone new",
+        "headline": "You know you are meant for more.",
+        "text": "A new habit, a new role, a new chapter. Clar keeps you focused on who you are becoming, even on the days it does not feel like it.",
+        "points": [
+          "Daily practices built around your desire",
+          "Videos, quotes and guides matched to your goal",
+          "Your own pattern, shown back to you"
+        ]
+      }
+    ],
+    "foot": "Clar helps you focus and stay consistent. What you build from that is yours."
+  },
+  "hi": {
+    "kicker": "HI beats AI",
+    "title": "Everyone is talking about artificial intelligence. Almost nobody is talking about yours.",
+    "text": "Your intuition, your judgement, your imagination: human intelligence is the part no tool can replace. Clar uses AI as a mirror, so you can hear your own thinking more clearly.",
+    "quiet": "Many traditions name the deeper source of that intelligence in different ways. Clar does not ask you to believe anything. It gives you daily practices to turn inward and find out for yourself.",
+    "tags": [
+      "Human Intelligence",
+      "Inner stillness",
+      "Your own answers"
+    ]
+  },
+  "areas": {
+    "title": "Wherever life asks more of you, Clar walks with you.",
+    "sub": "One companion for almost every part of your life. And the best part: it is free to use.",
+    "items": [
+      {
+        "icon": "♡",
+        "name": "Relationships",
+        "line": "Find your calm and your words before the hard conversation."
+      },
+      {
+        "icon": "✎",
+        "name": "Studies",
+        "line": "Point your mind at one thing and keep a study habit alive."
+      },
+      {
+        "icon": "◆",
+        "name": "Career and business",
+        "line": "Start clear, hold your one priority, close the day lighter."
+      },
+      {
+        "icon": "☀",
+        "name": "Confidence",
+        "line": "Practice the version of you that already believes."
+      },
+      {
+        "icon": "❋",
+        "name": "Health habits",
+        "line": "Small daily wins that stack, tracked kindly."
+      },
+      {
+        "icon": "∞",
+        "name": "Calm and focus",
+        "line": "Quiet the noise and hear yourself again."
+      }
+    ],
+    "foot": "Clar helps you reflect, focus and practice. The change you make is yours."
+  },
+  "how": {
+    "title": "Three steps. Two minutes.",
+    "steps": [
+      {
+        "n": "1",
+        "title": "Check in",
+        "text": "Tell Clar how today feels. No forms, just a conversation."
+      },
+      {
+        "n": "2",
+        "title": "Take one small step",
+        "text": "A minute-long practice, chosen for where you are right now."
+      },
+      {
+        "n": "3",
+        "title": "Watch yourself move",
+        "text": "Streaks, XP and progress charts that show your own pattern."
+      }
+    ]
+  },
+  "inside": {
+    "title": "A tool for every moment.",
+    "sub": "Real screens from the app. The example conversation and guide post are illustrative.",
+    "items": [
+      {
+        "moment": "When you need to talk it out",
+        "img": "img/app-chat.jpg",
+        "title": "Clar AI",
+        "line": "A friend who listens first.",
+        "text": "Warm, brief and personal. Clar remembers your week, asks the right question, and knows when you simply need to take a break."
+      },
+      {
+        "moment": "When you want content made for you",
+        "mock": "guide",
+        "title": "Guides",
+        "line": "Fresh ideas on what you want to grow in.",
+        "text": "Choose what you want to be guided in. Your guides bring a steady stream of relevant ideas, with their sources always shown."
+      },
+      {
+        "moment": "Before the moments that matter",
+        "img": "img/app-chargers.jpg",
+        "title": "Chargers",
+        "line": "Prepare for your biggest day.",
+        "text": "Short bursts to build confidence and courage before the conversation, the exam or the pitch."
+      },
+      {
+        "moment": "When your mind will not shift",
+        "img": "img/app-tools.jpg",
+        "title": "Tools",
+        "line": "Change your state, fast.",
+        "text": "Simple exercises built to help you shift your mindset and feelings when you cannot think your way out."
+      },
+      {
+        "moment": "When you start to drift",
+        "img": "img/app-goal.jpg",
+        "title": "Goals and vision",
+        "line": "Keep the one thing in view.",
+        "text": "Write your dream life, add images, and let Clar bring matching videos and quotes."
+      },
+      {
+        "moment": "When you want good company",
+        "img": "img/app-vibe.jpg",
+        "title": "Feed and Community",
+        "line": "Grow with people who cheer.",
+        "text": "A feed made for growth, and a community where you follow, share and support each other."
+      },
+      {
+        "moment": "When you want to see it working",
+        "title": "Fortune and progress",
+        "line": "See your own pattern.",
+        "text": "Charts that show how you really spend your days, and how your streak is building.",
+        "mock": "progress"
+      },
+      {
+        "moment": "When you need the basics",
+        "img": "img/app-home.jpg",
+        "title": "Non-Negotiables and Self",
+        "line": "The small things that hold everything up.",
+        "text": "A short daily list, plus stillness practices like Peak State and Non-Doing."
+      }
+    ],
+    "more": [
+      "Daily words from sources you choose",
+      "Short bursts to shift your state",
+      "People who cheer for each other"
+    ]
+  },
+  "earn": {
+    "title": "Use Clar daily. Pay less.",
+    "sub": "Your steady days earn XP. XP lowers your plan price. XP is never sold, and never taken away.",
+    "slider_label": "XP you earn in a month",
+    "note": "Up to 250 XP count per day, so steady days matter more than one big day. Your target adjusts as you grow.",
+    "invite": "Inviting a friend who becomes a regular earns you XP too."
+  },
+  "plans_section": {
+    "title": "Start free. Grow when you want more.",
+    "sub": "Everything that builds the daily habit is free. Paid plans add more Clar.",
+    "cta_free": "Start free",
+    "cta_paid": "Join the Plus list",
+    "cta_paid_pro": "Join the Pro list",
+    "soon": "Paid plans open soon. Join the list and we will email you the day they do.",
+    "upcoming_label": "Coming next",
+    "waitlist_placeholder": "your@email.com",
+    "waitlist_button": "Notify me",
+    "waitlist_done": "Thank you. We will email you the day plans open."
+  },
+  "honest": {
+    "title": "What Clar is not.",
+    "items": [
+      "Not therapy and not medical advice.",
+      "Not a promise of results. Results come from you showing up.",
+      "Not a feed designed to keep you hooked.",
+      "Not selling your attention. Ever."
+    ],
+    "close": "It is a set of daily practices and a thoughtful companion. What you do with it is yours."
+  },
+  "faq": [
+    {
+      "q": "Is Clar free?",
+      "a": "Yes. The free plan has the daily habit tools, a limited number of Clar AI messages each day and the Community. Paid plans add more of everything."
+    },
+    {
+      "q": "Is Clar a therapist?",
+      "a": "No. Clar is a self-development companion, not therapy or medical care. If you are struggling, please speak to a qualified professional."
+    },
+    {
+      "q": "What does Clar do with my data?",
+      "a": "Your data is used to run the app for you. You can delete your account and data yourself, from inside the app, any time. Read the privacy page for details."
+    },
+    {
+      "q": "How does XP lower the price?",
+      "a": "You earn XP by using Clar on steady days. At renewal your XP gives you a discount: up to 50% on Plus and up to 25% on Pro. XP is never spent, so your level and streak stay."
+    },
+    {
+      "q": "Do I need a card to start?",
+      "a": "No. Start free, with no card and no trial clock."
+    },
+    {
+      "q": "Can I cancel?",
+      "a": "Any time. No questions, no tricks."
+    },
+    {
+      "q": "Which devices?",
+      "a": "Clar runs in your browser on any phone or computer, and installs like an app."
+    }
+  ],
+  "final": {
+    "title": "Your potential is not missing. It is waiting.",
+    "sub": "Begin with one minute today.",
+    "cta": "Start free",
+    "quote": "Clarity is not found by trying harder. It is found by getting quieter."
+  },
+  "footer": {
+    "note": "Clar is a self-development app. It is not medical advice or therapy. Results vary from person to person."
+  },
+  "backend": {
+    "_note": "Public anon key (same one the app ships). Only INSERT on plan_waitlist is allowed for anon (db/schema_v260_plans.sql). Set supabase_url to null to turn the waitlist off.",
+    "supabase_url": "https://unvwjuceuyruqdnmvxlc.supabase.co",
+    "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk",
+    "waitlist_table": "plan_waitlist"
+  },
+  "freeband": {
+    "title": "The best part? It is free to use.",
+    "items": [
+      {
+        "big": "₹0",
+        "small": "to start, no card"
+      },
+      {
+        "big": "60 sec",
+        "small": "to your first practice"
+      },
+      {
+        "big": "Yours",
+        "small": "your data, delete it any time"
+      }
+    ]
+  },
+  "contrast": {
+    "title": "Two ways to spend the same minute.",
+    "left": {
+      "label": "A feed built to hold you",
+      "points": [
+        "Designed for time spent",
+        "Decides what you see next",
+        "Leaves the question: where did the hour go?"
+      ]
+    },
+    "right": {
+      "label": "A companion built to free you",
+      "points": [
+        "Designed for time invested",
+        "Starts from what you want",
+        "Ends with one clear next step"
+      ]
+    },
+    "foot": "Every minute you give your attention is a vote for the life you are building. Clar is a place to vote on purpose."
+  },
+  "roots": {
+    "kicker": "What Clar is built on",
+    "title": "Old wisdom. Modern psychology. No hype.",
+    "text": "Clar draws on timeless teachings about attention, desire and inner stillness, and on well-known ideas from psychology: small habits, reframing a story, visualising a goal, practising calm. It never promises an outcome. It gives you the practice.",
+    "pillars": [
+      {
+        "icon": "◎",
+        "t": "Attention",
+        "d": "Train your focus on one thing at a time."
+      },
+      {
+        "icon": "↻",
+        "t": "Reframing",
+        "d": "Look at the same story from a truer angle."
+      },
+      {
+        "icon": "✦",
+        "t": "Visualising",
+        "d": "Keep what you want clearly in view."
+      },
+      {
+        "icon": "∞",
+        "t": "Stillness",
+        "d": "Make room to hear your own answers."
+      }
+    ]
+  }
+}

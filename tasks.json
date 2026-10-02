@@ -2083,11 +2083,92 @@
       "batch": null,
       "depends_on": [],
       "verify": false,
-      "result": "",
+      "result": "SPEC DECIDED 2026-10-02 (docs/PRICING.md): Free forever + Plus 99 (50% XP cap) + Pro 199 (25% cap); NO trial; limits 5/8/12 images, 2/4/8 universal guides, 0/3/5 own guides, chat 8/20/60; v260 candidate has My Plan + upsell (enforcement OFF); landing/ built. Remaining: owner review, run schema_v260, T-100/T-101 before enforcing",
       "completed": null,
       "history": [
         {
           "at": "2026-10-01T22:08:01.246Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-01T23:58:40.911Z",
+          "status": "DISCUSS",
+          "note": "SPEC DECIDED 2026-10-02 (docs/PRICING.md): Free forever + Plus 99 (50% XP cap) + Pro 199 (25% cap); NO trial; limits 5/8/12 images, 2/4/8 universal guides, 0/3/5 own guides, chat 8/20/60; v260 candidate has My Plan + upsell (enforcement OFF); landing/ built. Remaining: owner review, run schema_v260, T-100/T-101 before enforcing"
+        }
+      ]
+    },
+    {
+      "id": "T-103",
+      "title": "Community XP: capped daily XP for post, cheer, follow, comment, supporting others (counts toward the XP discount; server-validated, anti-abuse)",
+      "added": "2026-10-01T23:58:40.392Z",
+      "done_when": "XP awarded for community actions within the 250/day eligible cap; no farming via fake accounts",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T23:58:40.393Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-104",
+      "title": "Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/practice/report) with its earlier posts; pauses otherwise, resumes on any interaction; 3 posts/week cap; Batch API + cheaper model",
+      "added": "2026-10-01T23:58:40.587Z",
+      "done_when": "guidesTick skips idle private guides; verified with recorded-feed test",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T23:58:40.588Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-105",
+      "title": "Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing), analytics events (ref=landing, for=audience), run db/schema_v260_plans.sql for the waitlist",
+      "added": "2026-10-01T23:58:40.673Z",
+      "done_when": "landing live, waitlist rows arriving, CTA attribution visible in analytics",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T23:58:40.675Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-106",
+      "title": "Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_url set in pricing/plans.json, admin Subscriptions tab (admin_subscription_overview), renewal and XP-discount applied at charge time",
+      "added": "2026-10-01T23:58:40.769Z",
+      "done_when": "a real test payment upgrades a test account; webhook retried safely; staff can see status",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-01T23:58:40.771Z",
           "status": "DISCUSS",
           "note": "created"
         }
