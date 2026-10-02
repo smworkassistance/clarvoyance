@@ -2484,6 +2484,9 @@ html[data-theme="dark"] .chat-msgs{
     <!-- ── Identity pane ── -->
     <div class="prof-tab-pane active" id="pane-identity">
 
+      <!-- v260: My Plan — one-glance usage bars + plan -->
+      <div class="pl-card" id="plan-card"></div>
+
       <!-- Account / Sync card — top of Identity pane -->
       <div class="prof-account-card">
         <!-- Signed-out state -->
@@ -2678,7 +2681,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v259</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v260</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -4213,6 +4216,7 @@ function trigUpload(target){const fi=document.getElementById('file-inp');fi.data
 function handleUpload(ev){
   const target=document.getElementById('file-inp').dataset.target;
   const files=Array.from(ev.target.files);if(!files.length)return;
+  if(target==='vision'&&window.clvGate){const _g=window.clvGate('goal_images',{adding:files.length});if(!_g.allowed){window.clvUpsell&&window.clvUpsell('goal_images',_g);ev.target.value='';return;}} /* v260 */
   const proc=f=>new Promise(res=>{
     if(f.size>5*1024*1024){alert(f.name+' too large (max 5MB).');res(null);return;}
     const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(f);
@@ -18154,7 +18158,8 @@ body.home-tab #nn-tab-section{order:2;}
     var gate=_usageGate('clar_chat');
     if(!gate.allowed){
       input.value='';input.style.height='auto';
-      _addBubble('assistant','You\'ve reached today\'s free limit ('+gate.limit+' messages) — come back tomorrow, or upgrade for unlimited access to Clar.');
+      _addBubble('assistant','You\'ve reached today\'s limit ('+gate.limit+' messages). It refreshes tomorrow.');
+      if(window.clvUpsell)window.clvUpsell('chat',{limit:gate.limit}); /* v260 */
       return;
     }
     _logUsage('clar_chat');
@@ -22713,6 +22718,7 @@ textarea.soc-in{resize:none;min-height:74px}
   function _freshActs(){
   ACT['sug-open']=function(el){if(window._exvOpen&&S._sugVids)window._exvOpen(S._sugVids,+el.getAttribute('data-i'),'For you');};
   ACT['sg-follow']=async function(el){
+    if(window.clvGate){var _g=window.clvGate('universal_guides');if(!_g.allowed){window.clvUpsell&&window.clvUpsell('universal_guides',_g);return;}} /* v260 */
     var id=el.getAttribute('data-id');el.disabled=true;
     var r=await q('guide_subscriptions').insert({user_id:uid(),guide_id:id,languages:myLangs(),per_day:2});
     if(r.error&&!/duplicate/i.test(r.error.message||'')){el.disabled=false;toast('Couldn’t follow just now');return;}
@@ -24346,7 +24352,8 @@ textarea.soc-in{resize:none;min-height:74px}
     await q('guide_subscriptions').delete().eq('user_id',uid()).eq('guide_id',id);
     G.list=null;G.subs=null;S.feedRows=null;cacheDropFeed();toast('Unfollowed');renderGuidesPage();
   };
-  ACT['g-create']=function(){S.gw=gwNew();S.sub='gcreate';render();};
+  ACT['g-create']=function(){if(window.clvGate){var _g=window.clvGate('private_guides');if(!_g.allowed){window.clvUpsell&&window.clvUpsell('private_guides',_g);return;}} /* v260 */
+    S.gw=gwNew();S.sub='gcreate';render();};
   ACT['gw-pd']=function(el){if(S.gw){var iv=$('gw-int'),cx=$('gw-ctx');if(iv)S.gw.intention=clean(iv.value,300);if(cx)S.gw.context=clean(cx.value,500);S.gw.perDay=+el.getAttribute('data-n');renderCreate();}};
   ACT['gw-next']=function(){gwBlueprint();};
   ACT['gw-edit']=function(){if(S.gw){S.gw.step=1;S.gw.err='';renderCreate();}};
@@ -25791,6 +25798,249 @@ html[data-theme="dark"] .g-img{
 })();
 </script>
 
+
+
+<!-- ═══ v260 PLANS — My Plan dashboard, plan rate chart, upgrade prompts at the point of need ═══════════════════
+     Everything numeric comes from the rate chart (DEFAULT_PLANS below = pricing/plans.json; a fetched copy wins if present).
+     Enforcement is OFF unless feature_flags.plans_enforced is true (or localStorage clv_plans_enforced=1 on a test device), so
+     v260 changes nothing about what anyone can do today: it shows the plan, the usage bars and, when a limit is hit, a kind
+     upgrade sheet. Payment is not wired: paid buttons use plans.billing.checkout_url if set, else join the waitlist. -->
+<style id="v260-css">
+.pl-card{background:color-mix(in srgb,var(--su) 82%,transparent);border:1.5px solid var(--bo);border-radius:20px;padding:18px;box-shadow:var(--sh);margin-bottom:14px;backdrop-filter:blur(14px) saturate(1.3)}
+.pl-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.pl-badge{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;background:var(--acc);color:#fff}
+.pl-badge.free{background:var(--ca);color:var(--sub);border:1px solid var(--bo)}
+.pl-link{background:none;border:0;color:var(--acc);font-weight:700;font-size:.9rem;cursor:pointer;padding:6px 2px}
+.pl-row{margin:12px 0}
+.pl-lab{display:flex;justify-content:space-between;gap:8px;font-size:.88rem;color:var(--sub);font-weight:600;margin-bottom:6px}
+.pl-lab b{color:var(--tx)}
+.pl-bar{height:11px;border-radius:999px;background:color-mix(in srgb,var(--tx) 9%,transparent);overflow:hidden}
+.pl-bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--acc),var(--gold-bright,#C2E8D2));transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.pl-bar i.warn{background:linear-gradient(90deg,#E0B050,#F2C970)}
+.pl-bar i.full{background:linear-gradient(90deg,#E58A4D,#F2A65A)}
+.pl-bar.xp i{background:linear-gradient(90deg,var(--acc),#D9B26D)}
+.pl-hint{font-size:.84rem;color:var(--lt);margin-top:6px}
+.pl-hint b{color:var(--acc)}
+.pl-cta{width:100%;margin-top:6px}
+.pl-ov{position:fixed;inset:0;z-index:10040;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}
+.pl-ov.open{display:block}
+.pl-ovh{position:sticky;top:0;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);padding:14px 16px;display:flex;align-items:center;gap:10px;z-index:2;border-bottom:1px solid var(--bo)}
+.pl-ovh b{font-size:1.1rem}
+.pl-x{width:38px;height:38px;border-radius:50%;border:1px solid var(--bo);background:var(--su);font-size:1.2rem;cursor:pointer}
+.pl-plans{display:grid;gap:14px;padding:16px;max-width:560px;margin:0 auto 40px}
+.pl-p{background:var(--su);border:1.5px solid var(--bo);border-radius:22px;padding:20px;box-shadow:var(--sh);position:relative}
+.pl-p.cur{border-color:var(--acc);box-shadow:0 14px 40px color-mix(in srgb,var(--acc) 22%,transparent)}
+.pl-p h3{font-size:1.25rem;margin-bottom:2px}
+.pl-p .pp{font-size:2rem;font-weight:800;line-height:1.1}.pl-p .pp small{font-size:.9rem;font-weight:600;color:var(--lt)}
+.pl-p .xo{font-size:.84rem;color:var(--acc);font-weight:700;margin:4px 0 10px}
+.pl-p ul{list-style:none;display:grid;gap:7px;margin:10px 0 14px;font-size:.95rem}
+.pl-p li::before{content:"✓ ";color:var(--acc);font-weight:800}
+.pl-p .tag{position:absolute;top:-11px;left:18px;background:var(--acc);color:#fff;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:999px}
+.pl-wl{display:grid;gap:8px;margin-top:6px}
+.pl-wl input{padding:13px 14px;border-radius:12px;border:1.5px solid var(--bo);font:inherit;background:var(--su);color:var(--tx)}
+.pl-msg{font-size:.86rem;color:var(--lt);min-height:1.2em}
+.pl-sheet{position:fixed;left:0;right:0;bottom:0;z-index:10060;background:var(--su);border-radius:26px 26px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -20px 60px rgba(0,0,0,.25);transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-width:560px;margin:0 auto}
+.pl-sheet.open{transform:none}
+.pl-scrim{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.38);opacity:0;pointer-events:none;transition:opacity .3s}
+.pl-scrim.open{opacity:1;pointer-events:auto}
+.pl-sheet h4{font-size:1.2rem;margin-bottom:6px}
+.pl-sheet p{color:var(--sub);font-size:.98rem;margin-bottom:14px}
+.pl-sheet .row{display:grid;gap:8px}
+@media(prefers-reduced-motion:reduce){.pl-bar i,.pl-sheet{transition:none}}
+</style>
+<div class="pl-ov" id="pl-ov" role="dialog" aria-modal="true" aria-label="Plans"><div class="pl-ovh"><button class="pl-x" id="pl-ovx" aria-label="Close">×</button><b>Plans</b></div><div class="pl-plans" id="pl-plans"></div></div>
+<div class="pl-scrim" id="pl-scrim"></div>
+<div class="pl-sheet" id="pl-sheet" role="dialog" aria-modal="true"><h4 id="pl-sh-t"></h4><p id="pl-sh-p"></p><div class="row"><button class="btn pr" id="pl-sh-go">See plans</button><button class="btn" id="pl-sh-no">Not now</button></div></div>
+<script id="v260-plans-js">
+(function(){
+  /* ── the rate chart (same shape as pricing/plans.json; the fetched file overrides this copy) ── */
+  var PLANS={"product":"clar","currency":"INR","billing":{"checkout_url":null},
+   "xp_discount":{"daily_cap":250,"base_target":5000,"ratchet":1.15,"ratchet_window_months":2,"max_target":7000},
+   "plans":[
+    {"id":"free","name":"Free","tagline":"Everything that builds the daily habit","price_monthly":0,"xp_discount_cap_pct":0,"limits":{"clar_chat_per_day":8,"fortune_progress_charts":2,"goal_images":5,"universal_guides":2,"private_guides":0,"ai_fortune_reading":false,"ai_pulse_reflection":false},"features":["Vibe feed, Chargers, Tools, Non-Negotiables, Self, Community","Clar AI: 8 messages a day","2 progress charts","5 goal vision images","2 universal guides"]},
+    {"id":"plus","name":"Plus","tagline":"More of Clar, every day","price_monthly":99,"xp_discount_cap_pct":50,"badge":"Most popular","limits":{"clar_chat_per_day":20,"fortune_progress_charts":null,"goal_images":8,"universal_guides":4,"private_guides":3,"ai_fortune_reading":false,"ai_pulse_reflection":false},"features":["Everything in Free","Clar AI: 20 messages a day","All progress charts","8 goal vision images","4 universal guides","3 guides made just for you"]},
+    {"id":"pro","name":"Pro","tagline":"Clar reads your progress and guides you","price_monthly":199,"xp_discount_cap_pct":25,"badge":"Everything","limits":{"clar_chat_per_day":60,"fortune_progress_charts":null,"goal_images":12,"universal_guides":8,"private_guides":5,"ai_fortune_reading":true,"ai_pulse_reflection":true},"features":["Everything in Plus","Clar AI: 60 messages a day","AI report card and suggestions in Fortune","Weekly AI reflection (Pulse)","12 goal vision images","8 universal guides","5 guides made just for you","Early access to new features"]}
+   ]};
+  var $=function(id){return document.getElementById(id)};
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var inr=function(n){return '₹'+Math.round(n).toLocaleString('en-IN')};
+  var lsGet=function(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
+  var sb=function(){return window._sbShared||null};
+  var uid=function(){return window._sbUid||null};
+  var USE={};            /* cached usage: {goal_images, universal_guides, private_guides, xp:{eligible,target,days}} — gates fail OPEN when unknown */
+  var PLAN_ID='free',ENFORCED=false;
+
+  /* rate chart: try the hosted copy, silently keep the embedded one on any problem */
+  try{fetch('pricing/plans.json',{cache:'no-cache'}).then(function(r){return r.ok?r.json():null}).then(function(j){if(j&&j.plans&&j.plans.length){PLANS=j;draw();}}).catch(function(){});}catch(e){}
+
+  function planById(id){for(var i=0;i<PLANS.plans.length;i++)if(PLANS.plans[i].id===id)return PLANS.plans[i];return PLANS.plans[0];}
+  function limitOf(planId,key){var l=planById(planId).limits;return l&&key in l?l[key]:undefined;}
+  /* lowest plan that gives more than `have` of a limit (null = unlimited) — used to word the prompts */
+  function firstBetter(key,have){for(var i=0;i<PLANS.plans.length;i++){var v=PLANS.plans[i].limits[key];if(v===null||(typeof v==='number'&&v>have)||v===true)return PLANS.plans[i];}return null;}
+
+  /* ── which plan is this person on? (server entitlement my_plan(); free when unknown) ── */
+  function loadPlan(){
+    var ov=lsGet('clv_plan_override','');if(ov){PLAN_ID=ov;return Promise.resolve();}
+    var c=null;try{c=JSON.parse(lsGet('clv_plan_cache','null'));}catch(e){}
+    if(c&&c.uid===uid()&&Date.now()-c.t<3600000){PLAN_ID=c.plan;}
+    var s=sb();if(!s||!s.rpc||!uid())return Promise.resolve();
+    return Promise.resolve(s.rpc('my_plan',{p_product:PLANS.product||'clar'})).then(function(r){
+      var row=r&&r.data&&r.data[0];PLAN_ID=row&&row.plan_id?row.plan_id:'free';
+      try{localStorage.setItem('clv_plan_cache',JSON.stringify({uid:uid(),plan:PLAN_ID,t:Date.now()}));}catch(e){}
+    }).catch(function(){});
+  }
+  function loadFlag(){
+    if(lsGet('clv_plans_enforced','')==='1'){ENFORCED=true;return Promise.resolve();}
+    if(lsGet('clv_plans_enforced','')==='0')return Promise.resolve();
+    var s=sb();if(!s||!s.from)return Promise.resolve();
+    return Promise.resolve(s.from('feature_flags').select('enabled').eq('key','plans_enforced').maybeSingle()).then(function(r){ENFORCED=!!(r&&r.data&&r.data.enabled===true);}).catch(function(){});
+  }
+
+  /* ── XP this month: Σ min(day xp, daily cap), from the engagement log the app already writes ── */
+  function dayXp(row){var o=row&&row.section_xp,t=0;if(o&&typeof o==='object')for(var k in o)t+=+o[k]||0;return t;}
+  function ymd(d){return d.toISOString().slice(0,10);}
+  function loadXp(){
+    var s=sb();if(!s||!s.from||!uid())return Promise.resolve();
+    var cfg=PLANS.xp_discount,now=new Date(),first=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-cfg.ratchet_window_months,1));
+    return Promise.resolve(s.from('user_daily_log').select('date,section_xp').gte('date',ymd(first))).then(function(r){
+      var rows=(r&&r.data)||[],cm=ymd(now).slice(0,7),months={},today=ymd(now),seenToday=false;
+      rows.forEach(function(x){var m=String(x.date).slice(0,7),v=Math.min(cfg.daily_cap,dayXp(x));months[m]=(months[m]||0)+v;if(x.date===today){seenToday=true;}});
+      /* today's live XP (not yet in the log) counts too, never double: use the larger of the two for today */
+      var live=0;try{var o=JSON.parse(lsGet('clv_section_xp_today','{}'));if(o&&o.date===today&&o.xp)for(var k in o.xp)live+=(+o.xp[k]||0);}catch(e){}
+      var logged=0;rows.forEach(function(x){if(x.date===today)logged=Math.min(cfg.daily_cap,dayXp(x));});
+      var liveCapped=Math.min(cfg.daily_cap,live);if(liveCapped>logged)months[cm]=(months[cm]||0)+(liveCapped-logged);
+      var prev=[];for(var i=1;i<=cfg.ratchet_window_months;i++){var d=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-i,1));prev.push(months[ymd(d).slice(0,7)]||0);}
+      var avg=prev.reduce(function(a,b){return a+b},0)/prev.length;
+      var target=Math.min(cfg.max_target,Math.max(cfg.base_target,Math.round(avg*cfg.ratchet/50)*50));
+      USE.xp={eligible:Math.round(months[cm]||0),target:target};
+    }).catch(function(){});
+  }
+  function discountFor(planId){var p=planById(planId),x=USE.xp;if(!x||!p.xp_discount_cap_pct)return 0;return p.price_monthly*(p.xp_discount_cap_pct/100)*Math.min(1,x.eligible/x.target);}
+
+  /* ── other usage (cheap, cached; unknown stays unknown) ── */
+  function loadCounts(){
+    localUse();
+    var s=sb(),u=uid();if(!s||!s.from||!u)return Promise.resolve();
+    return Promise.all([
+      Promise.resolve(s.from('guides').select('id').eq('owner_id',u)).then(function(r){if(r&&r.data)USE.private_guides=r.data.length;}).catch(function(){}),
+      Promise.resolve(s.from('guide_subscriptions').select('guide_id').eq('user_id',u)).then(function(r){if(r&&r.data)USE._subs=r.data.length;}).catch(function(){})
+    ]).then(function(){if(USE._subs!=null)USE.universal_guides=Math.max(0,USE._subs-(USE.private_guides||0));});
+  }
+  function chatUse(){try{var r=JSON.parse(lsGet('clv_usage_clar_chat','{}'));return r.date===new Date().toDateString()?(r.count||0):0;}catch(e){return 0;}}
+  function chatLimit(){ /* what is ACTUALLY enforced today = the admin feature_gates row; the plan number once plans are enforced */
+    if(ENFORCED){var v=limitOf(PLAN_ID,'clar_chat_per_day');return v===undefined?null:v;}
+    var g=(window.SHEETS_DATA&&window.SHEETS_DATA.feature_gates)||[],tier=lsGet('clv_subscription_tier','free');
+    for(var i=0;i<g.length;i++)if(g[i].feature_key==='clar_chat'&&g[i].tier===tier&&g[i].enabled!==false)return g[i].limit_count==null?null:g[i].limit_count;
+    return limitOf(PLAN_ID,'clar_chat_per_day');
+  }
+
+  /* ── the gate every limited feature asks. Fails OPEN (allowed) unless enforcement is on AND the usage is known. ── */
+  window.clvGate=function(key,ctx){
+    if(!ENFORCED)return {allowed:true};
+    var lim=limitOf(PLAN_ID,key);if(lim===undefined||lim===null)return {allowed:true};
+    if(lim===false||lim===0&&key!=='clar_chat_per_day')return {allowed:false,key:key,limit:0,have:USE[key]||0};
+    if(typeof lim==='boolean')return {allowed:lim,key:key,limit:lim};
+    var have=key==='goal_images'?(USE.goal_images||0)+((ctx&&ctx.adding)||1)-1:(USE[key]);
+    if(have==null)return {allowed:true};
+    return {allowed:have<lim,key:key,limit:lim,have:USE[key]};
+  };
+
+  /* ── bars ── */
+  function bar(label,have,lim,hint,xp){
+    var pct=lim===null?8:lim===0?0:Math.min(100,have/lim*100),cls=pct>=100?'full':pct>=80?'warn':'';
+    var right=lim===null?(have+' · unlimited'):(have+' / '+lim);
+    return '<div class="pl-row"><div class="pl-lab"><span>'+esc(label)+'</span><b>'+esc(right)+'</b></div><div class="pl-bar'+(xp?' xp':'')+'"><i class="'+cls+'" data-w="'+pct.toFixed(1)+'"></i></div>'+(hint?'<div class="pl-hint">'+hint+'</div>':'')+'</div>';
+  }
+  function draw(){
+    var el=$('plan-card');if(!el)return;
+    var p=planById(PLAN_ID),h='';
+    h+='<div class="pl-top"><span class="pl-badge '+(p.price_monthly?'':'free')+'">'+esc(p.name)+' plan</span><button class="pl-link" id="pl-see">See plans ›</button></div>';
+    var x=USE.xp;
+    if(x){
+      var next=p.price_monthly?p:planById('plus'),off=discountFor(next.id),hint;
+      hint=next.price_monthly?(off>=1?'<b>'+x.eligible.toLocaleString('en-IN')+' / '+x.target.toLocaleString('en-IN')+' XP</b> this month → <b>'+inr(off)+' off</b> '+esc(next.name)+' ('+inr(next.price_monthly)+')':'Earn XP on steady days to lower the price of '+esc(next.name)+'.'):'';
+      h+=bar('XP this month',x.eligible,x.target,hint,true);
+    }
+    var cl=chatLimit();if(cl!==undefined)h+=bar('Clar messages today',chatUse(),cl,'');
+    var gl=limitOf(PLAN_ID,'goal_images');if(gl!==undefined&&USE.goal_images!=null)h+=bar('Goal vision images',USE.goal_images,gl,'');
+    var ul=limitOf(PLAN_ID,'universal_guides');if(ul!==undefined&&USE.universal_guides!=null)h+=bar('Universal guides',USE.universal_guides,ul,'');
+    var pl=limitOf(PLAN_ID,'private_guides');if(pl&&USE.private_guides!=null)h+=bar('Your own guides',USE.private_guides,pl,'');
+    if(PLAN_ID!=='pro')h+='<button class="btn pr pl-cta" id="pl-up">'+(PLAN_ID==='free'?'See what Plus adds':'See what Pro adds')+'</button>';
+    el.innerHTML=h;
+    var s=$('pl-see');if(s)s.onclick=function(){openPlans();};var u=$('pl-up');if(u)u.onclick=function(){openPlans();};
+    requestAnimationFrame(function(){requestAnimationFrame(function(){el.querySelectorAll('.pl-bar i').forEach(function(i){i.style.width=i.getAttribute('data-w')+'%';});});});
+  }
+  function localUse(){
+    try{USE.goal_images=JSON.parse(lsGet('c9_vis','[]')).length;}catch(e){}
+    /* XP from today's live tracker right away (server history, when it arrives, replaces this) so the bar is never missing */
+    var cfg=PLANS.xp_discount,live=0,today=ymd(new Date());
+    try{var o=JSON.parse(lsGet('clv_section_xp_today','{}'));if(o&&o.date===today&&o.xp)for(var k in o.xp)live+=(+o.xp[k]||0);}catch(e){}
+    if(!USE.xp||USE.xp._local)USE.xp={eligible:Math.min(cfg.daily_cap,Math.round(live)),target:cfg.base_target,_local:true};
+  }
+  /* draw at once from local data, then again when the server numbers arrive; retry while the anonymous session is still starting */
+  function refresh(){localUse();draw();return Promise.all([loadPlan(),loadFlag(),loadXp(),loadCounts()]).then(function(){draw();if(!uid()&&(refresh._n=(refresh._n||0)+1)<8)setTimeout(refresh,1500);});}
+
+  /* ── plans overlay + waitlist ── */
+  function openPlans(){
+    var wrap=$('pl-plans'),h='';
+    PLANS.plans.forEach(function(p){
+      var cur=p.id===PLAN_ID,off=p.price_monthly?discountFor(p.id):0;
+      h+='<div class="pl-p'+(cur?' cur':'')+'">'+(cur?'<span class="tag">Your plan</span>':(p.badge?'<span class="tag"'+(p.badge==='Most popular'?'':' style="background:var(--lt)"')+'>'+esc(p.badge)+'</span>':''))
+       +'<h3>'+esc(p.name)+'</h3><div class="pp">'+(p.price_monthly?inr(p.price_monthly)+'<small> / month</small>':'₹0<small> forever</small>')+'</div>'
+       +(p.xp_discount_cap_pct?'<div class="xo">Up to '+p.xp_discount_cap_pct+'% off with your XP'+(off>=1?' · you are at '+inr(off)+' off now':'')+'</div>':'<div class="xo">&nbsp;</div>')
+       +'<ul>'+p.features.map(function(f){return '<li>'+esc(f)+'</li>'}).join('')+'</ul>'
+       +(p.price_monthly&&!cur?'<button class="btn pr pl-cta" data-pl="'+esc(p.id)+'">'+(PLANS.billing&&PLANS.billing.checkout_url?'Choose '+esc(p.name):'Notify me when '+esc(p.name)+' opens')+'</button>':'')+'</div>';
+    });
+    h+='<div class="pl-wl" id="pl-wl" style="display:none"><div class="pl-msg" id="pl-wlt"></div><input type="email" id="pl-wlm" placeholder="your@email.com" autocomplete="email" aria-label="Email"><button class="btn pr" id="pl-wlg">Notify me</button><div class="pl-msg" id="pl-wlr" aria-live="polite"></div></div>';
+    wrap.innerHTML=h;$('pl-ov').classList.add('open');document.body.style.overflow='hidden';
+    wrap.querySelectorAll('[data-pl]').forEach(function(b){b.onclick=function(){choose(b.getAttribute('data-pl'));};});
+  }
+  function closePlans(){$('pl-ov').classList.remove('open');document.body.style.overflow='';}
+  function choose(id){
+    var cu=PLANS.billing&&PLANS.billing.checkout_url;if(cu){location.href=cu+(cu.indexOf('?')>-1?'&':'?')+'plan='+encodeURIComponent(id);return;}
+    var w=$('pl-wl');w.style.display='grid';w.setAttribute('data-plan',id);
+    var idn={};try{idn=JSON.parse(lsGet('clv_user_identity','{}'));}catch(e){}
+    $('pl-wlm').value=idn.email||'';$('pl-wlt').textContent='Paid plans open soon. We will tell you the day '+planById(id).name+' opens.';$('pl-wlr').textContent='';
+    w.scrollIntoView({behavior:'smooth',block:'center'});
+    $('pl-wlg').onclick=function(){
+      var em=$('pl-wlm').value.trim(),r=$('pl-wlr');if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){r.textContent='Please enter a valid email.';return;}
+      var s=sb();if(!s||!s.from){r.textContent='Not connected right now. Please try again in a moment.';return;}
+      r.textContent='Saving…';
+      Promise.resolve(s.from('plan_waitlist').insert({email:em,plan_id:id,product_id:PLANS.product||'clar',source:'app'})).then(function(x){
+        var e=x&&x.error;if(!e||/duplicate|23505/i.test(e.message||e.code||'')){r.textContent='Thank you. You are on the list.';try{localStorage.setItem('clv_waitlist_'+id,'1');}catch(_){}}
+        else r.textContent='Plans are not open yet. We will announce it here in the app.';
+      }).catch(function(){r.textContent='Plans are not open yet. We will announce it here in the app.';});
+    };
+  }
+
+  /* ── upgrade prompt at the exact moment of need ── */
+  var COPY={
+    chat:function(c){var cur=c.limit,b=firstBetter('clar_chat_per_day',cur);return {t:'You have used today’s '+cur+' messages with Clar',p:'Your messages refresh tomorrow.'+(b?' '+b.name+' gives you '+limitOf(b.id,'clar_chat_per_day')+' a day.':'')};},
+    goal_images:function(c){var b=firstBetter('goal_images',c.limit||0);return {t:'Your vision board is full ('+(c.have!=null?c.have:c.limit)+' of '+c.limit+')',p:'You can swap an image for a new one any time.'+(b?' '+b.name+' holds '+limitOf(b.id,'goal_images')+'.':'')};},
+    universal_guides:function(c){var b=firstBetter('universal_guides',c.limit||0);return {t:'You follow as many guides as your plan allows',p:'Unfollow one to follow another.'+(b?' '+b.name+' lets you follow '+limitOf(b.id,'universal_guides')+'.':'')};},
+    private_guides:function(c){var b=firstBetter('private_guides',c.limit||0);return {t:c.limit?'You have made all your own guides':'Guides made just for you',p:b?b.name+' lets you make '+limitOf(b.id,'private_guides')+' guides about exactly what you want to grow in.':'Guides made around what you want.'};},
+    ai_fortune_reading:function(){var b=firstBetter('ai_fortune_reading',false);return {t:'Your AI report card',p:(b?b.name:'Pro')+' reads your progress and suggests what to do next.'};},
+    ai_pulse_reflection:function(){var b=firstBetter('ai_pulse_reflection',false);return {t:'Your weekly reflection',p:(b?b.name:'Pro')+' writes you a weekly reflection from your own numbers.'};},
+    fortune_progress_charts:function(c){var b=firstBetter('fortune_progress_charts',c.limit||0);return {t:'See every chart',p:(b?b.name:'Plus')+' unlocks all your progress charts.'};}
+  };
+  window.clvUpsell=function(key,ctx){
+    ctx=ctx||{};var f=COPY[key]||COPY.chat,c=f(ctx);
+    $('pl-sh-t').textContent=c.t;$('pl-sh-p').textContent=c.p;
+    var open=function(){$('pl-sheet').classList.add('open');$('pl-scrim').classList.add('open');};
+    var shut=function(){$('pl-sheet').classList.remove('open');$('pl-scrim').classList.remove('open');};
+    $('pl-sh-no').onclick=shut;$('pl-scrim').onclick=shut;$('pl-sh-go').onclick=function(){shut();openPlans();};
+    open();
+  };
+  $('pl-ovx').onclick=closePlans;
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){closePlans();$('pl-sheet').classList.remove('open');$('pl-scrim').classList.remove('open');}});
+
+  /* ── hooks: draw when the Profile tab opens (wrap, never edit) and once after boot ── */
+  function wrapProfile(){var o=window._doOpenProfile;if(typeof o!=='function'||o._v260)return;var w=function(){var r=o.apply(this,arguments);refresh();return r;};w._v260=true;window._doOpenProfile=w;}
+  window.clvPlan=function(){return PLAN_ID;};window.clvRefreshPlan=refresh;
+  window.addEventListener('load',function(){setTimeout(function(){wrapProfile();refresh();},3500);});
+  window.addEventListener('sheetsDataReady',function(){wrapProfile();});
+})();
+</script>
 
 </body>
 </html>
