@@ -6,10 +6,10 @@
     "tagline": "clarity for the becoming",
     "app_url": "https://clar.co.in/",
     "logo": "../clar-logo.jpg.jpg",
-    "accent": "#2E8B57",
-    "accent_light": "#72C293",
-    "accent_dark": "#1A6640",
-    "ink_dark": "#0B1F17",
+    "accent": "#1FA06A",
+    "accent_light": "#5FD6A3",
+    "accent_dark": "#137A52",
+    "ink_dark": "#0E4B3C",
     "paper": "#F7F5EF",
     "gold": "#D9B26D",
     "fonts": {
@@ -357,7 +357,7 @@
   },
   "features": {
     "title": "Everything, built around you.",
-    "sub": "Real screens from the app. People, posts and the example conversation are illustrative.",
+    "sub": "Real screens from the app. People, posts and the example conversation are illustrative; photos are free-to-use images.",
     "groups": {
       "talk": "Talk",
       "practice": "Practice",
@@ -376,7 +376,12 @@
           "Never lectures"
         ],
         "img": "img/app-chat.jpg",
-        "alt": "Clar AI chat"
+        "alt": "Clar AI chat",
+        "floats": [
+          "✦ Remembers your week",
+          "💬 Four voices",
+          "🤍 Never lectures"
+        ]
       },
       {
         "group": "practice",
@@ -389,7 +394,12 @@
           "Every card under two minutes"
         ],
         "img": "img/app-vibe.jpg",
-        "alt": "Vibe feed"
+        "alt": "Vibe feed",
+        "floats": [
+          "🔥 7-day streak",
+          "+8 XP earned",
+          "⏱ Under 2 minutes"
+        ]
       },
       {
         "group": "practice",
@@ -402,7 +412,12 @@
           "Matched to your mood"
         ],
         "img": "img/app-tools.jpg",
-        "alt": "Tools"
+        "alt": "Tools",
+        "floats": [
+          "⚡ Reset in minutes",
+          "🎯 Matched to your mood",
+          "✍️ Write your way in"
+        ]
       },
       {
         "group": "practice",
@@ -416,7 +431,12 @@
           "True View Chart"
         ],
         "img": "img/app-self.jpg",
-        "alt": "Self practices"
+        "alt": "Self practices",
+        "floats": [
+          "🧘 Non-Negotiables",
+          "⏳ Quiet timer",
+          "🚶 Walk and talk"
+        ]
       },
       {
         "group": "practice",
@@ -430,7 +450,12 @@
           "New Story Zone, one tap away"
         ],
         "img": "img/app-goal.jpg",
-        "alt": "Goals and vision"
+        "alt": "Goals and vision",
+        "floats": [
+          "🖼 Vision images",
+          "🎬 Videos for your goal",
+          "🎉 Share the win"
+        ]
       },
       {
         "group": "together",
@@ -444,7 +469,12 @@
           "You choose what is public"
         ],
         "img": "img/app-feed.jpg",
-        "alt": "Community feed"
+        "alt": "Community feed",
+        "floats": [
+          "👏 Cheers, not comparison",
+          "🔒 You choose what is public",
+          "📸 Photos and clips"
+        ]
       },
       {
         "group": "together",
@@ -456,7 +486,12 @@
           "Videos from your own topics"
         ],
         "img": "img/app-discover.jpg",
-        "alt": "Discover"
+        "alt": "Discover",
+        "floats": [
+          "🔎 Search @name",
+          "🎥 Videos from your interests",
+          "✨ Always something new"
+        ]
       },
       {
         "group": "together",
@@ -469,7 +504,12 @@
           "Cheer each other"
         ],
         "img": "img/app-board.jpg",
-        "alt": "Weekly Board"
+        "alt": "Weekly Board",
+        "floats": [
+          "🏆 Weekly league",
+          "+120 XP this week",
+          "🔁 Resets every Monday"
+        ]
       },
       {
         "group": "together",
@@ -483,7 +523,12 @@
           "Make your own guide"
         ],
         "img": "img/app-guides.jpg",
-        "alt": "Guides"
+        "alt": "Guides",
+        "floats": [
+          "🌐 8 languages",
+          "📎 Sources always shown",
+          "✏️ Make your own guide"
+        ]
       },
       {
         "group": "see",
@@ -497,7 +542,12 @@
           "Your insights"
         ],
         "mock": "progress",
-        "alt": "Progress"
+        "alt": "Progress",
+        "floats": [
+          "📈 Daily performance",
+          "🔥 7-day streak",
+          "🎯 Pattern map"
+        ]
       },
       {
         "group": "see",
@@ -510,7 +560,12 @@
           "Invite a friend, earn XP"
         ],
         "img": "img/app-you.jpg",
-        "alt": "Your profile"
+        "alt": "Your profile",
+        "floats": [
+          "🏅 Badges",
+          "+100 XP for an invite",
+          "🔒 Privacy board"
+        ]
       }
     ]
   }
