@@ -59,8 +59,12 @@ Owner's lines used or adapted: "born with more than you remember", "Spend it on 
 
 **On the AI / HI / UI idea.** Keep **HI ("Human Intelligence")** — it is a strong, positive reframe and sits next to AI instead of fighting it (one section, not the headline). Keep the "universal intelligence" idea **only as the quiet second paragraph** ("many traditions name it differently; Clar asks you to believe nothing"), spelled out — not the abbreviation "UI", which reads as user interface. Do not name competitors or specific authors (implied endorsement, legal). Do not state "every minute on Clar is an investment" as fact; the page says "a minute you chose".
 
+### Landing structure (v2, keynote)
+Enemy (distraction, contrast) → **one idea in three words: Talk. Practice. Grow together.** → scrollytelling showcase (sticky phone; 11 feature blocks, each = moment + one-line headline + 2-line benefit + proof chips) grouped Talk / Practice / Grow together / See yourself → audience tabs → life areas → HI → roots → how → *One more thing* (XP lowers the price) → plans → honest → FAQ → final. Guides' 8 languages are real (English, Hindi, Hinglish, Marathi, Tamil, Telugu, Bengali, Gujarati); **Clar's chat replies are English only today** — the page does not claim otherwise.
+Screenshots: `landing/img/*.jpg`, produced by `scratchpad` scripts that boot the app with the QA harness + `qa/tests/community-mock.js` (invented people/posts, generated images). Re-shoot after big UI changes.
+
 ## 8. Build order
-1. v260 (this candidate): plans config + My Plan dashboard + upsell sheet (enforcement OFF) — `clarvoyance_v260.html`.
+1. **v260 LIVE (2026-10-02)**: plans config + My Plan dashboard + upsell sheet (enforcement OFF) — verified 93/93 and live-checked.
 2. Owner: run `db/schema_v260_plans.sql`; host the landing (`landing/`); decide the public URL (clar.co.in root vs `/landing`).
 3. T-100 server-side XP ledger → T-101 entitlements enforced in the Gemini proxy and limits → turn `plans_enforced` on.
 4. Razorpay account (KYC) + webhook Worker → paid buttons live → admin subscription tab.
