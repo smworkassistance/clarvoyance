@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v255-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v256-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -1165,6 +1165,29 @@ const ACTIONS = {
   async 'video_seed_topics.delete'(env, p) {
     if (!p.id) throw new Error('id required');
     return sbFetch(env, 'video_seed_topics?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' });
+  },
+
+  /* v261 (landing page v4): read-only views onto the 3 public landing-page submission tables
+     (db/schema_v261_landing_pages.sql) — anon can only INSERT into these, so this is the one
+     place the owner can actually see what's come in, from a page they already trust (admin.html),
+     instead of a raw public page or the Supabase Table Editor. */
+  async 'landing_leads.select'(env) {
+    return sbFetch(env, 'landing_leads?select=*&order=created_at.desc&limit=200');
+  },
+  async 'landing_feedback.select'(env) {
+    return sbFetch(env, 'landing_feedback?select=*&order=created_at.desc&limit=200');
+  },
+  async 'scholarship_applications.select'(env) {
+    return sbFetch(env, 'scholarship_applications?select=*&order=created_at.desc&limit=200');
+  },
+  async 'scholarship_applications.updateStatus'(env, p) {
+    if (!p.id) throw new Error('id required');
+    if (!['pending', 'approved', 'declined'].includes(p.status)) throw new Error('status must be pending/approved/declined');
+    return sbFetch(env, 'scholarship_applications?id=eq.' + encodeURIComponent(p.id), {
+      method: 'PATCH',
+      headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ status: p.status }),
+    });
   },
 
   /* v182: manual tier assignment — no payment webhook exists yet, so the

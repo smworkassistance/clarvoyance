@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 02/10/2026 03:26:48 IST.
+> Rendered 03/10/2026 04:58:20 IST.
 
 ## Run status
 No run active.
@@ -105,6 +105,14 @@ _Nothing — no blocked tasks._
 | T-097 | 02/10/2026 00:56:38 | YouTube quota hardening: curated channel RSS feeds per topic (0 quota), search only for discovery, per-user c… | DISCUSS | — | — | — |
 | T-098 | 02/10/2026 02:11:58 | YouTube quota ceiling: find a real solution before growth (central theme of the app). Leads: playlistItems.li… | DISCUSS | — | — | — |
 | T-099 | 02/10/2026 02:11:58 | AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs acro… | DISCUSS | — | — | — |
+| T-100 | 02/10/2026 03:38:00 | XP economy made trustworthy before it is money: server-side XP ledger (earn caps/day, anti-farming, spend led… | DISCUSS | — | — | — |
+| T-101 | 02/10/2026 03:38:01 | Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must v… | DISCUSS | — | — | — |
+| T-102 | 02/10/2026 03:38:01 | Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per … | DISCUSS | — | — | — |
+| T-103 | 02/10/2026 05:28:40 | Community XP: capped daily XP for post, cheer, follow, comment, supporting others (counts toward the XP disco… | DISCUSS | — | — | — |
+| T-104 | 02/10/2026 05:28:40 | Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/pr… | DISCUSS | — | — | — |
+| T-105 | 02/10/2026 05:28:40 | Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing)… | DISCUSS | — | — | — |
+| T-106 | 02/10/2026 05:28:40 | Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_ur… | DISCUSS | — | — | — |
+| T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DISCUSS | — | — | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -489,3 +497,35 @@ _Nothing — no blocked tasks._
 ### T-099 — AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs across Gemini/Gemma(Cloudflare)/Mistral/DeepSeek/GPT-mini incl. Hindi+Hinglish, fallback chain, per-IP rate limit on the proxy, Batch API for Guides + nightly generation
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
 - Done-when: each call site assigned a model by measured pass/fail + cost; client sends _tier; proxy has fallback + rate limit
+
+### T-100 — XP economy made trustworthy before it is money: server-side XP ledger (earn caps/day, anti-farming, spend ledger), XP never purchasable with cash, calibrate XP prices from real user_progress distribution
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: xp awards validated server-side; a user cannot edit localStorage/Supabase XP to get a plan; price in XP chosen from measured earn rates
+
+### T-101 — Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must verify the user's Supabase JWT + plan + daily limit (today anyone with the URL can call it, and limits are client-side localStorage only)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: free-of-plan user gets rejected by the proxy, not just hidden in the UI; limits per plan editable in admin
+
+### T-102 — Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per country, XP+cash mixed payment spec, annual price, store-fee impact (Play 15%)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: demand signal per plan + decision recorded in docs/DECISIONS.md
+- Result / evidence: SPEC DECIDED 2026-10-02 (docs/PRICING.md): Free forever + Plus 99 (50% XP cap) + Pro 199 (25% cap); NO trial; limits 5/8/12 images, 2/4/8 universal guides, 0/3/5 own guides, chat 8/20/60; v260 candidate has My Plan + upsell (enforcement OFF); landing/ built. Remaining: owner review, run schema_v260, T-100/T-101 before enforcing
+
+### T-103 — Community XP: capped daily XP for post, cheer, follow, comment, supporting others (counts toward the XP discount; server-validated, anti-abuse)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: XP awarded for community actions within the 250/day eligible cap; no farming via fake accounts
+
+### T-104 — Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/practice/report) with its earlier posts; pauses otherwise, resumes on any interaction; 3 posts/week cap; Batch API + cheaper model
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: guidesTick skips idle private guides; verified with recorded-feed test
+
+### T-105 — Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing), analytics events (ref=landing, for=audience), run db/schema_v260_plans.sql for the waitlist
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: landing live, waitlist rows arriving, CTA attribution visible in analytics
+
+### T-106 — Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_url set in pricing/plans.json, admin Subscriptions tab (admin_subscription_overview), renewal and XP-discount applied at charge time
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: a real test payment upgrades a test account; webhook retried safely; staff can see status
+
+### T-107 — In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (reason chips + optional box) -> Supabase, skippable. New clarvoyance_vN.html, do not touch index.html/sw.js directly without a verify+promote pass.
+- Status: **DISCUSS**  · Batch: —  · Depends on: —

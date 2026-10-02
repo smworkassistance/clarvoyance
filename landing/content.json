@@ -3,7 +3,7 @@
   "brand": {
     "name": "Clar",
     "domain": "clar.co.in",
-    "tagline": "clarity for the becoming",
+    "tagline": "Clarity for the becoming.",
     "app_url": "https://clar.co.in/",
     "logo": "../clar-logo.jpg.jpg",
     "accent": "#1FA06A",
@@ -34,8 +34,8 @@
   ],
   "nav": {
     "links": [
-      ["Why Clar", "#why"],
       ["What's inside", "#inside"],
+      ["Why Clar", "#why"],
       ["Plans", "#plans"],
       ["About", "#about"]
     ],

@@ -2173,6 +2173,25 @@
           "note": "created"
         }
       ]
+    },
+    {
+      "id": "T-107",
+      "title": "In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (reason chips + optional box) -> Supabase, skippable. New clarvoyance_vN.html, do not touch index.html/sw.js directly without a verify+promote pass.",
+      "added": "2026-10-02T23:13:21.992Z",
+      "done_when": "",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-02T23:13:22.003Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
     }
   ]
 }

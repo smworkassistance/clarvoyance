@@ -16,7 +16,7 @@ body{font-family:'Inter Tight',-apple-system,sans-serif;background:var(--paper);
 .wrap{width:min(600px,calc(100% - 40px));margin:0 auto}
 header{padding:20px 0}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:1.15rem}
-.brand img{width:36px;height:36px;border-radius:10px;object-fit:cover}
+.brand img{width:46px;height:46px;border-radius:12px;object-fit:cover}
 main{flex:1;padding:30px 0 70px}
 .disp{font-family:'Cormorant Garamond',serif;font-weight:600}
 .eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--acd)}
@@ -67,9 +67,9 @@ document.getElementById('send').onclick=function(){
   out.textContent='Sending…';
   fetch(SB_URL+'/rest/v1/'+TABLE,{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
     body:JSON.stringify({name:nm,email:em,situation:sit,source:'landing'})})
-    .then(function(r){out.textContent=r.ok?'Received. We read every one ourselves and will email you.':'Could not send that right now. Please try again, or email hello@clar.co.in.';
+    .then(function(r){out.textContent=r.ok?'Received. We read every one ourselves and will email you.':'Could not send that right now. Please try again, or email smworkassistance@gmail.com.';
       if(r.ok){document.getElementById('nm').value='';document.getElementById('em').value='';document.getElementById('sit').value='';}})
-    .catch(function(){out.textContent='Could not send that right now. Please try again, or email hello@clar.co.in.';});
+    .catch(function(){out.textContent='Could not send that right now. Please try again, or email smworkassistance@gmail.com.';});
 };
 </script>
 </body>

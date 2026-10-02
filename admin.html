@@ -244,6 +244,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="usagecorr" onclick="switchTab(this)">📈 Usage vs State</button>
     <button class="tab"    data-p="clarposts" onclick="switchTab(this)">✍️ Clar Posts</button>
     <button class="tab"    data-p="guides" onclick="switchTab(this)">🧭 Guides</button>
+    <button class="tab"    data-p="landing" onclick="switchTab(this)">📨 Landing</button>
   </div>
 
   <!-- TOOLS -->
@@ -398,6 +399,18 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <p style="font-size:12px;color:#9CA3AF;margin-bottom:10px">Only these feeds are ever read. Tags must match a guide's source_tags.</p>
     <button class="add-btn" onclick="gsForm()">＋ Add source</button>
     <div id="gd-sources"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- LANDING: the 3 public landing-page submission tables (v261) — write-only from the public
+       page's own point of view (anon can only INSERT), so this is the owner's actual view of them. -->
+  <div id="pane-landing" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">What's come in from clar.co.in/landing/ — the "Ask Clar" bot's optional lead form, the general Feedback page, and Growth Scholarship applications. Nobody but this page (and the Supabase Table Editor, directly) can read these; the public page itself can only write them.</p>
+    <div class="sec-lbl">🎓 Scholarship applications</div>
+    <div id="land-scholar"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl" style="margin-top:22px">💬 Feedback</div>
+    <div id="land-feedback"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl" style="margin-top:22px">✦ Ask Clar leads</div>
+    <div id="land-leads"><div class="s-load">Loading...</div></div>
   </div>
 
   <!-- ENGAGEMENT: momentum growth/decay + Fortune gap-awareness config, v186 -->
@@ -747,6 +760,7 @@ async function loadData() {
   loadNotifLog();
   loadEngagementConfig();
   loadSeedTopics();
+  loadLandingSubmissions();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1994,6 +2008,65 @@ async function checkUsageCorrelation() {
    else in the video feed — see db/schema_v211_video_seed_topics.sql.
    ══════════════════════════════════════════════════════ */
 let SEED_TOPIC_ROWS = [];
+
+/* v261 (landing page v4): the 3 public landing-page submission tables — read-only here, the
+   public page itself can only INSERT into them (db/schema_v261_landing_pages.sql). */
+async function loadLandingSubmissions() {
+  const els = { scholar: document.getElementById('land-scholar'), feedback: document.getElementById('land-feedback'), leads: document.getElementById('land-leads') };
+  if (!els.scholar) return;
+  try {
+    const [scholar, feedback, leads] = await Promise.all([
+      adminApi('scholarship_applications.select'), adminApi('landing_feedback.select'), adminApi('landing_leads.select'),
+    ]);
+    renderScholarApps(scholar || []); renderLandingFeedback(feedback || []); renderLandingLeads(leads || []);
+  } catch (e) {
+    const msg = /unauthorized/i.test(e.message) ? empty('🔒', 'Invalid admin token — reload the page and re-enter it') : empty('⚠️', 'Could not load: ' + e.message);
+    Object.values(els).forEach(el => { if (el) el.innerHTML = msg; });
+  }
+}
+const fmtWhen = iso => { try { return new Date(iso).toLocaleString(); } catch (e) { return x(iso); } };
+function renderScholarApps(rows) {
+  const el = document.getElementById('land-scholar');
+  if (!rows.length) { el.innerHTML = empty('🎓', 'No applications yet'); return; }
+  el.innerHTML = rows.map(r => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${x(r.name)} <span style="color:#9CA3AF;font-weight:400">— ${x(r.email)}</span></div>
+          <div style="font-size:12px;color:#9CA3AF;margin-top:4px;white-space:pre-wrap">${x(r.situation)}</div>
+          <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${fmtWhen(r.created_at)} · status: <b>${x(r.status)}</b></div>
+        </div>
+        <div class="ic-acts">
+          <button class="ab a-edit" onclick="scholarSetStatus(${r.id},'approved')">Approve</button>
+          <button class="ab a-del"  onclick="scholarSetStatus(${r.id},'declined')">Decline</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+async function scholarSetStatus(id, status) {
+  try { await adminApi('scholarship_applications.updateStatus', { id, status }); toast('Updated ✓', 'ok'); loadLandingSubmissions(); }
+  catch (e) { toast('Failed: ' + e.message, 'err'); }
+}
+function renderLandingFeedback(rows) {
+  const el = document.getElementById('land-feedback');
+  if (!rows.length) { el.innerHTML = empty('💬', 'No feedback yet'); return; }
+  el.innerHTML = rows.map(r => `
+    <div class="ic"><div class="ic-head"><div class="ic-body">
+      <div class="ic-name">${r.rating ? '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) : '(no rating)'} ${r.reason ? '— ' + x(r.reason) : ''}</div>
+      ${r.message ? `<div style="font-size:12px;color:#9CA3AF;margin-top:4px;white-space:pre-wrap">${x(r.message)}</div>` : ''}
+      <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${fmtWhen(r.created_at)}${r.email ? ' · ' + x(r.email) : ''}</div>
+    </div></div></div>`).join('');
+}
+function renderLandingLeads(rows) {
+  const el = document.getElementById('land-leads');
+  if (!rows.length) { el.innerHTML = empty('✦', 'No leads yet'); return; }
+  el.innerHTML = rows.map(r => `
+    <div class="ic"><div class="ic-head"><div class="ic-body">
+      <div class="ic-name">${x(r.name || '(no name)')} <span style="color:#9CA3AF;font-weight:400">— ${x(r.email)}</span></div>
+      ${r.context ? `<div style="font-size:12px;color:#9CA3AF;margin-top:4px;white-space:pre-wrap">${x(r.context)}</div>` : ''}
+      <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${fmtWhen(r.created_at)}</div>
+    </div></div></div>`).join('');
+}
 
 async function loadSeedTopics() {
   const el = document.getElementById('seed-topics-list');
