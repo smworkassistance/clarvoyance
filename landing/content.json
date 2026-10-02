@@ -1,5 +1,5 @@
 {
-  "_readme": "ALL landing-page words and brand tokens live here. landing/index.html is a generic renderer: for a new app, copy this folder, replace this file + pricing/plans.json + the images, done. Copy rules: no guaranteed outcomes, no invented numbers or testimonials, no competitor names, plain words, feeling before mechanism. Marketing principles used: StoryBrand (the visitor is the hero, Clar the guide), Schwartz awareness stages (start from the feeling they already have), Cialdini (reciprocity = free plan, commitment = 'one minute', unity, honest authority), Hormozi value equation (clear outcome, low effort, fast first win), Ogilvy/Sugarman (one big idea, slippery-slide short lines), risk reversal (free, no card, cancel anytime, delete your data yourself).",
+  "_readme": "ALL landing-page words and brand tokens live here. landing/index.html is a generic renderer: for a new app, copy this folder, replace this file + pricing/plans.json + the images, done. Copy rules: no guaranteed outcomes, no invented numbers or testimonials, no competitor names, no implied endorsement by a named living person, plain words, feeling before mechanism. Marketing principles used: StoryBrand (the visitor is the hero, Clar the guide), Schwartz awareness stages (start from the feeling they already have), Cialdini (reciprocity = free plan, commitment = 'one minute', unity, honest authority), Hormozi value equation (clear outcome, low effort, fast first win), Ogilvy/Sugarman (one big idea, slippery-slide short lines), risk reversal (free, no card, cancel anytime, delete your data yourself). The spine of this whole page: 'your growth is your currency' — repeat it, don't scatter it.",
   "brand": {
     "name": "Clar",
     "domain": "clar.co.in",
@@ -22,35 +22,34 @@
       "privacy": "../privacy.html"
     }
   },
+  "palettes": [
+    { "name": "Celadon", "acc": "#1FA06A", "acl": "#5FD6A3", "acd": "#137A52", "paper": "#F7F5EF", "ink": "#0E4B3C", "ink2": "#0B3F52", "aur": "#34D3A0", "gold": "#D9B26D" },
+    { "name": "Lavender Mist", "acc": "#7C6FD9", "acl": "#B8ACF2", "acd": "#5B4FB8", "paper": "#F6F4FC", "ink": "#3A2F66", "ink2": "#2B2250", "aur": "#A78BFA", "gold": "#E6B45C" },
+    { "name": "Peach Dawn", "acc": "#E08A5B", "acl": "#F4B78C", "acd": "#B5612F", "paper": "#FBF3EC", "ink": "#5C2E1F", "ink2": "#3F2440", "aur": "#F2A65A", "gold": "#F0C987" },
+    { "name": "Sky", "acc": "#3E8FD0", "acl": "#8FC4EC", "acd": "#2667A0", "paper": "#F2F7FB", "ink": "#0E2F55", "ink2": "#15213F", "aur": "#5FC3E4", "gold": "#E8C77A" },
+    { "name": "Rose", "acc": "#D9607E", "acl": "#F2A4B8", "acd": "#A83F5C", "paper": "#FBF2F4", "ink": "#4A1830", "ink2": "#2E1A40", "aur": "#F28FA8", "gold": "#E6B98C" },
+    { "name": "Sage", "acc": "#6B9B5E", "acl": "#A8CC98", "acd": "#4A7540", "paper": "#F5F7F0", "ink": "#253D1E", "ink2": "#1E3038", "aur": "#8FD17A", "gold": "#D9C27E" },
+    { "name": "Honey", "acc": "#C98A2E", "acl": "#EAC27A", "acd": "#9C681F", "paper": "#FBF6EC", "ink": "#4A3010", "ink2": "#3A2440", "aur": "#E8B34F", "gold": "#F2D28A" },
+    { "name": "Mist", "acc": "#4FA8A0", "acl": "#93D4CD", "acd": "#2F7A73", "paper": "#F2F8F7", "ink": "#163A3C", "ink2": "#20283F", "aur": "#6FD4C8", "gold": "#D9B87A" }
+  ],
   "nav": {
     "links": [
-      [
-        "Why Clar",
-        "#why"
-      ],
-      [
-        "What's inside",
-        "#inside"
-      ],
-      [
-        "Plans",
-        "#plans"
-      ],
-      [
-        "Questions",
-        "#faq"
-      ]
+      ["Why Clar", "#why"],
+      ["What's inside", "#inside"],
+      ["Plans", "#plans"],
+      ["About", "#about"]
     ],
     "cta": "Start free"
   },
   "hero": {
-    "eyebrow": "A companion for the person you are becoming",
+    "eyebrow": "For us,",
     "title_lines": [
-      "You were born with",
-      "more than you remember."
+      "your growth",
+      "is your currency."
     ],
-    "title_emphasis": "more than you remember.",
-    "sub": "The world is speeding up. The people who keep pace are not the loudest or the busiest. They are the clearest. Clar helps you hear your own mind again, one small minute at a time.",
+    "title_emphasis": "is your currency.",
+    "sub": "Most apps waste your time. Clar pays you back for it. Here, time isn't spent — it's invested. Every minute on Clar is a minute invested in your growth and success.",
+    "clarify": "You earn your growth score (XP) only by showing up and doing the work. It lowers your price — never your access — and it's never sold or spent on anything else.",
     "cta_primary": "Start free",
     "cta_secondary": "See how it works",
     "micro": [
@@ -74,7 +73,7 @@
       "Your feed is built to keep you scrolling.",
       "So who is deciding where your attention goes?"
     ],
-    "turn": "Scrolling is easy. Becoming asks for a different kind of minute."
+    "turn": "Scrolling is easy. Growing asks for a different kind of minute."
   },
   "for_you": {
     "title": "Whoever you are right now, Clar meets you there.",
@@ -138,6 +137,66 @@
     ],
     "foot": "Clar helps you focus and stay consistent. What you build from that is yours."
   },
+  "areas": {
+    "title": "Wherever life asks more of you, Clar walks with you.",
+    "sub": "One companion for almost every part of your life. And the best part: it is free to use.",
+    "foot": "Clar helps you reflect, focus and practice. The change you make is yours."
+  },
+  "subjects": [
+    "Relationships", "Marriage", "Parenting", "Confidence", "Public speaking", "Career growth",
+    "Job interviews", "Salary negotiation", "Starting a business", "Scaling a team", "Customer service", "Leadership",
+    "Personal branding", "Focus", "Procrastination", "Motivation", "Discipline", "Habit building",
+    "Morning routines", "Productivity", "Time management", "Decision making", "Goal setting", "Studies",
+    "Exam stress", "Learning a new skill", "Memory", "Creativity", "Writer's block", "Financial stress",
+    "Budgeting", "Saving money", "Investing basics", "Managing debt", "Career change", "Work-life balance",
+    "Burnout", "Workplace stress", "Difficult conversations", "Setting boundaries", "Saying no", "People-pleasing",
+    "Self-worth", "Self-acceptance", "Body image", "Fitness habits", "Sleep", "Energy levels",
+    "Stress", "Anger", "Fear", "Loneliness", "Heartbreak", "Dating",
+    "Long-distance relationships", "Friendship", "Making new friends", "Family relationships", "In-law relationships", "Sibling relationships",
+    "Co-parenting", "New parenthood", "Raising teenagers", "Empty nest", "Caregiving for parents", "Grief and loss",
+    "Life transitions", "Starting over", "Moving cities", "Retirement", "Aging gracefully", "Spirituality",
+    "Faith", "Meaning and purpose", "Gratitude", "Forgiveness", "Patience", "Courage",
+    "Resilience", "Adaptability", "Overthinking", "Decision fatigue", "Fear of failure", "Fear of judgement",
+    "Performance nerves", "Social confidence", "Networking", "Team building", "Conflict resolution", "Giving feedback",
+    "Handling criticism", "Perfectionism", "Imposter feelings", "Comparison", "Social media habits", "Screen time",
+    "Digital detox", "Mindfulness", "Meditation", "Breathwork", "Journaling", "Self-reflection",
+    "Emotional balance", "Inner peace", "Mental clarity", "Vision and dreams", "Visualising your future", "Positive thinking",
+    "Daily discipline", "Consistency", "Accountability", "Finding your purpose", "Building wealth", "Entrepreneurship",
+    "Side hustles", "Pitching investors", "Marketing a business", "Sales conversations", "Negotiation skills", "Legacy",
+    "Giving back", "Community", "Minimalism", "Home organisation", "Working from home", "Remote team leadership"
+  ],
+  "return": {
+    "kicker": "The return",
+    "title": "What your growth actually buys you.",
+    "sub": "Not features. A different kind of day.",
+    "items": [
+      { "icon": "◎", "t": "Focus that actually holds", "d": "The mind stops scattering in six directions, and starts moving in one." },
+      { "icon": "✦", "t": "Goals you actually finish", "d": "Not another list you quietly abandon by February." },
+      { "icon": "♡", "t": "A kind of respect you can feel", "d": "From the people who've watched you follow through." },
+      { "icon": "∞", "t": "A quieter kind of presence", "d": "People notice when someone has stopped performing and started arriving." },
+      { "icon": "◆", "t": "Influence you didn't ask for", "d": "It tends to follow people who are steady, not people who are loud." }
+    ],
+    "cost_kicker": "The honest part",
+    "cost": "The minutes go either way. A year from now, they've either compounded into something — or quietly slipped past."
+  },
+  "wisdom": {
+    "kicker": "Old wisdom",
+    "title": "None of this is new. It has just been forgotten.",
+    "quotes": [
+      { "q": "You have the right to work, but never to the fruit of work.", "a": "Bhagavad Gita" },
+      { "q": "Change is the law of the universe. What looks like destruction is really the beginning of something new.", "a": "Bhagavad Gita" },
+      { "q": "The wound is the place where the light enters you.", "a": "Rumi" },
+      { "q": "Yesterday I was clever, so I wanted to change the world. Today I am wise, so I am changing myself.", "a": "Rumi" },
+      { "q": "A journey of a thousand miles begins with a single step.", "a": "Lao Tzu" },
+      { "q": "You have power over your mind — not outside events. Realise this, and you will find strength.", "a": "Marcus Aurelius" },
+      { "q": "The obstacle is the way.", "a": "Marcus Aurelius" },
+      { "q": "What lies behind us and what lies before us are tiny matters compared to what lies within us.", "a": "Ralph Waldo Emerson" },
+      { "q": "As a man thinketh in his heart, so is he.", "a": "James Allen" },
+      { "q": "Go confidently in the direction of your dreams. Live the life you have imagined.", "a": "Henry David Thoreau" },
+      { "q": "Out of suffering have emerged the strongest souls.", "a": "Khalil Gibran" },
+      { "q": "Today well lived makes every yesterday a dream of happiness, and every tomorrow a vision of hope.", "a": "Ancient Sanskrit proverb" }
+    ]
+  },
   "hi": {
     "kicker": "HI beats AI",
     "title": "Everyone is talking about artificial intelligence. Almost nobody is talking about yours.",
@@ -148,43 +207,6 @@
       "Inner stillness",
       "Your own answers"
     ]
-  },
-  "areas": {
-    "title": "Wherever life asks more of you, Clar walks with you.",
-    "sub": "One companion for almost every part of your life. And the best part: it is free to use.",
-    "items": [
-      {
-        "icon": "♡",
-        "name": "Relationships",
-        "line": "Find your calm and your words before the hard conversation."
-      },
-      {
-        "icon": "✎",
-        "name": "Studies",
-        "line": "Point your mind at one thing and keep a study habit alive."
-      },
-      {
-        "icon": "◆",
-        "name": "Career and business",
-        "line": "Start clear, hold your one priority, close the day lighter."
-      },
-      {
-        "icon": "☀",
-        "name": "Confidence",
-        "line": "Practice the version of you that already believes."
-      },
-      {
-        "icon": "❋",
-        "name": "Health habits",
-        "line": "Small daily wins that stack, tracked kindly."
-      },
-      {
-        "icon": "∞",
-        "name": "Calm and focus",
-        "line": "Quiet the noise and hear yourself again."
-      }
-    ],
-    "foot": "Clar helps you reflect, focus and practice. The change you make is yours."
   },
   "how": {
     "title": "Three steps. Two minutes.",
@@ -202,17 +224,18 @@
       {
         "n": "3",
         "title": "Watch yourself move",
-        "text": "Streaks, XP and progress charts that show your own pattern."
+        "text": "Streaks, growth score and progress charts that show your own pattern."
       }
     ]
   },
   "earn": {
-    "title": "Show up steadily. Pay less.",
-    "sub": "Your steady days earn XP. XP lowers your plan price. XP is never sold, and never taken away.",
-    "slider_label": "XP you earn in a month",
+    "kicker": "For us, your growth is your currency",
+    "title": "The more you grow, the less you pay.",
+    "sub": "Because Clar would rather see you grow than see you pay. Your growth score (XP) comes only from showing up and doing the work — and it lowers your price.",
+    "slider_label": "Growth score (XP) you earn in a month",
     "note": "Up to 250 XP count per day, so steady days matter more than one big day. Your target adjusts as you grow.",
-    "invite": "Inviting a friend who becomes a regular earns you XP too.",
-    "kicker": "One more thing"
+    "invite": "Inviting a friend who becomes a regular earns you growth score too.",
+    "tried_everything": "If you've tried everything else, try Clar."
   },
   "plans_section": {
     "title": "Start free. Grow when you want more.",
@@ -226,76 +249,122 @@
     "waitlist_button": "Notify me",
     "waitlist_done": "Thank you. We will email you the day plans open."
   },
-  "honest": {
-    "title": "What Clar is not.",
-    "items": [
+  "about": {
+    "kicker": "Why Clar",
+    "title": "What Clar is, and what it is not.",
+    "roots_kicker": "What Clar is built on",
+    "roots_title": "Old wisdom. Modern psychology. No hype.",
+    "roots_text": "Clar draws on timeless teachings about attention, desire and inner stillness, and on well-known ideas from psychology: small habits, reframing a story, visualising a goal, practising calm. It never promises an outcome. It gives you the practice.",
+    "pillars": [
+      { "icon": "◎", "t": "Attention", "d": "Train your focus on one thing at a time." },
+      { "icon": "↻", "t": "Reframing", "d": "Look at the same story from a truer angle." },
+      { "icon": "✦", "t": "Visualising", "d": "Keep what you want clearly in view." },
+      { "icon": "∞", "t": "Stillness", "d": "Make room to hear your own answers." }
+    ],
+    "not_kicker": "Straight talk",
+    "not_title": "What Clar is not.",
+    "not_items": [
       "Not therapy and not medical advice.",
       "Not a promise of results. Results come from you showing up.",
       "Not a feed designed to keep you hooked.",
       "Not selling your attention. Ever."
     ],
-    "close": "It is a set of daily practices and a thoughtful companion. What you do with it is yours."
+    "not_close": "It is a set of daily practices and a thoughtful companion. What you do with it is yours.",
+    "faq_kicker": "Questions",
+    "faq": [
+      {
+        "q": "Is Clar free?",
+        "a": "Yes. The free plan has the daily habit tools, a limited number of Clar AI messages each day and the Community. Paid plans add more of everything."
+      },
+      {
+        "q": "Is Clar a therapist?",
+        "a": "No. Clar is a self-development companion, not therapy or medical care. If you are struggling, please speak to a qualified professional."
+      },
+      {
+        "q": "What does Clar do with my data?",
+        "a": "Your data is used to run the app for you. You can delete your account and data yourself, from inside the app, any time. Read the privacy page for details."
+      },
+      {
+        "q": "How does my growth score lower the price?",
+        "a": "You earn XP — your growth score — by using Clar on steady days. At renewal it gives you a discount: up to 50% on Plus and up to 25% on Pro. It is never spent, so your level and streak stay."
+      },
+      {
+        "q": "Do I need a card to start?",
+        "a": "No. Start free, with no card and no trial clock."
+      },
+      {
+        "q": "Can I cancel?",
+        "a": "Any time. No questions, no tricks."
+      },
+      {
+        "q": "What if I want to leave?",
+        "a": "You can delete your account and data yourself, any time, from inside the app. Before you go, we'll ask for a quick, optional piece of feedback — it genuinely helps."
+      },
+      {
+        "q": "I can't afford a paid plan. Is there a way?",
+        "a": "Clar has a small Growth Scholarship for students and anyone who genuinely can't afford Plus or Pro. See the link in the footer."
+      },
+      {
+        "q": "Which devices?",
+        "a": "Clar runs in your browser on any phone or computer, and installs like an app."
+      }
+    ]
   },
-  "faq": [
-    {
-      "q": "Is Clar free?",
-      "a": "Yes. The free plan has the daily habit tools, a limited number of Clar AI messages each day and the Community. Paid plans add more of everything."
-    },
-    {
-      "q": "Is Clar a therapist?",
-      "a": "No. Clar is a self-development companion, not therapy or medical care. If you are struggling, please speak to a qualified professional."
-    },
-    {
-      "q": "What does Clar do with my data?",
-      "a": "Your data is used to run the app for you. You can delete your account and data yourself, from inside the app, any time. Read the privacy page for details."
-    },
-    {
-      "q": "How does XP lower the price?",
-      "a": "You earn XP by using Clar on steady days. At renewal your XP gives you a discount: up to 50% on Plus and up to 25% on Pro. XP is never spent, so your level and streak stay."
-    },
-    {
-      "q": "Do I need a card to start?",
-      "a": "No. Start free, with no card and no trial clock."
-    },
-    {
-      "q": "Can I cancel?",
-      "a": "Any time. No questions, no tricks."
-    },
-    {
-      "q": "Which devices?",
-      "a": "Clar runs in your browser on any phone or computer, and installs like an app."
-    }
-  ],
   "final": {
+    "kicker": "If you've tried everything else, try Clar.",
     "title": "Your potential is not missing. It is waiting.",
     "sub": "Begin with one minute today.",
     "cta": "Start free",
     "quote": "Clarity is not found by trying harder. It is found by getting quieter."
   },
   "footer": {
-    "note": "Clar is a self-development app. It is not medical advice or therapy. Results vary from person to person."
+    "note": "Clar is a self-development app. It is not medical advice or therapy. Results vary from person to person.",
+    "links": [
+      ["Contact", "contact.html"],
+      ["Feedback", "feedback.html"],
+      ["Scholarship", "scholarship.html"]
+    ]
+  },
+  "bot": {
+    "launcher": "Ask Clar",
+    "title": "Talk to Clar",
+    "subtitle": "A real conversation. Not a sales script.",
+    "intro": "Tell Clar where you are right now. It'll help you see which part of Clar is actually for you.",
+    "premade": [
+      "How can Clar help me?",
+      "Is the free plan really enough for me?",
+      "I feel stuck — where do I even start?"
+    ],
+    "placeholder": "Type anything…",
+    "sending": "…",
+    "error": "Something went quiet on our end. Please try again, or just start free.",
+    "lead_prompt": "Want Clar to remember this when you sign up? Leave a name and email — totally optional.",
+    "lead_name_placeholder": "Your name",
+    "lead_email_placeholder": "your@email.com",
+    "lead_consent": "We'll only use this to follow up about Clar. No spam, ever.",
+    "lead_skip": "Skip",
+    "lead_send": "Save",
+    "lead_done": "Got it. Good talking with you.",
+    "continue_cta": "Continue in the app",
+    "session_limit_msg": "That's a good long talk. Let's continue the rest of it inside the app, where Clar can actually remember you.",
+    "system_prompt": "You are Clar, speaking on Clar's own landing page to someone who has not signed up yet. Clar is a free self-development companion app: small daily practices, an AI companion, a community that cheers people on. Your growth score (XP) only ever lowers your price on a paid plan, it is never sold or spent. Your ONE job here: briefly understand where this person is in life right now (one honest question at a time, never an interrogation), then, from Clar's own philosophy, help them genuinely see why starting with the FREE plan is the right first step for them. This is a warm, true read of their situation, not a sales pitch. Keep every reply SHORT: 2 to 4 plain sentences, like a thoughtful friend, never like a script. Never diagnose, never give medical or therapy advice, never promise a specific outcome - say 'can help' or 'many people find', never 'will'. If asked something Clar genuinely cannot do, say so honestly. After a couple of real exchanges, when it feels natural, gently invite them to start free - do not force it into every message."
   },
   "backend": {
-    "_note": "Public anon key (same one the app ships). Only INSERT on plan_waitlist is allowed for anon (db/schema_v260_plans.sql). Set supabase_url to null to turn the waitlist off.",
+    "_note": "Public anon key (same one the app ships). Only INSERT on plan_waitlist/landing_leads/landing_feedback/scholarship_applications is allowed for anon (db/schema_v260_plans.sql, db/schema_v261_landing_pages.sql). Set supabase_url to null to turn all of this off.",
     "supabase_url": "https://unvwjuceuyruqdnmvxlc.supabase.co",
     "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk",
-    "waitlist_table": "plan_waitlist"
+    "waitlist_table": "plan_waitlist",
+    "leads_table": "landing_leads",
+    "feedback_table": "landing_feedback",
+    "scholarship_table": "scholarship_applications",
+    "gemini_worker": "https://cold-frog-d555.smworkassistance.workers.dev/"
   },
   "freeband": {
     "title": "The best part? It is free to use.",
     "items": [
-      {
-        "big": "₹0",
-        "small": "to start, no card"
-      },
-      {
-        "big": "60 sec",
-        "small": "to your first practice"
-      },
-      {
-        "big": "Yours",
-        "small": "your data, delete it any time"
-      }
+      { "big": "₹0", "small": "to start, no card" },
+      { "big": "60 sec", "small": "to your first practice" },
+      { "big": "Yours", "small": "your data, delete it any time" }
     ]
   },
   "contrast": {
@@ -316,34 +385,7 @@
         "Ends with one clear next step"
       ]
     },
-    "foot": "Every minute you give your attention is a vote for the life you are building. Clar is a place to vote on purpose."
-  },
-  "roots": {
-    "kicker": "What Clar is built on",
-    "title": "Old wisdom. Modern psychology. No hype.",
-    "text": "Clar draws on timeless teachings about attention, desire and inner stillness, and on well-known ideas from psychology: small habits, reframing a story, visualising a goal, practising calm. It never promises an outcome. It gives you the practice.",
-    "pillars": [
-      {
-        "icon": "◎",
-        "t": "Attention",
-        "d": "Train your focus on one thing at a time."
-      },
-      {
-        "icon": "↻",
-        "t": "Reframing",
-        "d": "Look at the same story from a truer angle."
-      },
-      {
-        "icon": "✦",
-        "t": "Visualising",
-        "d": "Keep what you want clearly in view."
-      },
-      {
-        "icon": "∞",
-        "t": "Stillness",
-        "d": "Make room to hear your own answers."
-      }
-    ]
+    "foot": "Most apps waste your time. Clar pays you back for it. Every minute here is a minute invested in your growth — and it lowers what you pay next."
   },
   "intro": {
     "kicker": "Meet Clar",
@@ -354,6 +396,12 @@
       "Grow together."
     ],
     "sub": "One app. No clutter. Everything built around the person you are becoming."
+  },
+  "imagery": {
+    "subjects_bg": "https://unvwjuceuyruqdnmvxlc.supabase.co/storage/v1/object/public/quote-photos/sunrise_clouds/176939.jpg",
+    "return_bg": "https://unvwjuceuyruqdnmvxlc.supabase.co/storage/v1/object/public/quote-photos/misty_morning/10314734.jpg",
+    "wisdom_bg": "https://unvwjuceuyruqdnmvxlc.supabase.co/storage/v1/object/public/quote-photos/starry_night_sky/5742416.jpg",
+    "credit": "Photos via Pixabay"
   },
   "features": {
     "title": "Everything, built around you.",
@@ -497,7 +545,7 @@
         "group": "together",
         "moment": "When you want a friendly push",
         "title": "A friendly race. Reset every Monday.",
-        "text": "Every week you join a small league of people at your level. Earn XP, cheer each other on, and move up. No stranger messages. No pressure.",
+        "text": "Every week you join a small league of people at your level. Earn growth score, cheer each other on, and move up. No stranger messages. No pressure.",
         "chips": [
           "Weekly leagues",
           "Move up in tiers",
@@ -553,7 +601,7 @@
         "group": "see",
         "moment": "When you want the whole picture",
         "title": "Your story so far.",
-        "text": "XP, streak, badges and your plan, in one glance. You decide what others can see, and you can invite a friend and earn XP.",
+        "text": "Growth score, streak, badges and your plan, in one glance. You decide what others can see, and you can invite a friend and earn more.",
         "chips": [
           "Badges and streak",
           "Privacy board",

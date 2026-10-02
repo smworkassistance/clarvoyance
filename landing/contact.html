@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Contact — Clar</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../clar-logo.jpg.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#1FA06A;--acd:#137A52;--ink:#0E4B3C;--paper:#F7F5EF;--gold:#D9B26D;--tx:#14231B;--mute:#5C6B63;--line:rgba(20,35,27,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',-apple-system,sans-serif;background:var(--paper);color:var(--tx);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+.wrap{width:min(640px,calc(100% - 40px));margin:0 auto}
+header{padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:1.15rem}
+.brand img{width:36px;height:36px;border-radius:10px;object-fit:cover}
+main{flex:1;padding:40px 0 70px}
+.disp{font-family:'Cormorant Garamond',serif;font-weight:600}
+h1{font-size:clamp(2rem,5vw,2.8rem);margin-bottom:10px}
+.lead{color:var(--mute);font-size:1.05rem;max-width:520px;margin-bottom:36px}
+.cards{display:grid;gap:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px 24px;display:flex;align-items:center;gap:16px;text-decoration:none;color:var(--tx);transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-2px);box-shadow:0 12px 34px rgba(11,31,23,.08)}
+.card .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acd));color:#fff;display:grid;place-items:center;font-size:1.2rem;flex-shrink:0}
+.card b{display:block;font-size:1rem}
+.card span{color:var(--mute);font-size:.92rem}
+footer{background:var(--ink);color:#B8CFC2;padding:28px 0;font-size:.88rem}
+footer a{color:#B8CFC2}
+footer .row{display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:space-between}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="index.html"><img src="../clar-logo.jpg.jpg" alt="" onerror="this.style.display='none'">Clar</a></div></header>
+<main>
+  <div class="wrap">
+    <h1 class="disp">Talk to us.</h1>
+    <p class="lead">Questions, feedback, press, anything — reach out however is easiest for you.</p>
+    <div class="cards">
+      <a class="card" href="mailto:hello@clar.co.in"><div class="ic">✉</div><div><b>Email</b><span>hello@clar.co.in</span></div></a>
+      <a class="card" href="https://wa.me/917387400467" rel="noopener"><div class="ic">💬</div><div><b>WhatsApp</b><span>+91 73874 00467</span></div></a>
+      <a class="card" href="https://instagram.com/beyond._thought" rel="noopener"><div class="ic">📷</div><div><b>Instagram</b><span>@beyond._thought</span></div></a>
+      <a class="card" href="feedback.html"><div class="ic">✦</div><div><b>Send feedback</b><span>Tell us what's working, and what's not</span></div></a>
+    </div>
+  </div>
+</main>
+<footer><div class="wrap row"><div>© <span id="y"></span> Clar · clar.co.in</div><div><a href="index.html">Back to Clar</a> · <a href="../privacy.html">Privacy</a></div></div></footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+</body>
+</html>

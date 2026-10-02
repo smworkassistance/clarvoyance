@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Feedback — Clar</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../clar-logo.jpg.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#1FA06A;--acd:#137A52;--ink:#0E4B3C;--paper:#F7F5EF;--gold:#D9B26D;--tx:#14231B;--mute:#5C6B63;--line:rgba(20,35,27,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',-apple-system,sans-serif;background:var(--paper);color:var(--tx);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+.wrap{width:min(600px,calc(100% - 40px));margin:0 auto}
+header{padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:1.15rem}
+.brand img{width:36px;height:36px;border-radius:10px;object-fit:cover}
+main{flex:1;padding:30px 0 70px}
+.disp{font-family:'Cormorant Garamond',serif;font-weight:600}
+h1{font-size:clamp(2rem,5vw,2.6rem);margin-bottom:10px}
+.lead{color:var(--mute);font-size:1.02rem;max-width:480px;margin-bottom:30px}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:clamp(22px,4vw,34px);box-shadow:0 1px 2px rgba(11,31,23,.05),0 12px 40px rgba(11,31,23,.07)}
+label{display:block;font-weight:600;font-size:.92rem;margin:18px 0 10px}
+label:first-of-type{margin-top:0}
+.stars{display:flex;gap:8px}
+.stars button{width:46px;height:46px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-size:1.25rem;cursor:pointer;transition:all .15s;color:#C9C2AE}
+.stars button.on{background:var(--gold);border-color:var(--gold);color:#2B1F08}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{font:500 .88rem 'Inter Tight',sans-serif;background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:9px 15px;cursor:pointer;color:var(--tx)}
+.chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+textarea,input[type=email]{width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);font:500 .96rem 'Inter Tight',sans-serif;resize:vertical}
+textarea{min-height:120px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:700 1rem 'Inter Tight',sans-serif;padding:15px 26px;border-radius:999px;border:0;cursor:pointer;width:100%;margin-top:22px;background:linear-gradient(135deg,var(--acc),var(--acd));color:#fff;min-height:52px}
+.msg{font-size:.92rem;color:var(--mute);margin-top:14px;min-height:1.4em}
+footer{background:var(--ink);color:#B8CFC2;padding:28px 0;font-size:.88rem}
+footer a{color:#B8CFC2}
+footer .row{display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:space-between}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="index.html"><img src="../clar-logo.jpg.jpg" alt="" onerror="this.style.display='none'">Clar</a></div></header>
+<main>
+  <div class="wrap">
+    <h1 class="disp">What do you want to say?</h1>
+    <p class="lead">Good, bad, or just an idea — it genuinely gets read. Takes a minute.</p>
+    <div class="card">
+      <label>How has Clar been for you?</label>
+      <div class="stars" id="stars">
+        <button type="button" data-v="1">★</button><button type="button" data-v="2">★</button><button type="button" data-v="3">★</button><button type="button" data-v="4">★</button><button type="button" data-v="5">★</button>
+      </div>
+      <label>What's this about? <span style="font-weight:400;color:#8A978E">(optional)</span></label>
+      <div class="chips" id="reasons">
+        <button type="button" data-r="Love it">Love it</button>
+        <button type="button" data-r="Found a bug">Found a bug</button>
+        <button type="button" data-r="Missing a feature">Missing a feature</button>
+        <button type="button" data-r="Confusing">Confusing</button>
+        <button type="button" data-r="Pricing">Pricing</button>
+        <button type="button" data-r="Something else">Something else</button>
+      </div>
+      <label for="msg">What you want to say</label>
+      <textarea id="msg" placeholder="Tell us anything — the good, the bad, an idea you'd love to see…"></textarea>
+      <label for="email">Email <span style="font-weight:400;color:#8A978E">(optional, if you'd like a reply)</span></label>
+      <input type="email" id="email" placeholder="your@email.com" autocomplete="email">
+      <button class="btn" id="send">Send feedback</button>
+      <div class="msg" id="out" aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+<footer><div class="wrap row"><div>© <span id="y"></span> Clar · clar.co.in</div><div><a href="index.html">Back to Clar</a> · <a href="../privacy.html">Privacy</a></div></div></footer>
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+var SB_URL='https://unvwjuceuyruqdnmvxlc.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk',TABLE='landing_feedback';
+var rating=0,reason=null;
+document.querySelectorAll('#stars button').forEach(function(b){b.addEventListener('click',function(){rating=+b.dataset.v;document.querySelectorAll('#stars button').forEach(function(x){x.classList.toggle('on',+x.dataset.v<=rating)});});});
+document.querySelectorAll('#reasons button').forEach(function(b){b.addEventListener('click',function(){var same=reason===b.dataset.r;reason=same?null:b.dataset.r;document.querySelectorAll('#reasons button').forEach(function(x){x.classList.toggle('on',x===b&&!same)});});});
+document.getElementById('send').onclick=function(){
+  var msg=document.getElementById('msg').value.trim(),email=document.getElementById('email').value.trim(),out=document.getElementById('out');
+  if(!rating&&!reason&&!msg){out.textContent='Please add a rating, a reason, or a note — at least one.';return;}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){out.textContent='That email looks off — check it, or leave it blank.';return;}
+  out.textContent='Sending…';
+  fetch(SB_URL+'/rest/v1/'+TABLE,{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({rating:rating||null,reason:reason,message:msg||null,email:email||null,source:'landing'})})
+    .then(function(r){out.textContent=r.ok?'Thank you — this genuinely helps.':'Could not send that right now. Please try again, or email hello@clar.co.in.';
+      if(r.ok){document.getElementById('msg').value='';document.getElementById('email').value='';rating=0;reason=null;document.querySelectorAll('#stars button,#reasons button').forEach(function(x){x.classList.remove('on')});}})
+    .catch(function(){out.textContent='Could not send that right now. Please try again, or email hello@clar.co.in.';});
+};
+</script>
+</body>
+</html>

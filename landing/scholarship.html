@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Growth Scholarship — Clar</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../clar-logo.jpg.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--acc:#1FA06A;--acd:#137A52;--ink:#0E4B3C;--paper:#F7F5EF;--gold:#D9B26D;--tx:#14231B;--mute:#5C6B63;--line:rgba(20,35,27,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter Tight',-apple-system,sans-serif;background:var(--paper);color:var(--tx);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
+.wrap{width:min(600px,calc(100% - 40px));margin:0 auto}
+header{padding:20px 0}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:700;font-size:1.15rem}
+.brand img{width:36px;height:36px;border-radius:10px;object-fit:cover}
+main{flex:1;padding:30px 0 70px}
+.disp{font-family:'Cormorant Garamond',serif;font-weight:600}
+.eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--acd)}
+h1{font-size:clamp(2rem,5vw,2.6rem);margin:10px 0}
+.lead{color:var(--mute);font-size:1.02rem;max-width:500px;margin-bottom:14px}
+.honest{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px;font-size:.9rem;color:var(--mute);margin-bottom:28px}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:clamp(22px,4vw,34px);box-shadow:0 1px 2px rgba(11,31,23,.05),0 12px 40px rgba(11,31,23,.07)}
+label{display:block;font-weight:600;font-size:.92rem;margin:18px 0 10px}
+label:first-of-type{margin-top:0}
+input[type=text],input[type=email],textarea{width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid var(--line);font:500 .96rem 'Inter Tight',sans-serif;resize:vertical}
+textarea{min-height:140px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:700 1rem 'Inter Tight',sans-serif;padding:15px 26px;border-radius:999px;border:0;cursor:pointer;width:100%;margin-top:22px;background:linear-gradient(135deg,var(--acc),var(--acd));color:#fff;min-height:52px}
+.msg{font-size:.92rem;color:var(--mute);margin-top:14px;min-height:1.4em}
+footer{background:var(--ink);color:#B8CFC2;padding:28px 0;font-size:.88rem}
+footer a{color:#B8CFC2}
+footer .row{display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:space-between}
+</style>
+</head>
+<body>
+<header><div class="wrap"><a class="brand" href="index.html"><img src="../clar-logo.jpg.jpg" alt="" onerror="this.style.display='none'">Clar</a></div></header>
+<main>
+  <div class="wrap">
+    <div class="eyebrow">Clar Growth Scholarship</div>
+    <h1 class="disp">If cost is the only thing in your way, tell us.</h1>
+    <p class="lead">Free Plus or Pro for students and anyone who genuinely can't afford it right now. No proof-of-income forms — just tell us honestly.</p>
+    <div class="honest">This is new and small. We read every application ourselves and can't promise one to everyone — but we never promise what we can't honour, and every honest note gets a real reply.</div>
+    <div class="card">
+      <label for="nm">Your name</label>
+      <input type="text" id="nm" placeholder="Your name">
+      <label for="em">Email</label>
+      <input type="email" id="em" placeholder="your@email.com">
+      <label for="sit">Your situation</label>
+      <textarea id="sit" placeholder="A student, between jobs, anything — just tell us honestly, a few lines is plenty."></textarea>
+      <button class="btn" id="send">Send application</button>
+      <div class="msg" id="out" aria-live="polite"></div>
+    </div>
+  </div>
+</main>
+<footer><div class="wrap row"><div>© <span id="y"></span> Clar · clar.co.in</div><div><a href="index.html">Back to Clar</a> · <a href="../privacy.html">Privacy</a></div></div></footer>
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+var SB_URL='https://unvwjuceuyruqdnmvxlc.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVudndqdWNldXlydXFkbm12eGxjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIxMTg2ODMsImV4cCI6MjA5NzY5NDY4M30.uro0J6geSZ6G3FcykHY1tbbUGr0PCMDapNUt_-8qbFk',TABLE='scholarship_applications';
+document.getElementById('send').onclick=function(){
+  var nm=document.getElementById('nm').value.trim(),em=document.getElementById('em').value.trim(),sit=document.getElementById('sit').value.trim(),out=document.getElementById('out');
+  if(!nm){out.textContent='Please add your name.';return;}
+  if(!em||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){out.textContent='Please add a valid email — we reply to real applications.';return;}
+  if(!sit){out.textContent='A line or two about your situation helps us understand.';return;}
+  out.textContent='Sending…';
+  fetch(SB_URL+'/rest/v1/'+TABLE,{method:'POST',headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
+    body:JSON.stringify({name:nm,email:em,situation:sit,source:'landing'})})
+    .then(function(r){out.textContent=r.ok?'Received. We read every one ourselves and will email you.':'Could not send that right now. Please try again, or email hello@clar.co.in.';
+      if(r.ok){document.getElementById('nm').value='';document.getElementById('em').value='';document.getElementById('sit').value='';}})
+    .catch(function(){out.textContent='Could not send that right now. Please try again, or email hello@clar.co.in.';});
+};
+</script>
+</body>
+</html>
