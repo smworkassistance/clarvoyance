@@ -2122,7 +2122,7 @@
       "title": "Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/practice/report) with its earlier posts; pauses otherwise, resumes on any interaction; 3 posts/week cap; Batch API + cheaper model",
       "added": "2026-10-01T23:58:40.587Z",
       "done_when": "guidesTick skips idle private guides; verified with recorded-feed test",
-      "status": "DISCUSS",
+      "status": "BLOCKED",
       "batch": null,
       "depends_on": [],
       "verify": false,
@@ -2133,8 +2133,14 @@
           "at": "2026-10-01T23:58:40.588Z",
           "status": "DISCUSS",
           "note": "created"
+        },
+        {
+          "at": "2026-10-03T11:06:31.209Z",
+          "status": "BLOCKED",
+          "note": "Code+tests ready (workers/admin-relay-worker.js guidesTick now pauses a private guide until its owner has viewed the latest post; qa/worker/guides-pipeline.test.js 41/41 incl. 4 new cases). Owner must paste the updated admin-relay-worker.js into the deployed Cloudflare Worker (check X-Worker-Version: v261-r1 via curl -I after deploy) -- cannot be deployed by Claude. Scope deliberately simplified per owner's own call 2026-10-03: only a 'view' signal is required (not the fuller like/save/practice/report rule originally sketched)."
         }
-      ]
+      ],
+      "blocked_reason": "Code+tests ready (workers/admin-relay-worker.js guidesTick now pauses a private guide until its owner has viewed the latest post; qa/worker/guides-pipeline.test.js 41/41 incl. 4 new cases). Owner must paste the updated admin-relay-worker.js into the deployed Cloudflare Worker (check X-Worker-Version: v261-r1 via curl -I after deploy) -- cannot be deployed by Claude. Scope deliberately simplified per owner's own call 2026-10-03: only a 'view' signal is required (not the fuller like/save/practice/report rule originally sketched)."
     },
     {
       "id": "T-105",
@@ -2179,17 +2185,22 @@
       "title": "In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (reason chips + optional box) -> Supabase, skippable. New clarvoyance_vN.html, do not touch index.html/sw.js directly without a verify+promote pass.",
       "added": "2026-10-02T23:13:21.992Z",
       "done_when": "",
-      "status": "DISCUSS",
+      "status": "DONE",
       "batch": null,
       "depends_on": [],
       "verify": false,
-      "result": "",
-      "completed": null,
+      "result": "clarvoyance_v261.html: 'Before you go' feedback screen (reason chips + optional text, skippable) shown between Delete-my-account and the real DELETE-confirm screen; saves to new FK-less account_delete_feedback table (db/schema_v261_account_delete_feedback.sql, not yet run -- soft-fails silently until then). qa/tests/pricing-gates-v261.spec.js: 5 dedicated tests (screen shows, chip toggle, Skip, Continue saves+proceeds, save-failure never blocks, Cancel). Full ops/verify.js: 101 passed/0 failed/1 flaky(unrelated,passed on retry)/0 skipped over 102 tests.",
+      "completed": "2026-10-03T11:06:16.158Z",
       "history": [
         {
           "at": "2026-10-02T23:13:22.003Z",
           "status": "DISCUSS",
           "note": "created"
+        },
+        {
+          "at": "2026-10-03T11:06:16.171Z",
+          "status": "DONE",
+          "note": "clarvoyance_v261.html: 'Before you go' feedback screen (reason chips + optional text, skippable) shown between Delete-my-account and the real DELETE-confirm screen; saves to new FK-less account_delete_feedback table (db/schema_v261_account_delete_feedback.sql, not yet run -- soft-fails silently until then). qa/tests/pricing-gates-v261.spec.js: 5 dedicated tests (screen shows, chip toggle, Skip, Continue saves+proceeds, save-failure never blocks, Cancel). Full ops/verify.js: 101 passed/0 failed/1 flaky(unrelated,passed on retry)/0 skipped over 102 tests."
         }
       ]
     },

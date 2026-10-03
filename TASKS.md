@@ -2,13 +2,13 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 03/10/2026 05:36:09 IST.
+> Rendered 03/10/2026 16:39:07 IST.
 
 ## Run status
 No run active.
 
 ## What the OWNER must do (all BLOCKED items, exact action)
-_Nothing — no blocked tasks._
+- **T-104** — Code+tests ready (workers/admin-relay-worker.js guidesTick now pauses a private guide until its owner has viewed the latest post; qa/worker/guides-pipeline.test.js 41/41 incl. 4 new cases). Owner must paste the updated admin-relay-worker.js into the deployed Cloudflare Worker (check X-Worker-Version: v261-r1 via curl -I after deploy) -- cannot be deployed by Claude. Scope deliberately simplified per owner's own call 2026-10-03: only a 'view' signal is required (not the fuller like/save/practice/report rule originally sketched).
 
 ## Batches
 - **B1** — frozen 24/09/2026 04:20:00 IST — 2/2 done: T-002(DONE), T-003(DONE)
@@ -109,10 +109,10 @@ _Nothing — no blocked tasks._
 | T-101 | 02/10/2026 03:38:01 | Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must v… | DISCUSS | — | — | — |
 | T-102 | 02/10/2026 03:38:01 | Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per … | DISCUSS | — | — | — |
 | T-103 | 02/10/2026 05:28:40 | Community XP: capped daily XP for post, cheer, follow, comment, supporting others (counts toward the XP disco… | DISCUSS | — | — | — |
-| T-104 | 02/10/2026 05:28:40 | Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/pr… | DISCUSS | — | — | — |
+| T-104 | 02/10/2026 05:28:40 | Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/pr… | BLOCKED | — | — | — |
 | T-105 | 02/10/2026 05:28:40 | Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing)… | DISCUSS | — | — | — |
 | T-106 | 02/10/2026 05:28:40 | Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_ur… | DISCUSS | — | — | — |
-| T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DISCUSS | — | — | — |
+| T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DONE | — | — | 03/10/2026 16:36:16 |
 | T-108 | 03/10/2026 05:13:09 | Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead,… | DISCUSS | — | — | — |
 
 ## Task details (acceptance + result evidence)
@@ -517,8 +517,9 @@ _Nothing — no blocked tasks._
 - Done-when: XP awarded for community actions within the 250/day eligible cap; no farming via fake accounts
 
 ### T-104 — Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/practice/report) with its earlier posts; pauses otherwise, resumes on any interaction; 3 posts/week cap; Batch API + cheaper model
-- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Status: **BLOCKED**  · Batch: —  · Depends on: —
 - Done-when: guidesTick skips idle private guides; verified with recorded-feed test
+- **Blocked — owner action:** Code+tests ready (workers/admin-relay-worker.js guidesTick now pauses a private guide until its owner has viewed the latest post; qa/worker/guides-pipeline.test.js 41/41 incl. 4 new cases). Owner must paste the updated admin-relay-worker.js into the deployed Cloudflare Worker (check X-Worker-Version: v261-r1 via curl -I after deploy) -- cannot be deployed by Claude. Scope deliberately simplified per owner's own call 2026-10-03: only a 'view' signal is required (not the fuller like/save/practice/report rule originally sketched).
 
 ### T-105 — Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing), analytics events (ref=landing, for=audience), run db/schema_v260_plans.sql for the waitlist
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
@@ -529,7 +530,8 @@ _Nothing — no blocked tasks._
 - Done-when: a real test payment upgrades a test account; webhook retried safely; staff can see status
 
 ### T-107 — In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (reason chips + optional box) -> Supabase, skippable. New clarvoyance_vN.html, do not touch index.html/sw.js directly without a verify+promote pass.
-- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
+- Result / evidence: clarvoyance_v261.html: 'Before you go' feedback screen (reason chips + optional text, skippable) shown between Delete-my-account and the real DELETE-confirm screen; saves to new FK-less account_delete_feedback table (db/schema_v261_account_delete_feedback.sql, not yet run -- soft-fails silently until then). qa/tests/pricing-gates-v261.spec.js: 5 dedicated tests (screen shows, chip toggle, Skip, Continue saves+proceeds, save-failure never blocks, Cancel). Full ops/verify.js: 101 passed/0 failed/1 flaky(unrelated,passed on retry)/0 skipped over 102 tests.
 
 ### T-108 — Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead, Feedback, or Scholarship application lands in landing_leads/landing_feedback/scholarship_applications -- reuse the existing Resend pattern (RESEND_API_KEY/ADMIN_ALERT_EMAIL, same as gemini-proxy-worker.js alertOnce / admin-relay T-076) via a Supabase trigger -> Worker, or a cron poll in admin-relay-worker.js. Right now these 3 tables are only visible by opening admin.html's Landing tab -- nobody is told a submission arrived.
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
