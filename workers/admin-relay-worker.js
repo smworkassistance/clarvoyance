@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v256-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v261-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -817,6 +817,24 @@ async function guidesTick(env) {
   for (const g of due) {
     if (ran >= 2) break;
     if (g.kind !== 'starter' && !(g.subscribers > 0)) { await sbFetch(env, 'guides?id=eq.' + g.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ next_run_at: new Date(Date.now() + 12 * 3600000).toISOString() }) }); continue; }
+    /* T-104 (scoped down, owner's own call, 2026-10-03): "at least user previous ko view
+       kare, tab aage ke guides generate ho" — a private guide only keeps generating new
+       posts while its owner has at least VIEWED (the existing 'view' guide_signals event,
+       fired client-side after ~5s in view) the guide's own most recent post. No view yet on
+       that post → skip this tick (pushed 3h out, same short retry spirit as finishRun's
+       "first post still pending" carve-out) rather than piling up more unread posts; any
+       view at any later tick lets it resume automatically, no special "resume" code needed
+       since this check just re-runs fresh every tick. A guide with zero posts yet (first
+       run) is never held back by this — there is nothing to have viewed yet. Starters and
+       public guides are untouched (this only ever reads g.visibility/g.owner_id, both of
+       which are 'public'/null for those). */
+    if (g.visibility === 'private' && g.owner_id) {
+      const latest = await sbFetch(env, 'guide_posts?select=id&guide_id=eq.' + g.id + '&order=id.desc&limit=1').catch(() => []);
+      if (latest.length) {
+        const viewed = await sbFetch(env, 'guide_signals?select=post_id&post_id=eq.' + latest[0].id + '&user_id=eq.' + g.owner_id + '&event=eq.view&limit=1').catch(() => []);
+        if (!viewed.length) { await sbFetch(env, 'guides?id=eq.' + g.id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ next_run_at: new Date(Date.now() + 3 * 3600000).toISOString() }) }); continue; }
+      }
+    }
     ran++;
     let res;
     try { res = await runGuide(env, g); await finishRun(env, g, res); out.ran.push({ id: g.id, slug: g.slug, ...res }); }

@@ -176,6 +176,33 @@ const STARTER = () => ({ id: '11111111-1111-4111-8111-111111111111', slug: 'busi
   ok(t.body.data.ran.length === 2, 'at most 2 guides are run per tick (time/cost limit)');
   ok(!t.body.data.ran.some(x => x.slug === 'nobody'), 'a user guide nobody follows is not run (no cost for no one)');
 
+  // ── T-104: a private guide pauses until its owner has viewed its latest post, then resumes ──
+  reset();
+  DB.guide_signals = [];
+  const gv = { ...STARTER(), id: '88888888-8888-4888-8888-888888888888', slug: 'mine3', kind: 'user', visibility: 'private', owner_id: 'user-owner', status: 'active', subscribers: 1, canonical_key: 'mine3_x', next_run_at: '2020-01-01T00:00:00Z' };
+  DB.guides.push(gv);
+  DB.guide_posts.push({ id: 900, guide_id: gv.id, created_at: '2020-01-01T00:00:00Z', lang: 'en' });
+  t = await call('guides.tick', {});
+  ok(t.body.data.ran.length === 0, 'a private guide whose latest post is still unviewed by its owner is skipped, not run');
+  ok(DB.guides.find(x => x.id === gv.id).next_run_at > new Date().toISOString(), 'its next_run_at is pushed forward instead of piling up another unread post');
+  DB.guide_signals.push({ post_id: 900, user_id: 'user-owner', event: 'view' });
+  DB.guides.find(x => x.id === gv.id).next_run_at = '2020-01-01T00:00:00Z'; // due again
+  t = await call('guides.tick', {});
+  ok(t.body.data.ran.some(x => x.id === gv.id), 'the same guide runs once its owner has viewed the latest post (any later tick re-checks fresh, no special "resume" state needed)');
+  // a brand-new private guide (no posts yet) must never be held back — there is nothing to have viewed yet
+  reset(); DB.guide_signals = [];
+  const gv2 = { ...STARTER(), id: '99999999-9999-4999-9999-999999999999', slug: 'mine4', kind: 'user', visibility: 'private', owner_id: 'user-owner', status: 'active', subscribers: 1, canonical_key: 'mine4_x', next_run_at: '2020-01-01T00:00:00Z' };
+  DB.guides.push(gv2);
+  t = await call('guides.tick', {});
+  ok(t.body.data.ran.some(x => x.id === gv2.id), 'a private guide with zero posts yet is never held back by the view-gate (nothing exists to view)');
+  // a PUBLIC guide is never subject to this rule, even if it is kind:'user' and has an owner
+  reset(); DB.guide_signals = [];
+  const gv3 = { ...STARTER(), id: 'aaaaaaaa-aaaa-4aaa-9aaa-aaaaaaaaaaaa', slug: 'mine5', kind: 'user', visibility: 'public', owner_id: 'user-owner', status: 'active', subscribers: 1, canonical_key: 'mine5_x', next_run_at: '2020-01-01T00:00:00Z' };
+  DB.guides.push(gv3);
+  DB.guide_posts.push({ id: 901, guide_id: gv3.id, created_at: '2020-01-01T00:00:00Z', lang: 'en' });
+  t = await call('guides.tick', {});
+  ok(t.body.data.ran.some(x => x.id === gv3.id), 'a public guide keeps its existing cadence regardless of anyone viewing it (the view-gate only applies to private guides)');
+
   // ── sensitive topics carry the flag ──
   reset(); DB.guides.push({ ...STARTER(), id: '66666666-6666-4666-8666-666666666666', slug: 'sens', kind: 'user', visibility: 'private', owner_id: 'user-owner', status: 'pending', canonical_key: 'sens_x', title: 'Coping', blueprint: { topic: 'I feel hopeless and worthless lately', intention: 'feel better', angles: ['calm'], source_tags: ['peace'] } });
   await call('guides.tick', {});
