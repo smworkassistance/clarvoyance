@@ -2529,6 +2529,22 @@ html[data-theme="dark"] .chat-msgs{
         <button onclick="window.delAccOpen()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #e04555;background:transparent;color:#e04555;font-weight:700;font-size:.88rem;cursor:pointer">Delete my account</button>
       </div>
 
+      <!-- v261 (T-107): a short, kind, skippable feedback screen shown BEFORE the real
+           delete-confirm screen (added below, unchanged) — not required, saves to Supabase
+           (soft-fails to the next screen if the table isn't there yet) so the owner has
+           something to learn from instead of just a silent account disappearing. -->
+      <div id="delfb-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;padding:24px;box-sizing:border-box;overflow-y:auto">
+        <div style="max-width:420px;margin:auto;width:100%">
+          <div style="font-size:1.35rem;font-weight:700;color:var(--tx);margin-bottom:10px">Before you go</div>
+          <div style="font-size:.9rem;color:var(--sub);line-height:1.6;margin-bottom:18px">If you have a minute, telling us why helps us improve Clar for everyone else. Totally optional.</div>
+          <div id="delfb-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
+          <textarea id="delfb-text" rows="3" placeholder="Anything else you'd like to add? (optional)" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid var(--bo);background:var(--su);color:var(--tx);font-size:.92rem;font-family:inherit;box-sizing:border-box;margin-bottom:16px;resize:vertical"></textarea>
+          <button onclick="window.delFbContinue()" style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--acc);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;margin-bottom:10px">Continue</button>
+          <button onclick="window.delFbSkip()" style="width:100%;padding:11px;border-radius:12px;border:none;background:transparent;color:var(--sub);font-weight:600;font-size:.88rem;cursor:pointer;margin-bottom:10px">Skip this</button>
+          <button onclick="window.delFbClose()" style="width:100%;padding:13px;border-radius:12px;border:1.5px solid var(--bo);background:transparent;color:var(--tx);font-weight:600;font-size:.95rem;cursor:pointer">Cancel</button>
+        </div>
+      </div>
+
       <div id="delacc-screen" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);flex-direction:column;padding:24px;box-sizing:border-box;overflow-y:auto">
         <div style="max-width:420px;margin:auto;width:100%">
           <div style="font-size:1.35rem;font-weight:700;color:var(--tx);margin-bottom:10px">Delete your account?</div>
@@ -2681,7 +2697,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v260</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v261</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -6274,6 +6290,14 @@ function renderNoOverindulgence(){
         </div>
         <button class="pulse-share-btn" onclick="pulseOpenShare()">✦ Share your journey</button>
       </div>
+      <!-- v261: Pro-only gate for the weekly AI reflection (plans.json ai_pulse_reflection).
+           Mood chip + the 3 metric cards above stay visible either way (those are the
+           "numbers" every plan gets) — only this paragraph is Pro. Fails open (never shown)
+           unless feature_flags.plans_enforced is on — see pulseLoad/_showLocked. -->
+      <div id="pulse-locked" style="display:none;text-align:center;padding:10px 4px 2px;color:rgba(255,255,255,.6);font-size:.92rem;line-height:1.6">
+        Your weekly AI reflection is a Pro feature.
+        <br><button class="pulse-share-btn" style="margin-top:12px" onclick="window.clvUpsell&&window.clvUpsell('ai_pulse_reflection')">✦ See what Pro adds</button>
+      </div>
     </div>
   </div>
 
@@ -6327,6 +6351,13 @@ function renderNoOverindulgence(){
           <div id="ft-date"></div>
           <button class="ft-refresh-btn" onclick="fortuneRefresh()">↺ New reading</button>
         </div>
+      </div>
+
+      <!-- v261: Pro-only gate for the AI oracle reading itself (plans.json ai_fortune_reading).
+           Fails open (never shown) unless feature_flags.plans_enforced is on — see fortuneLoad/_showLocked. -->
+      <div id="ft-locked" style="display:none;text-align:center;color:rgba(255,255,255,.55);font-size:.95rem;padding:16px 0;position:relative;z-index:1">
+        Your AI reading is a Pro feature.
+        <br><button class="ft-retry-btn" onclick="window.clvUpsell&&window.clvUpsell('ai_fortune_reading')">✦ See what Pro adds</button>
       </div>
     </div>
   </div>
@@ -9948,12 +9979,70 @@ function renderNoOverindulgence(){
      file's own established convention (see the v211/v215 changelog entries) of never
      reaching across script-block scope boundaries. */
   var DELACC_RELAY = 'https://clarvoyance-admin-relay.smworkassistance.workers.dev/';
-  window.delAccOpen = function(){
+
+  /* v261 (T-107): short, kind, skippable "why are you leaving" screen shown before the
+     real delete-confirm screen below (that screen/its functions are otherwise untouched).
+     Own local copy of the reason list / chip rendering rather than reusing another
+     script block's helpers — matches this file's established "own local copy across
+     script boundaries" convention (v211/v215/v255 all document the same choice).
+     Saves to a standalone `account_delete_feedback` table with NO foreign key to the
+     user being deleted (deliberately — a FK with ON DELETE CASCADE would wipe the
+     feedback the moment the account.deleteMe worker call removes the auth.users row
+     moments later, defeating the entire point of collecting it). Soft-fails silently if
+     that table isn't there yet (same pattern every new table in this file ships with) —
+     the delete flow itself is never blocked by this screen or by a failed save. */
+  var DELFB_REASONS = ['Not using it enough','Found something better','Too many notifications','Privacy concerns','Something didn’t work right','Other'];
+  var _delFbSelected = null;
+  function _delFbChipStyle(on){
+    return 'padding:8px 14px;border-radius:999px;border:1.5px solid '+(on?'var(--acc)':'var(--bo)')+';background:'+(on?'var(--acc)':'var(--su)')+';color:'+(on?'#fff':'var(--tx)')+';font-size:.85rem;cursor:pointer';
+  }
+  function _delFbRenderChips(){
+    var wrap = document.getElementById('delfb-chips'); if(!wrap) return;
+    wrap.innerHTML = DELFB_REASONS.map(function(r){
+      return '<button type="button" class="delfb-chip" data-r="'+r.replace(/"/g,'&quot;')+'" onclick="window._delFbPick(this)" style="'+_delFbChipStyle(false)+'">'+r+'</button>';
+    }).join('');
+  }
+  window._delFbPick = function(btn){
+    var was = btn.getAttribute('data-on') === '1';
+    document.querySelectorAll('#delfb-chips .delfb-chip').forEach(function(b){ b.removeAttribute('data-on'); b.style.cssText = _delFbChipStyle(false); });
+    if(!was){ btn.setAttribute('data-on','1'); btn.style.cssText = _delFbChipStyle(true); _delFbSelected = btn.getAttribute('data-r'); }
+    else _delFbSelected = null;
+  };
+  function _delFbSave(){
+    try{
+      var msg = (document.getElementById('delfb-text')||{}).value||'';
+      msg = msg.trim();
+      if(!_delFbSelected && !msg) return; // nothing given — don't even attempt a network call
+      var sb = window._sbShared; if(!sb || !sb.from) return;
+      Promise.resolve(sb.from('account_delete_feedback').insert({ reason: _delFbSelected||null, message: msg||null })).then(function(){}).catch(function(){});
+    }catch(e){}
+  }
+  function _delAccOpenConfirm(){
     var el = document.getElementById('delacc-screen'); if(!el) return;
     document.getElementById('delacc-input').value = '';
     window.delAccCheck();
     document.getElementById('delacc-err').style.display = 'none';
     el.style.display = 'flex';
+  }
+  window.delFbClose = function(){
+    var el = document.getElementById('delfb-screen'); if(el) el.style.display = 'none';
+  };
+  window.delFbSkip = function(){
+    var el = document.getElementById('delfb-screen'); if(el) el.style.display = 'none';
+    _delAccOpenConfirm();
+  };
+  window.delFbContinue = function(){
+    _delFbSave();
+    var el = document.getElementById('delfb-screen'); if(el) el.style.display = 'none';
+    _delAccOpenConfirm();
+  };
+  window.delAccOpen = function(){
+    var fb = document.getElementById('delfb-screen');
+    if(!fb){ _delAccOpenConfirm(); return; } // older cached HTML without the new screen — fall straight through, never block deletion
+    _delFbSelected = null;
+    var ta = document.getElementById('delfb-text'); if(ta) ta.value = '';
+    _delFbRenderChips();
+    fb.style.display = 'flex';
   };
   window.delAccClose = function(){
     var el = document.getElementById('delacc-screen'); if(el) el.style.display = 'none';
@@ -10498,6 +10587,10 @@ function renderNoOverindulgence(){
        canvases redraw on open via pulseToggle above since they need real
        layout width. */
     _renderMoodChip();_renderMetrics();
+    /* v261: ai_pulse_reflection (plans.json) — Pro-only. Fails open (allowed:true)
+       unless feature_flags.plans_enforced is on, so this changes nothing today. */
+    var g=window.clvGate?window.clvGate('ai_pulse_reflection'):{allowed:true};
+    if(!g.allowed){_showLocked();return;}
     var cache=_getCache();
     if(cache&&cache.date===new Date().toDateString()&&cache.data){
       _render(cache.data);return;
@@ -10507,6 +10600,8 @@ function renderNoOverindulgence(){
 
   /* ── Refresh button ── */
   window.pulseRefresh=function(){
+    var g=window.clvGate?window.clvGate('ai_pulse_reflection'):{allowed:true};
+    if(!g.allowed){_showLocked();return;}
     localStorage.removeItem(CACHE_KEY);
     var card=document.getElementById('pulse-card');
     if(card&&!card.classList.contains('open'))card.classList.add('open');
@@ -10777,6 +10872,16 @@ function renderNoOverindulgence(){
     var empty=document.getElementById('pulse-empty');
     if(empty){empty.textContent='Tap ↺ to retry — Clar needs a moment.';empty.classList.remove('hidden');}
     /* Still show mood + metrics even if AI fails */
+    _renderMoodChip();_renderMetrics();
+  }
+
+  /* v261: ai_pulse_reflection gate — mood chip + metric cards (the "numbers" every
+     plan gets) stay visible, only the AI-written paragraph below is hidden. */
+  function _showLocked(){
+    _showLoading(false);
+    var empty=document.getElementById('pulse-empty');if(empty)empty.classList.add('hidden');
+    var content=document.getElementById('pulse-content');if(content)content.style.display='none';
+    var lk=document.getElementById('pulse-locked');if(lk)lk.style.display='block';
     _renderMoodChip();_renderMetrics();
   }
 
@@ -11131,6 +11236,12 @@ function renderNoOverindulgence(){
     _initParticles();
     _renderEnergy();
     _renderUsageTitle();
+    /* v261: ai_fortune_reading (plans.json) — Pro-only. Fails open (allowed:true)
+       unless feature_flags.plans_enforced is on, so this changes nothing today.
+       The instant, non-AI field-signal headline above (_renderEnergy) stays visible
+       either way — only the AI-written near/far/watch/concern reading is gated. */
+    var g=window.clvGate?window.clvGate('ai_fortune_reading'):{allowed:true};
+    if(!g.allowed){_showLocked();return;}
     var cache=_getCache();
     if(cache&&cache.date===new Date().toDateString()&&cache.data){
       _render(cache.data);return;
@@ -11405,6 +11516,15 @@ function renderNoOverindulgence(){
     var er=document.getElementById('ft-error');if(er)er.style.display='';
   }
 
+  /* v261: ai_fortune_reading gate — the instant field-signal headline (_renderEnergy,
+     already run before this is called) stays as-is; only the AI reading is hidden. */
+  function _showLocked(){
+    _showLoading(false);
+    var er=document.getElementById('ft-error');if(er)er.style.display='none';
+    var ct=document.getElementById('ft-content');if(ct)ct.style.display='none';
+    var lk=document.getElementById('ft-locked');if(lk)lk.style.display='block';
+  }
+
   /* ── Radar/spider chart — 5 pattern dimensions ── */
   function _drawRadar(){
     var wrap=document.getElementById('ft-radar-wrap');
@@ -11614,6 +11734,8 @@ function renderNoOverindulgence(){
 
   /* Manual refresh */
   window.fortuneRefresh=function(){
+    var g=window.clvGate?window.clvGate('ai_fortune_reading'):{allowed:true};
+    if(!g.allowed){_showLocked();return;}
     localStorage.removeItem(CACHE_KEY);
     var ct=document.getElementById('ft-content');if(ct)ct.style.display='none';
     var rw=document.getElementById('ft-radar-wrap');if(rw)rw.style.display='none';
@@ -11793,6 +11915,45 @@ function renderNoOverindulgence(){
       _drawTimeVsScore(days);
       _drawSectionTime(days);
       _renderInsights(days);
+      _applyChartsLock();
+    });
+  }
+
+  /* ── v261: fortune_progress_charts (plans.json) — free gets the first N chart
+     blocks (N = plan limit, e.g. 2), the rest blur with an "unlock" overlay.
+     Plus/Pro have limit=null so clvGate always returns allowed:true → no-op.
+     Fails open (nothing locked) unless feature_flags.plans_enforced is on.
+     Each block's own content is moved into a .ft-chart-inner wrapper once, so
+     the blur/opacity applies only to the chart, never to the overlay sitting
+     on top of it (a blurred/dimmed ancestor would otherwise affect a plain
+     child too, since CSS filter/opacity compound through the whole subtree). */
+  function _applyChartsLock(){
+    if(!window.clvGate)return;
+    var blocks=document.querySelectorAll('#ft-charts-card .ft-chart-block');
+    blocks.forEach(function(b,i){
+      var g=window.clvGate('fortune_progress_charts',{index:i});
+      var inner=b.querySelector('.ft-chart-inner');
+      if(!inner){
+        inner=document.createElement('div');inner.className='ft-chart-inner';
+        while(b.firstChild)inner.appendChild(b.firstChild);
+        b.appendChild(inner);
+        b.style.position='relative';
+      }
+      var ov=b.querySelector('.ft-chart-lockov');
+      if(g.allowed){
+        inner.style.filter='';inner.style.pointerEvents='';inner.style.userSelect='';
+        if(ov)ov.style.display='none';
+        return;
+      }
+      inner.style.filter='blur(5px)';inner.style.pointerEvents='none';inner.style.userSelect='none';
+      if(!ov){
+        ov=document.createElement('div');ov.className='ft-chart-lockov';
+        ov.style.cssText='position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;background:rgba(10,8,20,.42);border-radius:12px;text-align:center;padding:10px';
+        ov.innerHTML='<span style="font-size:1.3rem">🔒</span><span style="font-size:.84rem;color:#c8a0ff;font-weight:700">See every chart</span>';
+        b.appendChild(ov);
+      }
+      ov.onclick=function(){window.clvUpsell&&window.clvUpsell('fortune_progress_charts',{limit:g.limit});};
+      ov.style.display='flex';
     });
   }
 
@@ -18129,16 +18290,29 @@ body.home-tab #nn-tab-section{order:2;}
      A fire-and-forget write to user_usage_log still gives a real
      server-side record for the owner's own visibility either way. */
   function _usageGate(featureKey){
-    var tier = localStorage.getItem('clv_subscription_tier') || 'free';
-    var gates = (window.SHEETS_DATA && window.SHEETS_DATA.feature_gates) || [];
-    var gate = null;
-    for(var i=0;i<gates.length;i++){ if(gates[i].feature_key===featureKey && gates[i].tier===tier){ gate=gates[i]; break; } }
-    if(!gate || gate.enabled===false || gate.limit_count==null) return {allowed:true};
+    var limitCount;
+    /* v261: for clar_chat, ask the plans module's own chatLimit() — once
+       feature_flags.plans_enforced is on, that's the person's REAL plan limit
+       (8/20/60), not just this old tier field, so the number that actually
+       blocks sending can never disagree with the number the My Plan dashboard
+       shows. While enforcement is off (today), clvChatLimit() returns exactly
+       what the lookup below already returned, so behavior is unchanged. */
+    if(featureKey==='clar_chat' && typeof window.clvChatLimit==='function'){
+      limitCount = window.clvChatLimit();
+    } else {
+      var tier = localStorage.getItem('clv_subscription_tier') || 'free';
+      var gates = (window.SHEETS_DATA && window.SHEETS_DATA.feature_gates) || [];
+      var gate = null;
+      for(var i=0;i<gates.length;i++){ if(gates[i].feature_key===featureKey && gates[i].tier===tier){ gate=gates[i]; break; } }
+      if(!gate || gate.enabled===false || gate.limit_count==null) return {allowed:true};
+      limitCount = gate.limit_count;
+    }
+    if(limitCount==null) return {allowed:true};
     var today = new Date().toDateString();
     var key = 'clv_usage_'+featureKey;
     var rec = {}; try{ rec = JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){}
     if(rec.date !== today) rec = {date:today, count:0};
-    if(rec.count >= gate.limit_count) return {allowed:false, limit:gate.limit_count};
+    if(rec.count >= limitCount) return {allowed:false, limit:limitCount};
     rec.count++;
     try{ localStorage.setItem(key, JSON.stringify(rec)); }catch(e){}
     return {allowed:true};
@@ -25940,7 +26114,10 @@ html[data-theme="dark"] .g-img{
     var lim=limitOf(PLAN_ID,key);if(lim===undefined||lim===null)return {allowed:true};
     if(lim===false||lim===0&&key!=='clar_chat_per_day')return {allowed:false,key:key,limit:0,have:USE[key]||0};
     if(typeof lim==='boolean')return {allowed:lim,key:key,limit:lim};
-    var have=key==='goal_images'?(USE.goal_images||0)+((ctx&&ctx.adding)||1)-1:(USE[key]);
+    /* v261: fortune_progress_charts isn't a running usage count like goal_images —
+       it's "which chart, by position, is this" — so the caller passes ctx.index (0-based)
+       instead of relying on USE[key], which nothing tracks for this key. */
+    var have=key==='goal_images'?(USE.goal_images||0)+((ctx&&ctx.adding)||1)-1:key==='fortune_progress_charts'?((ctx&&ctx.index)||0):(USE[key]);
     if(have==null)return {allowed:true};
     return {allowed:have<lim,key:key,limit:lim,have:USE[key]};
   };
@@ -26037,6 +26214,15 @@ html[data-theme="dark"] .g-img{
   /* ── hooks: draw when the Profile tab opens (wrap, never edit) and once after boot ── */
   function wrapProfile(){var o=window._doOpenProfile;if(typeof o!=='function'||o._v260)return;var w=function(){var r=o.apply(this,arguments);refresh();return r;};w._v260=true;window._doOpenProfile=w;}
   window.clvPlan=function(){return PLAN_ID;};window.clvRefreshPlan=refresh;
+  /* v261: exposed so the chat script's own usage gate (_usageGate in the Clar AI
+     script block, a separate, older v182 mechanism) can ask the SAME question this
+     dashboard bar already answers, instead of maintaining its own disconnected
+     answer — otherwise, once plans_enforced goes on, a real paying user's plan
+     could say "60 a day" here while the thing that actually blocks sending still
+     only knew about the old admin tier field. Behavior is unchanged while
+     plans_enforced is off: this returns exactly what chatLimit() already returned
+     then (the admin's feature_gates row, or its own embedded-plan fallback). */
+  window.clvChatLimit=chatLimit;
   window.addEventListener('load',function(){setTimeout(function(){wrapProfile();refresh();},3500);});
   window.addEventListener('sheetsDataReady',function(){wrapProfile();});
 })();
