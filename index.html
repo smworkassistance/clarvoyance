@@ -2012,6 +2012,29 @@ html[data-theme="dark"] .chat-msgs{
 <link rel="preconnect" href="https://www.youtube.com"><link rel="preconnect" href="https://i.ytimg.com"><link rel="dns-prefetch" href="https://www.youtube-nocookie.com">
 </head>
 <body>
+<script>
+/* v263 (T-101): attach the signed-in member's Supabase session to every Clar AI call.
+   The Gemini proxy checks this token when its plans_enforced switch is ON (see workers/gemini-proxy-worker.js).
+   Only requests to the Gemini proxy URL are touched; everything else goes through the original fetch unchanged.
+   If no session is available yet (very first load), the call is sent as before — the proxy then decides. */
+(function(){
+  var AI_URL='https://cold-frog-d555.smworkassistance.workers.dev/';
+  var _origFetch=window.fetch.bind(window);
+  window.fetch=function(input,init){
+    var url=typeof input==='string'?input:(input&&input.url)||'';
+    if(url!==AI_URL)return _origFetch(input,init);
+    var sb=window._sbShared;
+    if(!sb||!sb.auth||!sb.auth.getSession)return _origFetch(input,init);
+    return sb.auth.getSession().then(function(res){
+      var tok=res&&res.data&&res.data.session&&res.data.session.access_token;
+      if(!tok)return _origFetch(input,init);
+      var i2=Object.assign({},init||{});
+      i2.headers=Object.assign({},(init&&init.headers)||{},{'Authorization':'Bearer '+tok});
+      return _origFetch(input,i2);
+    }).catch(function(){return _origFetch(input,init);});
+  };
+})();
+</script>
 
 <!-- Offline indicator (shown when using cached Sheets data without network) -->
 <div id="offline-bar">✦ Offline</div>
@@ -2697,7 +2720,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v262</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v263</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -10803,6 +10826,7 @@ function renderNoOverindulgence(){
          and is exposed to the same risk, found while fixing Fortune. */
       generationConfig:{maxOutputTokens:600,temperature:0.85,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
     };
+    payload._feature='ai_pulse_reflection'; /* v263 (T-101): plan-only feature, checked by the proxy */
     fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
       .then(function(r){return r.json();})
       .then(function(resp){
@@ -11455,6 +11479,7 @@ function renderNoOverindulgence(){
          instead of wrapping it in a ```json fence, saving a few more tokens. */
       generationConfig:{maxOutputTokens:500,temperature:0.88,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
     };
+    payload._feature='ai_fortune_reading'; /* v263 (T-101): plan-only feature, checked by the proxy */
     fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal})
       .then(function(r){return r.json();})
       .then(function(resp){
@@ -18396,6 +18421,7 @@ body.home-tab #nn-tab-section{order:2;}
     }
     var controller=new AbortController();
     var reqTimer=setTimeout(function(){controller.abort();},30000);
+    payload._feature='clar_chat'; /* v263 (T-101): counted per member per day by the proxy when enforcement is on */
     fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal})
     .then(function(r){clearTimeout(reqTimer);if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
     .then(function(data){
