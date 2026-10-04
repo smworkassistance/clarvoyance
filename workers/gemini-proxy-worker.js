@@ -25,7 +25,7 @@
    and redeploy once (known Cloudflare quirk, see CLAUDE.md v201).
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = 'gem-v259-r3';
+const VERSION = 'gem-v263-r1';
 const GEM = 'https://generativelanguage.googleapis.com/v1beta';
 const MAX_BODY = 1_500_000;          // bytes; the biggest real request (chat) is ~60 KB
 const MAX_OUT_TOKENS = 8192;         // hard ceiling on what a caller may ask for
@@ -37,7 +37,7 @@ function parseEnvJson(v) { try { return v ? JSON.parse(v) : {}; } catch (e) { re
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',   // v263: the page now sends the member's session token
   'Access-Control-Expose-Headers': 'X-Cache-Status, X-Worker-Version',
   'X-Worker-Version': VERSION,
 };
@@ -101,6 +101,94 @@ const callGemini = async (env, model, body) => {
   return r.json().catch(() => ({ error: { message: 'Gemini returned non-JSON, HTTP ' + r.status } }));
 };
 
+/* ── v263 (T-101): who may spend Gemini money ─────────────────────────────
+   Until now anyone holding this URL could call Gemini with no limit, and the daily
+   limits lived only in the browser (localStorage). When the `plans_enforced` feature
+   flag is ON (feature_flags table, OFF by default):
+     1. the caller must send a real Supabase session token (Authorization: Bearer …),
+        verified by Supabase itself — the page is never trusted for identity;
+     2. the member's plan comes from `subscriptions` (no live row = free) and the
+        limits from the `plans` table (pricing/plans.json seeds it);
+     3. plan-only features (Fortune AI reading, Pulse reflection) are refused for other plans;
+     4. Clar chat messages are counted per member per UTC day inside the database
+        (ai_usage_consume, db/schema_v263_ai_usage_gate.sql), so the browser cannot reset them.
+   When the flag is OFF nothing is checked and nothing changes — the state the app is in
+   until the owner flips it. Trusted server-to-server callers (the admin relay's guides
+   pipeline, the admin console) send the service key / admin token as the bearer and skip
+   the checks. If the flag cannot be read (Supabase unreachable), enforcement stays OFF for
+   that request — a deliberate trade-off so a Supabase blip never takes chat down.
+   Secrets needed on this Worker before the flag is switched on: SUPABASE_SERVICE_KEY
+   (and optionally ADMIN_TOKEN, the same value as the admin relay's, so admin.html's
+   Consultant/Sandbox keep working). */
+const SB_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co';
+const PAID_ONLY = ['ai_fortune_reading', 'ai_pulse_reflection'];
+let _flag = { on: false, at: 0 };        // remembered for 60 s so every chat message does not re-read the flag
+let _plans = { at: 0, byId: null };      // plan id -> limits, remembered for 5 min
+
+async function sbCall(env, path, init) {
+  const key = env.SUPABASE_SERVICE_KEY;
+  const r = await fetch(SB_URL + '/' + path, {
+    ...(init || {}),
+    headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' },
+  });
+  if (!r.ok) throw new Error('supabase HTTP ' + r.status);
+  return r.json();
+}
+async function enforcementOn(env) {
+  if (Date.now() - _flag.at < 60000) return _flag.on;
+  try {
+    const rows = await sbCall(env, 'rest/v1/feature_flags?select=enabled&key=eq.plans_enforced');
+    _flag = { on: !!(rows[0] && rows[0].enabled), at: Date.now() };
+  } catch (e) {
+    console.warn('[gemini-proxy] could not read plans_enforced — enforcement off for this request: ' + e.message);
+    _flag = { on: false, at: Date.now() };
+  }
+  return _flag.on;
+}
+async function plansById(env) {
+  if (_plans.byId && Date.now() - _plans.at < 300000) return _plans.byId;
+  const rows = await sbCall(env, 'rest/v1/plans?select=id,limits&product_id=eq.clar');
+  _plans = { at: Date.now(), byId: Object.fromEntries(rows.map((r) => [r.id, r.limits || {}])) };
+  return _plans.byId;
+}
+async function planFor(env, uid) {
+  const rows = await sbCall(env, 'rest/v1/subscriptions?select=plan_id,status,current_period_end&user_id=eq.' + uid + '&product_id=eq.clar');
+  const now = Date.now();
+  const live = rows.find((s) => ['active', 'trialing', 'past_due'].includes(s.status) && s.current_period_end && Date.parse(s.current_period_end) > now);
+  return live ? live.plan_id : 'free';
+}
+async function userFromToken(env, token) {
+  const r = await fetch(SB_URL + '/auth/v1/user', { headers: { apikey: env.SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + token } });
+  if (!r.ok) return null;
+  const u = await r.json().catch(() => null);
+  return u && u.id ? u : null;
+}
+/* atomic per-day counter in Postgres; returns the new count, or -1 when the limit is already reached (nothing is counted then) */
+async function consumeDaily(env, uid, feature, limit) {
+  const n = await sbCall(env, 'rest/v1/rpc/ai_usage_consume', {
+    method: 'POST', body: JSON.stringify({ p_user: uid, p_feature: feature, p_limit: limit }),
+  });
+  return typeof n === 'number' ? n : -1;
+}
+/* null = allowed; otherwise {status, code, message} to send back instead of calling Gemini */
+async function entitlementRefusal(env, request, feature) {
+  const token = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!token) return { status: 401, code: 'auth', message: 'Please sign in again to use Clar.' };
+  if (token === env.SUPABASE_SERVICE_KEY || (env.ADMIN_TOKEN && token === env.ADMIN_TOKEN)) return null; // trusted server caller
+  const user = await userFromToken(env, token);
+  if (!user) return { status: 401, code: 'auth', message: 'Please sign in again to use Clar.' };
+  const plan = await planFor(env, user.id);
+  const limits = (await plansById(env))[plan] || {};
+  if (PAID_ONLY.includes(feature) && !limits[feature]) return { status: 402, code: 'plan_locked', message: 'This is part of the Pro plan.' };
+  if (feature === 'clar_chat') {
+    const cap = limits.clar_chat_per_day;
+    if (cap === null) return null;                       // explicit null = unlimited
+    const n = await consumeDaily(env, user.id, 'clar_chat', typeof cap === 'number' ? cap : 0); // missing row = 0 = refused, never unlimited
+    if (n < 0) return { status: 429, code: 'limit_reached', message: "You've used today's Clar messages. They reset tomorrow." };
+  }
+  return null;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const later = (p) => (ctx && ctx.waitUntil ? ctx.waitUntil(p) : p);   // alerts never delay the reply
@@ -112,6 +200,14 @@ export default {
     if (raw.length > MAX_BODY) return json({ error: { message: 'request too large' } }, 413);
     let body;
     try { body = JSON.parse(raw); } catch (e) { return json({ error: { message: 'invalid JSON' } }, 400); }
+
+    // v263: which feature this call is for (set by the page, never forwarded to Gemini), then the entitlement check when enforcement is on
+    const feature = typeof body._feature === 'string' ? body._feature : null;
+    delete body._feature;
+    if (await enforcementOn(env)) {
+      const refusal = await entitlementRefusal(env, request, feature);
+      if (refusal) return json({ error: { code: refusal.code, message: refusal.message } }, refusal.status);
+    }
 
     const tiers = { ...DEFAULT_TIERS, ...parseEnvJson(env.MODEL_TIERS) };
     const alias = parseEnvJson(env.MODEL_ALIAS);

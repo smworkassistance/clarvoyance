@@ -1731,7 +1731,8 @@ async function sbxSend() {
       contents:geminiMsgs,
       generationConfig:{maxOutputTokens:600,responseMimeType:'application/json',thinkingConfig:{thinkingBudget:0}}
     };
-    const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    /* v263 (T-101): the Gemini proxy checks a bearer when its plans_enforced switch is on; the admin token is accepted there as a trusted caller */
+    const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(await _adminToken())},body:JSON.stringify(payload)});
     const data = await res.json();
     let raw = ''; try { raw = data.candidates[0].content.parts[0].text; } catch(e) {}
     let parsed; try { parsed = JSON.parse(raw); } catch(e) { parsed = {message: raw || '(no response — check console)', state_read:''}; }
@@ -2721,7 +2722,8 @@ async function conSend() {
        curl, HTTP 400 INVALID_ARGUMENT), so JSON-ness now relies on the prompt
        instruction alone; grounded replies also run longer, hence 3000 tokens. */
     const payload = { _model:'gemini-2.5-flash', system_instruction:{parts:[{text:sys}]}, contents:msgs, tools:[{google_search:{}}], generationConfig:{maxOutputTokens:3000,thinkingConfig:{thinkingBudget:0}} };
-    const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    /* v263 (T-101): same admin bearer as the Sandbox call above */
+    const res = await fetch(WORKER_URL, {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+(await _adminToken())},body:JSON.stringify(payload)});
     const data = await res.json();
     const cand = data.candidates && data.candidates[0];
     let reply = ''; try { reply = cand.content.parts[0].text; } catch(e) {}

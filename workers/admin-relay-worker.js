@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v262-r2', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v263-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -391,7 +391,9 @@ async function geminiJSON(system, user, opts) {
   };
   let j = null, data = null;
   for (let attempt = 0; attempt < 2 && !data; attempt++) { /* the model occasionally returns an empty/truncated answer: one quick retry */
-    const r = await fetchTimeout(GEMINI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, 30000, 'GEMINI');
+    /* v263 (T-101): the Gemini proxy now asks for a session token. This relay is a trusted server caller,
+       so it presents the service key (same secret the proxy holds as SUPABASE_SERVICE_KEY) and skips the per-member checks. */
+    const r = await fetchTimeout(GEMINI_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (_env && _env.SUPABASE_SERVICE_KEY || '') }, body: JSON.stringify(body) }, 30000, 'GEMINI');
     if (!r.ok) throw new Error('gemini HTTP ' + r.status + (r.status === 404 ? ' (add the GEMINI service binding — see callSibling)' : ''));
     j = await r.json();
     const text = (((j.candidates || [])[0] || {}).content || {}).parts ? j.candidates[0].content.parts.map((p) => p.text || '').join('') : '';
