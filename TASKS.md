@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 04/10/2026 17:01:49 IST.
+> Rendered 04/10/2026 17:21:55 IST.
 
 ## Run status
 No run active.
@@ -115,6 +115,7 @@ No run active.
 | T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DONE | — | — | 03/10/2026 16:36:16 |
 | T-108 | 03/10/2026 05:13:09 | Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead,… | DISCUSS | — | — | — |
 | T-109 | 04/10/2026 01:46:25 | Manual UPI upgrade-request flow (no payment gateway yet): member submits plan+UTR+note in-app, owner approves… | DONE | — | — | 04/10/2026 17:01:48 |
+| T-110 | 04/10/2026 17:21:55 | Admin email alerts for new upgrade requests, feedback (landing + account-delete), leads, and scholarship appl… | DONE | — | — | 04/10/2026 17:21:55 |
 
 ## Task details (acceptance + result evidence)
 
@@ -542,3 +543,8 @@ No run active.
 - Done-when: upgrade_requests table+view+RLS exist, client form replaces the pre-launch waitlist as the primary path (falls back to waitlist if table missing), admin.html Upgrade Requests tab approves/rejects, all verified
 - Result / evidence: db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet.
   db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. LIVE: pushed to origin/main; owner ran the SQL + deployed the Worker, both confirmed via curl (anon insert 401 not missing-table; X-Worker-Version v262-r1). Only billing.upi_id (pricing/plans.json) still a placeholder -- owner to share the real UPI ID later.
+
+### T-110 — Admin email alerts for new upgrade requests, feedback (landing + account-delete), leads, and scholarship applications -- so the owner doesn't have to open admin.html to notice one
+- Status: **DONE**  · Batch: —  · Depends on: —
+- Done-when: checkNewSubmissionsTick runs on the existing 15-min cron, one combined email per table per tick when new rows exist, cursor advances only on a successful send
+- Result / evidence: workers/admin-relay-worker.js: checkNewSubmissionsTick() checks upgrade_requests/landing_feedback/landing_leads/scholarship_applications/account_delete_feedback on the existing 15-min Cron Trigger, reusing admin_alert_log (schema_v255) as a per-table cursor -- no new migration. X-Worker-Version v262-r2. Verified in isolation (real worker code via scheduled(), mocked fetch): qa/worker/new-submission-alerts.test.js 13/13 -- one email per new row batch, multiple new rows in one tick combine into one email, cursor only advances on a successful send (missing Resend secrets leaves the backlog intact for the next tick), one table erroring never blocks the other 4. NOT deployed yet -- owner must paste the Worker (and set RESEND_API_KEY/ADMIN_ALERT_EMAIL if not already done for T-076).

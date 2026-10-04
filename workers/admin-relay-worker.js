@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v262-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v262-r2', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -436,6 +436,49 @@ async function maybeSendAlert(env, key, subject, text, cooldownHours) {
     await sbFetch(env, 'admin_alert_log?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key, last_sent_at: nowIso() }) });
     return { sent: true };
   } catch (e) { return { sent: false, reason: e.message }; }
+}
+
+/* ── v262-follow-up: "tell me when a real person does something" admin email alerts.
+   Owner's direct ask (2026-10-04): upgrade/payment requests, feedback of every kind, and
+   account-delete feedback should reach the owner without having to open admin.html and
+   check each tab by hand. No Supabase Database Webhook (the "correct" way) is used here —
+   it would need the owner to configure 5 separate webhooks in the Supabase dashboard, real
+   manual setup burden for not much gain at this traffic level. Instead this reuses the
+   EXISTING 15-min Cron Trigger (see scheduled() below) and the EXISTING admin_alert_log
+   table (schema_v255_admin_alerts.sql, already created for T-076) — repurposed here as a
+   per-table "reported up to this timestamp" cursor rather than a failure-cooldown clock,
+   same table, no new migration needed. Every one of these 5 tables already grants
+   service_role full SELECT (checked each table's own schema file, not assumed) so this
+   needs zero new Supabase grants either -- purely a Worker code change.
+   Needs the SAME two secrets as T-076 (RESEND_API_KEY, ADMIN_ALERT_EMAIL) -- if those were
+   never set, this fails the same way T-076 always has: caught, logged in nothing (no
+   console in a cron tick), simply a silent no-op, and the cursor is deliberately NOT
+   advanced on a failed send so the backlog is retried next tick rather than lost. */
+const NEW_SUBMISSION_TABLES = [
+  { table: 'upgrade_requests', label: 'upgrade request', fields: (r) => 'plan: ' + r.plan_id + ', utr: ' + (r.utr || '(none given)') + ', note: ' + (r.note || '(none)') + ', user_id: ' + r.user_id },
+  { table: 'landing_feedback', label: 'landing feedback', fields: (r) => 'rating: ' + (r.rating == null ? '(none)' : r.rating) + ', reason: ' + (r.reason || '(none)') + ', message: ' + (r.message || '(none)') + ', email: ' + (r.email || '(none)') },
+  { table: 'landing_leads', label: 'Ask Clar lead', fields: (r) => 'name: ' + (r.name || '(none)') + ', email: ' + r.email + ', context: ' + String(r.context || '').slice(0, 200) },
+  { table: 'scholarship_applications', label: 'scholarship application', fields: (r) => 'name: ' + r.name + ', email: ' + r.email + ', situation: ' + String(r.situation || '').slice(0, 200) },
+  { table: 'account_delete_feedback', label: 'account-delete feedback', fields: (r) => 'reason: ' + (r.reason || '(none)') + ', message: ' + (r.message || '(none)') },
+];
+async function checkNewSubmissionsTick(env) {
+  for (const t of NEW_SUBMISSION_TABLES) {
+    try {
+      const key = 'newcheck:' + t.table;
+      const cursorRows = await sbFetch(env, 'admin_alert_log?select=last_sent_at&key=eq.' + encodeURIComponent(key));
+      /* first run ever for this table: look back 24h only, not the table's entire history */
+      const since = cursorRows[0] ? cursorRows[0].last_sent_at : new Date(Date.now() - 24 * 3600000).toISOString();
+      const newRows = await sbFetch(env, t.table + '?select=*&created_at=gt.' + encodeURIComponent(since) + '&order=created_at.asc&limit=50');
+      if (!newRows.length) continue;
+      const latest = newRows[newRows.length - 1].created_at;
+      const body = newRows.map((r, i) => (i + 1) + '. ' + t.fields(r) + '\n   (' + r.created_at + ')').join('\n\n');
+      await sendAdminEmail(env, 'Clar: ' + newRows.length + ' new ' + t.label + (newRows.length > 1 ? 's' : ''), body);
+      /* cursor only advances on a SUCCESSFUL send -- a missing Resend secret or a transient
+         failure leaves it where it was, so the same backlog is retried next tick instead of
+         being silently skipped forever. */
+      await sbFetch(env, 'admin_alert_log?on_conflict=key', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ key, last_sent_at: latest }) });
+    } catch (e) { /* this one table's email failed (or the table doesn't exist on this project yet) -- the others must still get checked */ }
+  }
 }
 
 /* ── feeds ── */
@@ -1497,6 +1540,6 @@ export default {
      Triggers invoke this directly, there's no incoming request to check. */
   async scheduled(event, env, ctx) {
     _env = env;
-    ctx.waitUntil(Promise.allSettled([evaluateAndSendAll(env), guidesTick(env), leagueCloseTick(env)])); /* v250: notifications + guides; v253: league week close */
+    ctx.waitUntil(Promise.allSettled([evaluateAndSendAll(env), guidesTick(env), leagueCloseTick(env), checkNewSubmissionsTick(env)])); /* v250: notifications + guides; v253: league week close; v262-follow-up: new submission email alerts */
   },
 };

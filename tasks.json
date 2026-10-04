@@ -2251,6 +2251,30 @@
           "note": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. LIVE: pushed to origin/main; owner ran the SQL + deployed the Worker, both confirmed via curl (anon insert 401 not missing-table; X-Worker-Version v262-r1). Only billing.upi_id (pricing/plans.json) still a placeholder -- owner to share the real UPI ID later."
         }
       ]
+    },
+    {
+      "id": "T-110",
+      "title": "Admin email alerts for new upgrade requests, feedback (landing + account-delete), leads, and scholarship applications -- so the owner doesn't have to open admin.html to notice one",
+      "added": "2026-10-04T11:51:55.123Z",
+      "done_when": "checkNewSubmissionsTick runs on the existing 15-min cron, one combined email per table per tick when new rows exist, cursor advances only on a successful send",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "workers/admin-relay-worker.js: checkNewSubmissionsTick() checks upgrade_requests/landing_feedback/landing_leads/scholarship_applications/account_delete_feedback on the existing 15-min Cron Trigger, reusing admin_alert_log (schema_v255) as a per-table cursor -- no new migration. X-Worker-Version v262-r2. Verified in isolation (real worker code via scheduled(), mocked fetch): qa/worker/new-submission-alerts.test.js 13/13 -- one email per new row batch, multiple new rows in one tick combine into one email, cursor only advances on a successful send (missing Resend secrets leaves the backlog intact for the next tick), one table erroring never blocks the other 4. NOT deployed yet -- owner must paste the Worker (and set RESEND_API_KEY/ADMIN_ALERT_EMAIL if not already done for T-076).",
+      "completed": "2026-10-04T11:51:55.302Z",
+      "history": [
+        {
+          "at": "2026-10-04T11:51:55.134Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-04T11:51:55.303Z",
+          "status": "DONE",
+          "note": "workers/admin-relay-worker.js: checkNewSubmissionsTick() checks upgrade_requests/landing_feedback/landing_leads/scholarship_applications/account_delete_feedback on the existing 15-min Cron Trigger, reusing admin_alert_log (schema_v255) as a per-table cursor -- no new migration. X-Worker-Version v262-r2. Verified in isolation (real worker code via scheduled(), mocked fetch): qa/worker/new-submission-alerts.test.js 13/13 -- one email per new row batch, multiple new rows in one tick combine into one email, cursor only advances on a successful send (missing Resend secrets leaves the backlog intact for the next tick), one table erroring never blocks the other 4. NOT deployed yet -- owner must paste the Worker (and set RESEND_API_KEY/ADMIN_ALERT_EMAIL if not already done for T-076)."
+        }
+      ]
     }
   ]
 }
