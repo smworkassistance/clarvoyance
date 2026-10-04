@@ -2232,8 +2232,8 @@
       "batch": null,
       "depends_on": [],
       "verify": false,
-      "result": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet.",
-      "completed": "2026-10-04T09:32:32.853Z",
+      "result": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet.\ndb/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. LIVE: pushed to origin/main; owner ran the SQL + deployed the Worker, both confirmed via curl (anon insert 401 not missing-table; X-Worker-Version v262-r1). Only billing.upi_id (pricing/plans.json) still a placeholder -- owner to share the real UPI ID later.",
+      "completed": "2026-10-04T11:31:48.770Z",
       "history": [
         {
           "at": "2026-10-03T20:16:25.709Z",
@@ -2244,6 +2244,11 @@
           "at": "2026-10-04T09:32:32.859Z",
           "status": "DONE",
           "note": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet."
+        },
+        {
+          "at": "2026-10-04T11:31:48.777Z",
+          "status": "DONE",
+          "note": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. LIVE: pushed to origin/main; owner ran the SQL + deployed the Worker, both confirmed via curl (anon insert 401 not missing-table; X-Worker-Version v262-r1). Only billing.upi_id (pricing/plans.json) still a placeholder -- owner to share the real UPI ID later."
         }
       ]
     }
