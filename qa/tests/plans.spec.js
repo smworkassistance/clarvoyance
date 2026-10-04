@@ -23,14 +23,39 @@ test.describe('plans (v260)', () => {
     expect(w.length).toBeGreaterThanOrEqual(3); expect(w.some((x) => x > 0)).toBe(true);
   });
 
-  test('plans overlay lists the 3 plans; the waitlist saves honestly', async ({ app }) => {
+  test('plans overlay lists the 3 plans; choosing one opens the manual UPI upgrade-request form', async ({ app }) => {
     await app.boot();
+    // Real anonymous sign-in is rate-limited under this session's own heavy repeated test load
+    // (Supabase returned a genuine 429 when checked directly) — inject a fake uid the same way
+    // other tests here inject clv_plan_override, so this test verifies THIS feature's own logic
+    // deterministically instead of being hostage to a shared project's live auth rate limit.
+    await app.page.evaluate(() => { window._sbUid = '00000000-0000-4000-8000-00000000009a'; });
     await app.page.evaluate(() => openProfileTab()); await app.page.waitForTimeout(2500);
     await app.page.evaluate(() => document.getElementById('pl-see').click());
     await expect(app.page.locator('#pl-plans .pl-p')).toHaveCount(3);
     await app.page.evaluate(() => document.querySelector('[data-pl="plus"]').click());
-    await app.page.fill('#pl-wlm', 'tester@example.com'); await app.page.click('#pl-wlg');
-    await expect(app.page.locator('#pl-wlr')).toHaveText(/on the list|not open yet/, { timeout: 8000 });
+    await expect(app.page.locator('#pl-wl')).toBeVisible();
+    await expect(app.page.locator('#pl-utr')).toBeVisible(); // v262: UTR + note, not an email field — real paid plans are open now, no gateway yet
+    await app.page.fill('#pl-utr', '123456789012'); await app.page.fill('#pl-note', 'paid via GPay');
+    await app.page.click('#pl-wlg');
+    // isolate()'s own blanket handler fakes a 201 for any Supabase write it doesn't specifically mock,
+    // so a real upgrade_requests insert (if the owner has run schema_v262) succeeds here, and the
+    // fallback-to-waitlist path (table missing) is covered by its own test below.
+    await expect(app.page.locator('#pl-wlr')).toHaveText(/review your payment|reach out soon|not open yet/, { timeout: 8000 });
+  });
+
+  test('upgrade-request form falls back to the waitlist if upgrade_requests does not exist yet', async ({ app }) => {
+    await app.page.route(/\/rest\/v1\/upgrade_requests/, (route) => route.fulfill({ status: 404, contentType: 'application/json', body: '{"message":"relation \\"upgrade_requests\\" does not exist"}' }));
+    await app.boot();
+    await app.page.evaluate(() => {
+      window._sbUid = '00000000-0000-4000-8000-00000000009b'; // same reasoning as the test above — real anon auth is rate-limited right now
+      localStorage.setItem('clv_user_identity', JSON.stringify({ email: 'tester@example.com' }));
+    });
+    await app.page.evaluate(() => openProfileTab()); await app.page.waitForTimeout(2500);
+    await app.page.evaluate(() => document.getElementById('pl-see').click());
+    await app.page.evaluate(() => document.querySelector('[data-pl="plus"]').click());
+    await app.page.click('#pl-wlg'); // submit with no UTR/note at all -- both are optional
+    await expect(app.page.locator('#pl-wlr')).toHaveText(/reach out soon|not open yet/, { timeout: 8000 });
   });
 
   test('upgrade sheet speaks in the moment: names the limit and the next plan', async ({ app }) => {

@@ -116,8 +116,13 @@ test.describe('fortune/pulse/charts gates (v261)', () => {
 
 test.describe('chat limit unification (v261)', () => {
   test('clvChatLimit: not enforced reproduces the admin feature_gates answer; enforced returns the real plan number regardless of the old tier field', async ({ app }) => {
-    await app.boot();
+    // Must be registered BEFORE boot: window.SHEETS_DATA.feature_gates is populated once during the
+    // app's own initial content fetch inside app.boot() and then read from that cached copy, never
+    // re-fetched live — a route mock added after boot is too late and silently lets the REAL
+    // production row (whatever the owner has it set to right now) leak through instead, which is
+    // exactly what broke this test the moment the owner changed free's real limit from 20 to 8.
     await app.page.route(/\/rest\/v1\/feature_gates/, route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([{ feature_key: 'clar_chat', tier: 'free', limit_count: 20, enabled: true }]) }));
+    await app.boot();
     await app.page.evaluate(() => { localStorage.setItem('clv_subscription_tier', 'free'); localStorage.setItem('clv_plans_enforced', '0'); return window.clvRefreshPlan(); });
     await app.page.waitForTimeout(600);
     const notEnforced = await app.page.evaluate(() => window.clvChatLimit());
