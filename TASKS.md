@@ -2,7 +2,7 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 03/10/2026 16:39:07 IST.
+> Rendered 04/10/2026 15:02:33 IST.
 
 ## Run status
 No run active.
@@ -114,6 +114,7 @@ No run active.
 | T-106 | 02/10/2026 05:28:40 | Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_ur… | DISCUSS | — | — | — |
 | T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DONE | — | — | 03/10/2026 16:36:16 |
 | T-108 | 03/10/2026 05:13:09 | Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead,… | DISCUSS | — | — | — |
+| T-109 | 04/10/2026 01:46:25 | Manual UPI upgrade-request flow (no payment gateway yet): member submits plan+UTR+note in-app, owner approves… | DONE | — | — | 04/10/2026 15:02:32 |
 
 ## Task details (acceptance + result evidence)
 
@@ -535,3 +536,8 @@ No run active.
 
 ### T-108 — Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead, Feedback, or Scholarship application lands in landing_leads/landing_feedback/scholarship_applications -- reuse the existing Resend pattern (RESEND_API_KEY/ADMIN_ALERT_EMAIL, same as gemini-proxy-worker.js alertOnce / admin-relay T-076) via a Supabase trigger -> Worker, or a cron poll in admin-relay-worker.js. Right now these 3 tables are only visible by opening admin.html's Landing tab -- nobody is told a submission arrived.
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
+
+### T-109 — Manual UPI upgrade-request flow (no payment gateway yet): member submits plan+UTR+note in-app, owner approves/rejects in admin.html, approval writes a real subscriptions row (source=admin_grant)
+- Status: **DONE**  · Batch: —  · Depends on: —
+- Done-when: upgrade_requests table+view+RLS exist, client form replaces the pre-launch waitlist as the primary path (falls back to waitlist if table missing), admin.html Upgrade Requests tab approves/rejects, all verified
+- Result / evidence: db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet.

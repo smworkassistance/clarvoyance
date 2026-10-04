@@ -2222,6 +2222,30 @@
           "note": "created"
         }
       ]
+    },
+    {
+      "id": "T-109",
+      "title": "Manual UPI upgrade-request flow (no payment gateway yet): member submits plan+UTR+note in-app, owner approves/rejects in admin.html, approval writes a real subscriptions row (source=admin_grant)",
+      "added": "2026-10-03T20:16:25.708Z",
+      "done_when": "upgrade_requests table+view+RLS exist, client form replaces the pre-launch waitlist as the primary path (falls back to waitlist if table missing), admin.html Upgrade Requests tab approves/rejects, all verified",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet.",
+      "completed": "2026-10-04T09:32:32.853Z",
+      "history": [
+        {
+          "at": "2026-10-03T20:16:25.709Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-04T09:32:32.859Z",
+          "status": "DONE",
+          "note": "db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. Promoted locally to index.html/sw.js (clv-v262), NOT pushed yet."
+        }
+      ]
     }
   ]
 }
