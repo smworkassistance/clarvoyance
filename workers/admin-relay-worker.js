@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v261-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v262-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -1416,6 +1416,41 @@ const ACTIONS = {
   async 'guide_sources.select'(env) { return sbFetch(env, 'guide_sources?select=*&order=name.asc'); },
   async 'guide_sources.upsert'(env, p) { if (p.id == null) delete p.id; return sbFetch(env, 'guide_sources?on_conflict=url', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(p) }); },
   async 'guide_sources.delete'(env, p) { if (!p.id) throw new Error('id required'); return sbFetch(env, 'guide_sources?id=eq.' + encodeURIComponent(p.id), { method: 'DELETE' }); },
+
+  /* v262 — manual upgrade requests (no payment gateway yet, schema_v262_upgrade_requests.sql):
+     a member fills a short in-app form (plan + UTR + optional note); the owner checks their own
+     UPI app and approves/rejects here. Approve writes a real `subscriptions` row the same way a
+     real gateway webhook eventually will (source='admin_grant', already a valid value in that
+     table's own CHECK constraint since schema_v260_plans.sql). Deliberately does NOT rely on
+     subscriptions' own partial unique index (subscriptions_one_live, only indexes active/
+     trialing/past_due rows) as a PostgREST on_conflict target — a partial index can't be named
+     that way through PostgREST's upsert syntax, so this does an explicit select-then-
+     update-or-insert instead, which also correctly extends an existing active subscription
+     rather than ever creating two "live" rows for the same member. */
+  async 'upgrade_requests.select'(env) {
+    return sbFetch(env, 'admin_upgrade_requests_overview?select=*&limit=300');
+  },
+  async 'upgrade_requests.approve'(env, p) {
+    if (!p.id) throw new Error('id required');
+    const months = Math.max(1, Math.min(12, parseInt(p.months, 10) || 1));
+    const reqs = await sbFetch(env, 'upgrade_requests?id=eq.' + encodeURIComponent(p.id) + '&select=*');
+    const r = reqs[0]; if (!r) throw new Error('request not found');
+    const periodEnd = new Date(Date.now() + months * 30 * 86400000).toISOString();
+    const existing = await sbFetch(env, 'subscriptions?select=id&user_id=eq.' + encodeURIComponent(r.user_id)
+      + '&product_id=eq.' + encodeURIComponent(r.product_id) + '&status=in.(active,trialing,past_due)');
+    const body = { user_id: r.user_id, product_id: r.product_id, plan_id: r.plan_id, status: 'active',
+      source: 'admin_grant', current_period_end: periodEnd, notes: 'upgrade_requests.id=' + r.id, updated_at: nowIso() };
+    if (existing.length) await sbFetch(env, 'subscriptions?id=eq.' + existing[0].id, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(body) });
+    else await sbFetch(env, 'subscriptions', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(body) });
+    await sbFetch(env, 'upgrade_requests?id=eq.' + encodeURIComponent(p.id), { method: 'PATCH', headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'approved', reviewed_at: nowIso() }) });
+    return { ok: true, plan_id: r.plan_id, current_period_end: periodEnd };
+  },
+  async 'upgrade_requests.reject'(env, p) {
+    if (!p.id) throw new Error('id required');
+    return sbFetch(env, 'upgrade_requests?id=eq.' + encodeURIComponent(p.id), { method: 'PATCH', headers: { Prefer: 'return=representation' },
+      body: JSON.stringify({ status: 'rejected', reviewed_at: nowIso(), reviewer_note: p.note ? String(p.note).slice(0, 300) : null }) });
+  },
 };
 
 export default {

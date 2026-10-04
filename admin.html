@@ -245,6 +245,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="clarposts" onclick="switchTab(this)">✍️ Clar Posts</button>
     <button class="tab"    data-p="guides" onclick="switchTab(this)">🧭 Guides</button>
     <button class="tab"    data-p="landing" onclick="switchTab(this)">📨 Landing</button>
+    <button class="tab"    data-p="upgrades" onclick="switchTab(this)">🧾 Upgrade Requests</button>
   </div>
 
   <!-- TOOLS -->
@@ -411,6 +412,13 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <div id="land-feedback"><div class="s-load">Loading...</div></div>
     <div class="sec-lbl" style="margin-top:22px">✦ Ask Clar leads</div>
     <div id="land-leads"><div class="s-load">Loading...</div></div>
+  </div>
+
+  <!-- UPGRADE REQUESTS: no payment gateway yet (v262) -- a member pays by UPI on their own,
+       submits the transaction number here, you check your own UPI app and approve/reject. -->
+  <div id="pane-upgrades" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">A member who has paid by UPI submits the transaction (UTR) number in the app. Check it against your own UPI app, then Approve (grants the plan for 1 month, source="admin_grant") or Reject. Pending requests show first.</p>
+    <div id="upg-list"><div class="s-load">Loading...</div></div>
   </div>
 
   <!-- ENGAGEMENT: momentum growth/decay + Fortune gap-awareness config, v186 -->
@@ -761,6 +769,7 @@ async function loadData() {
   loadEngagementConfig();
   loadSeedTopics();
   loadLandingSubmissions();
+  loadUpgradeRequests();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2066,6 +2075,54 @@ function renderLandingLeads(rows) {
       ${r.context ? `<div style="font-size:12px;color:#9CA3AF;margin-top:4px;white-space:pre-wrap">${x(r.context)}</div>` : ''}
       <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${fmtWhen(r.created_at)}</div>
     </div></div></div>`).join('');
+}
+
+/* v262: manual upgrade requests -- no payment gateway yet, see db/schema_v262_upgrade_requests.sql.
+   Pending ones sort first (regardless of the raw created_at.desc order the Worker returns) so the
+   owner's actual queue of real work is always at the top, not buried under old approved/rejected rows. */
+async function loadUpgradeRequests() {
+  const el = document.getElementById('upg-list');
+  if (!el) return;
+  try {
+    const rows = await adminApi('upgrade_requests.select') || [];
+    rows.sort((a, b) => (a.status === 'pending' ? -1 : 0) - (b.status === 'pending' ? -1 : 0));
+    renderUpgradeRequests(rows);
+  } catch (e) {
+    el.innerHTML = /unauthorized/i.test(e.message)
+      ? empty('🔒', 'Invalid admin token — reload the page and re-enter it')
+      : empty('⚠️', 'Could not load: ' + e.message);
+  }
+}
+function renderUpgradeRequests(rows) {
+  const el = document.getElementById('upg-list');
+  if (!rows.length) { el.innerHTML = empty('🧾', 'No upgrade requests yet'); return; }
+  const badge = s => ({ pending: '#F59E0B', approved: '#10B981', rejected: '#EF4444' }[s] || '#9CA3AF');
+  el.innerHTML = rows.map(r => `
+    <div class="ic">
+      <div class="ic-head">
+        <div class="ic-body">
+          <div class="ic-name">${x(r.name || r.email || r.user_id)} <span style="color:#9CA3AF;font-weight:400">→ ${x(r.plan_id)}</span>
+            <span style="color:${badge(r.status)};font-size:11px;font-weight:700;text-transform:uppercase;margin-left:6px">${x(r.status)}</span></div>
+          ${r.utr ? `<div style="font-size:13px;font-family:monospace;color:#D1D5DB;margin-top:4px">UTR: ${x(r.utr)}</div>` : '<div style="font-size:12px;color:#9CA3AF;margin-top:4px">(no UTR given)</div>'}
+          ${r.note ? `<div style="font-size:12px;color:#9CA3AF;margin-top:4px;white-space:pre-wrap">${x(r.note)}</div>` : ''}
+          ${r.reviewer_note ? `<div style="font-size:12px;color:#6B7280;margin-top:4px;font-style:italic">Note: ${x(r.reviewer_note)}</div>` : ''}
+          <div style="font-size:11px;color:#9CA3AF;margin-top:4px">${fmtWhen(r.created_at)}${r.reviewed_at ? ' · reviewed ' + fmtWhen(r.reviewed_at) : ''}</div>
+        </div>
+        ${r.status === 'pending' ? `<div class="ic-acts">
+          <button class="ab a-edit" onclick="upgReqApprove('${r.id}')">Approve</button>
+          <button class="ab a-del"  onclick="upgReqReject('${r.id}')">Reject</button>
+        </div>` : ''}
+      </div>
+    </div>`).join('');
+}
+async function upgReqApprove(id) {
+  try { const r = await adminApi('upgrade_requests.approve', { id, months: 1 }); toast('Upgraded to ' + r.plan_id + ' ✓', 'ok'); loadUpgradeRequests(); }
+  catch (e) { toast('Failed: ' + e.message, 'err'); }
+}
+async function upgReqReject(id) {
+  const note = prompt('Reason (optional, shown to no one but you):') || '';
+  try { await adminApi('upgrade_requests.reject', { id, note }); toast('Rejected', 'ok'); loadUpgradeRequests(); }
+  catch (e) { toast('Failed: ' + e.message, 'err'); }
 }
 
 async function loadSeedTopics() {
