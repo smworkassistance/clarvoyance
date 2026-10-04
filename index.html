@@ -2697,7 +2697,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v261</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v262</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -26011,8 +26011,10 @@ html[data-theme="dark"] .g-img{
 .pl-p li::before{content:"✓ ";color:var(--acc);font-weight:800}
 .pl-p .tag{position:absolute;top:-11px;left:18px;background:var(--acc);color:#fff;font-size:.7rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 12px;border-radius:999px}
 .pl-wl{display:grid;gap:8px;margin-top:6px}
-.pl-wl input{padding:13px 14px;border-radius:12px;border:1.5px solid var(--bo);font:inherit;background:var(--su);color:var(--tx)}
+.pl-wl input,.pl-wl textarea{padding:13px 14px;border-radius:12px;border:1.5px solid var(--bo);font:inherit;background:var(--su);color:var(--tx);resize:vertical}
 .pl-msg{font-size:.86rem;color:var(--lt);min-height:1.2em}
+.pl-upi-box{background:color-mix(in srgb,var(--acc) 8%,var(--su));border:1.5px solid color-mix(in srgb,var(--acc) 30%,var(--bo));border-radius:12px;padding:12px 14px;font-size:.92rem;line-height:1.5;color:var(--tx)}
+.pl-upi-box b{color:var(--acc)}
 .pl-sheet{position:fixed;left:0;right:0;bottom:0;z-index:10060;background:var(--su);border-radius:26px 26px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));box-shadow:0 -20px 60px rgba(0,0,0,.25);transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-width:560px;margin:0 auto}
 .pl-sheet.open{transform:none}
 .pl-scrim{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.38);opacity:0;pointer-events:none;transition:opacity .3s}
@@ -26028,7 +26030,7 @@ html[data-theme="dark"] .g-img{
 <script id="v260-plans-js">
 (function(){
   /* ── the rate chart (same shape as pricing/plans.json; the fetched file overrides this copy) ── */
-  var PLANS={"product":"clar","currency":"INR","billing":{"checkout_url":null},
+  var PLANS={"product":"clar","currency":"INR","billing":{"checkout_url":null,"upi_id":null},
    "xp_discount":{"daily_cap":250,"base_target":5000,"ratchet":1.15,"ratchet_window_months":2,"max_target":7000},
    "plans":[
     {"id":"free","name":"Free","tagline":"Everything that builds the daily habit","price_monthly":0,"xp_discount_cap_pct":0,"limits":{"clar_chat_per_day":8,"fortune_progress_charts":2,"goal_images":5,"universal_guides":2,"private_guides":0,"ai_fortune_reading":false,"ai_pulse_reflection":false},"features":["Vibe feed, Chargers, Tools, Non-Negotiables, Self, Community","Clar AI: 8 messages a day","2 progress charts","5 goal vision images","2 universal guides"]},
@@ -26168,26 +26170,54 @@ html[data-theme="dark"] .g-img{
        +'<ul>'+p.features.map(function(f){return '<li>'+esc(f)+'</li>'}).join('')+'</ul>'
        +(p.price_monthly&&!cur?'<button class="btn pr pl-cta" data-pl="'+esc(p.id)+'">'+(PLANS.billing&&PLANS.billing.checkout_url?'Choose '+esc(p.name):'Notify me when '+esc(p.name)+' opens')+'</button>':'')+'</div>';
     });
-    h+='<div class="pl-wl" id="pl-wl" style="display:none"><div class="pl-msg" id="pl-wlt"></div><input type="email" id="pl-wlm" placeholder="your@email.com" autocomplete="email" aria-label="Email"><button class="btn pr" id="pl-wlg">Notify me</button><div class="pl-msg" id="pl-wlr" aria-live="polite"></div></div>';
+    h+='<div class="pl-wl" id="pl-wl" style="display:none"><div class="pl-msg" id="pl-wlt"></div><div class="pl-upi-box" id="pl-upi-box"></div><input type="text" id="pl-utr" placeholder="UPI transaction / UTR number (recommended)" autocomplete="off" aria-label="UTR number"><textarea id="pl-note" rows="2" placeholder="Anything else? (optional)" aria-label="Note"></textarea><button class="btn pr" id="pl-wlg">Send upgrade request</button><div class="pl-msg" id="pl-wlr" aria-live="polite"></div></div>';
     wrap.innerHTML=h;$('pl-ov').classList.add('open');document.body.style.overflow='hidden';
     wrap.querySelectorAll('[data-pl]').forEach(function(b){b.onclick=function(){choose(b.getAttribute('data-pl'));};});
   }
   function closePlans(){$('pl-ov').classList.remove('open');document.body.style.overflow='';}
+  /* v262: paid plans are reachable now (no gateway yet), so a tap on a plan opens a real
+     "pay by UPI, then tell us" request form instead of a pre-launch waitlist. Falls back to
+     the original waitlist insert if upgrade_requests doesn't exist yet (owner hasn't run
+     db/schema_v262_upgrade_requests.sql) — same soft-fail-to-the-old-behavior convention this
+     file already uses everywhere else for a not-yet-migrated table. */
   function choose(id){
     var cu=PLANS.billing&&PLANS.billing.checkout_url;if(cu){location.href=cu+(cu.indexOf('?')>-1?'&':'?')+'plan='+encodeURIComponent(id);return;}
+    var p=planById(id);
     var w=$('pl-wl');w.style.display='grid';w.setAttribute('data-plan',id);
-    var idn={};try{idn=JSON.parse(lsGet('clv_user_identity','{}'));}catch(e){}
-    $('pl-wlm').value=idn.email||'';$('pl-wlt').textContent='Paid plans open soon. We will tell you the day '+planById(id).name+' opens.';$('pl-wlr').textContent='';
+    var upi=PLANS.billing&&PLANS.billing.upi_id;
+    var box=$('pl-upi-box');
+    if(box)box.innerHTML=upi
+      ?('Pay <b>'+inr(p.price_monthly)+'</b> to <b>'+esc(upi)+'</b> via any UPI app (GPay / PhonePe / Paytm), then fill in the transaction number below.')
+      :('Payment details are being set up — please check back soon, or message us (Profile → Contact) to upgrade now.');
+    $('pl-wlt').textContent='Request to upgrade to '+esc(p.name)+'.';
+    $('pl-utr').value='';$('pl-note').value='';$('pl-wlr').textContent='';
     w.scrollIntoView({behavior:'smooth',block:'center'});
     $('pl-wlg').onclick=function(){
-      var em=$('pl-wlm').value.trim(),r=$('pl-wlr');if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){r.textContent='Please enter a valid email.';return;}
-      var s=sb();if(!s||!s.from){r.textContent='Not connected right now. Please try again in a moment.';return;}
-      r.textContent='Saving…';
-      Promise.resolve(s.from('plan_waitlist').insert({email:em,plan_id:id,product_id:PLANS.product||'clar',source:'app'})).then(function(x){
-        var e=x&&x.error;if(!e||/duplicate|23505/i.test(e.message||e.code||'')){r.textContent='Thank you. You are on the list.';try{localStorage.setItem('clv_waitlist_'+id,'1');}catch(_){}}
-        else r.textContent='Plans are not open yet. We will announce it here in the app.';
-      }).catch(function(){r.textContent='Plans are not open yet. We will announce it here in the app.';});
+      var utr=$('pl-utr').value.trim(),note=$('pl-note').value.trim(),r=$('pl-wlr');
+      r.textContent='Sending…';
+      _sendUpgradeRequest(id,utr,note,r,53); /* retries while the anonymous session is still starting — same 150ms*53≈8s budget as this file's own established _sbShared/_sbUid-readiness retry (e.g. the Fortune charts' _fetchRange), since a tap within the first several seconds of a cold load must not fail just because auth hasn't resolved yet */
     };
+  }
+  function _sendUpgradeRequest(id,utr,note,r,triesLeft){
+    var s=sb(),u=uid();
+    if(!s||!s.from||!u){
+      if(triesLeft>0){setTimeout(function(){_sendUpgradeRequest(id,utr,note,r,triesLeft-1);},150);return;}
+      r.textContent='Please sign in, then try again.';return;
+    }
+    Promise.resolve(s.from('upgrade_requests').insert({user_id:u,product_id:PLANS.product||'clar',plan_id:id,utr:utr||null,note:note||null})).then(function(x){
+      if(!x||!x.error){r.textContent='Thank you. We will review your payment and upgrade your account shortly.';return;}
+      _waitlistFallback(id,r); /* table not there yet (owner hasn't run schema_v262) */
+    }).catch(function(){ _waitlistFallback(id,r); });
+  }
+  function _waitlistFallback(id,r){
+    var idn={};try{idn=JSON.parse(lsGet('clv_user_identity','{}'));}catch(e){}
+    var em=idn.email;
+    if(!em){r.textContent='Could not send right now. Please try again, or message us (Profile → Contact).';return;}
+    var s=sb();if(!s||!s.from){r.textContent='Not connected right now. Please try again in a moment.';return;}
+    Promise.resolve(s.from('plan_waitlist').insert({email:em,plan_id:id,product_id:PLANS.product||'clar',source:'app'})).then(function(x){
+      var e=x&&x.error;if(!e||/duplicate|23505/i.test(e.message||e.code||'')){r.textContent='Thank you. We will reach out soon to confirm your upgrade.';}
+      else r.textContent='Could not send right now. Please try again, or message us (Profile → Contact).';
+    }).catch(function(){r.textContent='Could not send right now. Please try again, or message us (Profile → Contact).';});
   }
 
   /* ── upgrade prompt at the exact moment of need ── */
