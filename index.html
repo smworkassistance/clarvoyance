@@ -2722,7 +2722,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v264</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v265</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -25173,6 +25173,9 @@ textarea.soc-in{resize:none;min-height:74px}
     h+='<div class="v264-tile" data-act="story" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
       +'<div class="v264-scrim"></div><div class="v264-tile-big">New Story</div>'
       +'<div class="v264-tile-sub">✦ My life, in my words</div></div>';
+    /* v265: the Vision folder — the existing Vision Images (S.visImgs / c9_vis) are shown again here, so nothing that was in the old Goal strip disappears. Cover = the first vision image. */
+    var visN=((window.S&&S.visImgs)||[]);
+    if(visN.length)h+='<div class="v264-tile" data-act="vision" style="background-image:url(\''+esc(visN[0].src)+'\');'+grad('Other')+'"><div class="v264-scrim"></div><div class="v264-tile-big">Vision</div><div class="v264-tile-sub">'+visN.length+' photo'+(visN.length===1?'':'s')+'</div></div>';
     h+=active.map(tile).join('');
     h+='<div class="v264-tile v264-add" data-act="new"><span>+</span><small>New goal</small></div>';
     h+='</div>';
@@ -25180,6 +25183,37 @@ textarea.soc-in{resize:none;min-height:74px}
     if(active.length>3)h+='<p class="v264-hint">Tip: focus on about 3 goals at a time — it is easier to get there.</p>';
     V.root.innerHTML=h;hydrate(false);
   }
+
+  /* ── v265: Vision folder ──
+     Lists the existing vision images (S.visImgs, stored in c9_vis and synced as user_goals.vis_images).
+     Adding uses the app's existing vision upload path (trigUpload('vision')), and deleting uses the
+     existing delVis(), so storage and sync behave exactly as before. */
+  function vwArr(id){
+    if(id==='vision')return (window.S&&S.visImgs)||[];
+    var it=find(id);return it?(it.images||[]):[];
+  }
+  function visPhotosHtml(imgs){
+    if(!imgs.length)return '<p class="v264-empty">No vision images yet. Add photos of the life you want.</p>';
+    return imgs.map(function(im,i){
+      return '<button class="v264-p" data-act="vview" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt=""></button>';
+    }).join('');
+  }
+  function renderVision(){
+    var imgs=(window.S&&S.visImgs)||[];
+    V.root.innerHTML=topbar('Vision images')
+      +'<div class="v264-pad"><p class="v264-hint" style="margin-top:0">Tap any photo to view it full screen. These photos also show in your Vibe Feed.</p>'
+      +'<div class="v264-phead"><span class="v264-lbl" style="margin:0">Photos '+imgs.length+'</span>'
+      +'<button class="v264-chip" data-act="vision-add">+ Add photos</button></div>'
+      +'<div class="v264-pgrid" id="v264-pgrid">'+visPhotosHtml(imgs)+'</div></div>';
+    hydrate(false);
+  }
+  /* the legacy upload and delete paths call renderVisGrid(); keep the Vision view in step with them */
+  var _rvgPrevV265=window.renderVisGrid;
+  window.renderVisGrid=function(){
+    var r=_rvgPrevV265?_rvgPrevV265.apply(this,arguments):undefined;
+    if(V.mode==='vision'&&V.root)renderVision();
+    return r;
+  };
 
   /* ── story detail ── */
   function renderStory(){
@@ -25328,21 +25362,26 @@ textarea.soc-in{resize:none;min-height:74px}
     });
     $('v264-vw-del').addEventListener('click',function(){
       if(!confirm('Delete this photo?'))return;
-      window.GI.update(V.vwId,function(x){(x.images||[]).splice(V.vwI,1);});
-      var it=find(V.vwId);
-      if(!it||!(it.images||[]).length)vwClose(true);else{V.vwI=Math.min(V.vwI,it.images.length-1);vwShow();}
+      if(V.vwId==='vision'){window.delVis(V.vwI);}
+      else{window.GI.update(V.vwId,function(x){(x.images||[]).splice(V.vwI,1);});}
+      var arr=vwArr(V.vwId);
+      if(!arr.length)vwClose(true);else{V.vwI=Math.min(V.vwI,arr.length-1);vwShow();}
     });
   }
   function vwOpen(id,i){
-    var it=find(id);if(!it||!(it.images||[]).length)return;
+    var arr=vwArr(id);if(!arr.length)return;
     V.vwId=id;V.vwI=i||0;V.scale=1;V.tx=0;V.ty=0;V.dx=0;V.dy=0;V.ptrs={};V.pinch=null;V.drag=null;
     V.vw.style.display='block';V.vw.style.background='#000';
     vwShow();
   }
   function vwShow(){
-    var it=find(V.vwId);
-    if(!it||!(it.images||[]).length){vwClose(true);return;}
-    var imgs=it.images;V.vwI=clamp(V.vwI,0,imgs.length-1);
+    var imgs=vwArr(V.vwId);
+    if(!imgs.length){vwClose(true);return;}
+    V.vwI=clamp(V.vwI,0,imgs.length-1);
+    /* vision images have no caption or cover controls here — only view and delete */
+    var isV=V.vwId==='vision';
+    V.note.style.display=isV?'none':'';
+    $('v264-vw-cover').style.display=isV?'none':'';
     var im=imgs[V.vwI];
     V.img.style.opacity='0';
     V.img.onload=function(){V.img.style.opacity='1';};
@@ -25462,6 +25501,7 @@ textarea.soc-in{resize:none;min-height:74px}
       V.vw.style.display='none';V.img.removeAttribute('src');
       V.scale=1;V.tx=0;V.ty=0;V.dx=0;V.dy=0;V.ptrs={};V.pinch=null;V.drag=null;
       if(V.mode==='goal')refreshPhotos();
+      else if(V.mode==='vision')renderVision();
     };
     if(instant){done();return;}
     V.img.style.transition='transform .25s ease, opacity .25s ease';
@@ -25475,6 +25515,9 @@ textarea.soc-in{resize:none;min-height:74px}
     var t=e.target.closest('[data-act]');if(!t||!V.root.contains(t))return;
     var a=t.getAttribute('data-act');
     if(a==='story'){V.mode='story';renderStory();return;}
+    if(a==='vision'){V.mode='vision';V.id=null;renderVision();return;}
+    if(a==='vision-add'){if(window.trigUpload)window.trigUpload('vision');return;}
+    if(a==='vview'){vwOpen('vision',+t.getAttribute('data-i')||0);return;}
     if(a==='goal'){V.mode='goal';V.id=t.getAttribute('data-id');renderGoal(true);return;}
     if(a==='new'){V.mode='new';V.newCat='Business';renderNew();return;}
     if(a==='back'){
