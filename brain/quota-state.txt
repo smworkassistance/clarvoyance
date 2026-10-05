@@ -1,0 +1,5 @@
+weekly_used_pct=69
+session_used_pct=48
+date=2026-10-05
+brain_budget_pct=10
+brain_week_spent_pct=3

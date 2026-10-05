@@ -1,0 +1,7 @@
+﻿run_at,status,is_error,duration_ms,num_turns,cost_usd,input_tokens,output_tokens,cache_read
+2026-10-05T03:51:09,ran-test-1,True,105667,6,1.62387135,2,92,14861
+2026-10-05T03:58:37,skipped-quota,,,,,,,
+2026-10-05T04:03:30,skipped-quota,,,,,,,
+2026-10-05T04:11:26,ran,False,346843,43,0.9242444999999999,38,22662,957885
+2026-10-05T04:34:11,ran,False,223528,28,0.9982381500000002,30,16379,735398
+2026-10-05T05:21:30,skipped-quota,,,,,,,

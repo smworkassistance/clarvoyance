@@ -18,3 +18,6 @@ qa/playwright-report/
 ops/.state/
 qa/verify-run.log
 qa/test-results-*.log
+
+# CEO brain run logs (raw CLI output, local only)
+brain/logs/

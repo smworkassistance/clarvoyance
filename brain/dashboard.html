@@ -1,0 +1,473 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clarvoyance â€” CEO Brain</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1f; --muted: #5f6368; --line: #e3e1da;
+    --accent: #6b4fbb; --accent-ink: #ffffff; --good: #2e7d4f; --warn: #b26a00; --bad: #b3261e;
+    --focus: #1a73e8; --bar-bg: #ece9e1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121214; --card: #1c1c20; --ink: #ececf1; --muted: #a3a3ad; --line: #2c2c33;
+      --accent: #b8a4f0; --accent-ink: #121214; --good: #6fcf97; --warn: #f2c26b; --bad: #ff8a80;
+      --focus: #8ab4f8; --bar-bg: #2a2a31;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121214; --card: #1c1c20; --ink: #ececf1; --muted: #a3a3ad; --line: #2c2c33;
+    --accent: #b8a4f0; --accent-ink: #121214; --good: #6fcf97; --warn: #f2c26b; --bad: #ff8a80;
+    --focus: #8ab4f8; --bar-bg: #2a2a31;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a, button { font: inherit; }
+  :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 6px; }
+  header {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+    padding: 20px clamp(16px, 4vw, 40px); border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--bg); z-index: 2;
+  }
+  h1 { font-size: 1.25rem; margin: 0; letter-spacing: -0.01em; }
+  h2 { font-size: 1rem; margin: 0 0 12px; letter-spacing: 0.01em; }
+  .sub { color: var(--muted); font-size: .85rem; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  button {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    padding: 8px 14px; border-radius: 999px; cursor: pointer; min-height: 40px;
+  }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 600; }
+  main {
+    padding: clamp(16px, 4vw, 40px); display: grid; gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 20px;
+    min-width: 0;
+  }
+  .wide { grid-column: 1 / -1; }
+  .status { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .pill { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: .85rem; }
+  .pill.on { color: var(--good); border-color: var(--good); }
+  .pill.off { color: var(--warn); border-color: var(--warn); }
+  .gauge { margin-bottom: 14px; }
+  .gauge-top { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 6px; }
+  .bar { height: 10px; background: var(--bar-bg); border-radius: 999px; overflow: hidden; }
+  .bar i { display: block; height: 100%; border-radius: 999px; }
+  .bar i.good { background: var(--good); }
+  .bar i.warn { background: var(--warn); }
+  .bar i.bad { background: var(--bad); }
+  .muted { color: var(--muted); }
+  .small { font-size: .82rem; }
+  pre {
+    white-space: pre-wrap; word-break: break-word; margin: 0; font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+    max-height: 420px; overflow: auto; color: var(--ink);
+  }
+  details { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 12px; }
+  summary { cursor: pointer; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: .8rem; }
+  ul { margin: 0; padding-left: 18px; }
+  .wait { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .wait div { border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 2px; }
+  .wait b { font-size: 1.6rem; color: var(--accent); }
+  .wait span { color: var(--muted); font-size: .85rem; }
+  .item { border-top: 1px solid var(--line); padding: 10px 0; display: grid; gap: 4px; }
+  .item:first-of-type { border-top: 0; }
+  .item-top { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+  ul.plain { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .scroll { overflow-x: auto; }
+  .edit-block { border-top: 1px solid var(--line); padding: 14px 0; }
+  .edit-block:first-of-type { border-top: 0; padding-top: 0; }
+  .edit-block label { display: block; margin-bottom: 8px; }
+  textarea {
+    width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 12px; padding: 12px; resize: vertical; min-height: 110px;
+  }
+  .edit-foot { display: flex; gap: 12px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+  .notes { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .note { padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); }
+  .note.good { border-color: var(--good); color: var(--good); }
+  .note.info { border-color: var(--focus); }
+  .note.warn { border-color: var(--warn); color: var(--warn); }
+  .note.bad { border-color: var(--bad); color: var(--bad); }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: var(--bg);
+    padding: 10px 16px; border-radius: 999px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  footer { padding: 0 clamp(16px, 4vw, 40px) 32px; color: var(--muted); font-size: .8rem; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Clarvoyance Â· CEO Brain</h1>
+    <div class="sub">Last updated 05 Oct 2026, 05:23. To refresh, double-click <b>Open CEO Brain</b>.</div>
+  </div>
+  <div class="actions">
+    <button id="theme" type="button" aria-label="Switch dark and light mode">Dark / light</button>
+    <button id="research" class="primary" type="button">Fresh research</button>
+  </div>
+</header>
+
+<main>
+  <section class="card wide">
+    <h2>Waiting for you</h2>
+    <div class="wait">
+      <div><b>11</b><span>open questions</span></div>
+      <div><b>19</b><span>suggestions to decide</span></div>
+      <div><b>1</b><span>proposals to approve</span></div>
+      <div><b>25</b><span>project tasks to discuss</span></div>
+    </div>
+  </section>
+
+  <section class="card wide">
+    <h2>Notifications</h2>
+    <ul class="notes"><li class='note info'>11 open question(s) waiting for your answer. See &#39;Open questions&#39;.</li><li class='note warn'>Your weekly quota is at 69%. The brain will not run scheduled passes until it resets.</li></ul>
+  </section>
+
+  <section class="card">
+    <h2>Schedule</h2>
+    <div class="status">
+      <span class="pill on">Ready</span>
+      <span class="pill">Mon and Thu, 06:00</span>
+    </div>
+    <p class="small muted" style="margin:12px 0 0">Next run: <b style="color:var(--ink)">Mon 05 Oct, 06:00</b><br>Last run: never</p>
+    <p class="small muted">A missed run catches up when the PC is on. Schedule changes are made by the owner.</p>
+  </section>
+
+  <section class="card">
+    <h2>Quota</h2>
+    <div class='gauge'><div class='gauge-top'><span>Weekly quota (whole account)</span><b>69%</b></div><div class='bar'><i class='warn' style='width:69%'></i></div><div class='muted small'>Reset Tuesday 23:30</div></div><div class='gauge'><div class='gauge-top'><span>Current session</span><b>48%</b></div><div class='bar'><i class='good' style='width:48%'></i></div><div class='muted small'>Resets at 06:30</div></div><div class='gauge'><div class='gauge-top'><span>Brain share of this week</span><b>30%</b></div><div class='bar'><i class='good' style='width:30%'></i></div><div class='muted small'>3% of 10% budget used</div></div>
+  </section>
+
+  <section class="card wide">
+    <h2>Your vision and mission</h2>
+    <p class="muted" style="margin-top:0">Write these in your own words. Change them whenever you like. The brain reads them but never changes them. Each Save keeps a backup.</p>
+    <div class='edit-block'><label for='f-VISION'><b>Vision</b><span class='muted small'> Â· Where Clarvoyance should be in 12 months, in your words.</span></label><textarea id='f-VISION' rows='5'>&gt; &quot;Clar mujhe 12 months me monetised chahiye: achha revenue generate karta ho, at least 1 lakh per month net profit.&quot;
+&gt;
+&gt; &quot;Clar real me logo ki life ko transform kar de. Unki Clar ko use karne se pahle aur baad ki life me miraculous antar ho. Stuck, pareshan, ya jo life me apni koi bhi desire, vision, goal, ya problem ka solution pura karne ka rasta dhundh rahe hain, Clar unhe wo rasta dene ka best help tool ban jae.&quot;
+&gt;
+&gt; &quot;Clar wo door hai jo shayad wo hamesha se dhundh rahe the.&quot;</textarea><div class='edit-foot'><button type='button' class='primary save' data-section='VISION'>Save Vision</button><span class='save-note muted small' data-note='VISION'></span></div></div><div class='edit-block'><label for='f-MISSION'><b>Mission</b><span class='muted small'> Â· What you want to do for people, in your words.</span></label><textarea id='f-MISSION' rows='5'>&gt; &quot;Me logo ke liye sach me kuch karna chahta hu, aur Clar wo jariya hai, medium hai, hazaro logo ki life ko transform karne ka, unko stuck point se aage badhane ka, unke self-elevation ka.&quot;
+&gt;
+&gt; &quot;Me Clar se logo ki life me positive, beautiful aur wo changes lana chahta hu jo wo kabhi nahi kar pae, wo kar sake. Unki life ki suffering wipe off ho jae, sabse achcha yahi hai.&quot;
+&gt;
+&gt; &quot;Is point pe me kabhi compromise nahi kar sakta.&quot;</textarea><div class='edit-foot'><button type='button' class='primary save' data-section='MISSION'>Save Mission</button><span class='save-note muted small' data-note='MISSION'></span></div></div><div class='edit-block'><label for='f-SUCCESS'><b>Success</b><span class='muted small'> Â· What success means to you.</span></label><textarea id='f-SUCCESS' rows='5'>&gt; &quot;Safal ka matlab hai: real lives transformed, real users ka positive feedback, aur huge wealth generation, yani mass transformation of people.&quot;</textarea><div class='edit-foot'><button type='button' class='primary save' data-section='SUCCESS'>Save Success</button><span class='save-note muted small' data-note='SUCCESS'></span></div></div><div class='edit-block'><label for='f-FIRSTUSER'><b>First user</b><span class='muted small'> Â· Who the first person is, in your words.</span></label><textarea id='f-FIRSTUSER' rows='5'>- First user (owner&#39;s words): &quot;wo person jo apni life me kuch changes dekhna chahta hai, magar kahi na kahi ek support system dhundh raha hai.&quot;</textarea><div class='edit-foot'><button type='button' class='primary save' data-section='FIRSTUSER'>Save First user</button><span class='save-note muted small' data-note='FIRSTUSER'></span></div></div>
+    <p class="small muted" id="editor-help" hidden>The saving service is not running. Close this page, double-click <b>Open CEO Brain</b>, and try again.</p>
+  </section>
+
+  <section class="card wide">
+    <h2>Fresh research</h2>
+    <p class="muted" style="margin-top:0">Click the button. It copies one short sentence. Paste it into a Claude chat and the research starts. One research round uses a small, fixed amount of your quota.</p>
+    <p class="small muted">The sentence it copies: <b>research chalao</b></p>
+    <details>
+      <summary>Research files (1)</summary>
+      <ul style="margin-top:10px"><li>2026-10-05-research.md</li></ul>
+    </details>
+  </section>
+
+  <section class="card wide">
+    <h2>Latest brief <span class="muted small">(2026-10-05.md)</span></h2>
+    <pre># Brief — 2026-10-05
+
+## Read this first (3 lines max)
+- Product is healthy: v263 is live, AI usage gating (T-101) confirmed working against real test accounts today. No product fire.
+- The brain&#39;s own machinery is the fire: a test pass today already spent $1.62 against a $1 cap and produced zero output (`brain/logs/2026-10-05_0349.json`), and this very pass is running at 66% weekly quota — above the guard&#39;s own 50% line and before the Tuesday reset the optimization plan says to wait for.
+- Vision/mission in `project-brain.md` are still blank, so there is no goal to check progress against yet.
+
+## Vision check
+- Pillar: unknown — `brain/project-brain.md` Vision and Mission are still &quot;TO BE WRITTEN BY OWNER.&quot; No vision check is possible until the owner writes them (see Q-001, already open).
+
+## Numbers (machine-sourced only)
+- None pulled this pass. No read-only Supabase key exists for the brain yet (backlog B-005, status `new`), so there is no live data source.
+- The only user numbers on file are secondhand and a week old: 109 users/30d, 62% returning-session share, zero marketing spend — source `docs/CEO-REVIEW-2026-09-28.md`, dated 2026-09-28. Labelled `[UNVERIFIED]` as a &quot;current&quot; number; not re-pulled this pass.
+
+## Bottleneck
+- **The brain&#39;s own running cost, not the product.** Evidence: `brain/logs/2026-10-05_0349.json` shows a test pass that spent $1.62 of a $1 cap on context loading alone (≈550K cache-creation tokens per `brain/optimization-plan.md` &#167;0) and produced 0 web searches and 0 brief before being cut off. This exact pass is itself running at 66% weekly quota (`brain/quota-state.txt`), above the quota guard&#39;s 50% skip threshold, and ahead of the Tuesday reset that `optimization-plan.md` &#167;4 recommended waiting for before the next test. Cost of leaving it as-is: every further manual test burns an already-tight week with no guarantee of a usable brief, and the owner&#39;s 5 pending decisions in `optimization-plan.md` &#167;5 stay unanswered.
+- Secondary bottleneck (pre-existing, unchanged): no read-only Supabase key (B-005) means the &quot;Numbers&quot; section of every brief stays empty indefinitely.
+
+## Questions and decisions for you (max 3)
+1. **Answer the 5 decisions already sitting in `brain/optimization-plan.md` &#167;5** (CLAUDE.md split, which MCP servers to drop, test timing, brain&#39;s weekly budget %, schedule days). Option A (recommended): answer them in one sitting before the next scheduled run — this directly fixes the failure this pass found, and the evidence is already measured and dated in that file, so no new research is needed. Expected outcome: next pass has a known, bounded cost. Cost: ~20 minutes. Confidence: high.
+   Option B: leave it and keep running manual tests. Risk: repeats today&#39;s $1.62/zero-output failure and keeps spending an already-66%-used week.
+   Why A: this is a decision on evidence you already collected today, not a research gap — the effort-limit rule (`ceo-brain.md` &#167;4) says stop researching once the next source won&#39;t change the decision, and here there&#39;s no next source needed.
+2. (Restating already-open **Q-006**, now with a concrete cost attached): will you create the read-only Supabase key for the brain? Until then, no brief — including this one — can show a real product number.
+3. (Restating already-open **Q-001**): what does Clarvoyance&#39;s success look like to you in 12 months, in your own words? No vision check is possible without it.
+
+## Ideas classified this pass
+- Trim daily-pass context cost (grep large files like `tasks.json`/`docs/RUNLOG.md` instead of reading them whole; cap per-file read size in the prompt) — task — new — directly caused today&#39;s $1.62/zero-output failure. Added as B-011.
+- Hold off on further manual brain test passes until the owner has acted on `optimization-plan.md` &#167;5 and the Tuesday quota reset has happened — action now (restraint, not code) — not a backlog item, a process note for whoever runs the next manual test.
+- PostHog funnel/retention analytics — already surfaced 2026-10-04 in `docs/RUNLOG.md`, no new information this pass — not re-opened (follow-up rule: don&#39;t re-research a closed branch).
+
+## Research I used
+- [FACT] Test brain run 2026-10-05 03:51 hit $1.62 cost against a $1 cap, 0 web searches, 0 brief written (`brain/logs/2026-10-05_0349.json`).
+- [FACT] Two further scheduled attempts today (03:58, 04:03) were correctly skipped by the quota guard at 66% weekly usage (`brain/logs/2026-10-05_0358.txt`, `_0403.txt`, `brain/usage-log.csv`).
+- [FACT] Weekly quota 66%, brain&#39;s own weekly budget 5%, 0% of it spent so far (`brain/quota-state.txt`).
+- [FACT] v263 is live, `plans_enforced` flag ON; free-tier Gemini limit (8 msgs/day) and Fortune AI plan-lock verified against real test accounts in Chrome; Pro-tier path (60/day) not yet tested, needs a Pro test account (`docs/RUNLOG.md`, 2026-10-05 entries).
+- [UNVERIFIED] 109 users/30d, 62% returning-session share, zero marketing spend (`docs/CEO-REVIEW-2026-09-28.md`, dated 2026-09-28) — 7 days old, not re-verified this pass.
+- No web research performed this pass (0 of 5 allowed searches, 0 of 3 allowed fetches used) — see Skipped, below.
+
+## Tools that would remove a bottleneck
+- None researched this pass (see Skipped). The relevant tool-comparison work (CLAUDE.md split, MCP server trimming, model routing) already exists in `brain/optimization-plan.md` &#167;1–2 and just needs the owner&#39;s decision, not a new search.
+
+## Self-improvement proposals (for your confirmation)
+- See `brain/proposals/2026-10-05-trim-daily-pass-context-cost.md`.
+
+## Skipped this pass (budget discipline)
+- 0 of 5 allowed web searches, 0 of 3 allowed fetches used. Given this pass found a live cost overrun on itself and is running above the 50% weekly-quota guard line, spending further quota on web research before the owner acts on `optimization-plan.md` &#167;5 was judged the wrong call. Everything above came from files already in the repo.
+- `docs/CEO-REVIEW-2026-09-28.md` was not re-read in full; `docs/RUNLOG.md`&#39;s summary of it was sufficient for this pass.
+- `tasks.json` (113+ tasks, large per-task history arrays) was read only via targeted grep/offset, never in full, specifically to avoid repeating today&#39;s cost failure.
+
+---
+## Correction (added by Claude, 2026-10-05, after reviewing the run&#39;s log)
+- The bottleneck section says &quot;≈550K cache-creation tokens per optimization-plan &#167;0&quot;. That is wrong. The measured figure for the first test run is 181,084 cache-creation tokens (`brain/logs/2026-10-05_0349.json`). `optimization-plan.md` &#167;0 has the correct number.
+- This brief was written by the forced test run itself (`brain/logs/2026-10-05_0411.json`: cost about $0.92, 43 turns, 79,156 cache-creation tokens, 957,885 cache-read tokens). The run&#39;s own &quot;Numbers&quot; and &quot;Research&quot; sections are accurate as far as the files it read.
+
+---
+## Pass 2, same day (regular scheduled pass)
+
+### Read this first (3 lines max)
+- Product is still stable: v263 live, nothing new broke since the last pass (`docs/RUNLOG.md` last entry still 05/10/2026 02:27, no owner answers arrived in `brain/inbox/questions.md`).
+- **New finding: the revenue path is the real bottleneck, not just the brain&#39;s cost.** The manual UPI upgrade flow (T-109) has been live since 2026-10-04, but `pricing/plans.json` `billing.upi_id` is still a null placeholder — so today, literally no member can complete an upgrade, free or paid. This costs nothing to fix (just the owner sharing a real UPI ID) and nothing else in the product depends on it.
+- Yesterday&#39;s open process decisions (CLAUDE.md split, MCP trim, weekly clear-out day, interview answers) are still unanswered — not re-asked again here to respect the max-3-questions limit; see Pass 1 above and `brain/inbox/questions.md`.
+
+### Bottleneck (new this pass)
+- **Zero-cost blocker:** `pricing/plans.json` → `billing.upi_id` = `null` (confirmed by `tasks.json` T-109 result text and `docs/RUNLOG.md` 04/10/2026 17:01 entry: &quot;owner will share the real UPI ID later&quot;). The admin-approval side (admin.html Upgrade Requests tab) and the client form are both DONE and live — only this one field is missing. Cost of leaving it: every day of organic interest in Plus/Pro converts to zero actual revenue, with no engineering work needed to fix it.
+- **Second, larger decision (not urgent):** T-106 (automated Razorpay/payment-gateway integration) is still `status: DISCUSS` in `tasks.json`, with an empty `result` — no spec work has started. At current scale (109 users/30d per the 7-day-old `docs/CEO-REVIEW-2026-09-28.md`, `[UNVERIFIED]`, zero marketing spend), the manual-approval flow may be enough for now; building T-106 is real engineering effort that competes with other work.
+
+### Questions and decisions for you (2 new, on top of the already-open ones)
+1. **Share your real UPI ID so the already-built manual upgrade flow can process a real request.** Option A (recommended): send the UPI ID now; the owner pastes it into `pricing/plans.json` `billing.upi_id` (or asks Claude to do it in a live session). Expected outcome: the first real upgrade can be approved same day. Cost: near zero (no new code — T-109 is already DONE and live). Confidence: high.
+   Option B: leave it blank longer. Risk: any current interest in upgrading has nowhere to go; no way to tell if demand exists either.
+   Why A: this is the single missing piece in work that is already finished and deployed — not a research or engineering gap.
+2. **Should Razorpay (T-106) start now, or wait for real demand signal through the manual flow first?** Option A (recommended): wait. Turn on the manual flow (question 1) first, watch `upgrade_requests` for 2-4 weeks, and start Razorpay KYC only once real requests are coming in. Reason: this matches your own 2026-10-03 call on XP-trust (&quot;don&#39;t over-engineer before launch,&quot; `docs/RUNLOG.md` 03/10/2026 05:54) — low current volume makes early gateway integration effort that may not pay back yet. Expected outcome: no wasted engineering time if demand turns out to be thin; if it&#39;s strong, Razorpay KYC is fast (1-2 working days for a sole proprietor with clean PAN/bank docs — see sources below) so starting late costs little.
+   Option B: start Razorpay KYC now, in parallel. Pro: no delay if demand turns out strong immediately. Con: KYC/compliance paperwork effort spent before any evidence of real paid demand.
+   Why A, and the facts it rests on: `[FACT]` T-109 (manual flow) is DONE and live (`tasks.json` T-109); `[FACT]` T-106 (Razorpay) has not been started (`tasks.json` T-106, empty result); `[FACT]` owner&#39;s own precedent for &quot;don&#39;t over-engineer before launch&quot; (`docs/RUNLOG.md` 03/10/2026).
+
+### Ideas classified this pass
+- Share the real UPI ID to activate the live manual upgrade flow — **action now** — zero cost, zero research, unblocks all revenue immediately. Added as backlog B-012.
+- Hold Razorpay (T-106) start until real demand is seen via the manual flow — **parked, pending owner&#39;s yes** — needs owner&#39;s decision (question 2 above), not research. Added as backlog B-013.
+- No-KYC / no-documentation UPI collection services (for example, uropay.me, found during this pass&#39;s search) — **rejected** — found while researching gateway options, but no source confirms RBI/payment-aggregator compliance; too much unverified risk for real money collection. Not recommended, not investigated further (would need a dedicated compliance check if ever reconsidered).
+
+### Research I used (this pass)
+- `[FACT]` `pricing/plans.json` `billing.upi_id` is a null placeholder — `tasks.json` T-109 result text, confirmed by `docs/RUNLOG.md` 04/10/2026 17:01:40 entry.
+- `[FACT]` T-106 (Razorpay integration) status is `DISCUSS` with empty `result` — not started (`tasks.json`).
+- `[FACT]` Razorpay: 2% + GST platform fee uniformly on domestic UPI, cards, and netbanking; Rs. 0 setup fee; Rs. 0 AMC; Rs. 0 refund fee (fetched directly from `razorpay.com/pricing/`, 2026-10-05).
+- `[UNVERIFIED]`, cross-checked across 2 search results, consistent: Razorpay KYC for a clean sole-proprietor (PAN + bank) activates in 1-2 working days; Cashfree 3-5 days; PayU 5-7 days, paperwork-heavy. Sources: razorpay.com/blog/payment-gateway-kyc-onboarding-india, bighelpers.in/insights/payment-gateway-india-2026, creativenexus.in/blog/razorpay-kyc-process-step-by-step-guide-for-2026 (all accessed 2026-10-05, not independently verified against Razorpay&#39;s own onboarding page beyond the pricing fetch above).
+- `[FACT]` Owner&#39;s own precedent against over-engineering before launch — `docs/RUNLOG.md` 03/10/2026 05:54:20 entry (XP-discount decision).
+- `[UNVERIFIED]` 109 users/30d, zero marketing spend — `docs/CEO-REVIEW-2026-09-28.md`, 7 days old, not re-pulled (no read-only Supabase key yet, B-005).
+
+### Tools that would remove a bottleneck (comparison, per the four-option rule)
+| Option | What it removes | Cost | Owner&#39;s setup effort | Risk |
+|---|---|---|---|---|
+| **Razorpay** (named in T-106 already) | Manual admin approval step; enables auto-renewal | 2%+GST per transaction, Rs.0 setup/AMC | KYC form + PAN/bank docs, ~1-2 days wait, then dev wires webhook (already scoped in T-106) | Low-medium: well-established, but still a new integration surface (webhook security, retries) |
+| **Cashfree** (alternative) | Same as Razorpay | Similar fee range (not independently confirmed) | KYC ~3-5 days — slower | Same integration risk, no clear advantage found over Razorpay for this use case |
+| **Build it ourselves** (= the current T-109 manual flow) | Nothing automated; owner manually approves each request | Zero gateway fees, but 100% owner/admin time per upgrade | Already built and live — just needs the UPI ID | Lowest engineering risk; does not scale past a handful of requests/week |
+| **Do nothing further right now** | N/A | Zero | Just share the UPI ID (question 1) | None — this is the recommended near-term state until demand is seen |
+- **Which wins:** &quot;Do nothing further / use the existing manual flow&quot; wins today, because volume is low and unverified, and the manual flow is already built — the only real action is sharing the UPI ID. It stops winning once real upgrade requests start arriving regularly (a few per week); at that point Razorpay wins on KYC speed (1-2 days) over Cashfree (3-5) or PayU (5-7), per the sources above.
+
+### Skipped this pass (budget discipline)
+- 2 of 5 allowed web searches used (gateway KYC/fee comparison); 1 of 3 allowed fetches used (razorpay.com/pricing/, primary source for fees). Stopped once the comparison was clear — the effort-limit rule says stop when the next source won&#39;t change the recommendation, and &quot;do nothing until demand appears&quot; does not depend on exact Cashfree/PayU fee numbers.
+- Did not re-verify the 109-users/30d figure (would need the read-only Supabase key, B-005, still not created).
+- Did not research Razorpay&#39;s UPI AutoPay / recurring-billing mechanics in depth — relevant only once Razorpay is actually started (question 2), not before.
+
+### Self-improvement proposals
+- None new this pass. `brain/proposals/2026-10-05-trim-daily-pass-context-cost.md` (from Pass 1) is still waiting for the owner&#39;s yes/no.
+</pre>
+  </section>
+
+  <section class="card">
+    <h2>Open questions for you</h2>
+    <details open><summary>Show inbox</summary><pre># Inbox — questions for the owner
+
+The brain writes questions here. The owner answers in chat. The next run records the answer in `decisions.md` or `owner-model.md`, then marks the question answered.
+
+Rule: at most 3 new questions per brief. Each question says why it matters.
+
+## Open
+
+**Q-001 (owner model, interview):** When you think about the future of Clarvoyance, what does success look like to you in 12 months — in your own words, not in numbers?
+*Why:* the vision section stays empty until the owner writes it.
+
+**Q-002 (owner model):** Which part of building the app do you enjoy most, and which part drains you?
+*Why:* decides which work the brain takes off your plate first.
+
+**Q-003 (owner model):** When you decide something big, what do you need to feel sure — data, a trusted person&#39;s opinion, or your own gut check after sleeping on it?
+*Why:* sets how the brain should present options.
+
+**Q-004 (interface):** Can you open the project from your phone&#39;s Claude app and see this repo&#39;s files? Open the app and check whether you see a Code option or Remote Control, and tell me what you see.
+*Why:* decides whether the phone chat works without extra setup.
+
+**Q-005 (schedule):** The daily run at 06:00 needs this PC switched on. Is your PC normally on at 06:00?
+*Why:* if not, the first option becomes the cloud schedule, which needs a read-only data key.
+
+**Q-006 (data):** Are you willing to create a read-only key for the Supabase project for the brain only? It should not be the service key.
+*Why:* the brain&#39;s business numbers must come from machine data.
+
+**Q-007 (brain cost/process, new 2026-10-05):** `brain/optimization-plan.md` &#167;5 lists 5 concrete decisions (split `CLAUDE.md`, which MCP servers to drop, when to run the first calibration test, the brain&#39;s weekly quota budget %, and the schedule days). Can you answer these in one sitting?
+*Why:* a test pass today already spent $1.62 against its $1 cap and produced zero output (`brain/logs/2026-10-05_0349.json`), purely from context loading. These 5 decisions are the already-designed fix; nothing new needs researching.
+
+**Q-008 (schedule time, ask on or after 2026-10-19):** The brain&#39;s scheduled run is set for 06:00 (Mon/Wed/Fri). The owner will name a better time, one when the session quota is not needed for development. Ask once more around 2026-10-19 and record the answer. Reason: a run uses about 14% of the 5-hour session window, which resets at 06:30, so the run should not eat the session the owner is working in.
+
+**Q-009 (research status):** The 2026-10-05 test run did no web research (0 searches, 0 fetches). Ask whether to run a bounded research pass (for example, color psychology and world-class apps, C-13 in backlog) once the quota budget allows it.
+
+**Q-010 (revenue, new 2026-10-05 pass 2):** Will you share your real UPI ID now, so it can go into `pricing/plans.json` `billing.upi_id`? The manual upgrade flow (T-109) is built and live but cannot complete any upgrade without it.
+*Why:* this is the only thing stopping already-finished, already-deployed work from producing real revenue.
+
+**Q-011 (revenue, new 2026-10-05 pass 2):** Should Razorpay (T-106) start now, or wait until real upgrade requests are coming in through the manual flow (after Q-010 is answered)? Recommendation: wait 2-4 weeks and watch `upgrade_requests` first.
+*Why:* avoids spending engineering effort on gateway KYC/integration before there is evidence of real paid demand, consistent with your 2026-10-03 call not to over-engineer before launch.
+
+## Answered
+
+- **Q-005 (schedule), answered in part, 2026-10-05:** schedule set to Mon/Wed/Fri 06:00 with catch-up when the PC is on. Still unknown: whether the PC is normally on at 06:00. Not needed now, because missed runs catch up.
+- **Q-007 (5 decisions), answered in part, 2026-10-05:** the owner decided item 3 (test now, once), item 4 (brain budget 5%), and item 5 (schedule Mon/Wed/Fri). Items 1 (split CLAUDE.md) and 2 (which MCP servers stay) are still open. See `brain/backlog.md` C-01 and C-02.
+</pre></details>
+  </section>
+
+  <section class="card">
+    <h2>Backlog and pending conclusions</h2>
+    <details open><summary>Show backlog</summary><pre># Backlog
+
+One list for every idea, sub-project, and task that the brain has raised or the owner has named. Each item has an ID, a status, and a date.
+
+Statuses: `new` &#183; `discussing` &#183; `approved` &#183; `parked` &#183; `rejected` &#183; `done`
+
+Limits: at most 3 items with status `approved` that are sub-projects at the same time. Items older than 7 days with status `new` go to the weekly clear-out list.
+
+## Open items from the 2026-10-05 discussion
+
+| ID | Item | Type | Status | Notes |
+|----|------|------|--------|-------|
+| B-001 | Write `brain/project-brain.md` with the owner (vision, mission, success measures) | sub-project | discussing | Vision and mission are owner-written. The brain only asks questions. |
+| B-002 | Fill `brain/owner-model.md` through the interview | sub-project | discussing | Starts with 5-6 questions in `inbox/questions.md`. |
+| B-003 | Daily 06:00 background pass on Windows Task Scheduler | task | approved | Owner asked for it. Needs the PC on at 06:00. Job created by the build step. |
+| B-004 | Check whether the Claude mobile app can reach this project&#39;s files (Claude Code / Remote Control) | task | new | Owner to check in the app. Old sessions visible in the app are not verified to be related. |
+| B-005 | Create a read-only data key for business numbers (Supabase) | task | new | Needed before the &quot;Numbers&quot; section of a brief can be filled. Owner creates it; the brain never creates or stores service keys. |
+| B-006 | Telegram messenger bot (briefs out, replies into inbox) | sub-project | parked | Needs a BotFather token from the owner. Build after the file-based loop has run for two weeks. |
+| B-007 | Private console page (Artifact) for briefs and decisions | sub-project | parked | Consider after the first week of briefs. |
+| B-008 | Cloud schedule as a backup when the PC is off | sub-project | parked | Needs the read-only key (B-005) first. |
+| B-009 | Weekly clear-out session (proposed Sunday) | task | discussing | Day and time to confirm with the owner. |
+| B-010 | Pending: Clarvoyance&#39;s own pending work (Google Play, Play Console, owner&#39;s own UPI ID for upgrades, T-101 Gemini gate, etc.) | reference | discussing | Tracked in `tasks.json` and `docs/RUNLOG.md`, not duplicated here. The brain reads them as inputs. |
+| B-011 | Trim daily-pass context cost: grep large files (`tasks.json`, `docs/RUNLOG.md`) instead of reading them whole; cap per-file read size in the prompt | task | new | Caused a $1.62/$1-cap failure with 0 output on 2026-10-05 (`brain/logs/2026-10-05_0349.json`). See proposal `brain/proposals/2026-10-05-trim-daily-pass-context-cost.md`. |
+| B-012 | Set the real UPI ID in `pricing/plans.json` `billing.upi_id` (currently null) | task | new | Zero-cost blocker found 2026-10-05 pass 2: T-109&#39;s manual upgrade flow is DONE and live, but no member can complete an upgrade until this field is real. Owner action only. |
+| B-013 | Hold Razorpay (T-106) start until real demand is seen via the manual UPI flow (B-012) | task | new | Recommended 2026-10-05 pass 2, matches owner&#39;s 2026-10-03 &quot;don&#39;t over-engineer before launch&quot; precedent. Needs owner&#39;s yes/no (see Q-011). |
+
+## Pending conclusions from the 2026-10-05 session (not yet acted on)
+
+Each row is a conclusion from this session that is still open. &quot;Owner action&quot; is what is needed from you. Nothing here is done unless its status says so.
+
+| ID | Conclusion | Status | Owner action needed |
+|----|-----------|--------|---------------------|
+| C-01 | Split `CLAUDE.md` (453 KB) into a lean core plus on-demand files (P1) | pending owner yes | Say yes or no. Nothing changes without it. |
+| C-02 | Keep only the MCP servers used each week (P3) | pending owner list | Tell me which of Canva, Notion, Gmail, Drive, Asana, Wix, Cloudflare, Supabase, Clarity, Chrome DevTools you use weekly. |
+| C-03 | Approve proposal B-011 (grep, not full read, for `tasks.json` and `docs/RUNLOG.md`) | pending owner yes | Say yes or no. Recommended yes. |
+| C-04 | Quota ledger: after each brain run, record the usage-page % change in `brain/quota-state.txt` (`brain_week_spent_pct`) | pending owner | After the test run, read the usage page and tell me the new weekly % and brain % change. |
+| C-05 | Model routing test: Haiku 4.5 for the light pass vs Sonnet (`optimization-plan.md` B8) | not started | Needs one extra measured run. Decide after C-04. |
+| C-06 | Disable or enable the scheduled task (currently DISABLED) | pending owner | Enable only after a test is accepted. |
+| C-07 | Interview: owner answers Q-001 to Q-004 (vision, what you enjoy, how you decide, phone access) | pending owner | Answer in chat, a few at a time. |
+| C-08 | Read-only Supabase key for the brain (B-005, Q-006) | pending owner | Create it yourself. The brain never handles service keys. |
+| C-09 | Check whether Claude mobile app shows Claude Code / Remote Control for this repo (B-004, Q-004) | pending owner | Check in the app and tell me what you see. |
+| C-10 | Weekly clear-out day (Sunday proposed) | pending owner | Confirm the day. |
+| C-11 | Telegram bot (B-006) and private console page (B-007) | parked | Needs your go-ahead and a BotFather token for Telegram. |
+| C-12 | Cloud schedule when the PC is off (B-008) | parked | Needs the read-only key (C-08) first. |
+| C-13 | Color psychology: research with evidence strength labels (the example from the discussion) | not started | Ask me to run it. It costs quota, so it waits for the budget. |
+| C-14 | Tool comparison for any tool suggestion (four options each) | design only | Applies to every future tool suggestion. No action now. |
+| C-15 | Owner-written vision, mission, and success measures in `brain/project-brain.md` | pending owner | The brain will not write these. |
+| C-16 | Fix the wrong brief figure (550K vs 181K) | correction recorded in `brain/optimization-plan.md` &#167;0 | None. The brief itself is not edited, to keep the record. |
+| C-17 | `docs/CEO-REVIEW-2026-09-28.md` figures (109 users, 62% returning) are 7 days old and unverified | not re-verified | Needs the read-only key (C-08) to refresh. |
+| C-18 | Choose the scheduled run time, so it does not eat the session the owner is working in (Q-008) | owner will decide | Asked again around 2026-10-19. |
+| C-19 | No web research has been done in the brain or in this session. All market and design claims so far are `[UNVERIFIED]`. | open | Run a bounded research pass after budget allows (C-13, Q-009). |
+</pre></details>
+  </section>
+
+  <section class="card">
+    <h2>Suggestions waiting for your decision</h2>
+    <div class='item'><div class='item-top'><b>C-01</b><span class='pill'>pending owner yes</span></div><div>Split `CLAUDE.md` (453 KB) into a lean core plus on-demand files (P1)</div><div class='small muted'>Your action: Say yes or no. Nothing changes without it.</div></div><div class='item'><div class='item-top'><b>C-02</b><span class='pill'>pending owner list</span></div><div>Keep only the MCP servers used each week (P3)</div><div class='small muted'>Your action: Tell me which of Canva, Notion, Gmail, Drive, Asana, Wix, Cloudflare, Supabase, Clarity, Chrome DevTools you use weekly.</div></div><div class='item'><div class='item-top'><b>C-03</b><span class='pill'>pending owner yes</span></div><div>Approve proposal B-011 (grep, not full read, for `tasks.json` and `docs/RUNLOG.md`)</div><div class='small muted'>Your action: Say yes or no. Recommended yes.</div></div><div class='item'><div class='item-top'><b>C-04</b><span class='pill'>pending owner</span></div><div>Quota ledger: after each brain run, record the usage-page % change in `brain/quota-state.txt` (`brain_week_spent_pct`)</div><div class='small muted'>Your action: After the test run, read the usage page and tell me the new weekly % and brain % change.</div></div><div class='item'><div class='item-top'><b>C-05</b><span class='pill'>not started</span></div><div>Model routing test: Haiku 4.5 for the light pass vs Sonnet (`optimization-plan.md` B8)</div><div class='small muted'>Your action: Needs one extra measured run. Decide after C-04.</div></div><div class='item'><div class='item-top'><b>C-06</b><span class='pill'>pending owner</span></div><div>Disable or enable the scheduled task (currently DISABLED)</div><div class='small muted'>Your action: Enable only after a test is accepted.</div></div><div class='item'><div class='item-top'><b>C-07</b><span class='pill'>pending owner</span></div><div>Interview: owner answers Q-001 to Q-004 (vision, what you enjoy, how you decide, phone access)</div><div class='small muted'>Your action: Answer in chat, a few at a time.</div></div><div class='item'><div class='item-top'><b>C-08</b><span class='pill'>pending owner</span></div><div>Read-only Supabase key for the brain (B-005, Q-006)</div><div class='small muted'>Your action: Create it yourself. The brain never handles service keys.</div></div><div class='item'><div class='item-top'><b>C-09</b><span class='pill'>pending owner</span></div><div>Check whether Claude mobile app shows Claude Code / Remote Control for this repo (B-004, Q-004)</div><div class='small muted'>Your action: Check in the app and tell me what you see.</div></div><div class='item'><div class='item-top'><b>C-10</b><span class='pill'>pending owner</span></div><div>Weekly clear-out day (Sunday proposed)</div><div class='small muted'>Your action: Confirm the day.</div></div><div class='item'><div class='item-top'><b>C-11</b><span class='pill'>parked</span></div><div>Telegram bot (B-006) and private console page (B-007)</div><div class='small muted'>Your action: Needs your go-ahead and a BotFather token for Telegram.</div></div><div class='item'><div class='item-top'><b>C-12</b><span class='pill'>parked</span></div><div>Cloud schedule when the PC is off (B-008)</div><div class='small muted'>Your action: Needs the read-only key (C-08) first.</div></div><div class='item'><div class='item-top'><b>C-13</b><span class='pill'>not started</span></div><div>Color psychology: research with evidence strength labels (the example from the discussion)</div><div class='small muted'>Your action: Ask me to run it. It costs quota, so it waits for the budget.</div></div><div class='item'><div class='item-top'><b>C-14</b><span class='pill'>design only</span></div><div>Tool comparison for any tool suggestion (four options each)</div><div class='small muted'>Your action: Applies to every future tool suggestion. No action now.</div></div><div class='item'><div class='item-top'><b>C-15</b><span class='pill'>pending owner</span></div><div>Owner-written vision, mission, and success measures in `brain/project-brain.md`</div><div class='small muted'>Your action: The brain will not write these.</div></div><div class='item'><div class='item-top'><b>C-16</b><span class='pill'>correction recorded in `brain/optimization-plan.md` &#167;0</span></div><div>Fix the wrong brief figure (550K vs 181K)</div><div class='small muted'>Your action: None. The brief itself is not edited, to keep the record.</div></div><div class='item'><div class='item-top'><b>C-17</b><span class='pill'>not re-verified</span></div><div>`docs/CEO-REVIEW-2026-09-28.md` figures (109 users, 62% returning) are 7 days old and unverified</div><div class='small muted'>Your action: Needs the read-only key (C-08) to refresh.</div></div><div class='item'><div class='item-top'><b>C-18</b><span class='pill'>owner will decide</span></div><div>Choose the scheduled run time, so it does not eat the session the owner is working in (Q-008)</div><div class='small muted'>Your action: Asked again around 2026-10-19.</div></div><div class='item'><div class='item-top'><b>C-19</b><span class='pill'>open</span></div><div>No web research has been done in the brain or in this session. All market and design claims so far are `[UNVERIFIED]`.</div><div class='small muted'>Your action: Run a bounded research pass after budget allows (C-13, Q-009).</div></div>
+  </section>
+
+  <section class="card">
+    <h2>Questions for you</h2>
+    <div class='item'><div class='item-top'><b>Q-001</b></div><div>When you think about the future of Clarvoyance, what does success look like to you in 12 months — in your own words, not in numbers?</div></div><div class='item'><div class='item-top'><b>Q-002</b></div><div>Which part of building the app do you enjoy most, and which part drains you?</div></div><div class='item'><div class='item-top'><b>Q-003</b></div><div>When you decide something big, what do you need to feel sure — data, a trusted person&#39;s opinion, or your own gut check after sleeping on it?</div></div><div class='item'><div class='item-top'><b>Q-004</b></div><div>Can you open the project from your phone&#39;s Claude app and see this repo&#39;s files? Open the app and check whether you see a Code option or Remote Control, and tell me what you see.</div></div><div class='item'><div class='item-top'><b>Q-005</b></div><div>The daily run at 06:00 needs this PC switched on. Is your PC normally on at 06:00?</div></div><div class='item'><div class='item-top'><b>Q-006</b></div><div>Are you willing to create a read-only key for the Supabase project for the brain only? It should not be the service key.</div></div><div class='item'><div class='item-top'><b>Q-007</b></div><div>`brain/optimization-plan.md` &#167;5 lists 5 concrete decisions (split `CLAUDE.md`, which MCP servers to drop, when to run the first calibration test, the brain&#39;s weekly quota budget %, and the schedule days). Can you answer these in one sitting?</div></div><div class='item'><div class='item-top'><b>Q-008</b></div><div>The brain&#39;s scheduled run is set for 06:00 (Mon/Wed/Fri). The owner will name a better time, one when the session quota is not needed for development. Ask once more around 2026-10-19 and record the answer. Reason: a run uses about 14% of the 5-hour session window, which resets at 06:30, so the run should not eat the session the owner is working in.</div></div><div class='item'><div class='item-top'><b>Q-009</b></div><div>The 2026-10-05 test run did no web research (0 searches, 0 fetches). Ask whether to run a bounded research pass (for example, color psychology and world-class apps, C-13 in backlog) once the quota budget allows it.</div></div><div class='item'><div class='item-top'><b>Q-010</b></div><div>Will you share your real UPI ID now, so it can go into `pricing/plans.json` `billing.upi_id`? The manual upgrade flow (T-109) is built and live but cannot complete any upgrade without it.</div></div><div class='item'><div class='item-top'><b>Q-011</b></div><div>Should Razorpay (T-106) start now, or wait until real upgrade requests are coming in through the manual flow (after Q-010 is answered)? Recommendation: wait 2-4 weeks and watch `upgrade_requests` first.</div></div>
+    <details><summary>Answered earlier (2)</summary><ul class="plain"><li>**Q-005 (schedule), answered in part, 2026-10-05:** schedule set to Mon/Wed/Fri 06:00 with catch-up when the PC is on. Still unknown: whether the PC is normally on at 06:00. Not needed now, because missed runs catch up.</li><li>**Q-007 (5 decisions), answered in part, 2026-10-05:** the owner decided item 3 (test now, once), item 4 (brain budget 5%), and item 5 (schedule Mon/Wed/Fri). Items 1 (split CLAUDE.md) and 2 (which MCP servers stay) are still open. See `brain/backlog.md` C-01 and C-02.</li></ul></details>
+  </section>
+
+  <section class="card">
+    <h2>Proposals waiting for approval</h2>
+    <ul class="plain"><li><b>2026-10-05-trim-daily-pass-context-cost</b><div class='small muted'>Status: waiting for owner confirmation. Not implemented.</div></li></ul>
+  </section>
+
+  <section class="card">
+    <h2>Recent decisions</h2>
+    <ul class="plain"><li>2026-10-05: Brain is designed as two levels: universal and project-specific. Owner&#39;s words: &quot;दो लेवल पर काम करेंगे&quot;.</li><li>2026-10-05: Brain must be proactive (background pass), but must confirm conclusions and self-improvements before acting. Owner&#39;s words: &quot;wo apne har self improvement suggestion ko bhi mujhse confirm kare&quot;.</li><li>2026-10-05: Scheduled run at 06:00, first proposed as daily. Owner&#39;s words: &quot;auto scheduled achha rahega time morning 6 am&quot;. Later changed by the owner to Mon/Wed/Fri (&quot;3 din week me thik hai&quot;) to protect quota.</li><li>2026-10-05: Quota limits accepted: the brain must not use up the credits needed for development. Owner&#39;s words: &quot;ye yaad rakhna&quot;. Brain budget set at 5% (owner: &quot;budget abhi 5%se start karte he&quot;).</li><li>2026-10-05: Follow-up research needs owner approval. A promising clue becomes a question in the inbox first. Owner&#39;s words: &quot;in case koi achcha clue mila he to mujhe puch ke further research karna&quot;.</li><li>2026-10-05: Brain must suggest, never execute, clear-out items. Owner&#39;s words: &quot;clear out kya karna he brain suggest kar sakta he man se clear out nahi karega&quot;.</li></ul>
+  </section>
+
+  <section class="card wide">
+    <h2>Project tasks still open (26)</h2>
+    <div class='scroll'><table><thead><tr><th>ID</th><th>Task</th><th>Status</th></tr></thead><tbody><tr><td>T-001</td><td>Community redesign: feed as first page, Board/Discover/Groups model, video (Bunny vs alternatives), chat (own vs service), tab layout (Clar &#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-004</td><td>Feed-first start page behind a feature flag (`feed_first`, default OFF, % rollout) so returning users&#39; Clar-AI-first habit is not broken for&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-005</td><td>Bottom-nav restructure. Owner decisions 2026-09-24: Vibe stays its own tab; Fortune moves INTO the You tab (You already has usage + status);&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-007</td><td>Invite friends link + small goal &quot;circles&quot; (3-8 people) for growth loop</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-008</td><td>Fortune theme match (dark cosmic -&gt; app theme, light+dark)</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-073</td><td>ADK Starter Kit (day-1 ready framework for new projects)</td><td><span class='pill'>IN_PROGRESS</span></td></tr><tr><td>T-074</td><td>First CEO-Review pass + recurring-cadence template</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-081</td><td>Pricing/monetization strategy research (XP-gated mid tier + real-payment top tier + institutions/B2B angle) - Claude to research and recomme&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-082</td><td>Ad-supported / creator-guide monetization research (Google ads in feed/Vibe/Shorts, hundreds of guides as content creators)</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-088</td><td>Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, book summary, Guides cron) -&gt; R&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-090</td><td>Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-door Plus taps, regional PPP pr&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-091</td><td>Any-language support: Clar replies in user&#39;s language (already partly), UI i18n for top languages, Guides lazy translation extended, languag&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-092</td><td>Free content-source stack (beyond Pixabay/Pexels/Wikiquote): Openverse, Wikimedia Commons, Pexels video, Freesound/Pixabay music, NASA/Libra&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-093</td><td>Never-empty app: infinite personalised content from labelled AI/Clar sources (Guides, official Clar posts, quote/photo cards, AI chargers) u&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-094</td><td>AI-generated personal chargers + manifestation furnace: per-user generated affirmation/charger variants from their lacks and desires (e.g. c&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-095</td><td>Audio layer: LibriVox/Internet Archive public-domain self-development audiobooks, podcast discovery (Podcast Index/iTunes Search) with offic&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-096</td><td>Personal library: NO unofficial Audible/Kindle access (no public API, ToS/account/store risk); instead user-entered or CSV/Goodreads import &#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-097</td><td>YouTube quota hardening: curated channel RSS feeds per topic (0 quota), search only for discovery, per-user caps, file free quota-extension &#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-098</td><td>YouTube quota ceiling: find a real solution before growth (central theme of the app). Leads: playlistItems.list on channel uploads playlists&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-099</td><td>AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs across Gemini/Gemma(Cloudflare)/Mis&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-100</td><td>XP economy made trustworthy before it is money: server-side XP ledger (earn caps/day, anti-farming, spend ledger), XP never purchasable with&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-102</td><td>Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per country, XP+cash mixed payment &#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-103</td><td>Community XP: capped daily XP for post, cheer, follow, comment, supporting others (counts toward the XP discount; server-validated, anti-abu&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-105</td><td>Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing), analytics events (ref=landing&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-106</td><td>Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_url set in pricing/plans.json, ad&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr><tr><td>T-108</td><td>Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead, Feedback, or Scholarship appli&#226;€&#166;</td><td><span class='pill'>DISCUSS</span></td></tr></tbody></table></div>
+    <p class="small muted">Read from tasks.json. Only the owner's decisions move a task to the next status.</p>
+  </section>
+
+  <section class="card">
+    <h2>How fresh this page is</h2>
+    <ul class="plain"><li>Project brain (vision, mission) <span class='muted small'>Â· changed 05 Oct, 05:07</span></li><li>Backlog and conclusions <span class='muted small'>Â· changed 05 Oct, 04:37</span></li><li>Questions <span class='muted small'>Â· changed 05 Oct, 04:37</span></li><li>Decisions <span class='muted small'>Â· changed 05 Oct, 04:18</span></li><li>Quota reading <span class='muted small'>Â· changed 05 Oct, 05:03</span></li><li>Run log <span class='muted small'>Â· changed 05 Oct, 05:21</span></li><li>Project tasks (tasks.json) <span class='muted small'>Â· changed 05 Oct, 04:01</span></li></ul>
+  </section>
+
+  <section class="card wide">
+    <h2>Run history and cost</h2>
+    <table><thead><tr><th>When</th><th>Status</th><th>Turns</th><th>Cost (API-equiv.)</th><th>Cache read</th></tr></thead><tbody><tr><td>2026-10-05T03:51:09</td><td>ran-test-1</td><td>6</td><td>1.62387135</td><td>14861</td></tr><tr><td>2026-10-05T03:58:37</td><td>skipped-quota</td><td></td><td></td><td></td></tr><tr><td>2026-10-05T04:03:30</td><td>skipped-quota</td><td></td><td></td><td></td></tr><tr><td>2026-10-05T04:11:26</td><td>ran</td><td>43</td><td>0.9242444999999999</td><td>957885</td></tr><tr><td>2026-10-05T04:34:11</td><td>ran</td><td>28</td><td>0.9982381500000002</td><td>735398</td></tr><tr><td>2026-10-05T05:21:30</td><td>skipped-quota</td><td></td><td></td><td></td></tr></tbody></table>
+    <p class="small muted">Cost is the API-equivalent figure from the CLI. Subscription quota is shown in the Quota card, from the usage page you enter.</p>
+  </section>
+</main>
+
+<footer>Local file. Nothing here is sent anywhere. Facts only: labels and sources are in each brief and research file.</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  // Theme: follow the system by default, remember a manual choice on this device only.
+  (function () {
+    var root = document.documentElement;
+    try { var saved = localStorage.getItem('brain-theme'); if (saved) root.setAttribute('data-theme', saved); } catch (e) {}
+    document.getElementById('theme').addEventListener('click', function () {
+      var dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var current = root.getAttribute('data-theme') || (dark ? 'dark' : 'light');
+      var next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('brain-theme', next); } catch (e) {}
+    });
+  })();
+
+  // Save an owner-written section through the local saving service (only works when the brain window is open).
+  document.querySelectorAll('button.save').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var key = btn.getAttribute('data-section');
+      var note = document.querySelector('[data-note="' + key + '"]');
+      var help = document.getElementById('editor-help');
+      var text = document.getElementById('f-' + key).value;
+      note.textContent = 'Savingâ€¦';
+      fetch('/save-owner', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ section: key, text: text }) })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok && j.ok, msg: j.message }; }); })
+        .then(function (res) {
+          note.textContent = res.ok ? 'Saved. A backup was kept.' : ('Not saved: ' + res.msg);
+          help.hidden = true;
+        })
+        .catch(function () {
+          note.textContent = '';
+          help.hidden = false;
+        });
+    });
+  });
+
+  // Fresh research: copy the trigger text, then tell the owner what to do.
+  document.getElementById('research').addEventListener('click', function () {
+    var text = 'research chalao';
+    var toast = document.getElementById('toast');
+    var done = function () { toast.textContent = 'Copied. Paste it into a Claude chat to start the research.'; toast.classList.add('show'); setTimeout(function () { toast.classList.remove('show'); }, 3500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, done); } else { done(); }
+  });
+</script>
+</body>
+</html>
