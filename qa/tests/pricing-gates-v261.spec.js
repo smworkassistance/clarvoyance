@@ -126,7 +126,7 @@ test.describe('chat limit unification (v261)', () => {
     await app.page.evaluate(() => { localStorage.setItem('clv_subscription_tier', 'free'); localStorage.setItem('clv_plans_enforced', '0'); return window.clvRefreshPlan(); });
     await app.page.waitForTimeout(600);
     const notEnforced = await app.page.evaluate(() => window.clvChatLimit());
-    expect(notEnforced).toBe(20); // today's live admin setting — unchanged by this version
+    expect(notEnforced).toBe(20); // the value the test mocks for feature_gates (see route above)
 
     await app.page.evaluate(() => { localStorage.setItem('clv_plans_enforced', '1'); localStorage.setItem('clv_plan_override', 'pro'); return window.clvRefreshPlan(); });
     await app.page.waitForTimeout(600);

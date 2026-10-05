@@ -4,6 +4,8 @@ const { test, expect } = require('./harness');
 test.describe('plans (v260)', () => {
   test('enforcement off: every gate allows, plan is Free, API present', async ({ app }) => {
     await app.boot();
+    // pin enforcement OFF explicitly: the live feature_flags.plans_enforced row can be ON, and this test is about the off state
+    await app.page.evaluate(() => { localStorage.setItem('clv_plans_enforced', '0'); return window.clvRefreshPlan(); });
     const r = await app.page.evaluate(() => ({ api: typeof window.clvGate === 'function' && typeof window.clvUpsell === 'function', plan: window.clvPlan(), img: window.clvGate('goal_images', { adding: 9 }).allowed, priv: window.clvGate('private_guides').allowed }));
     expect(r.api).toBe(true); expect(r.plan).toBe('free'); expect(r.img).toBe(true); expect(r.priv).toBe(true);
   });
