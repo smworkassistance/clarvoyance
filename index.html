@@ -2288,7 +2288,9 @@ html[data-theme="dark"] .chat-msgs{
 
   <!-- GOAL ACCORDION (v118) — same self-acc pattern, three sections hairline separated -->
   <!-- goal-row class kept so JS selectors (.goal-row .vis-lbl etc.) still resolve -->
-  <div class="self-acc goal-row" id="goal-row" style="margin-bottom:16px;display:none">
+  <div class="self-acc goal-row v264" id="goal-row" style="margin-bottom:16px;display:none">
+    <!-- v264: new Goal tab UI mounts here; legacy children below are hidden by CSS only -->
+    <div id="v264-root"></div>
 
     <!-- v229: Major Definite Goal is now the ONLY section on this tab (Issues &
          Resolutions / General Manifestation hidden below — see that comment for
@@ -2720,7 +2722,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v263</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v264</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -24675,7 +24677,9 @@ textarea.soc-in{resize:none;min-height:74px}
   function find(id){return GS.items.filter(function(x){return x.id===id;})[0];}
 
   function load(){GS.items=jparse(lsGet(KEY,'[]'),[]);if(!Array.isArray(GS.items))GS.items=[];}
-  function persist(){lsSet(KEY,JSON.stringify(GS.items));}
+  function persist(){lsSet(KEY,JSON.stringify(GS.items));
+    /* v264: lets the Goal tab's list repaint whenever a goal changes */
+    document.dispatchEvent(new Event('gi:change'));}
 
   /* ── Supabase (same "wait until ready" pattern the rest of the app uses) ── */
   function ready(){
@@ -24718,14 +24722,18 @@ textarea.soc-in{resize:none;min-height:74px}
         }
       }
       if(changed){persist();render();}
+      /* v264: details = category, target date, why, feel, listens, audio flag */
       var row={user_id:uid,title:item.title,images:item.images||[],date_set:item.date_set,
         achieved:!!item.achieved,date_achieved:item.date_achieved||null,
-        visibility:item.visibility||'private',updated_at:new Date().toISOString()};
+        visibility:item.visibility||'private',details:item.details||{},updated_at:new Date().toISOString()};
       if(item.remoteId){
         var r=await q('user_goal_items').update(row).eq('id',item.remoteId);
+        /* until db/schema_v264_goal_story.sql is run there is no details column, and PostgREST rejects the whole row — retry once without it so the goal still saves */
+        if(r.error&&/details/i.test(r.error.message)){delete row.details;r=await q('user_goal_items').update(row).eq('id',item.remoteId);}
         if(r.error)console.warn('[GI] update failed:',r.error.message);
       }else{
         var ri=await q('user_goal_items').insert(row).select('id').maybeSingle();
+        if(ri.error&&/details/i.test(ri.error.message)){delete row.details;ri=await q('user_goal_items').insert(row).select('id').maybeSingle();}
         if(ri.error)console.warn('[GI] insert failed:',ri.error.message);
         else if(ri.data){item.remoteId=ri.data.id;persist();}
       }
@@ -24746,7 +24754,7 @@ textarea.soc-in{resize:none;min-height:74px}
         var local=byRemote[row.id];
         merged.push({id:local?local.id:localId(),remoteId:row.id,title:row.title,
           images:row.images||[],date_set:row.date_set,achieved:!!row.achieved,
-          date_achieved:row.date_achieved,visibility:row.visibility||'private'});
+          date_achieved:row.date_achieved,visibility:row.visibility||'private',details:row.details||{}});
       });
       GS.items.forEach(function(it){if(!it.remoteId)merged.push(it);}); /* keep offline-created, not-yet-synced items */
       GS.items=merged;persist();render();
@@ -24814,7 +24822,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var el=$('gi-add-title'),t=el?el.value.trim():'';
     if(!t){alert('Give this goal a short title first.');return;}
     var item={id:localId(),remoteId:null,title:t.slice(0,140),images:_pendingImgs.map(function(s){return {src:s};}),
-      date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private'};
+      date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private',details:{}};
     GS.items.unshift(item);persist();render();closeModal();
     syncOne(item);
   };
@@ -24824,7 +24832,7 @@ textarea.soc-in{resize:none;min-height:74px}
     inp.onchange=function(){
       readFiles(inp.files).then(function(srcs){
         if(!srcs.length)return;
-        item.images=(item.images||[]).concat(srcs.map(function(s){return {src:s};})).slice(0,8);
+        item.images=(item.images||[]).concat(srcs.map(function(s){return {src:s};})).slice(0,30);
         persist();render();syncOne(item);
       });
     };
@@ -24874,12 +24882,710 @@ textarea.soc-in{resize:none;min-height:74px}
     return out;
   };
 
-  window.GI={items:function(){return GS.items;}};
+  /* v264: the Goal tab UI reads and writes through these, so every change persists and syncs the same way */
+  window.GI={
+    items:function(){return GS.items;},
+    find:find,
+    add:function(item){GS.items.unshift(item);persist();render();syncOne(item);},
+    update:function(id,fn){var it=find(id);if(!it)return;fn(it);persist();render();syncOne(it);}
+  };
 
   document.addEventListener('DOMContentLoaded',function(){
     load();render();
     ready().then(pullAll).catch(function(){});
   });
+})();
+</script>
+
+<!-- ═══ v264: Goal tab redesign — "New Story" tile, goal folders, photo viewer ═══
+     Pure additive CSS. Only active while #goal-row carries the .v264 class
+     (set in the markup). Legacy Goal-tab sections are hidden with CSS, never
+     deleted, so the v229/v243 data and their functions stay intact. -->
+<style id="v264-css">
+/* Goal row becomes a plain full-width container (no grid split, no card) */
+#goal-row.v264{grid-template-columns:minmax(0,1fr)!important;background:none!important;border:0!important;box-shadow:none!important;padding:0!important;overflow:visible!important;margin-bottom:8px!important}
+#goal-row.v264::before{display:none}
+/* Hide every legacy child; only the new root stays */
+#goal-row.v264>*:not(#v264-root){display:none!important}
+#v264-root{min-width:0;color:var(--tx)}
+
+/* ── Top bar (list header + detail back row) ── */
+.v264-head{display:flex;align-items:baseline;justify-content:space-between;padding:2px 2px 12px}
+.v264-h1{font-size:1.6rem;font-weight:800;letter-spacing:-.3px}
+.v264-sub{font-size:.95rem;color:var(--sub)}
+.v264-top{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 0 10px}
+.v264-back{width:40px;height:40px;border-radius:50%;border:1px solid var(--bo);background:var(--su);color:var(--tx);font-size:1.15rem;cursor:pointer;flex-shrink:0}
+.v264-top-t{flex:1;font-size:1.1rem;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── Folder grid: 2 tiles per row, tight 4px gaps ── */
+.v264-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.v264-tile{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;cursor:pointer;background:linear-gradient(145deg,var(--g1,#888),var(--g2,#333));background-size:cover;background-position:center;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;transition:transform .18s ease}
+.v264-tile:active{transform:scale(.97)}
+.v264-tile.ach{box-shadow:inset 0 0 0 2px #f0c987}
+.v264-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,.20) 45%,rgba(0,0,0,.66) 100%);pointer-events:none}
+.v264-tile>*{position:relative}
+.v264-tile .v264-scrim{position:absolute}
+.v264-tile-big{font-size:1.45rem;font-weight:800;line-height:1.1;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.v264-tile .v264-tile-sub{position:absolute;left:12px;right:12px;bottom:12px;margin:0;text-align:left;font-size:.98rem;font-weight:600;text-shadow:0 1px 8px rgba(0,0,0,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v264-ok{position:absolute!important;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:#f0c987;color:#3a2a00;font-weight:800;display:flex;align-items:center;justify-content:center}
+.v264-add{background:var(--ca);border:2px dashed var(--bo);color:var(--sub)}
+.v264-add span{font-size:2.2rem;line-height:1;font-weight:300}
+.v264-add small{font-size:1rem;font-weight:700;margin-top:4px}
+.v264-sec{font-size:1.05rem;font-weight:800;margin:20px 2px 8px}
+.v264-hint{font-size:.95rem;color:var(--sub);line-height:1.5;margin:12px 2px}
+
+/* ── Detail hero: full-bleed image, centred white category text ── */
+.v264-hero{position:relative;height:min(60vh,500px);min-height:300px;margin:0 -16px;overflow:hidden;background:linear-gradient(145deg,var(--g1,#888),var(--g2,#333));background-size:cover;background-position:center;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
+.v264-hero>*{position:relative}
+.v264-hero .v264-scrim{position:absolute}
+.v264-hero .v264-big{position:absolute!important;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:2.4rem;font-weight:800;padding:0 20px;text-shadow:0 2px 16px rgba(0,0,0,.45)}
+.v264-hero-cap{padding:0 18px 18px}
+.v264-hero-cap .v264-tile-sub{font-size:1.1rem;font-weight:700;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+.v264-hero-btn{position:absolute!important;top:12px;right:12px;font:inherit;font-size:.95rem;font-weight:700;padding:8px 13px;border-radius:999px;border:none;background:rgba(0,0,0,.45);color:#fff;cursor:pointer}
+
+/* ── Detail body: tight, no wasted side space ── */
+.v264-pad{padding:16px 2px 8px}
+.v264-lbl{display:block;font-size:1rem;font-weight:700;margin:18px 0 6px;color:var(--tx)}
+.v264-ta,.v264-in,.v264-title-in{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--tx);background:var(--su);border:1px solid var(--bo);border-radius:12px;padding:12px 14px;outline:none}
+.v264-ta{line-height:1.55;min-height:96px;resize:vertical}
+.v264-title-in{font-size:1.5rem;font-weight:800;background:none;border:none;border-bottom:1px solid var(--bo);border-radius:0;padding:6px 0}
+.v264-cats{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.v264-chip{font:inherit;font-size:.95rem;font-weight:600;padding:9px 14px;border-radius:999px;border:1px solid var(--bo);background:var(--su);color:var(--tx);cursor:pointer}
+.v264-chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.v264-chip:disabled{opacity:.45}
+.v264-acts{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.v264-btn{display:block;width:100%;box-sizing:border-box;margin-top:12px;font:inherit;font-size:1.02rem;font-weight:700;padding:14px;border-radius:14px;border:none;background:var(--acc);color:#fff;cursor:pointer}
+.v264-btn.gold{background:linear-gradient(135deg,#f6d787,#d9a441);color:#3a2a00}
+.v264-btn.ghost{background:none;color:var(--sub);border:1px solid var(--bo)}
+.v264-link{background:none;border:none;color:var(--sub);font:inherit;font-size:.95rem;text-decoration:underline;cursor:pointer;padding:6px 0}
+.v264-row{margin-top:4px}
+
+/* ── Autosuggestion audio card ── */
+.v264-audio{margin-top:18px;padding:14px;border-radius:16px;background:var(--su);border:1px solid var(--bo)}
+.v264-audio-h{font-weight:800;font-size:1.05rem}
+.v264-play-row{display:flex;align-items:center;gap:12px;margin-top:10px}
+.v264-play{width:56px;height:56px;border-radius:50%;border:none;background:var(--acc);color:#fff;font-size:1.2rem;cursor:pointer;flex-shrink:0}
+.v264-listen{font-size:1rem;color:var(--sub)}
+
+/* ── Photos: 3-column tall tiles, Discover-style ── */
+.v264-phead{display:flex;align-items:center;justify-content:space-between;margin:22px 0 8px}
+.v264-pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.v264-p{position:relative;aspect-ratio:3/4;border:none;padding:0;border-radius:6px;overflow:hidden;background:var(--ca);cursor:pointer}
+.v264-p img{width:100%;height:100%;object-fit:cover;display:block}
+.v264-cov{position:absolute;left:5px;bottom:5px;font-size:.75rem;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:999px}
+.v264-empty{grid-column:1/-1;font-size:.98rem;color:var(--sub);text-align:center;padding:22px 10px;line-height:1.5}
+.v264-done{margin-top:18px;font-weight:800;font-size:1.1rem;color:#c99a2e;text-align:center}
+
+/* ── Full-screen photo viewer: swipe down to close, pinch/pan zoom, no close button ── */
+.v264-vw{position:fixed;inset:0;z-index:9800;display:none;background:#000;overflow:hidden;touch-action:none}
+.v264-vw-track{position:absolute;inset:0;touch-action:none;overflow:hidden}
+.v264-vw-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:center center;user-select:none;-webkit-user-drag:none;will-change:transform;opacity:0;transition:opacity .2s}
+.v264-vw-cnt{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;color:#fff;font-size:.95rem;font-weight:700;background:rgba(0,0,0,.45);padding:5px 12px;border-radius:999px;pointer-events:none}
+.v264-vw-cap{position:absolute;left:0;right:0;bottom:0;padding:24px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.8));display:flex;flex-direction:column;gap:10px}
+.v264-vw-note{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:11px 14px;outline:none}
+.v264-vw-note::placeholder{color:rgba(255,255,255,.7)}
+.v264-vw-acts{display:flex;gap:10px}
+.v264-vw-acts button{font:inherit;font-size:.95rem;font-weight:700;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+</style>
+
+<!-- ═══ v264 GOAL STORY — Goal tab UI ═══════════════════════════════════════════
+     Visual layer over the existing Goal Items data (#gi-js, window.GI).
+     • The story text stays in S.goal / #goal-ta, so the video engine and
+       Clar's dream-desire extraction are untouched.
+     • Goals, photos and achieve/share/delete reuse window.GI and the v243/v244
+       functions (giToggleAchieve, giShare, giDelete).
+     • Manifest and Foundation reuse manifestOpen / foundationOpen.
+     • Autosuggestion audio lives in IndexedDB on this device (not synced yet).
+     Own private scope; touches the rest of the app only via window globals. -->
+<script id="v264-js">
+(function(){
+  'use strict';
+
+  /* ── constants ── */
+  var CATS={
+    'Relationships':['#ff7aa2','#7a3cff'],'Business':['#f6b93b','#e8590c'],'Health':['#2ecc71','#0a7f5f'],
+    'Wealth':['#f1c40f','#8e5a00'],'Home':['#74b9ff','#0984e3'],'Travel':['#4cd0e0','#1e3c72'],
+    'Self':['#a29bfe','#5f27cd'],'Spirituality':['#f8c291','#6a4c93'],'Learning':['#55efc4','#00695c'],
+    'Other':['#b2bec3','#2d3436']
+  };
+  var STORY_G=['#c9a4ff','#ff9f7a']; /* colours of the New Story tile when no picture is set */
+  var MAX_PHOTOS=30;                 /* per goal, raised from 8 per owner request */
+  var MAX_LISTENS=5;                 /* autosuggestion listens that earn XP */
+  var XP_PER_LISTEN=5;
+
+  /* ── view state ── */
+  var V={mode:'list',id:null,root:null,newCat:'Business',recording:false,autoplay:false,counted:false,
+         vw:null,track:null,img:null,note:null,cnt:null,vwId:null,vwI:0,
+         scale:1,tx:0,ty:0,dx:0,dy:0,ptrs:{},pinch:null,drag:null,lastTap:0};
+
+  function $(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+  function items(){return (window.GI&&window.GI.items)?window.GI.items():[];}
+  function find(id){return items().filter(function(x){return x.id===id;})[0]||null;}
+  function dets(it){return it.details||{};}
+  /* colour pair for a category, as CSS custom properties */
+  function grad(cat){var c=CATS[cat]||CATS.Other;return '--g1:'+c[0]+';--g2:'+c[1];}
+  /* 'YYYY-MM-DD' -> readable date, parsed locally so it never shifts a day */
+  function fmtYMD(s){
+    if(!s)return '';var p=String(s).split('-');if(p.length!==3)return esc(s);
+    var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+  }
+  function fmtISO(s){var d=new Date(s);return isNaN(d)?'':d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
+  function catChips(sel,act){
+    return Object.keys(CATS).map(function(c){
+      return '<button class="v264-chip'+(c===sel?' on':'')+'" data-act="'+act+'" data-cat="'+c+'">'+c+'</button>';
+    }).join('');
+  }
+  function topbar(title,right){
+    return '<div class="v264-top"><button class="v264-back" data-act="back" aria-label="Back">←</button>'
+      +'<span class="v264-top-t">'+title+'</span>'+(right||'')+'</div>';
+  }
+
+  /* ── IndexedDB: story picture + autosuggestion audio, local to this device ── */
+  var _dbP=null;
+  function db(){
+    if(_dbP)return _dbP;
+    _dbP=new Promise(function(res,rej){
+      var r=indexedDB.open('clv_v264',1);
+      r.onupgradeneeded=function(){r.result.createObjectStore('blobs');};
+      r.onsuccess=function(){res(r.result);};
+      r.onerror=function(){rej(r.error);};
+    });
+    return _dbP;
+  }
+  function blobPut(key,blob){
+    return db().then(function(d){return new Promise(function(res,rej){
+      var t=d.transaction('blobs','readwrite');t.objectStore('blobs').put(blob,key);
+      t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});
+  }
+  function blobGet(key){
+    return db().then(function(d){return new Promise(function(res,rej){
+      var q=d.transaction('blobs','readonly').objectStore('blobs').get(key);
+      q.onsuccess=function(){res(q.result||null);};q.onerror=function(){rej(q.error);};});});
+  }
+  /* object-URL cache so each blob is turned into a URL once */
+  var _urls={};
+  function blobUrl(key){
+    if(_urls[key])return Promise.resolve(_urls[key]);
+    return blobGet(key).then(function(b){
+      if(!b)return null;var u=URL.createObjectURL(b);_urls[key]=u;return u;
+    }).catch(function(){return null;});
+  }
+  function blobReset(key){if(_urls[key]){URL.revokeObjectURL(_urls[key]);delete _urls[key];}}
+  /* read picked files as data URLs (same 5 MB cap the Goal Items module uses) */
+  function readAll(files){
+    return Promise.all(files.map(function(f){return new Promise(function(res){
+      if(f.size>5*1024*1024){alert(f.name+' is too large (max 5MB).');return res(null);}
+      var r=new FileReader();r.onload=function(e){res(e.target.result);};r.readAsDataURL(f);});}))
+      .then(function(a){return a.filter(Boolean);});
+  }
+  /* opens a native file picker without leaving a visible input behind */
+  function pickFiles(multiple,cb){
+    var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=!!multiple;
+    inp.onchange=function(){cb(Array.from(inp.files||[]));};inp.click();
+  }
+
+  /* hydrate [data-bk] nodes with their stored picture, and wire the audio element */
+  function hydrate(autoplay){
+    /* size every textarea to its saved text once it is on screen */
+    V.root.querySelectorAll('textarea').forEach(function(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';});
+    V.root.querySelectorAll('[data-bk]').forEach(function(n){
+      blobUrl(n.getAttribute('data-bk')).then(function(u){
+        if(u){n.style.backgroundImage="url('"+u+"')";n.classList.add('has-img');}
+      });
+    });
+    var au=$('v264-au');if(!au||!V.id)return;
+    /* counts one listen when a playthrough reaches 90% or ends (once per play) */
+    au.onplay=function(){if(au.currentTime<1)V.counted=false;setPlayIcon(true);};
+    au.onpause=function(){setPlayIcon(false);};
+    au.ontimeupdate=function(){
+      if(!V.counted&&au.duration&&isFinite(au.duration)&&au.currentTime>=au.duration*0.9)countListen(V.id);
+    };
+    au.onended=function(){if(!V.counted)countListen(V.id);setPlayIcon(false);};
+    blobUrl('audio:'+V.id).then(function(u){
+      if(!u)return;au.src=u;
+      /* opening a goal is a user tap, so autoplay is normally allowed; if the browser still refuses, show a Play hint */
+      if(autoplay){au.play().catch(function(){var h=$('v264-playhint');if(h)h.style.display='block';});}
+    });
+  }
+  function setPlayIcon(on){var b=$('v264-play');if(b)b.textContent=on?'❚❚':'▶';}
+
+  /* each counted listen adds XP, capped at MAX_LISTENS per goal */
+  function countListen(id){
+    V.counted=true;
+    var it=find(id);if(!it)return;
+    if((dets(it).listens||0)>=MAX_LISTENS)return;
+    window.GI.update(id,function(x){x.details=dets(x);x.details.listens=(x.details.listens||0)+1;});
+    if(window.xpAdd)window.xpAdd(XP_PER_LISTEN);
+    var l=$('v264-listen');
+    if(l)l.textContent='Listens '+(dets(find(id)).listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each';
+  }
+
+  /* ── recording the autosuggestion ── */
+  var _rec=null,_chunks=[],_recStream=null;
+  function recStart(id){
+    if(!navigator.mediaDevices||!window.MediaRecorder){alert('Recording is not supported in this browser.');return;}
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      _recStream=stream;_chunks=[];
+      _rec=new MediaRecorder(stream);
+      _rec.ondataavailable=function(e){if(e.data&&e.data.size)_chunks.push(e.data);};
+      _rec.onstop=function(){
+        var blob=new Blob(_chunks,{type:(_rec&&_rec.mimeType)||'audio/webm'});
+        _recStream.getTracks().forEach(function(t){t.stop();});
+        _rec=null;V.recording=false;
+        blobPut('audio:'+id,blob).then(function(){
+          blobReset('audio:'+id);
+          window.GI.update(id,function(x){x.details=dets(x);x.details.has_audio=true;x.details.listens=0;});
+          renderGoal(false);
+        }).catch(function(){alert('Could not save the recording on this device.');});
+      };
+      _rec.start();V.recording=true;renderGoal(false);
+    }).catch(function(){alert('Microphone permission is needed to record.');});
+  }
+  function recStop(){if(_rec&&_rec.state!=='inactive')_rec.stop();}
+
+  /* the prepared script the user reads aloud; built from their own answers */
+  function defaultScript(it,d){
+    var p=['I am moving toward: '+it.title+'.'];
+    if(d.why)p.push('I want this because '+String(d.why).trim()+'.');
+    if(d.feel)p.push('I feel '+String(d.feel).trim()+' — and it is already becoming real.');
+    p.push('Every day I take one step closer. I am capable, I am ready, and I deserve this.');
+    return p.join(' ');
+  }
+
+  /* ── list view: New Story tile, goal folders, achieved grid ── */
+  function tile(it){
+    var d=dets(it),cover=(it.images||[])[0];
+    var st=(cover&&cover.src)?"background-image:url('"+esc(cover.src)+"');"+grad(d.category):grad(d.category);
+    return '<div class="v264-tile'+(it.achieved?' ach':'')+'" data-act="goal" data-id="'+esc(it.id)+'" style="'+st+'">'
+      +'<div class="v264-scrim"></div>'
+      +'<div class="v264-tile-big">'+esc(d.category||'Goal')+'</div>'
+      +'<div class="v264-tile-sub">'+esc(it.title)+'</div>'
+      +(it.achieved?'<span class="v264-ok">✓</span>':'')+'</div>';
+  }
+  function renderList(){
+    var all=items(),active=all.filter(function(x){return !x.achieved;}),ach=all.filter(function(x){return x.achieved;});
+    var h='<div class="v264-head"><div class="v264-h1">Goals</div><div class="v264-sub">'
+      +active.length+' active'+(ach.length?' · '+ach.length+' achieved':'')+'</div></div>';
+    h+='<div class="v264-grid">';
+    /* the New Story tile: its picture is the "transformed life" image, so it blends into the grid */
+    h+='<div class="v264-tile" data-act="story" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
+      +'<div class="v264-scrim"></div><div class="v264-tile-big">New Story</div>'
+      +'<div class="v264-tile-sub">✦ My life, in my words</div></div>';
+    h+=active.map(tile).join('');
+    h+='<div class="v264-tile v264-add" data-act="new"><span>+</span><small>New goal</small></div>';
+    h+='</div>';
+    if(ach.length)h+='<div class="v264-sec">🏆 Achieved</div><div class="v264-grid">'+ach.map(tile).join('')+'</div>';
+    if(active.length>3)h+='<p class="v264-hint">Tip: focus on about 3 goals at a time — it is easier to get there.</p>';
+    V.root.innerHTML=h;hydrate(false);
+  }
+
+  /* ── story detail ── */
+  function renderStory(){
+    var story=S.goal||'';
+    V.root.innerHTML=topbar('New Story')
+      +'<div class="v264-hero" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
+      +'<div class="v264-scrim"></div><div class="v264-big">New Story</div>'
+      +'<div class="v264-hero-cap"><div class="v264-tile-sub">Who you are becoming</div></div>'
+      +'<button class="v264-hero-btn" data-act="story-cover">📷 Change picture</button></div>'
+      +'<div class="v264-pad"><label class="v264-lbl">My story</label>'
+      +'<textarea class="v264-ta" data-field="story" rows="9" placeholder="Write it as your dream life, in first person. Name the real things you want — clear words help Clar find the right videos.">'+esc(story)+'</textarea>'
+      +'<div class="v264-acts"><button class="v264-chip" data-act="manifest-story">✦ Manifest</button>'
+      +'<button class="v264-chip" data-act="fnd-story">✦ My Foundation</button></div></div>';
+    hydrate(false);
+  }
+
+  /* ── new goal form ── */
+  function renderNew(){
+    V.root.innerHTML=topbar('New goal')
+      +'<div class="v264-pad"><label class="v264-lbl">What do you want?</label>'
+      +'<input class="v264-in" data-new="title" maxlength="140" placeholder="e.g. Build a 10-client coaching business">'
+      +'<label class="v264-lbl">Category</label><div class="v264-cats">'+catChips(V.newCat,'new-cat')+'</div>'
+      +'<label class="v264-lbl">Target date</label><input class="v264-in" type="date" data-new="target">'
+      +'<button class="v264-btn" data-act="create">Create goal</button></div>';
+  }
+  function createGoal(){
+    var t=V.root.querySelector('[data-new="title"]'),g=V.root.querySelector('[data-new="target"]');
+    var title=t?t.value.trim():'';
+    if(!title){alert('Give this goal a short title first.');return;}
+    var item={id:'g_'+Date.now()+'_'+Math.random().toString(36).slice(2),remoteId:null,title:title.slice(0,140),
+      images:[],date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private',
+      details:{category:V.newCat,target_date:g&&g.value?g.value:'',why:'',feel:'',listens:0}};
+    window.GI.add(item);
+    V.mode='goal';V.id=item.id;renderGoal(false);
+  }
+
+  /* ── goal detail ── */
+  function audioHtml(it,d){
+    var head='<div class="v264-audio"><div class="v264-audio-h">🎙 Autosuggestion</div>';
+    if(V.recording)return head+'<p class="v264-hint">Recording… read the script slowly, in your own voice.</p>'
+      +'<button class="v264-btn" data-act="stop">■ Stop &amp; save</button></div>';
+    if(!d.has_audio){
+      return head+'<p class="v264-hint">Prepared for this goal. Edit it if you like, then read it out loud in your own voice. You can listen to it any time you need it.</p>'
+        +'<textarea class="v264-ta" data-field="script" rows="5">'+esc(d.script||defaultScript(it,d))+'</textarea>'
+        +'<button class="v264-btn" data-act="rec">● Record my voice</button></div>';
+    }
+    return head+'<audio id="v264-au" preload="auto" playsinline></audio>'
+      +'<div class="v264-play-row"><button class="v264-play" id="v264-play" data-act="play" aria-label="Play">▶</button>'
+      +'<div class="v264-listen" id="v264-listen">Listens '+(d.listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each</div></div>'
+      +'<div id="v264-playhint" class="v264-hint" style="display:none">Tap ▶ to hear it.</div>'
+      +'<button class="v264-link" data-act="rec-again">Re-record</button></div>';
+  }
+  function photosHtml(imgs){
+    if(!imgs.length)return '<p class="v264-empty">Add photos of the life you want. Tap any photo to view it full screen.</p>';
+    return imgs.map(function(im,i){
+      return '<button class="v264-p" data-act="view" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
+        +(i===0?'<span class="v264-cov">Cover</span>':'')+'</button>';
+    }).join('');
+  }
+  function achieveHtml(it){
+    if(it.achieved)return '<div class="v264-done">🏆 Achieved'+(it.date_achieved?' · '+esc(fmtISO(it.date_achieved)):'')+'</div>'
+      +'<button class="v264-btn" data-act="share">Share this win ✦</button>'
+      +'<button class="v264-btn ghost" data-act="unachieve">Mark as not yet</button>';
+    return '<button class="v264-btn gold" data-act="achieve">✓ Mark as achieved</button>';
+  }
+  function renderGoal(autoplay){
+    var it=find(V.id);
+    if(!it){V.mode='list';renderList();return;}
+    var d=dets(it),imgs=it.images||[],cover=imgs[0];
+    var heroStyle=(cover&&cover.src)?"background-image:url('"+esc(cover.src)+"');"+grad(d.category):grad(d.category);
+    var h=topbar('Goal','<button class="v264-link" data-act="delete">Delete</button>');
+    h+='<div class="v264-hero" id="v264-hero" style="'+heroStyle+'"><div class="v264-scrim"></div>'
+      +'<div class="v264-big" id="v264-hero-cat">'+esc(d.category||'Goal')+'</div>'
+      +'</div>';
+    h+='<div class="v264-pad">';
+    h+='<input class="v264-title-in" data-field="title" value="'+esc(it.title)+'" maxlength="140">';
+    h+='<label class="v264-lbl">🎯 Target date</label><input class="v264-in" type="date" data-field="target" value="'+esc(d.target_date||'')+'">';
+    if(d.target_date)h+='<div class="v264-hint" style="margin:6px 2px 0">By '+fmtYMD(d.target_date)+'</div>';
+    h+='<label class="v264-lbl">Category</label><div class="v264-cats">'+catChips(d.category||'Other','cat')+'</div>';
+    h+='<label class="v264-lbl">Why do I want this?</label>'
+      +'<textarea class="v264-ta" data-field="why" rows="3" placeholder="The real reason behind this goal">'+esc(d.why||'')+'</textarea>';
+    h+='<label class="v264-lbl">How will I feel when I have it?</label>'
+      +'<textarea class="v264-ta" data-field="feel" rows="3" placeholder="Describe the feeling, in the present tense">'+esc(d.feel||'')+'</textarea>';
+    h+='<div class="v264-acts"><button class="v264-chip" data-act="manifest-goal">✦ Manifest</button>'
+      +'<button class="v264-chip" data-act="fnd-goal">✦ My Foundation</button></div>';
+    h+=audioHtml(it,d);
+    h+='<div class="v264-phead"><span class="v264-lbl" style="margin:0">Photos '+imgs.length+'/'+MAX_PHOTOS+'</span>'
+      +'<button class="v264-chip" data-act="add-photos"'+(imgs.length>=MAX_PHOTOS?' disabled':'')+'>+ Add photos</button></div>';
+    h+='<div class="v264-pgrid" id="v264-pgrid">'+photosHtml(imgs)+'</div>';
+    h+=achieveHtml(it);
+    h+='</div>';
+    V.root.innerHTML=h;
+    V.counted=false;
+    hydrate(autoplay);
+  }
+  /* refresh only the photo grid, so the audio element is not recreated */
+  function refreshPhotos(){
+    var it=find(V.id);if(!it)return;
+    var g=$('v264-pgrid');if(g)g.innerHTML=photosHtml(it.images||[]);
+    var lbl=V.root.querySelector('.v264-phead .v264-lbl');
+    if(lbl)lbl.textContent='Photos '+(it.images||[]).length+'/'+MAX_PHOTOS;
+    var btn=V.root.querySelector('[data-act="add-photos"]');
+    if(btn)btn.disabled=(it.images||[]).length>=MAX_PHOTOS;
+  }
+  function addPhotos(){
+    var it=find(V.id);if(!it)return;
+    var room=MAX_PHOTOS-(it.images||[]).length;
+    if(room<=0){alert('You can add up to '+MAX_PHOTOS+' photos per goal.');return;}
+    pickFiles(true,function(files){
+      files=files.slice(0,room);
+      readAll(files).then(function(srcs){
+        if(!srcs.length)return;
+        window.GI.update(V.id,function(x){x.images=(x.images||[]).concat(srcs.map(function(s){return {src:s};}));});
+        refreshPhotos();
+      });
+    });
+  }
+
+  /* ── full-screen viewer: swipe down to close, pinch/pan zoom, swipe sideways ── */
+  function buildViewer(){
+    var d=document.createElement('div');d.id='v264-vw';d.className='v264-vw';
+    d.innerHTML='<div class="v264-vw-track" id="v264-vw-track"><img class="v264-vw-img" id="v264-vw-img" draggable="false" alt=""></div>'
+      +'<div class="v264-vw-cnt" id="v264-vw-cnt"></div>'
+      +'<div class="v264-vw-cap"><input class="v264-vw-note" id="v264-vw-note" type="text" maxlength="200" placeholder="Write your vision for this photo…">'
+      +'<div class="v264-vw-acts"><button id="v264-vw-cover">★ Set as cover</button><button id="v264-vw-del">Delete</button></div></div>';
+    document.body.appendChild(d);
+    V.vw=d;V.track=$('v264-vw-track');V.img=$('v264-vw-img');V.note=$('v264-vw-note');V.cnt=$('v264-vw-cnt');
+    /* pointer events cover mouse, touch and pen with one code path */
+    V.track.addEventListener('pointerdown',vwDown);
+    V.track.addEventListener('pointermove',vwMove);
+    V.track.addEventListener('pointerup',vwUp);
+    V.track.addEventListener('pointercancel',vwUp);
+    /* desktop: mouse wheel zooms */
+    V.track.addEventListener('wheel',function(e){
+      e.preventDefault();V.scale=clamp(V.scale*(1-e.deltaY*0.0015),1,5);
+      if(V.scale===1){V.tx=0;V.ty=0;}clampPan();vwApply(false);
+    },{passive:false});
+    /* writing a vision for the photo: saved on blur, stored on the goal's image */
+    V.note.addEventListener('change',function(){
+      var v=V.note.value.slice(0,200);
+      window.GI.update(V.vwId,function(x){var im=(x.images||[])[V.vwI];if(im)im.note=v;});
+    });
+    $('v264-vw-cover').addEventListener('click',function(){
+      window.GI.update(V.vwId,function(x){var im=(x.images||[]).splice(V.vwI,1)[0];if(im)x.images.unshift(im);});
+      V.vwI=0;vwShow();
+    });
+    $('v264-vw-del').addEventListener('click',function(){
+      if(!confirm('Delete this photo?'))return;
+      window.GI.update(V.vwId,function(x){(x.images||[]).splice(V.vwI,1);});
+      var it=find(V.vwId);
+      if(!it||!(it.images||[]).length)vwClose(true);else{V.vwI=Math.min(V.vwI,it.images.length-1);vwShow();}
+    });
+  }
+  function vwOpen(id,i){
+    var it=find(id);if(!it||!(it.images||[]).length)return;
+    V.vwId=id;V.vwI=i||0;V.scale=1;V.tx=0;V.ty=0;V.dx=0;V.dy=0;V.ptrs={};V.pinch=null;V.drag=null;
+    V.vw.style.display='block';V.vw.style.background='#000';
+    vwShow();
+  }
+  function vwShow(){
+    var it=find(V.vwId);
+    if(!it||!(it.images||[]).length){vwClose(true);return;}
+    var imgs=it.images;V.vwI=clamp(V.vwI,0,imgs.length-1);
+    var im=imgs[V.vwI];
+    V.img.style.opacity='0';
+    V.img.onload=function(){V.img.style.opacity='1';};
+    V.img.src=im.src;
+    V.note.value=im.note||'';
+    V.cnt.textContent=(V.vwI+1)+' / '+imgs.length;
+    vwApply(false);
+  }
+  /* keeps the zoomed image from being dragged past its own edges */
+  function clampPan(){
+    var vw=window.innerWidth,vh=window.innerHeight,img=V.img;
+    var fw=img.naturalWidth||vw,fh=img.naturalHeight||vh;
+    var k=Math.min(vw/fw,vh/fh);
+    var mx=Math.max(0,(fw*k*V.scale-vw)/2),my=Math.max(0,(fh*k*V.scale-vh)/2);
+    V.tx=clamp(V.tx,-mx,mx);V.ty=clamp(V.ty,-my,my);
+  }
+  /* applies the current transform; anim=true eases it (used for snap-back and zoom) */
+  function vwApply(anim){
+    var s=V.scale;
+    var x=s>1?V.tx:V.dx,y=s>1?V.ty:V.dy;
+    V.img.style.transition=anim?'transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s':'opacity .2s';
+    V.img.style.transform='translate3d('+x+'px,'+y+'px,0) scale('+s+')';
+    /* background fades as the photo is dragged down, so closing feels like it dissolves */
+    var bg=s>1?1:clamp(1-Math.abs(V.dy)/380,0.25,1);
+    V.vw.style.background='rgba(0,0,0,'+bg+')';
+  }
+  function vwDown(e){
+    V.ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+    try{V.track.setPointerCapture(e.pointerId);}catch(_){}
+    var ids=Object.keys(V.ptrs);
+    if(ids.length===2){
+      /* second finger down: start a pinch from the current scale */
+      var a=V.ptrs[ids[0]],b=V.ptrs[ids[1]];
+      V.pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:V.scale};
+      V.drag=null;V.dx=0;V.dy=0;return;
+    }
+    if(ids.length===1){
+      var now=Date.now();
+      /* two quick taps = zoom toggle */
+      if(now-V.lastTap<300){V.lastTap=0;V.drag=null;vwDouble(e.clientX,e.clientY);return;}
+      V.lastTap=now;
+      V.drag={x0:e.clientX,y0:e.clientY,t:now,moved:false,tx0:V.tx,ty0:V.ty};
+    }
+  }
+  function vwMove(e){
+    var p=V.ptrs[e.pointerId];if(!p)return;
+    p.x=e.clientX;p.y=e.clientY;
+    var ids=Object.keys(V.ptrs);
+    if(V.pinch&&ids.length>=2){
+      var a=V.ptrs[ids[0]],b=V.ptrs[ids[1]];
+      V.scale=clamp(V.pinch.s0*Math.hypot(a.x-b.x,a.y-b.y)/V.pinch.d0,1,5);
+      clampPan();vwApply(false);return;
+    }
+    if(V.drag&&ids.length===1){
+      var dx=e.clientX-V.drag.x0,dy=e.clientY-V.drag.y0;
+      if(Math.abs(dx)+Math.abs(dy)>6)V.drag.moved=true;
+      if(V.scale>1){V.tx=V.drag.tx0+dx;V.ty=V.drag.ty0+dy;clampPan();}
+      else{V.dx=dx;V.dy=dy;}
+      vwApply(false);
+    }
+  }
+  function vwUp(e){
+    delete V.ptrs[e.pointerId];
+    var ids=Object.keys(V.ptrs);
+    if(V.pinch){
+      if(ids.length===0){
+        /* pinch finished: settle back to 1x if it was barely zoomed */
+        V.pinch=null;if(V.scale<1.05){V.scale=1;V.tx=0;V.ty=0;}
+        clampPan();vwApply(true);
+      }else if(ids.length===1){
+        /* one finger left after a pinch: resume a plain drag from its position */
+        V.pinch=null;var p=V.ptrs[ids[0]];
+        V.drag={x0:p.x,y0:p.y,t:Date.now(),moved:false,tx0:V.tx,ty0:V.ty};V.dx=0;V.dy=0;
+      }
+      return;
+    }
+    if(ids.length!==0)return;
+    if(V.scale<=1){
+      var dy=V.dy,dx=V.dx;
+      var fast=V.drag&&V.drag.moved&&(Date.now()-V.drag.t)<260;
+      /* swipe down closes (Instagram-style): long pull, or a quick flick */
+      if(dy>120||(dy>40&&fast)){V.drag=null;vwClose(false);return;}
+      /* swipe sideways changes photo */
+      if(dx<-70){V.drag=null;vwStep(1);return;}
+      if(dx>70){V.drag=null;vwStep(-1);return;}
+      V.dx=0;V.dy=0;vwApply(true);
+    }else{clampPan();vwApply(true);}
+    V.drag=null;
+  }
+  /* double-tap: zoom to 2.5x around the tap point, or back to 1x */
+  function vwDouble(x,y){
+    if(V.scale>1){V.scale=1;V.tx=0;V.ty=0;}
+    else{var s=2.5;V.scale=s;V.tx=(window.innerWidth/2-x)*(s-1);V.ty=(window.innerHeight/2-y)*(s-1);clampPan();}
+    vwApply(true);
+  }
+  /* sideways change: slide the current photo out, then the next one in */
+  function vwStep(dir){
+    var it=find(V.vwId);if(!it)return;
+    var n=(it.images||[]).length,ni=V.vwI+dir;
+    if(n<2||ni<0||ni>=n){V.dx=0;V.dy=0;vwApply(true);return;}
+    var w=window.innerWidth;
+    V.img.style.transition='transform .22s ease, opacity .22s';
+    V.img.style.transform='translate3d('+(-dir*w)+'px,0,0)';V.img.style.opacity='0';
+    setTimeout(function(){
+      V.vwI=ni;V.scale=1;V.tx=0;V.ty=0;V.dx=0;V.dy=0;
+      V.img.style.transition='none';V.img.style.transform='translate3d('+(dir*w)+'px,0,0)';
+      vwShow();
+      requestAnimationFrame(function(){
+        V.img.style.transition='transform .25s ease, opacity .25s';
+        V.img.style.transform='translate3d(0,0,0)';
+      });
+    },220);
+  }
+  /* closing: slide down and fade, then hide and refresh the goal behind it */
+  function vwClose(instant){
+    var done=function(){
+      V.vw.style.display='none';V.img.removeAttribute('src');
+      V.scale=1;V.tx=0;V.ty=0;V.dx=0;V.dy=0;V.ptrs={};V.pinch=null;V.drag=null;
+      if(V.mode==='goal')refreshPhotos();
+    };
+    if(instant){done();return;}
+    V.img.style.transition='transform .25s ease, opacity .25s ease';
+    V.img.style.transform='translate3d(0,'+window.innerHeight+'px,0) scale(.92)';
+    V.img.style.opacity='0';V.vw.style.background='rgba(0,0,0,0)';
+    setTimeout(done,260);
+  }
+
+  /* ── events ── */
+  function onClick(e){
+    var t=e.target.closest('[data-act]');if(!t||!V.root.contains(t))return;
+    var a=t.getAttribute('data-act');
+    if(a==='story'){V.mode='story';renderStory();return;}
+    if(a==='goal'){V.mode='goal';V.id=t.getAttribute('data-id');renderGoal(true);return;}
+    if(a==='new'){V.mode='new';V.newCat='Business';renderNew();return;}
+    if(a==='back'){
+      if(V.recording)recStop();
+      V.mode='list';renderList();return;
+    }
+    if(a==='create'){createGoal();return;}
+    if(a==='new-cat'){
+      V.newCat=t.getAttribute('data-cat');
+      V.root.querySelectorAll('[data-act="new-cat"]').forEach(function(c){c.classList.toggle('on',c===t);});
+      return;
+    }
+    if(a==='cat'){
+      var cat=t.getAttribute('data-cat');
+      window.GI.update(V.id,function(x){x.details=dets(x);x.details.category=cat;});
+      V.root.querySelectorAll('[data-act="cat"]').forEach(function(c){c.classList.toggle('on',c===t);});
+      var big=$('v264-hero-cat');if(big)big.textContent=cat;
+      var hero=$('v264-hero');if(hero&&!(find(V.id).images||[])[0])hero.style.cssText=grad(cat);
+      return;
+    }
+    if(a==='story-cover'){
+      pickFiles(false,function(files){
+        var f=files[0];if(!f)return;
+        blobPut('story_cover',f).then(function(){
+          blobReset('story_cover');
+          if(V.mode==='story')renderStory();
+        }).catch(function(){alert('Could not save the picture on this device.');});
+      });
+      return;
+    }
+    if(a==='add-photos'){addPhotos();return;}
+    if(a==='view'){vwOpen(V.id,+t.getAttribute('data-i')||0);return;}
+    if(a==='manifest-story'){if(window.manifestOpen)window.manifestOpen(S.goal||'My story',undefined,t);return;}
+    if(a==='fnd-story'){if(window.foundationOpen)window.foundationOpen('major_goal','New Story');return;}
+    if(a==='manifest-goal'){var mi=find(V.id);if(mi&&window.manifestOpen)window.manifestOpen(mi.title,undefined,t);return;}
+    if(a==='fnd-goal'){var fi=find(V.id);if(fi&&window.foundationOpen)window.foundationOpen('goal_'+V.id,fi.title);return;}
+    if(a==='rec'){recStart(V.id);return;}
+    if(a==='stop'){recStop();return;}
+    if(a==='rec-again'){
+      window.GI.update(V.id,function(x){x.details=dets(x);x.details.has_audio=false;x.details.listens=0;});
+      blobReset('audio:'+V.id);renderGoal(false);return;
+    }
+    if(a==='play'){
+      var au=$('v264-au');
+      if(au){if(au.paused)au.play().catch(function(){});else au.pause();}
+      var ph=$('v264-playhint');if(ph)ph.style.display='none';
+      return;
+    }
+    if(a==='achieve'||a==='unachieve'){
+      if(window.giToggleAchieve)window.giToggleAchieve(V.id);
+      renderGoal(false);return;
+    }
+    if(a==='share'){if(window.giShare)window.giShare(V.id);return;}
+    if(a==='delete'){
+      if(window.giDelete)window.giDelete(V.id);
+      if(!find(V.id)){V.mode='list';renderList();}
+      return;
+    }
+  }
+  /* edits that save without re-rendering (so typing is never interrupted) */
+  function onChange(e){
+    var t=e.target,f=t.getAttribute('data-field');
+    if(f==='story'){
+      /* the story text goes through the existing saveGoal path, so the video engine sees it as before */
+      S.goal=t.value;
+      var ta=$('goal-ta');if(ta){ta.value=t.value;saveGoal();}
+      return;
+    }
+    if(!f||!V.id)return;
+    var id=V.id;
+    if(f==='title'){
+      var v=t.value.trim();
+      if(!v){var cur=find(id);t.value=cur?cur.title:'';return;}
+      window.GI.update(id,function(x){x.title=v.slice(0,140);});
+      var sub=V.root.querySelector('#v264-hero .v264-tile-sub');if(sub)sub.textContent=v;
+    }else if(f==='target'){
+      window.GI.update(id,function(x){x.details=dets(x);x.details.target_date=t.value;});
+    }else if(f==='why'||f==='feel'||f==='script'){
+      var val=t.value;
+      window.GI.update(id,function(x){x.details=dets(x);x.details[f]=val;});
+    }
+  }
+
+  /* repaint the list when Goal Items change while the list is on screen */
+  document.addEventListener('gi:change',function(){
+    if(V.mode==='list'&&V.root)renderList();
+  });
+
+  /* the Goal tab shows the list every time it is opened */
+  var _origBnav=window.bnavSwitch;
+  if(typeof _origBnav==='function'){
+    window.bnavSwitch=function(el){
+      var r=_origBnav.apply(this,arguments);
+      if(el&&el.dataset&&el.dataset.tab==='goal'){V.mode='list';renderList();}
+      return r;
+    };
+  }
+
+  function init(){
+    V.root=$('v264-root');if(!V.root)return;
+    V.root.addEventListener('click',onClick);
+    V.root.addEventListener('change',onChange);
+    /* textareas grow with their content, so the autosuggestion script is never cut off */
+    V.root.addEventListener('input',function(e){
+      var t=e.target;if(!t||t.tagName!=='TEXTAREA')return;
+      t.style.height='auto';t.style.height=t.scrollHeight+'px';
+    });
+    buildViewer();
+    /* list is painted lazily, on first visit to the Goal tab (or on any Goal Items change) */
+  }
+  init();
 })();
 </script>
 
@@ -26093,6 +26799,7 @@ html[data-theme="dark"] .g-img{
   }
   function loadFlag(){
     if(lsGet('clv_plans_enforced','')==='1'){ENFORCED=true;return Promise.resolve();}
+    if(lsGet('clv_plans_enforced','')==='0'){ENFORCED=false;return Promise.resolve();}
     if(lsGet('clv_plans_enforced','')==='0')return Promise.resolve();
     var s=sb();if(!s||!s.from)return Promise.resolve();
     return Promise.resolve(s.from('feature_flags').select('enabled').eq('key','plans_enforced').maybeSingle()).then(function(r){ENFORCED=!!(r&&r.data&&r.data.enabled===true);}).catch(function(){});
