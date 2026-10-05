@@ -2722,7 +2722,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v265</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v266</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -24897,106 +24897,117 @@ textarea.soc-in{resize:none;min-height:74px}
 })();
 </script>
 
-<!-- ═══ v264: Goal tab redesign — "New Story" tile, goal folders, photo viewer ═══
-     Pure additive CSS. Only active while #goal-row carries the .v264 class
-     (set in the markup). Legacy Goal-tab sections are hidden with CSS, never
-     deleted, so the v229/v243 data and their functions stay intact. -->
-<style id="v264-css">
-/* Goal row becomes a plain full-width container (no grid split, no card) */
+<!-- ═══ v266: Goal tab — story/vision/goal grids, goal top bar, settings + affirmation sheets, audio bar ═══
+     Replaces the v264 block. Pure CSS; only active while #goal-row carries the .v264 class (kept from v264
+     so the legacy Goal sections stay hidden by CSS and nothing is deleted). -->
+<style id="v266-css">
+/* Goal row is a plain full-width container; the page never pans sideways on mobile */
 #goal-row.v264{grid-template-columns:minmax(0,1fr)!important;background:none!important;border:0!important;box-shadow:none!important;padding:0!important;overflow:visible!important;margin-bottom:8px!important}
 #goal-row.v264::before{display:none}
-/* Hide every legacy child; only the new root stays */
 #goal-row.v264>*:not(#v264-root){display:none!important}
-#v264-root{min-width:0;color:var(--tx)}
+#v264-root{min-width:0;color:var(--tx);overflow-x:clip;touch-action:pan-y}
 
-/* ── Top bar (list header + detail back row) ── */
-.v264-head{display:flex;align-items:baseline;justify-content:space-between;padding:2px 2px 12px}
-.v264-h1{font-size:1.6rem;font-weight:800;letter-spacing:-.3px}
-.v264-sub{font-size:.95rem;color:var(--sub)}
-.v264-top{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 0 10px}
-.v264-back{width:40px;height:40px;border-radius:50%;border:1px solid var(--bo);background:var(--su);color:var(--tx);font-size:1.15rem;cursor:pointer;flex-shrink:0}
-.v264-top-t{flex:1;font-size:1.1rem;font-weight:800;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ── top bar (list has none; detail/story/new/vision use this) ── */
+.v266-top{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 0 10px}
+.v266-back{width:40px;height:40px;border-radius:50%;border:1px solid var(--bo);background:var(--su);color:var(--tx);font-size:1.15rem;cursor:pointer;flex-shrink:0}
+.v266-top-t{flex:1;min-width:0;font:inherit;font-size:1.1rem;font-weight:800;color:var(--tx);background:none;border:none;border-bottom:1px solid transparent;padding:6px 2px;outline:none;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+input.v266-top-t:focus{border-bottom-color:var(--bo)}
+.v266-ico{width:40px;height:40px;border-radius:50%;border:1px solid var(--bo);background:var(--su);color:var(--tx);font-size:1.05rem;cursor:pointer;flex-shrink:0}
 
-/* ── Folder grid: 2 tiles per row, tight 4px gaps ── */
-.v264-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.v264-tile{position:relative;aspect-ratio:4/5;border-radius:10px;overflow:hidden;cursor:pointer;background:linear-gradient(145deg,var(--g1,#888),var(--g2,#333));background-size:cover;background-position:center;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;transition:transform .18s ease}
-.v264-tile:active{transform:scale(.97)}
-.v264-tile.ach{box-shadow:inset 0 0 0 2px #f0c987}
-.v264-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,.20) 45%,rgba(0,0,0,.66) 100%);pointer-events:none}
-.v264-tile>*{position:relative}
-.v264-tile .v264-scrim{position:absolute}
-.v264-tile-big{font-size:1.45rem;font-weight:800;line-height:1.1;text-shadow:0 2px 14px rgba(0,0,0,.45)}
-.v264-tile .v264-tile-sub{position:absolute;left:12px;right:12px;bottom:12px;margin:0;text-align:left;font-size:.98rem;font-weight:600;text-shadow:0 1px 8px rgba(0,0,0,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.v264-ok{position:absolute!important;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:#f0c987;color:#3a2a00;font-weight:800;display:flex;align-items:center;justify-content:center}
-.v264-add{background:var(--ca);border:2px dashed var(--bo);color:var(--sub)}
-.v264-add span{font-size:2.2rem;line-height:1;font-weight:300}
-.v264-add small{font-size:1rem;font-weight:700;margin-top:4px}
-.v264-sec{font-size:1.05rem;font-weight:800;margin:20px 2px 8px}
-.v264-hint{font-size:.95rem;color:var(--sub);line-height:1.5;margin:12px 2px}
+/* ── folder grids: edge to edge, zero gaps, square tiles ── */
+.v266-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin:0 -16px}
+.v266-grid.v266-three{grid-template-columns:1fr 1fr 1fr}
+.v266-tile{position:relative;aspect-ratio:4/5;overflow:hidden;cursor:pointer;background:linear-gradient(145deg,var(--g1,#888),var(--g2,#333));background-size:cover;background-position:center;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;transition:transform .18s ease;touch-action:manipulation}
+.v266-tile:active{transform:scale(.97)}
+.v266-tile.ach{box-shadow:inset 0 0 0 2px #f0c987}
+.v266-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,rgba(0,0,0,.20) 45%,rgba(0,0,0,.66) 100%);pointer-events:none}
+.v266-tile>*{position:relative}
+.v266-tile .v266-scrim{position:absolute}
+.v266-tile-big{font-size:1.4rem;font-weight:800;line-height:1.1;text-shadow:0 2px 14px rgba(0,0,0,.45)}
+.v266-tile .v266-tile-sub{position:absolute;left:10px;right:10px;bottom:10px;margin:0;text-align:left;font-size:.95rem;font-weight:600;text-shadow:0 1px 8px rgba(0,0,0,.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v266-ok{position:absolute!important;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:#f0c987;color:#3a2a00;font-weight:800;display:flex;align-items:center;justify-content:center}
+.v266-add{background:var(--ca);color:var(--sub);border:1.5px dashed var(--bo)}
+.v266-add span{font-size:2.2rem;line-height:1;font-weight:300}
+.v266-add small{font-size:1rem;font-weight:700;margin-top:4px}
+.v266-sec{font-size:1.05rem;font-weight:800;margin:20px 16px 8px}
+.v266-hint{font-size:.95rem;color:var(--sub);line-height:1.5;margin:12px 16px}
+.v266-empty{grid-column:1/-1;font-size:.98rem;color:var(--sub);text-align:center;padding:22px 16px;line-height:1.5}
+.v266-done{margin-top:16px;font-weight:800;font-size:1.05rem;color:#c99a2e;text-align:center}
 
-/* ── Detail hero: full-bleed image, centred white category text ── */
-.v264-hero{position:relative;height:min(60vh,500px);min-height:300px;margin:0 -16px;overflow:hidden;background:linear-gradient(145deg,var(--g1,#888),var(--g2,#333));background-size:cover;background-position:center;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
-.v264-hero>*{position:relative}
-.v264-hero .v264-scrim{position:absolute}
-.v264-hero .v264-big{position:absolute!important;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;font-size:2.4rem;font-weight:800;padding:0 20px;text-shadow:0 2px 16px rgba(0,0,0,.45)}
-.v264-hero-cap{padding:0 18px 18px}
-.v264-hero-cap .v264-tile-sub{font-size:1.1rem;font-weight:700;text-shadow:0 1px 10px rgba(0,0,0,.6)}
-.v264-hero-btn{position:absolute!important;top:12px;right:12px;font:inherit;font-size:.95rem;font-weight:700;padding:8px 13px;border-radius:999px;border:none;background:rgba(0,0,0,.45);color:#fff;cursor:pointer}
+/* ── story + create-goal text fields ── */
+.v266-pad{padding:4px 0 12px}
+.v266-lbl{display:block;font-size:1rem;font-weight:700;margin:16px 0 6px;color:var(--tx)}
+.v266-ta,.v266-in{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--tx);background:var(--su);border:1px solid var(--bo);border-radius:12px;padding:12px 14px;outline:none}
+.v266-ta{line-height:1.55;min-height:110px;resize:none;overflow:hidden}
+.v266-chip{font:inherit;font-size:.95rem;font-weight:600;padding:9px 14px;border-radius:999px;border:1px solid var(--bo);background:var(--su);color:var(--tx);cursor:pointer}
+.v266-chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.v266-chip.ro{opacity:.85;cursor:default}
+.v266-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.v266-acts{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.v266-btn{display:block;width:100%;box-sizing:border-box;margin-top:12px;font:inherit;font-size:1.02rem;font-weight:700;padding:14px;border-radius:14px;border:none;background:var(--acc);color:#fff;cursor:pointer}
+.v266-btn.gold{background:linear-gradient(135deg,#f6d787,#d9a441);color:#3a2a00}
+.v266-btn.ghost{background:none;color:var(--sub);border:1px solid var(--bo)}
+.v266-btn.danger{background:none;color:#d64545;border:1px solid #d6454566}
+.v266-link{background:none;border:none;color:var(--sub);font:inherit;font-size:.95rem;text-decoration:underline;cursor:pointer;padding:6px 0}
+.v266-cover-chip{position:absolute;right:12px;top:12px}
 
-/* ── Detail body: tight, no wasted side space ── */
-.v264-pad{padding:16px 2px 8px}
-.v264-lbl{display:block;font-size:1rem;font-weight:700;margin:18px 0 6px;color:var(--tx)}
-.v264-ta,.v264-in,.v264-title-in{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--tx);background:var(--su);border:1px solid var(--bo);border-radius:12px;padding:12px 14px;outline:none}
-.v264-ta{line-height:1.55;min-height:96px;resize:vertical}
-.v264-title-in{font-size:1.5rem;font-weight:800;background:none;border:none;border-bottom:1px solid var(--bo);border-radius:0;padding:6px 0}
-.v264-cats{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
-.v264-chip{font:inherit;font-size:.95rem;font-weight:600;padding:9px 14px;border-radius:999px;border:1px solid var(--bo);background:var(--su);color:var(--tx);cursor:pointer}
-.v264-chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
-.v264-chip:disabled{opacity:.45}
-.v264-acts{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
-.v264-btn{display:block;width:100%;box-sizing:border-box;margin-top:12px;font:inherit;font-size:1.02rem;font-weight:700;padding:14px;border-radius:14px;border:none;background:var(--acc);color:#fff;cursor:pointer}
-.v264-btn.gold{background:linear-gradient(135deg,#f6d787,#d9a441);color:#3a2a00}
-.v264-btn.ghost{background:none;color:var(--sub);border:1px solid var(--bo)}
-.v264-link{background:none;border:none;color:var(--sub);font:inherit;font-size:.95rem;text-decoration:underline;cursor:pointer;padding:6px 0}
-.v264-row{margin-top:4px}
+/* ── photo grid for a goal or the vision folder ── */
+.v266-pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;margin:0 -16px} /* two large photos per row: bigger images, no side gaps */
+.v266-p{position:relative;aspect-ratio:3/4;border:none;padding:0;overflow:hidden;background:var(--ca);cursor:pointer}
+.v266-p img{width:100%;height:100%;object-fit:cover;display:block}
+.v266-cov{position:absolute;left:4px;bottom:4px;font-size:.7rem;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:2px 7px;border-radius:999px}
+.v266-p.v266-plus{display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--ca);color:var(--sub);border:1.5px dashed var(--bo);cursor:pointer}
+.v266-p.v266-plus span{font-size:2rem;line-height:1;font-weight:300}
+.v266-p.v266-plus small{font-size:.9rem;font-weight:700;margin-top:2px}
+.v266-count{font-size:.95rem;color:var(--sub);margin:4px 16px 0}
 
-/* ── Autosuggestion audio card ── */
-.v264-audio{margin-top:18px;padding:14px;border-radius:16px;background:var(--su);border:1px solid var(--bo)}
-.v264-audio-h{font-weight:800;font-size:1.05rem}
-.v264-play-row{display:flex;align-items:center;gap:12px;margin-top:10px}
-.v264-play{width:56px;height:56px;border-radius:50%;border:none;background:var(--acc);color:#fff;font-size:1.2rem;cursor:pointer;flex-shrink:0}
-.v264-listen{font-size:1rem;color:var(--sub)}
+/* ── sheets (settings, affirmation, audio picker) ── */
+.v266-sheet{position:fixed;inset:0;z-index:9750;display:none;background:rgba(0,0,0,.45);align-items:flex-end;justify-content:center}
+.v266-sheet.open{display:flex}
+.v266-panel{width:100%;max-width:560px;max-height:86vh;overflow-y:auto;background:var(--su);color:var(--tx);border-radius:20px 20px 0 0;padding:14px 16px calc(18px + env(safe-area-inset-bottom,0px));box-sizing:border-box;touch-action:pan-y}
+.v266-grab{width:40px;height:4px;border-radius:4px;background:var(--bo);margin:0 auto 12px}
+.v266-sh-h{font-size:1.15rem;font-weight:800;margin:0 0 6px}
+.v266-aff{margin-top:6px;padding:12px;border-radius:14px;background:var(--ca);border:1px solid var(--bo)}
+.v266-listen{font-size:.98rem;color:var(--sub);margin:6px 0 0}
+.v266-pick{display:flex;align-items:center;gap:10px;width:100%;padding:12px 4px;border:none;border-bottom:1px solid var(--bo);background:none;color:var(--tx);font:inherit;font-size:1rem;text-align:left;cursor:pointer}
+.v266-pick small{color:var(--sub);font-size:.85rem}
 
-/* ── Photos: 3-column tall tiles, Discover-style ── */
-.v264-phead{display:flex;align-items:center;justify-content:space-between;margin:22px 0 8px}
-.v264-pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
-.v264-p{position:relative;aspect-ratio:3/4;border:none;padding:0;border-radius:6px;overflow:hidden;background:var(--ca);cursor:pointer}
-.v264-p img{width:100%;height:100%;object-fit:cover;display:block}
-.v264-cov{position:absolute;left:5px;bottom:5px;font-size:.75rem;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:3px 8px;border-radius:999px}
-.v264-empty{grid-column:1/-1;font-size:.98rem;color:var(--sub);text-align:center;padding:22px 10px;line-height:1.5}
-.v264-done{margin-top:18px;font-weight:800;font-size:1.1rem;color:#c99a2e;text-align:center}
+/* ── audio bar: sits just above the bottom nav, only on the Goal tab, only when a goal has audio ── */
+.v266-bar{position:fixed;left:0;right:0;bottom:calc(65px + env(safe-area-inset-bottom,0px));z-index:590;display:none;background:var(--su);border-top:1px solid var(--bo);box-shadow:0 -6px 18px rgba(0,0,0,.08);padding:8px 12px 10px;box-sizing:border-box}
+.v266-bar.open{display:block}
+.v266-bar-row{display:flex;align-items:center;gap:8px}
+.v266-bar-name{flex:1;min-width:0;font-size:.98rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.v266-bar-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--bo);background:var(--ca);color:var(--tx);font-size:1rem;cursor:pointer;flex-shrink:0}
+.v266-bar-btn.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.v266-bar-play{width:44px;height:44px;border-radius:50%;border:none;background:var(--acc);color:#fff;font-size:1.1rem;cursor:pointer;flex-shrink:0}
+.v266-seek{display:flex;align-items:center;gap:8px;margin-top:6px}
+.v266-seek span{font-size:.8rem;color:var(--sub);min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+.v266-seek input{flex:1;accent-color:var(--acc)}
+.v266-bar-sub{font-size:.8rem;color:var(--sub);margin-top:2px}
 
-/* ── Full-screen photo viewer: swipe down to close, pinch/pan zoom, no close button ── */
-.v264-vw{position:fixed;inset:0;z-index:9800;display:none;background:#000;overflow:hidden;touch-action:none}
-.v264-vw-track{position:absolute;inset:0;touch-action:none;overflow:hidden}
-.v264-vw-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:center center;user-select:none;-webkit-user-drag:none;will-change:transform;opacity:0;transition:opacity .2s}
-.v264-vw-cnt{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;color:#fff;font-size:.95rem;font-weight:700;background:rgba(0,0,0,.45);padding:5px 12px;border-radius:999px;pointer-events:none}
-.v264-vw-cap{position:absolute;left:0;right:0;bottom:0;padding:24px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.8));display:flex;flex-direction:column;gap:10px}
-.v264-vw-note{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:11px 14px;outline:none}
-.v264-vw-note::placeholder{color:rgba(255,255,255,.7)}
-.v264-vw-acts{display:flex;gap:10px}
-.v264-vw-acts button{font:inherit;font-size:.95rem;font-weight:700;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+/* ── full-screen viewer: swipe down to close (no close button), pinch/pan zoom, infinite sideways swipe ── */
+.v266-vw{position:fixed;inset:0;z-index:9800;display:none;background:#000;overflow:hidden;touch-action:none}
+.v266-vw-track{position:absolute;inset:0;touch-action:none;overflow:hidden}
+.v266-vw-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transform-origin:center center;user-select:none;-webkit-user-drag:none;will-change:transform;opacity:0;transition:opacity .2s}
+.v266-vw-cnt{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;color:#fff;font-size:.95rem;font-weight:700;background:rgba(0,0,0,.45);padding:5px 12px;border-radius:999px;pointer-events:none}
+.v266-vw-cap{position:absolute;left:0;right:0;bottom:0;padding:24px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.8));display:flex;flex-direction:column;gap:10px}
+.v266-vw-note{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:11px 14px;outline:none}
+.v266-vw-note::placeholder{color:rgba(255,255,255,.7)}
+.v266-vw-acts{display:flex;gap:8px;flex-wrap:wrap}
+.v266-vw-acts button{font:inherit;font-size:.92rem;font-weight:700;padding:8px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
 </style>
 
-<!-- ═══ v264 GOAL STORY — Goal tab UI ═══════════════════════════════════════════
-     Visual layer over the existing Goal Items data (#gi-js, window.GI).
-     • The story text stays in S.goal / #goal-ta, so the video engine and
-       Clar's dream-desire extraction are untouched.
-     • Goals, photos and achieve/share/delete reuse window.GI and the v243/v244
-       functions (giToggleAchieve, giShare, giDelete).
-     • Manifest and Foundation reuse manifestOpen / foundationOpen.
-     • Autosuggestion audio lives in IndexedDB on this device (not synced yet).
-     Own private scope; touches the rest of the app only via window globals. -->
+<!-- ═══ v266 GOAL TAB — story, goals, vision and the audio bar ═══════════════════
+     Replaces the v264 script. Visual layer over the existing data:
+       • Goal Items (window.GI, #gi-js) — per-goal photos, title, achieved, and
+         details (category, target date, why, feel, script, listens, audio_path).
+       • Vision images (S.visImgs / c9_vis) — the Vision folder. Same viewer, same
+         move/cover/delete as goal photos, and they still feed the Vibe Feed.
+       • The story text stays in S.goal / #goal-ta, so the video engine is untouched.
+       • Autosuggestion audio: each device keeps a copy in IndexedDB, and the account
+         copy lives in the goal-audio Storage bucket (per user, by goal id), so it
+         plays on every device.
+     Own private scope; touches the rest of the app only through window globals. -->
 <script id="v264-js">
 (function(){
   'use strict';
@@ -25008,15 +25019,16 @@ textarea.soc-in{resize:none;min-height:74px}
     'Self':['#a29bfe','#5f27cd'],'Spirituality':['#f8c291','#6a4c93'],'Learning':['#55efc4','#00695c'],
     'Other':['#b2bec3','#2d3436']
   };
-  var STORY_G=['#c9a4ff','#ff9f7a']; /* colours of the New Story tile when no picture is set */
-  var MAX_PHOTOS=30;                 /* per goal, raised from 8 per owner request */
-  var MAX_LISTENS=5;                 /* autosuggestion listens that earn XP */
-  var XP_PER_LISTEN=5;
+  var STORY_G=['#c9a4ff','#ff9f7a'];
+  var MAX_PHOTOS=30, MAX_LISTENS=5, XP_PER_LISTEN=5;
 
   /* ── view state ── */
-  var V={mode:'list',id:null,root:null,newCat:'Business',recording:false,autoplay:false,counted:false,
-         vw:null,track:null,img:null,note:null,cnt:null,vwId:null,vwI:0,
-         scale:1,tx:0,ty:0,dx:0,dy:0,ptrs:{},pinch:null,drag:null,lastTap:0};
+  var V={mode:'list',id:null,root:null,newCat:null,recording:false,sheetKind:null,
+    vw:null,track:null,img:null,note:null,cnt:null,vwId:null,vwI:0,
+    scale:1,tx:0,ty:0,dx:0,dy:0,ptrs:{},pinch:null,drag:null,lastTap:0};
+
+  /* ── audio state (one shared player for the bar) ── */
+  var AU={el:null,id:null,counted:false,seeking:false};
 
   function $(id){return document.getElementById(id);}
   function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -25024,25 +25036,27 @@ textarea.soc-in{resize:none;min-height:74px}
   function items(){return (window.GI&&window.GI.items)?window.GI.items():[];}
   function find(id){return items().filter(function(x){return x.id===id;})[0]||null;}
   function dets(it){return it.details||{};}
-  /* colour pair for a category, as CSS custom properties */
   function grad(cat){var c=CATS[cat]||CATS.Other;return '--g1:'+c[0]+';--g2:'+c[1];}
   /* 'YYYY-MM-DD' -> readable date, parsed locally so it never shifts a day */
   function fmtYMD(s){
     if(!s)return '';var p=String(s).split('-');if(p.length!==3)return esc(s);
-    var d=new Date(+p[0],+p[1]-1,+p[2]);return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+    return new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
   }
   function fmtISO(s){var d=new Date(s);return isNaN(d)?'':d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
+  function mmss(s){if(!isFinite(s)||s<0)s=0;var m=Math.floor(s/60),r=Math.floor(s%60);return m+':'+(r<10?'0':'')+r;}
+  /* first line of the story, for the New Story tile */
+  function excerpt(t){var s=String(t||'').replace(/\s+/g,' ').trim();return s.length>72?s.slice(0,72)+'…':s;}
   function catChips(sel,act){
     return Object.keys(CATS).map(function(c){
-      return '<button class="v264-chip'+(c===sel?' on':'')+'" data-act="'+act+'" data-cat="'+c+'">'+c+'</button>';
+      return '<button class="v266-chip'+(c===sel?' on':'')+'" data-act="'+act+'" data-cat="'+c+'">'+c+'</button>';
     }).join('');
   }
-  function topbar(title,right){
-    return '<div class="v264-top"><button class="v264-back" data-act="back" aria-label="Back">←</button>'
-      +'<span class="v264-top-t">'+title+'</span>'+(right||'')+'</div>';
+  function topbarPlain(title){
+    return '<div class="v266-top"><button class="v266-back" data-act="back" aria-label="Back">←</button>'
+      +'<span class="v266-top-t">'+esc(title)+'</span></div>';
   }
 
-  /* ── IndexedDB: story picture + autosuggestion audio, local to this device ── */
+  /* ── IndexedDB: story picture + this device's copy of goal audio ── */
   var _dbP=null;
   function db(){
     if(_dbP)return _dbP;
@@ -25064,6 +25078,11 @@ textarea.soc-in{resize:none;min-height:74px}
       var q=d.transaction('blobs','readonly').objectStore('blobs').get(key);
       q.onsuccess=function(){res(q.result||null);};q.onerror=function(){rej(q.error);};});});
   }
+  function blobDel(key){
+    return db().then(function(d){return new Promise(function(res,rej){
+      var t=d.transaction('blobs','readwrite');t.objectStore('blobs').delete(key);
+      t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});
+  }
   /* object-URL cache so each blob is turned into a URL once */
   var _urls={};
   function blobUrl(key){
@@ -25073,7 +25092,7 @@ textarea.soc-in{resize:none;min-height:74px}
     }).catch(function(){return null;});
   }
   function blobReset(key){if(_urls[key]){URL.revokeObjectURL(_urls[key]);delete _urls[key];}}
-  /* read picked files as data URLs (same 5 MB cap the Goal Items module uses) */
+  /* read picked files as data URLs (5 MB cap, same as the Goal Items module) */
   function readAll(files){
     return Promise.all(files.map(function(f){return new Promise(function(res){
       if(f.size>5*1024*1024){alert(f.name+' is too large (max 5MB).');return res(null);}
@@ -25086,43 +25105,45 @@ textarea.soc-in{resize:none;min-height:74px}
     inp.onchange=function(){cb(Array.from(inp.files||[]));};inp.click();
   }
 
-  /* hydrate [data-bk] nodes with their stored picture, and wire the audio element */
-  function hydrate(autoplay){
-    /* size every textarea to its saved text once it is on screen */
-    V.root.querySelectorAll('textarea').forEach(function(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';});
-    V.root.querySelectorAll('[data-bk]').forEach(function(n){
-      blobUrl(n.getAttribute('data-bk')).then(function(u){
-        if(u){n.style.backgroundImage="url('"+u+"')";n.classList.add('has-img');}
-      });
-    });
-    var au=$('v264-au');if(!au||!V.id)return;
-    /* counts one listen when a playthrough reaches 90% or ends (once per play) */
-    au.onplay=function(){if(au.currentTime<1)V.counted=false;setPlayIcon(true);};
-    au.onpause=function(){setPlayIcon(false);};
-    au.ontimeupdate=function(){
-      if(!V.counted&&au.duration&&isFinite(au.duration)&&au.currentTime>=au.duration*0.9)countListen(V.id);
-    };
-    au.onended=function(){if(!V.counted)countListen(V.id);setPlayIcon(false);};
-    blobUrl('audio:'+V.id).then(function(u){
-      if(!u)return;au.src=u;
-      /* opening a goal is a user tap, so autoplay is normally allowed; if the browser still refuses, show a Play hint */
-      if(autoplay){au.play().catch(function(){var h=$('v264-playhint');if(h)h.style.display='block';});}
-    });
+  /* ── account: wait until the Supabase client and user id are ready ── */
+  function waitReady(){
+    return new Promise(function(res,rej){var n=0;(function p(){
+      if(window._sbShared&&window._sbUid)return res();
+      if(++n>60)return rej(new Error('not ready'));setTimeout(p,150);})();});
   }
-  function setPlayIcon(on){var b=$('v264-play');if(b)b.textContent=on?'❚❚':'▶';}
-
-  /* each counted listen adds XP, capped at MAX_LISTENS per goal */
-  function countListen(id){
-    V.counted=true;
-    var it=find(id);if(!it)return;
-    if((dets(it).listens||0)>=MAX_LISTENS)return;
-    window.GI.update(id,function(x){x.details=dets(x);x.details.listens=(x.details.listens||0)+1;});
-    if(window.xpAdd)window.xpAdd(XP_PER_LISTEN);
-    var l=$('v264-listen');
-    if(l)l.textContent='Listens '+(dets(find(id)).listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each';
+  /* public URL of an account audio file (the bucket is public-read) */
+  function audioPublicUrl(path){
+    return window._sbShared.storage.from('goal-audio').getPublicUrl(path).data.publicUrl;
+  }
+  /* uploads a recording to the account (own folder, one file per goal, overwritten on re-record) */
+  function uploadAudio(id,blob){
+    return waitReady().then(function(){
+      var uid=window._sbUid;
+      var ext=blob.type.indexOf('mp4')>-1?'mp4':(blob.type.indexOf('ogg')>-1?'ogg':'webm');
+      var path=uid+'/'+id+'.'+ext;
+      return window._sbShared.storage.from('goal-audio')
+        .upload(path,blob,{upsert:true,contentType:blob.type||('audio/'+ext)})
+        .then(function(res){
+          if(res.error){console.warn('[v266] audio upload:',res.error.message);return null;}
+          return path;
+        });
+    }).catch(function(e){console.warn('[v266] audio upload failed:',e&&e.message);return null;});
+  }
+  function removeAudioRemote(path){
+    if(!path)return;
+    waitReady().then(function(){window._sbShared.storage.from('goal-audio').remove([path]);}).catch(function(){});
+  }
+  /* where to play a goal's audio from: this device's copy first, otherwise the account copy */
+  function audioSource(id){
+    var it=find(id);if(!it)return Promise.resolve(null);
+    return blobUrl('audio:'+id).then(function(u){
+      if(u)return u;
+      var p=dets(it).audio_path;
+      return p?waitReady().then(function(){return audioPublicUrl(p);}):null;
+    }).catch(function(){return null;});
   }
 
-  /* ── recording the autosuggestion ── */
+  /* ── recording ── */
   var _rec=null,_chunks=[],_recStream=null;
   function recStart(id){
     if(!navigator.mediaDevices||!window.MediaRecorder){alert('Recording is not supported in this browser.');return;}
@@ -25131,16 +25152,21 @@ textarea.soc-in{resize:none;min-height:74px}
       _rec=new MediaRecorder(stream);
       _rec.ondataavailable=function(e){if(e.data&&e.data.size)_chunks.push(e.data);};
       _rec.onstop=function(){
-        var blob=new Blob(_chunks,{type:(_rec&&_rec.mimeType)||'audio/webm'});
+        var mime=(_rec&&_rec.mimeType)||'audio/webm';
+        var blob=new Blob(_chunks,{type:mime});
         _recStream.getTracks().forEach(function(t){t.stop();});
         _rec=null;V.recording=false;
+        /* keep a copy on this device right away, then send it to the account */
         blobPut('audio:'+id,blob).then(function(){
           blobReset('audio:'+id);
           window.GI.update(id,function(x){x.details=dets(x);x.details.has_audio=true;x.details.listens=0;});
-          renderGoal(false);
+          renderAffirm();barRender();
+          return uploadAudio(id,blob).then(function(path){
+            if(path)window.GI.update(id,function(x){x.details=dets(x);x.details.audio_path=path;});
+          });
         }).catch(function(){alert('Could not save the recording on this device.');});
       };
-      _rec.start();V.recording=true;renderGoal(false);
+      _rec.start();V.recording=true;renderAffirm();
     }).catch(function(){alert('Microphone permission is needed to record.');});
   }
   function recStop(){if(_rec&&_rec.state!=='inactive')_rec.stop();}
@@ -25154,169 +25180,188 @@ textarea.soc-in{resize:none;min-height:74px}
     return p.join(' ');
   }
 
-  /* ── list view: New Story tile, goal folders, achieved grid ── */
-  function tile(it){
+  /* ── one shared audio player for the bar ── */
+  function auEnsure(){
+    if(AU.el)return AU.el;
+    var a=new Audio();a.preload='auto';AU.el=a;
+    a.ontimeupdate=function(){
+      if(a.currentTime<1)AU.counted=false;
+      /* one listen counts once the playthrough reaches 90%; a loop restart re-arms it */
+      if(!AU.counted&&a.duration&&isFinite(a.duration)&&a.currentTime>=a.duration*0.9)countListen(AU.id);
+      barTick();
+    };
+    a.onplay=function(){barPlayIcon();};
+    a.onpause=function(){barPlayIcon();};
+    a.onended=function(){if(!AU.counted)countListen(AU.id);barPlayIcon();};
+    return a;
+  }
+  /* loads a goal's audio into the bar (does not start it) */
+  function auSelect(id){
+    var a=auEnsure();AU.id=id;AU.counted=false;a.pause();a.removeAttribute('src');
+    barRender();
+    audioSource(id).then(function(src){
+      if(!src||AU.id!==id)return;
+      a.src=src;a.load();barRender();
+    });
+  }
+  /* play / pause from the bar: starts the loaded source, or loads it first */
+  function auToggle(){
+    var a=auEnsure();if(!AU.id)return;
+    if(!a.paused){a.pause();return;}
+    if(a.getAttribute('src')){a.play().catch(function(){});return;}
+    audioSource(AU.id).then(function(src){
+      if(!src)return;a.src=src;return a.play();
+    }).catch(function(){});
+  }
+  /* each counted listen adds XP, capped at MAX_LISTENS per goal */
+  function countListen(id){
+    AU.counted=true;
+    var it=id?find(id):null;if(!it)return;
+    if((dets(it).listens||0)>=MAX_LISTENS)return;
+    window.GI.update(id,function(x){x.details=dets(x);x.details.listens=(x.details.listens||0)+1;});
+    if(window.xpAdd)window.xpAdd(XP_PER_LISTEN);
+    if(V.sheetKind==='aff'&&V.id===id)renderAffirm();
+  }
+  function barPlayIcon(){
+    var b=$('v266-bar-play'),a=AU.el;
+    if(b)b.textContent=(a&&!a.paused)?'❚❚':'▶';
+  }
+  function barTick(){
+    var a=AU.el;if(!a)return;
+    var t=$('v266-bar-t'),d=$('v266-bar-d'),r=$('v266-bar-range');
+    if(t)t.textContent=mmss(a.currentTime);
+    if(d)d.textContent=mmss(a.duration);
+    if(r&&!AU.seeking&&a.duration&&isFinite(a.duration))r.value=String(Math.round(a.currentTime/a.duration*1000));
+  }
+  function isGoalTabActive(){var a=document.querySelector('.bnav-tab.active');return !!a&&a.dataset.tab==='goal';}
+  /* the bar shows only on the Goal tab, and only when the selected goal has audio */
+  function barRender(){
+    var bar=$('v266-bar');if(!bar)return;
+    var it=AU.id?find(AU.id):null;
+    var show=!!(it&&dets(it).has_audio&&isGoalTabActive());
+    bar.classList.toggle('open',show);
+    if(!show)return;
+    $('v266-bar-name').textContent=it.title;
+    var a=AU.el;
+    var rep=$('v266-bar-rep');if(rep)rep.classList.toggle('on',!!(a&&a.loop));
+    barPlayIcon();barTick();
+  }
+
+  /* ── story and vision picture helpers ── */
+  /* hydrate [data-bk] nodes with their stored picture, and size textareas to their text */
+  function hydrate(){
+    if(!V.root)return;
+    V.root.querySelectorAll('textarea').forEach(function(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';});
+    V.root.querySelectorAll('[data-bk]').forEach(function(n){
+      blobUrl(n.getAttribute('data-bk')).then(function(u){
+        if(u){n.style.backgroundImage="url('"+u+"')";n.classList.add('has-img');}
+      });
+    });
+  }
+
+  /* ── list: New Story, Vision folder, goal folders, achieved grid ── */
+  function tileGoal(it){
     var d=dets(it),cover=(it.images||[])[0];
     var st=(cover&&cover.src)?"background-image:url('"+esc(cover.src)+"');"+grad(d.category):grad(d.category);
-    return '<div class="v264-tile'+(it.achieved?' ach':'')+'" data-act="goal" data-id="'+esc(it.id)+'" style="'+st+'">'
-      +'<div class="v264-scrim"></div>'
-      +'<div class="v264-tile-big">'+esc(d.category||'Goal')+'</div>'
-      +'<div class="v264-tile-sub">'+esc(it.title)+'</div>'
-      +(it.achieved?'<span class="v264-ok">✓</span>':'')+'</div>';
+    return '<div class="v266-tile'+(it.achieved?' ach':'')+'" data-act="goal" data-id="'+esc(it.id)+'" style="'+st+'">'
+      +'<div class="v266-scrim"></div>'
+      +'<div class="v266-tile-big">'+esc(d.category||'Goal')+'</div>'
+      +'<div class="v266-tile-sub">'+esc(it.title)+'</div>'
+      +(it.achieved?'<span class="v266-ok">✓</span>':'')+'</div>';
   }
   function renderList(){
     var all=items(),active=all.filter(function(x){return !x.achieved;}),ach=all.filter(function(x){return x.achieved;});
-    var h='<div class="v264-head"><div class="v264-h1">Goals</div><div class="v264-sub">'
-      +active.length+' active'+(ach.length?' · '+ach.length+' achieved':'')+'</div></div>';
-    h+='<div class="v264-grid">';
-    /* the New Story tile: its picture is the "transformed life" image, so it blends into the grid */
-    h+='<div class="v264-tile" data-act="story" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
-      +'<div class="v264-scrim"></div><div class="v264-tile-big">New Story</div>'
-      +'<div class="v264-tile-sub">✦ My life, in my words</div></div>';
-    /* v265: the Vision folder — the existing Vision Images (S.visImgs / c9_vis) are shown again here, so nothing that was in the old Goal strip disappears. Cover = the first vision image. */
-    var visN=((window.S&&S.visImgs)||[]);
-    if(visN.length)h+='<div class="v264-tile" data-act="vision" style="background-image:url(\''+esc(visN[0].src)+'\');'+grad('Other')+'"><div class="v264-scrim"></div><div class="v264-tile-big">Vision</div><div class="v264-tile-sub">'+visN.length+' photo'+(visN.length===1?'':'s')+'</div></div>';
-    h+=active.map(tile).join('');
-    h+='<div class="v264-tile v264-add" data-act="new"><span>+</span><small>New goal</small></div>';
+    var visN=(typeof S!=='undefined'&&S.visImgs)||[];
+    var h='<div class="v266-grid">';
+    /* New Story: its picture (if any) and the start of the story text, so the story is visible here */
+    h+='<div class="v266-tile" data-act="story" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
+      +'<div class="v266-scrim"></div><div class="v266-tile-big">New Story</div>'
+      +'<div class="v266-tile-sub">'+esc(excerpt(typeof S!=='undefined'?S.goal:'')||'✦ My life, in my words')+'</div></div>';
+    /* Vision folder: the existing vision images, cover = the first one */
+    if(visN.length){
+      h+='<div class="v266-tile" data-act="vision" style="background-image:url(\''+esc(visN[0].src)+'\');'+grad('Other')+'">'
+        +'<div class="v266-scrim"></div><div class="v266-tile-big">Vision</div>'
+        +'<div class="v266-tile-sub">'+visN.length+' photo'+(visN.length===1?'':'s')+'</div></div>';
+    }
+    h+=active.map(tileGoal).join('');
+    h+='<div class="v266-tile v266-add" data-act="new"><span>+</span><small>New goal</small></div>';
     h+='</div>';
-    if(ach.length)h+='<div class="v264-sec">🏆 Achieved</div><div class="v264-grid">'+ach.map(tile).join('')+'</div>';
-    if(active.length>3)h+='<p class="v264-hint">Tip: focus on about 3 goals at a time — it is easier to get there.</p>';
-    V.root.innerHTML=h;hydrate(false);
+    if(ach.length)h+='<div class="v266-sec">Achieved</div><div class="v266-grid">'+ach.map(tileGoal).join('')+'</div>';
+    V.root.innerHTML=h;hydrate();barRender();
   }
 
-  /* ── v265: Vision folder ──
-     Lists the existing vision images (S.visImgs, stored in c9_vis and synced as user_goals.vis_images).
-     Adding uses the app's existing vision upload path (trigUpload('vision')), and deleting uses the
-     existing delVis(), so storage and sync behave exactly as before. */
-  function vwArr(id){
-    if(id==='vision')return (window.S&&S.visImgs)||[];
-    var it=find(id);return it?(it.images||[]):[];
-  }
-  function visPhotosHtml(imgs){
-    if(!imgs.length)return '<p class="v264-empty">No vision images yet. Add photos of the life you want.</p>';
-    return imgs.map(function(im,i){
-      return '<button class="v264-p" data-act="vview" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt=""></button>';
-    }).join('');
-  }
-  function renderVision(){
-    var imgs=(window.S&&S.visImgs)||[];
-    V.root.innerHTML=topbar('Vision images')
-      +'<div class="v264-pad"><p class="v264-hint" style="margin-top:0">Tap any photo to view it full screen. These photos also show in your Vibe Feed.</p>'
-      +'<div class="v264-phead"><span class="v264-lbl" style="margin:0">Photos '+imgs.length+'</span>'
-      +'<button class="v264-chip" data-act="vision-add">+ Add photos</button></div>'
-      +'<div class="v264-pgrid" id="v264-pgrid">'+visPhotosHtml(imgs)+'</div></div>';
-    hydrate(false);
-  }
-  /* the legacy upload and delete paths call renderVisGrid(); keep the Vision view in step with them */
-  var _rvgPrevV265=window.renderVisGrid;
-  window.renderVisGrid=function(){
-    var r=_rvgPrevV265?_rvgPrevV265.apply(this,arguments):undefined;
-    if(V.mode==='vision'&&V.root)renderVision();
-    return r;
-  };
-
-  /* ── story detail ── */
+  /* ── story ── */
   function renderStory(){
-    var story=S.goal||'';
-    V.root.innerHTML=topbar('New Story')
-      +'<div class="v264-hero" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
-      +'<div class="v264-scrim"></div><div class="v264-big">New Story</div>'
-      +'<div class="v264-hero-cap"><div class="v264-tile-sub">Who you are becoming</div></div>'
-      +'<button class="v264-hero-btn" data-act="story-cover">📷 Change picture</button></div>'
-      +'<div class="v264-pad"><label class="v264-lbl">My story</label>'
-      +'<textarea class="v264-ta" data-field="story" rows="9" placeholder="Write it as your dream life, in first person. Name the real things you want — clear words help Clar find the right videos.">'+esc(story)+'</textarea>'
-      +'<div class="v264-acts"><button class="v264-chip" data-act="manifest-story">✦ Manifest</button>'
-      +'<button class="v264-chip" data-act="fnd-story">✦ My Foundation</button></div></div>';
-    hydrate(false);
+    var story=(typeof S!=='undefined'&&S.goal)||'';
+    V.root.innerHTML=topbarPlain('New Story')
+      +'<div class="v266-pad"><label class="v266-lbl">My story</label>'
+      +'<textarea class="v266-ta" data-field="story" placeholder="Write it as your dream life, in first person. Name the real things you want — clear words help Clar find the right videos.">'+esc(story)+'</textarea>'
+      +'<div class="v266-acts"><button class="v266-chip" data-act="story-cover">📷 Picture for the tile</button>'
+      +'<button class="v266-chip" data-act="manifest-story">✦ Manifest</button>'
+      +'<button class="v266-chip" data-act="fnd-story">✦ My Foundation</button></div></div>';
+    hydrate();
   }
 
-  /* ── new goal form ── */
+  /* ── new goal: details first, category last (it is set once) ── */
   function renderNew(){
-    V.root.innerHTML=topbar('New goal')
-      +'<div class="v264-pad"><label class="v264-lbl">What do you want?</label>'
-      +'<input class="v264-in" data-new="title" maxlength="140" placeholder="e.g. Build a 10-client coaching business">'
-      +'<label class="v264-lbl">Category</label><div class="v264-cats">'+catChips(V.newCat,'new-cat')+'</div>'
-      +'<label class="v264-lbl">Target date</label><input class="v264-in" type="date" data-new="target">'
-      +'<button class="v264-btn" data-act="create">Create goal</button></div>';
+    V.newCat=null;
+    V.root.innerHTML=topbarPlain('New goal')
+      +'<div class="v266-pad"><label class="v266-lbl">What do you want?</label>'
+      +'<input class="v266-in" data-new="title" maxlength="140" placeholder="e.g. Build a 10-client coaching business">'
+      +'<label class="v266-lbl">Target date</label><input class="v266-in" type="date" data-new="target">'
+      +'<label class="v266-lbl">Why do I want this?</label>'
+      +'<textarea class="v266-ta" data-new="why" placeholder="The real reason behind this goal"></textarea>'
+      +'<label class="v266-lbl">How will I feel when I have it?</label>'
+      +'<textarea class="v266-ta" data-new="feel" placeholder="Describe the feeling, in the present tense"></textarea>'
+      +'<label class="v266-lbl">Category <span style="font-weight:400;color:var(--sub)">· set once, can\'t be changed later</span></label>'
+      +'<div class="v266-chips">'+catChips(null,'new-cat')+'</div>'
+      +'<button class="v266-btn" data-act="create">Create goal</button></div>';
   }
   function createGoal(){
-    var t=V.root.querySelector('[data-new="title"]'),g=V.root.querySelector('[data-new="target"]');
-    var title=t?t.value.trim():'';
+    function val(k){var el=V.root.querySelector('[data-new="'+k+'"]');return el?el.value.trim():'';}
+    var title=val('title');
     if(!title){alert('Give this goal a short title first.');return;}
     var item={id:'g_'+Date.now()+'_'+Math.random().toString(36).slice(2),remoteId:null,title:title.slice(0,140),
       images:[],date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private',
-      details:{category:V.newCat,target_date:g&&g.value?g.value:'',why:'',feel:'',listens:0}};
+      details:{category:V.newCat||'Other',target_date:val('target'),why:val('why'),feel:val('feel'),listens:0}};
     window.GI.add(item);
-    V.mode='goal';V.id=item.id;renderGoal(false);
+    V.mode='goal';V.id=item.id;renderGoal();
   }
 
-  /* ── goal detail ── */
-  function audioHtml(it,d){
-    var head='<div class="v264-audio"><div class="v264-audio-h">🎙 Autosuggestion</div>';
-    if(V.recording)return head+'<p class="v264-hint">Recording… read the script slowly, in your own voice.</p>'
-      +'<button class="v264-btn" data-act="stop">■ Stop &amp; save</button></div>';
-    if(!d.has_audio){
-      return head+'<p class="v264-hint">Prepared for this goal. Edit it if you like, then read it out loud in your own voice. You can listen to it any time you need it.</p>'
-        +'<textarea class="v264-ta" data-field="script" rows="5">'+esc(d.script||defaultScript(it,d))+'</textarea>'
-        +'<button class="v264-btn" data-act="rec">● Record my voice</button></div>';
-    }
-    return head+'<audio id="v264-au" preload="auto" playsinline></audio>'
-      +'<div class="v264-play-row"><button class="v264-play" id="v264-play" data-act="play" aria-label="Play">▶</button>'
-      +'<div class="v264-listen" id="v264-listen">Listens '+(d.listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each</div></div>'
-      +'<div id="v264-playhint" class="v264-hint" style="display:none">Tap ▶ to hear it.</div>'
-      +'<button class="v264-link" data-act="rec-again">Re-record</button></div>';
-  }
+  /* ── goal: top bar with the goal name, then the photo grid ── */
   function photosHtml(imgs){
-    if(!imgs.length)return '<p class="v264-empty">Add photos of the life you want. Tap any photo to view it full screen.</p>';
-    return imgs.map(function(im,i){
-      return '<button class="v264-p" data-act="view" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
-        +(i===0?'<span class="v264-cov">Cover</span>':'')+'</button>';
+    var tiles=imgs.map(function(im,i){
+      return '<button class="v266-p" data-act="view" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
+        +(i===0?'<span class="v266-cov">Cover</span>':'')+'</button>';
     }).join('');
+    if(imgs.length<MAX_PHOTOS)tiles+='<button class="v266-p v266-plus" data-act="add-photos"><span>+</span><small>Add photos</small></button>';
+    return tiles;
   }
   function achieveHtml(it){
-    if(it.achieved)return '<div class="v264-done">🏆 Achieved'+(it.date_achieved?' · '+esc(fmtISO(it.date_achieved)):'')+'</div>'
-      +'<button class="v264-btn" data-act="share">Share this win ✦</button>'
-      +'<button class="v264-btn ghost" data-act="unachieve">Mark as not yet</button>';
-    return '<button class="v264-btn gold" data-act="achieve">✓ Mark as achieved</button>';
+    if(it.achieved)return '<div class="v266-done">🏆 Achieved'+(it.date_achieved?' · '+esc(fmtISO(it.date_achieved)):'')+'</div>'
+      +'<button class="v266-btn" data-act="share">Share this win ✦</button>'
+      +'<button class="v266-btn ghost" data-act="unachieve">Mark as not yet</button>';
+    return '<button class="v266-btn gold" data-act="achieve">✓ Mark as achieved</button>';
   }
-  function renderGoal(autoplay){
+  function renderGoal(){
     var it=find(V.id);
     if(!it){V.mode='list';renderList();return;}
-    var d=dets(it),imgs=it.images||[],cover=imgs[0];
-    var heroStyle=(cover&&cover.src)?"background-image:url('"+esc(cover.src)+"');"+grad(d.category):grad(d.category);
-    var h=topbar('Goal','<button class="v264-link" data-act="delete">Delete</button>');
-    h+='<div class="v264-hero" id="v264-hero" style="'+heroStyle+'"><div class="v264-scrim"></div>'
-      +'<div class="v264-big" id="v264-hero-cat">'+esc(d.category||'Goal')+'</div>'
-      +'</div>';
-    h+='<div class="v264-pad">';
-    h+='<input class="v264-title-in" data-field="title" value="'+esc(it.title)+'" maxlength="140">';
-    h+='<label class="v264-lbl">🎯 Target date</label><input class="v264-in" type="date" data-field="target" value="'+esc(d.target_date||'')+'">';
-    if(d.target_date)h+='<div class="v264-hint" style="margin:6px 2px 0">By '+fmtYMD(d.target_date)+'</div>';
-    h+='<label class="v264-lbl">Category</label><div class="v264-cats">'+catChips(d.category||'Other','cat')+'</div>';
-    h+='<label class="v264-lbl">Why do I want this?</label>'
-      +'<textarea class="v264-ta" data-field="why" rows="3" placeholder="The real reason behind this goal">'+esc(d.why||'')+'</textarea>';
-    h+='<label class="v264-lbl">How will I feel when I have it?</label>'
-      +'<textarea class="v264-ta" data-field="feel" rows="3" placeholder="Describe the feeling, in the present tense">'+esc(d.feel||'')+'</textarea>';
-    h+='<div class="v264-acts"><button class="v264-chip" data-act="manifest-goal">✦ Manifest</button>'
-      +'<button class="v264-chip" data-act="fnd-goal">✦ My Foundation</button></div>';
-    h+=audioHtml(it,d);
-    h+='<div class="v264-phead"><span class="v264-lbl" style="margin:0">Photos '+imgs.length+'/'+MAX_PHOTOS+'</span>'
-      +'<button class="v264-chip" data-act="add-photos"'+(imgs.length>=MAX_PHOTOS?' disabled':'')+'>+ Add photos</button></div>';
-    h+='<div class="v264-pgrid" id="v264-pgrid">'+photosHtml(imgs)+'</div>';
-    h+=achieveHtml(it);
-    h+='</div>';
-    V.root.innerHTML=h;
-    V.counted=false;
-    hydrate(autoplay);
+    var d=dets(it),imgs=it.images||[];
+    var h='<div class="v266-top"><button class="v266-back" data-act="back" aria-label="Back">←</button>'
+      +'<input class="v266-top-t" data-field="title" value="'+esc(it.title)+'" maxlength="140" aria-label="Goal name">'
+      +'<button class="v266-ico" data-act="affirm" title="Autosuggestion">🎙</button>'
+      +'<button class="v266-ico" data-act="settings" title="Goal settings">⋯</button></div>';
+    h+='<div class="v266-count">'+imgs.length+' / '+MAX_PHOTOS+' photos'+(d.category?' · '+esc(d.category):'')+'</div>';
+    h+='<div class="v266-pgrid" id="v266-pgrid">'+photosHtml(imgs)+'</div>';
+    h+='<div style="padding:0 16px">'+achieveHtml(it)+'</div>';
+    V.root.innerHTML=h;hydrate();barRender();
   }
-  /* refresh only the photo grid, so the audio element is not recreated */
+  /* refresh only the photo grid (used after photos are added or moved) */
   function refreshPhotos(){
     var it=find(V.id);if(!it)return;
-    var g=$('v264-pgrid');if(g)g.innerHTML=photosHtml(it.images||[]);
-    var lbl=V.root.querySelector('.v264-phead .v264-lbl');
-    if(lbl)lbl.textContent='Photos '+(it.images||[]).length+'/'+MAX_PHOTOS;
-    var btn=V.root.querySelector('[data-act="add-photos"]');
-    if(btn)btn.disabled=(it.images||[]).length>=MAX_PHOTOS;
+    var g=$('v266-pgrid');if(g)g.innerHTML=photosHtml(it.images||[]);
+    var c=V.root.querySelector('.v266-count');
+    if(c)c.textContent=(it.images||[]).length+' / '+MAX_PHOTOS+' photos'+(dets(it).category?' · '+dets(it).category:'');
   }
   function addPhotos(){
     var it=find(V.id);if(!it)return;
@@ -25332,35 +25377,144 @@ textarea.soc-in{resize:none;min-height:74px}
     });
   }
 
-  /* ── full-screen viewer: swipe down to close, pinch/pan zoom, swipe sideways ── */
+  /* ── vision folder ── */
+  function renderVision(){
+    var imgs=(typeof S!=='undefined'&&S.visImgs)||[];
+    var tiles=imgs.map(function(im,i){
+      return '<button class="v266-p" data-act="vview" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
+        +(i===0?'<span class="v266-cov">Cover</span>':'')+'</button>';
+    }).join('');
+    tiles+='<button class="v266-p v266-plus" data-act="vision-add"><span>+</span><small>Add photos</small></button>';
+    V.root.innerHTML=topbarPlain('Vision images')
+      +'<div class="v266-count">'+imgs.length+' photos · also shown in your Vibe Feed</div>'
+      +'<div class="v266-pgrid" id="v266-pgrid">'+tiles+'</div>';
+  }
+  /* the legacy upload and delete paths call renderVisGrid(); keep the vision folder in step with them */
+  var _rvgPrevV266=window.renderVisGrid;
+  window.renderVisGrid=function(){
+    var r=_rvgPrevV266?_rvgPrevV266.apply(this,arguments):undefined;
+    if(V.mode==='vision'&&V.root)renderVision();
+    return r;
+  };
+
+  /* ── sheets: settings, autosuggestion, audio picker ── */
+  function sheetOpen(kind,html){
+    var s=$('v266-sheet');if(!s)return;
+    V.sheetKind=kind;
+    s.querySelector('.v266-panel').innerHTML='<div class="v266-grab"></div>'+html;
+    s.classList.add('open');
+  }
+  function sheetSet(html){
+    var s=$('v266-sheet');if(!s||!s.classList.contains('open'))return;
+    var p=s.querySelector('.v266-panel'),sc=p.scrollTop;
+    p.innerHTML='<div class="v266-grab"></div>'+html;p.scrollTop=sc;
+  }
+  function sheetClose(){var s=$('v266-sheet');if(s)s.classList.remove('open');V.sheetKind=null;}
+
+  function openSettings(id){
+    var it=find(id);if(!it)return;var d=dets(it);
+    sheetOpen('settings',
+      '<div class="v266-sh-h">Goal settings</div>'
+      +'<label class="v266-lbl">Target date</label><input class="v266-in" type="date" data-sf="target" value="'+esc(d.target_date||'')+'">'
+      +'<label class="v266-lbl">Why do I want this?</label><textarea class="v266-ta" data-sf="why">'+esc(d.why||'')+'</textarea>'
+      +'<label class="v266-lbl">How will I feel when I have it?</label><textarea class="v266-ta" data-sf="feel">'+esc(d.feel||'')+'</textarea>'
+      +'<label class="v266-lbl">Category</label><div class="v266-chips"><span class="v266-chip on ro">'+esc(d.category||'Other')+'</span></div>'
+      +'<p class="v266-hint" style="margin:6px 0 0">Set when the goal was created, so it stays the same.</p>'
+      +'<div class="v266-acts"><button class="v266-chip" data-act="manifest-goal">✦ Manifest</button><button class="v266-chip" data-act="fnd-goal">✦ My Foundation</button></div>'
+      +'<button class="v266-btn danger" data-act="delete-goal">Delete goal</button>'
+      +'<button class="v266-btn ghost" data-act="sheet-done">Done</button>');
+  }
+
+  /* the autosuggestion manager: the script to read, recording, play in the bar, delete */
+  function openAffirm(id){ V.id=id; sheetOpen('aff',''); renderAffirm(); }
+  function renderAffirm(){
+    if(V.sheetKind!=='aff')return;
+    var it=find(V.id);if(!it)return;var d=dets(it);
+    var mid;
+    if(V.recording){
+      mid='<p class="v266-hint">Recording… read the script slowly, in your own voice.</p>'
+        +'<button class="v266-btn" data-act="stop">■ Stop &amp; save</button>';
+    }else if(d.has_audio){
+      mid='<div class="v266-aff"><div>Saved for this goal · listens '+(d.listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each</div>'
+        +'<div class="v266-acts"><button class="v266-chip" data-act="aff-play">▶ Play in the bar</button>'
+        +'<button class="v266-chip" data-act="rec-again">● Re-record</button>'
+        +'<button class="v266-chip" data-act="aff-delete">🗑 Delete audio</button></div></div>';
+    }else{
+      mid='<button class="v266-btn" data-act="rec">● Record my voice</button>';
+    }
+    sheetSet('<div class="v266-sh-h">🎙 Autosuggestion</div>'
+      +'<p class="v266-hint" style="margin:0 0 6px">Read this out loud in your own voice. Play it whenever you need it, on any of your devices.</p>'
+      +'<textarea class="v266-ta" data-aff="script">'+esc(d.script||defaultScript(it,d))+'</textarea>'
+      +mid
+      +'<button class="v266-btn ghost" data-act="sheet-done">Done</button>');
+  }
+  function deleteAudio(id){
+    if(!confirm('Delete this autosuggestion audio? It is removed from your other devices too.'))return;
+    var it=find(id),path=it&&dets(it).audio_path;
+    blobDel('audio:'+id).then(function(){blobReset('audio:'+id);}).catch(function(){});
+    removeAudioRemote(path);
+    if(AU.id===id){
+      if(AU.el){AU.el.pause();AU.el.removeAttribute('src');}
+      AU.id=null;
+    }
+    window.GI.update(id,function(x){x.details=dets(x);x.details.has_audio=false;x.details.audio_path=null;x.details.listens=0;});
+    renderAffirm();barRender();
+  }
+  function openPicker(){
+    var withAudio=items().filter(function(x){return dets(x).has_audio;});
+    var body=withAudio.length
+      ?withAudio.map(function(x){return '<button class="v266-pick" data-act="pick-audio" data-id="'+esc(x.id)+'">🎙 <span>'+esc(x.title)+'</span><small>'+esc(dets(x).category||'')+'</small></button>';}).join('')
+      :'<p class="v266-hint" style="margin:6px 0">No autosuggestion audio yet. Open a goal, tap 🎙 and record one.</p>';
+    sheetOpen('picker','<div class="v266-sh-h">Autosuggestions</div>'+body+'<button class="v266-btn ghost" data-act="sheet-done">Done</button>');
+  }
+
+  /* ── full-screen viewer: swipe down to close (no close button), pinch/pan zoom, infinite sideways swipe ── */
+  /* the photo list the viewer is showing: a goal's photos, or the vision folder */
+  function vwArr(id){
+    if(id==='vision')return (typeof S!=='undefined'&&S.visImgs)||[];
+    var it=find(id);return it?(it.images||[]):[];
+  }
+  /* saves a change to the list the viewer is showing */
+  function vwCommit(){
+    if(V.vwId==='vision'){if(window.sv)window.sv('v');}
+    else{window.GI.update(V.vwId,function(){});}
+  }
   function buildViewer(){
-    var d=document.createElement('div');d.id='v264-vw';d.className='v264-vw';
-    d.innerHTML='<div class="v264-vw-track" id="v264-vw-track"><img class="v264-vw-img" id="v264-vw-img" draggable="false" alt=""></div>'
-      +'<div class="v264-vw-cnt" id="v264-vw-cnt"></div>'
-      +'<div class="v264-vw-cap"><input class="v264-vw-note" id="v264-vw-note" type="text" maxlength="200" placeholder="Write your vision for this photo…">'
-      +'<div class="v264-vw-acts"><button id="v264-vw-cover">★ Set as cover</button><button id="v264-vw-del">Delete</button></div></div>';
+    var d=document.createElement('div');d.id='v266-vw';d.className='v266-vw';
+    d.innerHTML='<div class="v266-vw-track" id="v266-vw-track"><img class="v266-vw-img" id="v266-vw-img" draggable="false" alt=""></div>'
+      +'<div class="v266-vw-cnt" id="v266-vw-cnt"></div>'
+      +'<div class="v266-vw-cap"><input class="v266-vw-note" id="v266-vw-note" type="text" maxlength="200" placeholder="Write your vision for this photo…">'
+      +'<div class="v266-vw-acts"><button id="v266-vw-left">◀ Move left</button><button id="v266-vw-right">Move right ▶</button>'
+      +'<button id="v266-vw-cover">★ Make cover</button><button id="v266-vw-del">Delete</button></div></div>';
     document.body.appendChild(d);
-    V.vw=d;V.track=$('v264-vw-track');V.img=$('v264-vw-img');V.note=$('v264-vw-note');V.cnt=$('v264-vw-cnt');
-    /* pointer events cover mouse, touch and pen with one code path */
+    V.vw=d;V.track=$('v266-vw-track');V.img=$('v266-vw-img');V.note=$('v266-vw-note');V.cnt=$('v266-vw-cnt');
     V.track.addEventListener('pointerdown',vwDown);
     V.track.addEventListener('pointermove',vwMove);
     V.track.addEventListener('pointerup',vwUp);
     V.track.addEventListener('pointercancel',vwUp);
-    /* desktop: mouse wheel zooms */
     V.track.addEventListener('wheel',function(e){
       e.preventDefault();V.scale=clamp(V.scale*(1-e.deltaY*0.0015),1,5);
       if(V.scale===1){V.tx=0;V.ty=0;}clampPan();vwApply(false);
     },{passive:false});
-    /* writing a vision for the photo: saved on blur, stored on the goal's image */
+    /* caption: goal photos only */
     V.note.addEventListener('change',function(){
-      var v=V.note.value.slice(0,200);
-      window.GI.update(V.vwId,function(x){var im=(x.images||[])[V.vwI];if(im)im.note=v;});
+      var arr=vwArr(V.vwId),v=V.note.value.slice(0,200);
+      if(arr[V.vwI]){arr[V.vwI].note=v;vwCommit();}
     });
-    $('v264-vw-cover').addEventListener('click',function(){
-      window.GI.update(V.vwId,function(x){var im=(x.images||[]).splice(V.vwI,1)[0];if(im)x.images.unshift(im);});
-      V.vwI=0;vwShow();
+    /* order: move one step left or right inside the list */
+    function moveBy(delta){
+      var arr=vwArr(V.vwId),i=V.vwI,j=i+delta;
+      if(j<0||j>=arr.length)return;
+      var tmp=arr[i];arr[i]=arr[j];arr[j]=tmp;
+      V.vwI=j;vwCommit();vwShow();
+    }
+    $('v266-vw-left').addEventListener('click',function(){moveBy(-1);});
+    $('v266-vw-right').addEventListener('click',function(){moveBy(1);});
+    $('v266-vw-cover').addEventListener('click',function(){
+      var arr=vwArr(V.vwId);if(!arr.length)return;
+      arr.unshift(arr.splice(V.vwI,1)[0]);V.vwI=0;vwCommit();vwShow();
     });
-    $('v264-vw-del').addEventListener('click',function(){
+    $('v266-vw-del').addEventListener('click',function(){
       if(!confirm('Delete this photo?'))return;
       if(V.vwId==='vision'){window.delVis(V.vwI);}
       else{window.GI.update(V.vwId,function(x){(x.images||[]).splice(V.vwI,1);});}
@@ -25378,19 +25532,19 @@ textarea.soc-in{resize:none;min-height:74px}
     var imgs=vwArr(V.vwId);
     if(!imgs.length){vwClose(true);return;}
     V.vwI=clamp(V.vwI,0,imgs.length-1);
-    /* vision images have no caption or cover controls here — only view and delete */
-    var isV=V.vwId==='vision';
+    var im=imgs[V.vwI],isV=V.vwId==='vision';
+    /* vision photos have no caption; the cover, move and delete controls work for both */
     V.note.style.display=isV?'none':'';
-    $('v264-vw-cover').style.display=isV?'none':'';
-    var im=imgs[V.vwI];
     V.img.style.opacity='0';
     V.img.onload=function(){V.img.style.opacity='1';};
     V.img.src=im.src;
     V.note.value=im.note||'';
     V.cnt.textContent=(V.vwI+1)+' / '+imgs.length;
+    $('v266-vw-left').style.display=V.vwI>0?'':'none';
+    $('v266-vw-right').style.display=V.vwI<imgs.length-1?'':'none';
     vwApply(false);
   }
-  /* keeps the zoomed image from being dragged past its own edges */
+  /* keeps the zoomed photo from being dragged past its own edges */
   function clampPan(){
     var vw=window.innerWidth,vh=window.innerHeight,img=V.img;
     var fw=img.naturalWidth||vw,fh=img.naturalHeight||vh;
@@ -25398,7 +25552,7 @@ textarea.soc-in{resize:none;min-height:74px}
     var mx=Math.max(0,(fw*k*V.scale-vw)/2),my=Math.max(0,(fh*k*V.scale-vh)/2);
     V.tx=clamp(V.tx,-mx,mx);V.ty=clamp(V.ty,-my,my);
   }
-  /* applies the current transform; anim=true eases it (used for snap-back and zoom) */
+  /* applies the current transform; anim=true eases it (snap-back and zoom) */
   function vwApply(anim){
     var s=V.scale;
     var x=s>1?V.tx:V.dx,y=s>1?V.ty:V.dy;
@@ -25413,7 +25567,6 @@ textarea.soc-in{resize:none;min-height:74px}
     try{V.track.setPointerCapture(e.pointerId);}catch(_){}
     var ids=Object.keys(V.ptrs);
     if(ids.length===2){
-      /* second finger down: start a pinch from the current scale */
       var a=V.ptrs[ids[0]],b=V.ptrs[ids[1]];
       V.pinch={d0:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:V.scale};
       V.drag=null;V.dx=0;V.dy=0;return;
@@ -25448,11 +25601,9 @@ textarea.soc-in{resize:none;min-height:74px}
     var ids=Object.keys(V.ptrs);
     if(V.pinch){
       if(ids.length===0){
-        /* pinch finished: settle back to 1x if it was barely zoomed */
         V.pinch=null;if(V.scale<1.05){V.scale=1;V.tx=0;V.ty=0;}
         clampPan();vwApply(true);
       }else if(ids.length===1){
-        /* one finger left after a pinch: resume a plain drag from its position */
         V.pinch=null;var p=V.ptrs[ids[0]];
         V.drag={x0:p.x,y0:p.y,t:Date.now(),moved:false,tx0:V.tx,ty0:V.ty};V.dx=0;V.dy=0;
       }
@@ -25462,9 +25613,9 @@ textarea.soc-in{resize:none;min-height:74px}
     if(V.scale<=1){
       var dy=V.dy,dx=V.dx;
       var fast=V.drag&&V.drag.moved&&(Date.now()-V.drag.t)<260;
-      /* swipe down closes (Instagram-style): long pull, or a quick flick */
+      /* swipe down closes (Instagram-style): a long pull, or a quick flick */
       if(dy>120||(dy>40&&fast)){V.drag=null;vwClose(false);return;}
-      /* swipe sideways changes photo */
+      /* sideways swipe changes photo; the list wraps, so it is endless in both directions */
       if(dx<-70){V.drag=null;vwStep(1);return;}
       if(dx>70){V.drag=null;vwStep(-1);return;}
       V.dx=0;V.dy=0;vwApply(true);
@@ -25477,12 +25628,11 @@ textarea.soc-in{resize:none;min-height:74px}
     else{var s=2.5;V.scale=s;V.tx=(window.innerWidth/2-x)*(s-1);V.ty=(window.innerHeight/2-y)*(s-1);clampPan();}
     vwApply(true);
   }
-  /* sideways change: slide the current photo out, then the next one in */
+  /* sideways change with wrap-around: last → first and first → last */
   function vwStep(dir){
-    var it=find(V.vwId);if(!it)return;
-    var n=(it.images||[]).length,ni=V.vwI+dir;
-    if(n<2||ni<0||ni>=n){V.dx=0;V.dy=0;vwApply(true);return;}
-    var w=window.innerWidth;
+    var n=vwArr(V.vwId).length;
+    if(n<2){V.dx=0;V.dy=0;vwApply(true);return;}
+    var ni=(V.vwI+dir+n)%n,w=window.innerWidth;
     V.img.style.transition='transform .22s ease, opacity .22s';
     V.img.style.transform='translate3d('+(-dir*w)+'px,0,0)';V.img.style.opacity='0';
     setTimeout(function(){
@@ -25495,7 +25645,7 @@ textarea.soc-in{resize:none;min-height:74px}
       });
     },220);
   }
-  /* closing: slide down and fade, then hide and refresh the goal behind it */
+  /* closing: slide down and fade, hide, then repaint the view behind it */
   function vwClose(instant){
     var done=function(){
       V.vw.style.display='none';V.img.removeAttribute('src');
@@ -25510,123 +25660,143 @@ textarea.soc-in{resize:none;min-height:74px}
     setTimeout(done,260);
   }
 
-  /* ── events ── */
+  /* ── events (document level, so the sheet and the bar work the same way) ── */
   function onClick(e){
-    var t=e.target.closest('[data-act]');if(!t||!V.root.contains(t))return;
+    var t=e.target.closest('[data-act]');if(!t)return;
+    if(!t.closest('#v264-root,#v266-sheet,#v266-bar'))return;
+    if(t.closest('#v266-sheet')&&e.target===$('v266-sheet')){sheetClose();return;}
     var a=t.getAttribute('data-act');
-    if(a==='story'){V.mode='story';renderStory();return;}
-    if(a==='vision'){V.mode='vision';V.id=null;renderVision();return;}
-    if(a==='vision-add'){if(window.trigUpload)window.trigUpload('vision');return;}
-    if(a==='vview'){vwOpen('vision',+t.getAttribute('data-i')||0);return;}
-    if(a==='goal'){V.mode='goal';V.id=t.getAttribute('data-id');renderGoal(true);return;}
-    if(a==='new'){V.mode='new';V.newCat='Business';renderNew();return;}
-    if(a==='back'){
-      if(V.recording)recStop();
-      V.mode='list';renderList();return;
-    }
-    if(a==='create'){createGoal();return;}
-    if(a==='new-cat'){
-      V.newCat=t.getAttribute('data-cat');
-      V.root.querySelectorAll('[data-act="new-cat"]').forEach(function(c){c.classList.toggle('on',c===t);});
-      return;
-    }
-    if(a==='cat'){
-      var cat=t.getAttribute('data-cat');
-      window.GI.update(V.id,function(x){x.details=dets(x);x.details.category=cat;});
-      V.root.querySelectorAll('[data-act="cat"]').forEach(function(c){c.classList.toggle('on',c===t);});
-      var big=$('v264-hero-cat');if(big)big.textContent=cat;
-      var hero=$('v264-hero');if(hero&&!(find(V.id).images||[])[0])hero.style.cssText=grad(cat);
-      return;
-    }
-    if(a==='story-cover'){
-      pickFiles(false,function(files){
-        var f=files[0];if(!f)return;
-        blobPut('story_cover',f).then(function(){
-          blobReset('story_cover');
-          if(V.mode==='story')renderStory();
-        }).catch(function(){alert('Could not save the picture on this device.');});
-      });
-      return;
-    }
-    if(a==='add-photos'){addPhotos();return;}
-    if(a==='view'){vwOpen(V.id,+t.getAttribute('data-i')||0);return;}
-    if(a==='manifest-story'){if(window.manifestOpen)window.manifestOpen(S.goal||'My story',undefined,t);return;}
-    if(a==='fnd-story'){if(window.foundationOpen)window.foundationOpen('major_goal','New Story');return;}
-    if(a==='manifest-goal'){var mi=find(V.id);if(mi&&window.manifestOpen)window.manifestOpen(mi.title,undefined,t);return;}
-    if(a==='fnd-goal'){var fi=find(V.id);if(fi&&window.foundationOpen)window.foundationOpen('goal_'+V.id,fi.title);return;}
-    if(a==='rec'){recStart(V.id);return;}
-    if(a==='stop'){recStop();return;}
-    if(a==='rec-again'){
-      window.GI.update(V.id,function(x){x.details=dets(x);x.details.has_audio=false;x.details.listens=0;});
-      blobReset('audio:'+V.id);renderGoal(false);return;
-    }
-    if(a==='play'){
-      var au=$('v264-au');
-      if(au){if(au.paused)au.play().catch(function(){});else au.pause();}
-      var ph=$('v264-playhint');if(ph)ph.style.display='none';
-      return;
-    }
-    if(a==='achieve'||a==='unachieve'){
-      if(window.giToggleAchieve)window.giToggleAchieve(V.id);
-      renderGoal(false);return;
-    }
-    if(a==='share'){if(window.giShare)window.giShare(V.id);return;}
-    if(a==='delete'){
-      if(window.giDelete)window.giDelete(V.id);
-      if(!find(V.id)){V.mode='list';renderList();}
-      return;
+    switch(a){
+      case 'story': V.mode='story';renderStory();return;
+      case 'vision': V.mode='vision';renderVision();return;
+      case 'vision-add': if(window.trigUpload)window.trigUpload('vision');return;
+      case 'vview': vwOpen('vision',+t.getAttribute('data-i')||0);return;
+      case 'goal': V.mode='goal';V.id=t.getAttribute('data-id');renderGoal();return;
+      case 'new': V.mode='new';renderNew();return;
+      case 'back':
+        if(V.recording)recStop();
+        sheetClose();V.mode='list';renderList();return;
+      case 'create': createGoal();return;
+      case 'new-cat':
+        V.newCat=t.getAttribute('data-cat');
+        V.root.querySelectorAll('[data-act="new-cat"]').forEach(function(c){c.classList.toggle('on',c===t);});
+        return;
+      case 'story-cover':
+        pickFiles(false,function(files){
+          var f=files[0];if(!f)return;
+          blobPut('story_cover',f).then(function(){blobReset('story_cover');}).catch(function(){alert('Could not save the picture on this device.');});
+        });
+        return;
+      case 'view': vwOpen(V.id,+t.getAttribute('data-i')||0);return;
+      case 'add-photos': addPhotos();return;
+      case 'settings': openSettings(V.id);return;
+      case 'affirm': openAffirm(V.id);return;
+      case 'sheet-done': sheetClose();return;
+      case 'manifest-story': if(window.manifestOpen)window.manifestOpen(S.goal||'My story',undefined,t);return;
+      case 'fnd-story': if(window.foundationOpen)window.foundationOpen('major_goal','New Story');return;
+      case 'manifest-goal': var mi=find(V.id);if(mi&&window.manifestOpen)window.manifestOpen(mi.title,undefined,t);return;
+      case 'fnd-goal': var fi=find(V.id);if(fi&&window.foundationOpen)window.foundationOpen('goal_'+V.id,fi.title);return;
+      case 'rec': recStart(V.id);return;
+      case 'stop': recStop();return;
+      case 'rec-again':
+        window.GI.update(V.id,function(x){x.details=dets(x);x.details.has_audio=false;x.details.listens=0;});
+        renderAffirm();barRender();return;
+      case 'aff-play': auSelect(V.id);sheetClose();setTimeout(auToggle,50);return;
+      case 'aff-delete': deleteAudio(V.id);return;
+      case 'delete-goal':
+        if(window.giDelete)window.giDelete(V.id);
+        if(!find(V.id)){sheetClose();V.mode='list';renderList();}
+        return;
+      case 'achieve': case 'unachieve':
+        if(window.giToggleAchieve)window.giToggleAchieve(V.id);
+        renderGoal();return;
+      case 'share': if(window.giShare)window.giShare(V.id);return;
+      case 'bar-play': auToggle();return;
+      case 'bar-rep':
+        var ae=auEnsure();ae.loop=!ae.loop;barRender();return;
+      case 'bar-pick': openPicker();return;
+      case 'pick-audio': auSelect(t.getAttribute('data-id'));sheetClose();return;
     }
   }
-  /* edits that save without re-rendering (so typing is never interrupted) */
   function onChange(e){
-    var t=e.target,f=t.getAttribute('data-field');
+    var t=e.target;
+    var f=t.getAttribute('data-field'),sf=t.getAttribute('data-sf'),af=t.getAttribute('data-aff');
     if(f==='story'){
       /* the story text goes through the existing saveGoal path, so the video engine sees it as before */
       S.goal=t.value;
       var ta=$('goal-ta');if(ta){ta.value=t.value;saveGoal();}
       return;
     }
-    if(!f||!V.id)return;
-    var id=V.id;
-    if(f==='title'){
-      var v=t.value.trim();
-      if(!v){var cur=find(id);t.value=cur?cur.title:'';return;}
-      window.GI.update(id,function(x){x.title=v.slice(0,140);});
-      var sub=V.root.querySelector('#v264-hero .v264-tile-sub');if(sub)sub.textContent=v;
-    }else if(f==='target'){
-      window.GI.update(id,function(x){x.details=dets(x);x.details.target_date=t.value;});
-    }else if(f==='why'||f==='feel'||f==='script'){
-      var val=t.value;
-      window.GI.update(id,function(x){x.details=dets(x);x.details[f]=val;});
+    if(f==='title'&&V.id){
+      var v=t.value.trim();var cur=find(V.id);
+      if(!v){t.value=cur?cur.title:'';return;}
+      window.GI.update(V.id,function(x){x.title=v.slice(0,140);});
+      return;
+    }
+    if(sf&&V.id){
+      var sv2=t.value;
+      window.GI.update(V.id,function(x){x.details=dets(x);x.details[sf==='target'?'target_date':sf]=sv2;});
+      return;
+    }
+    if(af&&V.id){
+      var script=t.value;
+      window.GI.update(V.id,function(x){x.details=dets(x);x.details.script=script;});
     }
   }
+  /* textareas grow with their content (story, settings, autosuggestion script) */
+  function onInput(e){
+    var t=e.target;if(!t||t.tagName!=='TEXTAREA')return;
+    t.style.height='auto';t.style.height=t.scrollHeight+'px';
+  }
 
+  /* the Goal tab shows the list every time it is opened; leaving it pauses the audio */
+  var _origBnav=window.bnavSwitch;
+  if(typeof _origBnav==='function'){
+    window.bnavSwitch=function(el){
+      var r=_origBnav.apply(this,arguments);
+      if(el&&el.dataset&&el.dataset.tab==='goal'){V.mode='list';sheetClose();renderList();}
+      else if(AU.el&&!AU.el.paused)AU.el.pause();
+      barRender();
+      return r;
+    };
+  }
   /* repaint the list when Goal Items change while the list is on screen */
   document.addEventListener('gi:change',function(){
     if(V.mode==='list'&&V.root)renderList();
   });
 
-  /* the Goal tab shows the list every time it is opened */
-  var _origBnav=window.bnavSwitch;
-  if(typeof _origBnav==='function'){
-    window.bnavSwitch=function(el){
-      var r=_origBnav.apply(this,arguments);
-      if(el&&el.dataset&&el.dataset.tab==='goal'){V.mode='list';renderList();}
-      return r;
-    };
+  /* ── build the sheet and the audio bar once ── */
+  function buildChrome(){
+    var sh=document.createElement('div');sh.id='v266-sheet';sh.className='v266-sheet';
+    sh.innerHTML='<div class="v266-panel"></div>';
+    document.body.appendChild(sh);
+    var bar=document.createElement('div');bar.id='v266-bar';bar.className='v266-bar';
+    bar.innerHTML='<div class="v266-bar-row">'
+      +'<button class="v266-bar-btn" data-act="bar-pick" aria-label="Choose an autosuggestion">☰</button>'
+      +'<div class="v266-bar-name" id="v266-bar-name"></div>'
+      +'<button class="v266-bar-btn" id="v266-bar-rep" data-act="bar-rep" aria-label="Repeat">🔁</button>'
+      +'<button class="v266-bar-play" id="v266-bar-play" data-act="bar-play" aria-label="Play">▶</button>'
+      +'</div>'
+      +'<div class="v266-seek"><span id="v266-bar-t">0:00</span>'
+      +'<input type="range" id="v266-bar-range" min="0" max="1000" value="0" aria-label="Seek">'
+      +'<span id="v266-bar-d">0:00</span></div>';
+    document.body.appendChild(bar);
+    var range=$('v266-bar-range');
+    range.addEventListener('pointerdown',function(){AU.seeking=true;});
+    range.addEventListener('pointerup',function(){AU.seeking=false;});
+    range.addEventListener('input',function(){
+      var a=AU.el;if(!a||!a.duration||!isFinite(a.duration))return;
+      a.currentTime=(+range.value/1000)*a.duration;barTick();
+    });
   }
 
   function init(){
     V.root=$('v264-root');if(!V.root)return;
-    V.root.addEventListener('click',onClick);
-    V.root.addEventListener('change',onChange);
-    /* textareas grow with their content, so the autosuggestion script is never cut off */
-    V.root.addEventListener('input',function(e){
-      var t=e.target;if(!t||t.tagName!=='TEXTAREA')return;
-      t.style.height='auto';t.style.height=t.scrollHeight+'px';
-    });
+    document.addEventListener('click',onClick);
+    document.addEventListener('change',onChange);
+    document.addEventListener('input',onInput);
     buildViewer();
-    /* list is painted lazily, on first visit to the Goal tab (or on any Goal Items change) */
+    buildChrome();
   }
   init();
 })();
