@@ -22,31 +22,32 @@ test.describe('v265 Vision folder', () => {
     await app.boot();
     const p = app.page;
     await app.gotoTab({ nav: '.bnav-tab[data-tab="goal"]' });
-    await p.waitForSelector('#v264-root .v264-tile[data-act="vision"]', { state: 'visible', timeout: 15000 });
-    expect(await p.locator('#v264-root .v264-tile[data-act="vision"] .v264-tile-sub').innerText()).toBe('2 photos');
-    await p.locator('#v264-root .v264-tile[data-act="vision"]').click();
-    await p.waitForSelector('#v264-pgrid .v264-p', { state: 'visible' });
-    expect(await p.locator('#v264-pgrid .v264-p').count()).toBe(2);
-    expect(await p.locator('#v264-pgrid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(3);
+    await p.waitForSelector('#v264-root .v266-tile[data-act="vision"]', { state: 'visible', timeout: 15000 });
+    expect(await p.locator('#v264-root .v266-tile[data-act="vision"] .v266-tile-sub').innerText()).toBe('2 photos');
+    await p.locator('#v264-root .v266-tile[data-act="vision"]').click();
+    await p.waitForSelector('#v266-pgrid .v266-p', { state: 'visible' });
+    // 2 photos + the dashed "Add photos" tile; photos are two per row
+    expect(await p.locator('#v266-pgrid .v266-p:not(.v266-plus)').count()).toBe(2);
+    expect(await p.locator('#v266-pgrid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
     // photos really decode
-    await p.locator('#v264-pgrid').scrollIntoViewIfNeeded();
+    await p.locator('#v266-pgrid').scrollIntoViewIfNeeded();
     await p.waitForTimeout(400);
-    await p.waitForFunction(() => [...document.querySelectorAll('#v264-pgrid img')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 8000 });
-    await p.locator('#v264-pgrid .v264-p').nth(0).click();
-    await p.waitForSelector('#v264-vw', { state: 'visible' });
-    expect(await p.locator('#v264-vw-cnt').innerText()).toBe('1 / 2');
+    await p.waitForFunction(() => [...document.querySelectorAll('#v266-pgrid img')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 8000 });
+    await p.locator('#v266-pgrid .v266-p').nth(0).click();
+    await p.waitForSelector('#v266-vw', { state: 'visible' });
+    expect(await p.locator('#v266-vw-cnt').innerText()).toBe('1 / 2');
     // vision images are view-only here: no caption input and no cover button
-    expect(await p.locator('#v264-vw-note').isVisible()).toBe(false);
-    expect(await p.locator('#v264-vw-cover').isVisible()).toBe(false);
+    expect(await p.locator('#v266-vw-note').isVisible()).toBe(false);
+    expect(await p.locator('#v266-vw-cover').isVisible()).toBe(true); // v266: cover and move work for vision photos too
     // swipe down closes back to the Vision grid
-    const box = await p.locator('#v264-vw-track').boundingBox();
+    const box = await p.locator('#v266-vw-track').boundingBox();
     await p.mouse.move(box.x + box.width / 2, box.y + 120);
     await p.mouse.down();
     await p.mouse.move(box.x + box.width / 2, box.y + 420, { steps: 10 });
     await p.mouse.up();
     await p.waitForTimeout(500);
-    expect(await p.locator('#v264-vw').isVisible()).toBe(false);
-    expect(await p.locator('#v264-pgrid .v264-p').count()).toBe(2);
+    expect(await p.locator('#v266-vw').isVisible()).toBe(false);
+    expect(await p.locator('#v266-pgrid .v266-p:not(.v266-plus)').count()).toBe(2);
     expect(app.pageErrors).toEqual([]);
   });
 });
