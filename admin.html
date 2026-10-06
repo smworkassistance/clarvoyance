@@ -246,6 +246,7 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
     <button class="tab"    data-p="guides" onclick="switchTab(this)">🧭 Guides</button>
     <button class="tab"    data-p="landing" onclick="switchTab(this)">📨 Landing</button>
     <button class="tab"    data-p="upgrades" onclick="switchTab(this)">🧾 Upgrade Requests</button>
+    <button class="tab"    data-p="audio" onclick="switchTab(this)">🔊 Audio</button>
   </div>
 
   <!-- TOOLS -->
@@ -388,6 +389,14 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
   </div>
 
   <!-- v250: GUIDES moderation -->
+  <!-- v270 — Guidance audio: languages + scope text/audio/finalise (JS in the Audio section below the Guides script) -->
+  <div id="pane-audio" class="pane">
+    <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Write the text (or draft it with AI from your own prompt), generate the audio, listen, then <b>Finalise</b>. Only finalised text reaches users. Editing a finalised text un-finalises it until you finalise again.</p>
+    <div class="sec-lbl">🌐 Languages</div>
+    <div id="au-langs"><div class="s-load">Loading...</div></div>
+    <div class="sec-lbl" style="margin-top:18px">🔊 Scopes</div>
+    <div id="au-scopes"><div class="s-load">Loading...</div></div>
+  </div>
   <div id="pane-guides" class="pane">
     <p style="font-size:13px;color:#9CA3AF;margin-bottom:14px;line-height:1.5">Guides are AI-curated feeds. Members' private guides start "pending" and are activated by the Worker after the scope check. Three distinct reporters in 7 days auto-pause a guide. Review paused guides and reported posts here.</p>
     <div class="sec-lbl">🚩 Needs attention</div>
@@ -2877,6 +2886,218 @@ async function gsDel(id){ if(!confirm('Remove this source?'))return; try{await a
 (function(){const o=switchTab;switchTab=function(b){o(b);if(b.dataset.p==='clarposts')loadClarPosts();if(b.dataset.p==='guides')loadGuidesAdmin();};})();
 
 loadData();
+
+
+/* ═══ v270 — Guidance audio admin ═══
+   Talks only to admin-relay-worker (audio.* actions). The owner writes or drafts text, the Worker generates the mp3
+   from the SAVED text, and only a FINALISED row reaches the app. The AI draft saves nothing by itself: the owner reviews
+   the text and presses Save. The owner's own prompt is stored with the text. */
+const AU_BUCKET = 'https://unvwjuceuyruqdnmvxlc.supabase.co/storage/v1/object/public/charger-audio/';
+
+/* Scopes planned for the audio layer (docs/CHARGER-AUDIO-DESIGN.md, "Scope map"). Chargers are added once the owner gives the containers. */
+const AU_SCOPES = [
+  { key: 'self.peak_state',      title: 'Self: Peak State',                 kind: 'instruction' },
+  { key: 'self.my_personal_space', title: 'Self: My Personal Space',        kind: 'instruction' },
+  { key: 'self.ssw',             title: 'Self: Slow, Soft & Swift',         kind: 'instruction' },
+  { key: 'self.ndt',             title: 'Self: Non-Doing Timer',            kind: 'instruction' },
+  { key: 'self.walktalk',        title: 'Self: Walk & Talk',                kind: 'instruction' },
+  { key: 'self.pys',             title: 'Self: Protect Yourself',           kind: 'instruction' },
+  { key: 'self.revise_shortcut', title: 'Self: Revise & Repeat (shortcut)', kind: 'instruction' },
+  { key: 'self.foundation',      title: 'Self: My Foundation',              kind: 'instruction' },
+  { key: 'self.true_view',       title: 'Self: True View Chart',            kind: 'instruction' },
+  { key: 'self.pure_abundance',  title: 'Self: Pure Abundance',             kind: 'instruction' },
+  { key: 'self.overall',         title: 'Self tab: overall',                kind: 'instruction' },
+  { key: 'tools.physical',       title: 'Tools: physical',                  kind: 'instruction' },
+  { key: 'tools.mental_reset',   title: 'Tools: mental reset',              kind: 'instruction' },
+  { key: 'tools.overall',        title: 'Tools: overall section',           kind: 'instruction' },
+  { key: 'nn.overall',           title: 'Non-Negotiables',                  kind: 'instruction' },
+  { key: 'goals.overall',        title: 'Goals tab',                        kind: 'instruction' }
+];
+
+let _au = { langs: [], rows: [], voices: {} };
+const _auDrafted = {};   /* 'scope|lang' → true once the AI draft filled the text in this session (stored as draft_model) */
+const _auOpen = {};      /* which scope panels are open, so a refresh keeps them open */
+
+const auId = (k, l) => (k + '_' + l).replace(/[^a-zA-Z0-9]/g, '_');
+const auEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const auRow = (k, l) => _au.rows.find(r => r.scope_key === k && r.lang === l) || null;
+
+/* load languages + scope rows, then draw both lists */
+async function loadAudio() {
+  try {
+    const [langs, rows] = await Promise.all([adminApi('audio.languages.select'), adminApi('audio.scopes.select')]);
+    _au.langs = langs || [];
+    _au.rows = rows || [];
+  } catch (e) {
+    document.getElementById('au-scopes').innerHTML = '<div class="s-load">⚠️ ' + auEsc(e.message) + ' (has the v270 migration run, and is the Worker deployed?)</div>';
+    return;
+  }
+  renderAudioLangs();
+  renderAudioScopes();
+}
+
+/* ── Languages ─────────────────────────────────────────── */
+function renderAudioLangs() {
+  const box = document.getElementById('au-langs');
+  const rowsHtml = _au.langs.map(l => {
+    const voices = _au.voices[l.tts_lang] || [];
+    const opts = [`<option value="">— upload only —</option>`]
+      .concat(voices.map(v => `<option value="${auEsc(v.name)}" ${v.name === l.tts_voice ? 'selected' : ''}>${auEsc(v.name)} (${auEsc(v.gender || '')})</option>`))
+      .concat(!voices.length && l.tts_voice ? [`<option value="${auEsc(l.tts_voice)}" selected>${auEsc(l.tts_voice)}</option>`] : [])
+      .join('');
+    return `<div style="display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #2a2a33">
+      <div><b>${auEsc(l.code)}</b><div style="font-size:12px;color:#9CA3AF">${auEsc(l.tts_lang || 'no TTS')}</div></div>
+      <div>
+        <div style="font-size:13px">${auEsc(l.name)} ${l.active ? '' : '<span style="color:#f87171">(off)</span>'}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <select id="au-voice-${auEsc(l.code)}" style="flex:1;min-width:180px">${opts}</select>
+          <button onclick="auLoadVoices('${auEsc(l.code)}')">Load voices</button>
+          <button onclick="auSaveLang('${auEsc(l.code)}')">Save voice</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  box.innerHTML = (rowsHtml || '<div class="s-load">No languages yet.</div>')
+    + `<div style="margin-top:10px"><button onclick="auAddLang()">+ Add language</button></div>`;
+}
+
+/* WaveNet voices for a language, from Google (uses the TTS_API_KEY on the Worker) */
+async function auLoadVoices(code) {
+  const l = _au.langs.find(x => x.code === code);
+  if (!l || !l.tts_lang) return toast('⚠️ This language has no TTS language code (upload-only)', 'err');
+  try {
+    _au.voices[l.tts_lang] = await adminApi('audio.voices', { tts_lang: l.tts_lang });
+    renderAudioLangs();
+    toast('Voices loaded');
+  } catch (e) { toast('⚠️ ' + e.message, 'err'); }
+}
+
+/* save the chosen voice for a language */
+async function auSaveLang(code) {
+  const l = _au.langs.find(x => x.code === code);
+  const sel = document.getElementById('au-voice-' + code);
+  try {
+    await adminApi('audio.languages.upsert', { code, name: l.name, tts_lang: l.tts_lang, tts_voice: sel.value || null, active: l.active, sort: l.sort });
+    toast('✅ Voice saved');
+    await loadAudio();
+  } catch (e) { toast('⚠️ ' + e.message, 'err'); }
+}
+
+/* add a language: the admin list is the only place a language is switched on */
+function auAddLang() {
+  _prom('Add language', [
+    { k: 'code', l: 'Code (en, hi, hinglish …)', v: '' },
+    { k: 'name', l: 'Name shown in the app', v: '' },
+    { k: 'tts_lang', l: 'Google TTS language (hi-IN, en-IN …) or blank for upload-only', v: '' },
+    { k: 'sort', l: 'Order in the list', v: '3' }
+  ], async o => {
+    if (!/^[a-z][a-z-]{1,9}$/.test(o.code.trim())) throw new Error('Code: lowercase letters, e.g. hi or hinglish');
+    await adminApi('audio.languages.upsert', { code: o.code.trim(), name: o.name.trim(), tts_lang: o.tts_lang.trim() || null, tts_voice: null, active: true, sort: parseInt(o.sort, 10) || 0 });
+    toast('✅ Language added');
+    loadAudio();
+  });
+}
+
+/* ── Scopes ────────────────────────────────────────────── */
+function auStatus(r) {
+  if (!r || !r.text) return { t: 'no text', c: '#6b7280' };
+  if (r.finalised) return { t: 'finalised', c: '#34d399' };
+  if (!r.audio_path) return { t: 'audio not generated', c: '#fbbf24' };
+  if (r.audio_hash === r.text_hash) return { t: 'audio ready: listen, then finalise', c: '#60a5fa' };
+  return { t: 'text changed: regenerate', c: '#f87171' };
+}
+
+function renderAudioScopes() {
+  const box = document.getElementById('au-scopes');
+  if (!_au.langs.length) { box.innerHTML = '<div class="s-load">No active languages.</div>'; return; }
+  box.innerHTML = AU_SCOPES.map(s => {
+    /* one small status chip per language, shown in the summary line */
+    const chips = _au.langs.map(l => {
+      const st = auStatus(auRow(s.key, l.code));
+      return `<span style="font-size:11px;color:${st.c};margin-left:8px">${auEsc(l.code)}: ${auEsc(st.t)}</span>`;
+    }).join('');
+    return `<details ${_auOpen[s.key] ? 'open' : ''} ontoggle="_auOpen['${s.key}']=this.open" style="border:1px solid #2a2a33;border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <summary style="cursor:pointer;font-weight:600">${auEsc(s.title)}<div style="margin-top:4px">${chips}</div></summary>
+      ${_au.langs.map(l => auLangBlock(s, l)).join('')}
+    </details>`;
+  }).join('');
+}
+
+/* one language's editor inside a scope */
+function auLangBlock(s, l) {
+  const r = auRow(s.key, l.code) || { text: '', prompt: '', speaking_rate: 0.95, audio_path: null, audio_hash: null, text_hash: null, finalised: false };
+  const id = auId(s.key, l.code);
+  const st = auStatus(r);
+  return `<div style="margin-top:12px;padding-top:10px;border-top:1px solid #2a2a33">
+    <div style="font-size:12px;color:#9CA3AF;margin-bottom:6px"><b style="color:#e5e7eb">${auEsc(l.name)}</b> · <span style="color:${st.c}">${auEsc(st.t)}</span>${l.tts_voice ? '' : ' · upload-only'}</div>
+    <label style="font-size:12px;color:#9CA3AF">Your prompt (saved with the text; used for the AI draft)</label>
+    <textarea id="au-${id}-prompt" rows="2" style="width:100%">${auEsc(r.prompt || '')}</textarea>
+    <label style="font-size:12px;color:#9CA3AF">Text the audio says</label>
+    <textarea id="au-${id}-text" rows="4" style="width:100%">${auEsc(r.text || '')}</textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px">
+      <label style="font-size:12px;color:#9CA3AF">Speed
+        <input id="au-${id}-rate" type="number" step="0.05" min="0.5" max="1.5" value="${Number(r.speaking_rate || 0.95)}" style="width:70px">
+      </label>
+      <button onclick="auDraft('${s.key}','${l.code}')">✨ Draft with AI</button>
+      <button onclick="auSave('${s.key}','${l.code}')">💾 Save text</button>
+      <button onclick="auGen('${s.key}','${l.code}')" ${l.tts_voice ? '' : 'disabled title="No voice for this language"'}>🎙 Generate audio</button>
+      <button onclick="auFinal('${s.key}','${l.code}',${!r.finalised})">${r.finalised ? '↩ Un-finalise' : '✓ Finalise'}</button>
+    </div>
+    ${r.audio_path ? `<audio controls preload="none" style="margin-top:8px;width:100%" src="${AU_BUCKET}${auEsc(r.audio_path)}?v=${encodeURIComponent(r.audio_hash || '')}"></audio>` : ''}
+  </div>`;
+}
+
+/* AI draft from the owner's own prompt. Fills the text box only; nothing is saved. */
+async function auDraft(k, l) {
+  const id = auId(k, l);
+  const prompt = document.getElementById('au-' + id + '-prompt').value.trim();
+  if (!prompt) return toast('⚠️ Write your prompt first', 'err');
+  try {
+    toast('Drafting…');
+    const r = await adminApi('audio.draft', { lang: l, prompt });
+    document.getElementById('au-' + id + '-text').value = r.text;
+    _auDrafted[k + '|' + l] = true;
+    toast('Draft ready. Review it, then Save text.');
+  } catch (e) { toast('⚠️ ' + e.message, 'err'); }
+}
+
+/* save text, prompt and speed. Changing the text un-finalises it (the Worker enforces this). */
+async function auSave(k, l) {
+  const id = auId(k, l);
+  const scope = AU_SCOPES.find(s => s.key === k);
+  const text = document.getElementById('au-' + id + '-text').value;
+  const prompt = document.getElementById('au-' + id + '-prompt').value;
+  const rate = parseFloat(document.getElementById('au-' + id + '-rate').value) || 0.95;
+  const payload = { scope_key: k, lang: l, kind: scope.kind, text, prompt, speaking_rate: rate };
+  if (_auDrafted[k + '|' + l]) payload.draft_model = 'gemini-proxy';
+  try {
+    const r = await adminApi('audio.scopes.save', payload);
+    toast(r.changed ? 'Saved. Text changed, so generate and finalise again' : 'Saved');
+    await loadAudio();
+  } catch (e) { toast('⚠️ ' + e.message, 'err'); }
+}
+
+/* generate audio from the saved text. Skips if the audio already matches the text. */
+async function auGen(k, l) {
+  try {
+    toast('Generating audio…');
+    const r = await adminApi('audio.generate', { scope_key: k, lang: l, force: false });
+    toast(r.skipped ? 'Audio already matches the text' : '✅ Audio generated. Listen, then finalise');
+    await loadAudio();
+  } catch (e) { toast('⚠️ ' + e.message, 'err'); }
+}
+
+/* finalise or un-finalise. Finalise is refused unless the audio matches the current text. */
+async function auFinal(k, l, val) {
+  try {
+    await adminApi('audio.finalise', { scope_key: k, lang: l, finalised: !!val });
+    toast(val ? '✅ Finalised: now live for users' : 'Un-finalised: hidden from users');
+    await loadAudio();
+  } catch (e) { toast('⚠️ ' + e.message, 'err'); }
+}
+
+/* lazy-load when the tab opens, same pattern as the other admin tabs */
+(function () { const o = switchTab; switchTab = function (b) { o(b); if (b.dataset.p === 'audio') loadAudio(); }; })();
 
 </script>
 </body>

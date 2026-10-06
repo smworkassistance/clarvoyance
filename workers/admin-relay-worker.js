@@ -66,7 +66,7 @@ function corsHeaders() {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Expose-Headers': 'X-Worker-Version',
-    'X-Worker-Version': 'v263-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
+    'X-Worker-Version': 'v270-r1', /* bump on every edit: curl -I <worker url> shows which code is really deployed */
   };
 }
 
@@ -1028,7 +1028,172 @@ async function deleteMyAccount(env, request) {
   return json({ data: out }); /* always a real Response, matching memberKick's own pattern */
 }
 
+/* ═══ v270 — scope audio (instruction audio per scope and language) ═══
+   Text is the source of truth. Audio is generated from the saved text by Google Cloud TTS
+   (secret TTS_API_KEY on this Worker) and stored in the public bucket charger-audio.
+   Rules, enforced here and not only in admin.html:
+   - Editing text un-finalises that row (unfinished text never reaches users).
+   - Finalise is refused until the audio was generated from the current text.
+   - Generate skips work when the audio already matches the text (cost control) unless forced.
+   - The AI draft returns text to the admin for review; it saves nothing itself. The owner's
+     own prompt is stored with the text, so the source of every text stays visible. */
+const TTS_URL = 'https://texttospeech.googleapis.com/v1/';
+const AUDIO_BUCKET = 'charger-audio';
+const AUDIO_MAX_CHARS = 1500;   /* far below the TTS per-request limit; scope texts are short by design */
+
+function audioHash(s) { return fnv(String(s || '')); }
+function safeScopeKey(k) { if (!/^[a-z0-9._-]{1,80}$/.test(String(k || ''))) throw new Error('scope_key must be a-z 0-9 . _ - (max 80)'); return k; }
+function safeLang(l) { if (!/^[a-z][a-z-]{1,9}$/.test(String(l || ''))) throw new Error('lang code invalid'); return l; }
+
+async function ttsCall(env, method, path, body) {
+  if (!env.TTS_API_KEY) throw new Error('TTS_API_KEY secret is not set on this Worker (dashboard → Settings → Variables and Secrets, then Deploy)');
+  const r = await fetchTimeout(TTS_URL + path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.TTS_API_KEY },
+    body: body ? JSON.stringify(body) : undefined,
+  }, 30000);
+  const txt = await r.text();
+  let data = null; try { data = JSON.parse(txt); } catch (e) { data = null; }
+  if (!r.ok) throw new Error('tts HTTP ' + r.status + ': ' + ((data && data.error && data.error.message) || txt.slice(0, 160)));
+  return data;
+}
+
+async function audioRow(env, key, lang) {
+  const rows = await sbFetch(env, 'audio_scopes?scope_key=eq.' + encodeURIComponent(key) + '&lang=eq.' + encodeURIComponent(lang) + '&select=*');
+  return (rows && rows[0]) || null;
+}
+async function audioLangRow(env, code) {
+  const rows = await sbFetch(env, 'audio_languages?code=eq.' + encodeURIComponent(code) + '&select=*');
+  if (!rows || !rows[0]) throw new Error('unknown language: ' + code);
+  return rows[0];
+}
+
+const AUDIO_ACTIONS = {
+  /* language list — admin adds a language here; voice may be empty (upload-only) */
+  async 'audio.languages.select'(env) { return sbFetch(env, 'audio_languages?select=*&order=sort.asc'); },
+  async 'audio.languages.upsert'(env, p) {
+    const code = safeLang(p.code);
+    if (!p.name || !String(p.name).trim()) throw new Error('name required');
+    return sbFetch(env, 'audio_languages?on_conflict=code', {
+      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify({ code, name: String(p.name).trim().slice(0, 40), tts_lang: p.tts_lang || null, tts_voice: p.tts_voice || null, active: p.active !== false, sort: parseInt(p.sort, 10) || 0 }),
+    });
+  },
+
+  /* WaveNet voices available for a Google languageCode (admin picks one per language) */
+  async 'audio.voices'(env, p) {
+    const lang = String(p.tts_lang || '');
+    if (!/^[a-z]{2}-[A-Z]{2}$/.test(lang)) throw new Error('tts_lang like hi-IN required');
+    const d = await ttsCall(env, 'GET', 'voices?languageCode=' + encodeURIComponent(lang));
+    return (d.voices || []).filter((v) => /Wavenet/i.test(v.name)).map((v) => ({ name: v.name, gender: v.ssmlGender || null }));
+  },
+
+  /* scope rows — admin list */
+  async 'audio.scopes.select'(env, p) {
+    const q = p && p.scope_key ? 'scope_key=eq.' + encodeURIComponent(p.scope_key) + '&' : '';
+    return sbFetch(env, 'audio_scopes?' + q + 'select=*&order=scope_key.asc,lang.asc');
+  },
+
+  /* save text / prompt / settings. Changing the text un-finalises the row. */
+  async 'audio.scopes.save'(env, p) {
+    const key = safeScopeKey(p.scope_key), lang = safeLang(p.lang);
+    await audioLangRow(env, lang);
+    const text = String(p.text || '').trim();
+    if (text.length > AUDIO_MAX_CHARS) throw new Error('text too long (max ' + AUDIO_MAX_CHARS + ' characters)');
+    const cur = await audioRow(env, key, lang);
+    const hash = audioHash(text);
+    const changed = !cur || cur.text_hash !== hash;
+    const row = {
+      scope_key: key, lang,
+      kind: p.kind === 'affirmation' ? 'affirmation' : 'instruction',
+      text,
+      prompt: p.prompt != null ? String(p.prompt).slice(0, 4000) : (cur ? cur.prompt : null),
+      draft_model: p.draft_model != null ? String(p.draft_model).slice(0, 60) : (cur ? cur.draft_model : null),
+      draft_at: p.draft_model ? nowIso() : (cur ? cur.draft_at : null),
+      text_hash: hash,
+      finalised: changed ? false : (cur ? cur.finalised : false),
+      finalised_at: changed ? null : (cur ? cur.finalised_at : null),
+      audio_path: cur ? cur.audio_path : null,
+      audio_hash: cur ? cur.audio_hash : null,
+      voice: p.voice != null ? (p.voice || null) : (cur ? cur.voice : null),
+      speaking_rate: Math.min(1.5, Math.max(0.5, Number(p.speaking_rate) || 0.95)),
+      updated_at: nowIso(),
+    };
+    await sbFetch(env, 'audio_scopes?on_conflict=scope_key,lang', {
+      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=representation' }, body: JSON.stringify(row),
+    });
+    return { changed, finalised: row.finalised };
+  },
+
+  /* generate audio from the SAVED text (never from unsaved admin input). Skips if already current unless forced. */
+  async 'audio.generate'(env, p) {
+    const key = safeScopeKey(p.scope_key), lang = safeLang(p.lang);
+    const lg = await audioLangRow(env, lang);
+    const row = await audioRow(env, key, lang);
+    if (!row || !row.text) throw new Error('save the text first');
+    if (!lg.tts_voice || !lg.tts_lang) throw new Error('no voice set for ' + lang + ' (upload-only language)');
+    if (!p.force && row.audio_path && row.audio_hash === row.text_hash) return { skipped: true, audio_path: row.audio_path };
+
+    const d = await ttsCall(env, 'POST', 'text:synthesize', {
+      input: { text: row.text },
+      voice: { languageCode: lg.tts_lang, name: lg.tts_voice },
+      audioConfig: { audioEncoding: 'MP3', speakingRate: Number(row.speaking_rate) || 0.95 },
+    });
+    if (!d || !d.audioContent) throw new Error('tts returned no audio');
+    const bin = atob(d.audioContent);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+
+    /* path = scope/lang.mp3 inside the public bucket; overwritten on regenerate */
+    const path = key + '/' + lang + '.mp3';
+    const up = await fetch(SB_URL + '/storage/v1/object/' + AUDIO_BUCKET + '/' + path, {
+      method: 'POST',
+      headers: { apikey: env.SUPABASE_SERVICE_KEY, Authorization: 'Bearer ' + env.SUPABASE_SERVICE_KEY, 'Content-Type': 'audio/mpeg', 'x-upsert': 'true' },
+      body: bytes,
+    });
+    if (!up.ok) throw new Error('storage upload failed: HTTP ' + up.status + ' ' + (await up.text()).slice(0, 160));
+
+    await sbFetch(env, 'audio_scopes?scope_key=eq.' + encodeURIComponent(key) + '&lang=eq.' + encodeURIComponent(lang), {
+      method: 'PATCH', headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ audio_path: path, audio_hash: row.text_hash, voice: lg.tts_voice, updated_at: nowIso() }),
+    });
+    return { skipped: false, audio_path: path, bytes: bytes.length };
+  },
+
+  /* finalise: only when audio exists and was made from the current text */
+  async 'audio.finalise'(env, p) {
+    const key = safeScopeKey(p.scope_key), lang = safeLang(p.lang);
+    const row = await audioRow(env, key, lang);
+    if (!row) throw new Error('no text for this scope and language');
+    if (p.finalised) {
+      if (!row.audio_path || row.audio_hash !== row.text_hash) throw new Error('generate the audio from the current text before finalising');
+    }
+    await sbFetch(env, 'audio_scopes?scope_key=eq.' + encodeURIComponent(key) + '&lang=eq.' + encodeURIComponent(lang), {
+      method: 'PATCH', headers: { Prefer: 'return=minimal' },
+      body: JSON.stringify({ finalised: !!p.finalised, finalised_at: p.finalised ? nowIso() : null, updated_at: nowIso() }),
+    });
+    return { finalised: !!p.finalised };
+  },
+
+  /* AI draft from the OWNER's own prompt. Returns text for review; saves nothing. */
+  async 'audio.draft'(env, p) {
+    const lang = safeLang(p.lang);
+    const lg = await audioLangRow(env, lang);
+    const prompt = String(p.prompt || '').trim();
+    if (!prompt) throw new Error('prompt required');
+    const system = 'You write one short spoken guidance text for the self-development app Clar. It is read aloud. '
+      + 'Keep it to 1-3 short sentences (max 60 words). Follow the owner\'s prompt exactly. '
+      + 'Never promise a guaranteed outcome. No fear, shame or hustle language. '
+      + 'Return only JSON: {"text": "..."}. Write the text in ' + lg.name + '.';
+    const r = await geminiJSON(system, prompt, { temperature: 0.7, maxTokens: 500 });
+    const text = String((r.data && r.data.text) || '').trim();
+    if (!text) throw new Error('draft came back empty');
+    return { text: text.slice(0, AUDIO_MAX_CHARS), model: 'gemini-proxy' };
+  },
+};
+
 const ACTIONS = {
+  ...AUDIO_ACTIONS,
   async 'ai_context.upsert'(env, p) {
     return sbFetch(env, 'ai_context?on_conflict=key', {
       method: 'POST',
