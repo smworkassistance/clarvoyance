@@ -3010,6 +3010,9 @@ function auStatus(r) {
 function renderAudioScopes() {
   const box = document.getElementById('au-scopes');
   if (!_au.langs.length) { box.innerHTML = '<div class="s-load">No active languages.</div>'; return; }
+  /* keep anything typed but not yet saved: a refresh after Finalise/Save must not wipe the owner's current edit */
+  const typed = {};
+  box.querySelectorAll('textarea[id], input[id]').forEach(el => { typed[el.id] = el.value; });
   box.innerHTML = AU_SCOPES.map(s => {
     /* one small status chip per language, shown in the summary line */
     const chips = _au.langs.map(l => {
@@ -3021,6 +3024,8 @@ function renderAudioScopes() {
       ${_au.langs.map(l => auLangBlock(s, l)).join('')}
     </details>`;
   }).join('');
+  /* put the unsaved typing back into the fresh inputs */
+  Object.keys(typed).forEach(id => { const el = document.getElementById(id); if (el) el.value = typed[id]; });
 }
 
 /* one language's editor inside a scope */
@@ -3040,7 +3045,7 @@ function auLangBlock(s, l) {
       </label>
       <button onclick="auDraft('${s.key}','${l.code}')">✨ Draft with AI</button>
       <button onclick="auSave('${s.key}','${l.code}')">💾 Save text</button>
-      <button onclick="auGen('${s.key}','${l.code}')" ${l.tts_voice ? '' : 'disabled title="No voice for this language"'}>🎙 Generate audio</button>
+      <button onclick="auGen('${s.key}','${l.code}')" title="${l.tts_voice ? 'Generate audio from the saved text' : 'No voice yet: choose one in Languages above, then Save voice'}">🎙 Generate audio</button>
       <button onclick="auFinal('${s.key}','${l.code}',${!r.finalised})">${r.finalised ? '↩ Un-finalise' : '✓ Finalise'}</button>
     </div>
     ${r.audio_path ? `<audio controls preload="none" style="margin-top:8px;width:100%" src="${AU_BUCKET}${auEsc(r.audio_path)}?v=${encodeURIComponent(r.audio_hash || '')}"></audio>` : ''}
@@ -3079,6 +3084,9 @@ async function auSave(k, l) {
 
 /* generate audio from the saved text. Skips if the audio already matches the text. */
 async function auGen(k, l) {
+  /* no voice yet (the language is still "upload only"): say what to do instead of failing silently */
+  const lang = _au.langs.find(x => x.code === l);
+  if (!lang || !lang.tts_voice) return toast('⚠️ Pehle upar Languages mein is language ki voice choose karke "Save voice" dabao', 'err');
   try {
     toast('Generating audio…');
     const r = await adminApi('audio.generate', { scope_key: k, lang: l, force: false });
