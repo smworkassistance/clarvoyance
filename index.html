@@ -2722,7 +2722,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v266</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v268</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -24997,16 +24997,15 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
 .v266-vw-acts button{font:inherit;font-size:.92rem;font-weight:700;padding:8px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
 </style>
 
-<!-- ═══ v266 GOAL TAB — story, goals, vision and the audio bar ═══════════════════
-     Replaces the v264 script. Visual layer over the existing data:
-       • Goal Items (window.GI, #gi-js) — per-goal photos, title, achieved, and
-         details (category, target date, why, feel, script, listens, audio_path).
-       • Vision images (S.visImgs / c9_vis) — the Vision folder. Same viewer, same
-         move/cover/delete as goal photos, and they still feed the Vibe Feed.
-       • The story text stays in S.goal / #goal-ta, so the video engine is untouched.
-       • Autosuggestion audio: each device keeps a copy in IndexedDB, and the account
-         copy lives in the goal-audio Storage bucket (per user, by goal id), so it
-         plays on every device.
+<!-- ═══ v268 GOAL TAB — New Story (story photos + goal photos), goals, audio bar, sheets, viewer ═══════
+     Replaces the v266 script. Data it reads and writes:
+       • Goal Items (window.GI, #gi-js): per-goal photos, title, achieved, details (category, target
+         date, why, feel, script, listens, audio_path).
+       • Story photos = S.visImgs (c9_vis, user_goals.vis_images). They are the New Story's photos
+         and still feed the Vibe Feed. The Vision folder is gone from the Goal tab.
+       • Story text = S.goal (read safely: see storyText), so the video engine is untouched.
+       • Audio: per device in IndexedDB; the account copy is in the goal-audio bucket. The story's
+         audio meta lives in localStorage (clv_story_audio) until it gets its own column.
      Own private scope; touches the rest of the app only through window globals. -->
 <script id="v264-js">
 (function(){
@@ -25021,13 +25020,14 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   };
   var STORY_G=['#c9a4ff','#ff9f7a'];
   var MAX_PHOTOS=30, MAX_LISTENS=5, XP_PER_LISTEN=5;
+  var STORY='story'; /* the audio id of the New Story (its audio bar and meta) */
 
   /* ── view state ── */
-  var V={mode:'list',id:null,root:null,newCat:null,recording:false,sheetKind:null,
+  var V={mode:'list',id:null,root:null,newCat:null,newPhotos:[],recording:false,sheetKind:null,
     vw:null,track:null,img:null,note:null,cnt:null,vwId:null,vwI:0,
-    scale:1,tx:0,ty:0,dx:0,dy:0,ptrs:{},pinch:null,drag:null,lastTap:0};
+    scale:1,tx:0,ty:0,dx:0,dy:0,ptrs:{},pinch:null,drag:null,lastTap:0,swipe:null};
 
-  /* ── audio state (one shared player for the bar) ── */
+  /* ── shared audio player for the bar ── */
   var AU={el:null,id:null,counted:false,seeking:false};
 
   function $(id){return document.getElementById(id);}
@@ -25037,6 +25037,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   function find(id){return items().filter(function(x){return x.id===id;})[0]||null;}
   function dets(it){return it.details||{};}
   function grad(cat){var c=CATS[cat]||CATS.Other;return '--g1:'+c[0]+';--g2:'+c[1];}
+  function storyPhotos(){return (typeof S!=='undefined'&&S.visImgs)||[];}
   /* 'YYYY-MM-DD' -> readable date, parsed locally so it never shifts a day */
   function fmtYMD(s){
     if(!s)return '';var p=String(s).split('-');if(p.length!==3)return esc(s);
@@ -25044,8 +25045,14 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   }
   function fmtISO(s){var d=new Date(s);return isNaN(d)?'':d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});}
   function mmss(s){if(!isFinite(s)||s<0)s=0;var m=Math.floor(s/60),r=Math.floor(s%60);return m+':'+(r<10?'0':'')+r;}
-  /* first line of the story, for the New Story tile */
   function excerpt(t){var s=String(t||'').replace(/\s+/g,' ').trim();return s.length>72?s.slice(0,72)+'…':s;}
+  /* the story text: S.goal when it loaded; otherwise the raw c9_goal (the sync pull writes it un-encoded) */
+  function storyText(){
+    var s=(typeof S!=='undefined'&&S.goal)||'';
+    if(s)return s;
+    try{var g=window._readGoalText&&window._readGoalText();if(g)return g;}catch(e){}
+    try{return localStorage.getItem('c9_goal')||'';}catch(e){return '';}
+  }
   function catChips(sel,act){
     return Object.keys(CATS).map(function(c){
       return '<button class="v266-chip'+(c===sel?' on':'')+'" data-act="'+act+'" data-cat="'+c+'">'+c+'</button>';
@@ -25056,7 +25063,38 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       +'<span class="v266-top-t">'+esc(title)+'</span></div>';
   }
 
-  /* ── IndexedDB: story picture + this device's copy of goal audio ── */
+  /* ── small storage helpers ── */
+  function jread(k,d){try{var v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}}
+  function jwrite(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+  /* ── audio meta: a goal's details, or the story's own record ── */
+  function metaGet(id){
+    if(id===STORY)return jread('clv_story_audio',{});
+    var it=find(id);return it?dets(it):{};
+  }
+  function metaSet(id,fn){
+    if(id===STORY){var m=jread('clv_story_audio',{});fn(m);jwrite('clv_story_audio',m);storyAudioPush(m);return;}
+    window.GI.update(id,function(x){x.details=dets(x);fn(x.details);});
+  }
+  /* account copy of the story audio meta (user_goals.story_audio, one row per user) */
+  function storyAudioPush(m){
+    waitReady().then(function(){
+      return window._sbShared.from('user_goals').upsert({user_id:window._sbUid,story_audio:m},{onConflict:'user_id'});
+    }).then(function(r){if(r&&r.error)console.warn('[v268] story audio push:',r.error.message);}).catch(function(){});
+  }
+  /* on load: if this device has no story audio yet, adopt the account copy */
+  function storyAudioPull(){
+    waitReady().then(function(){
+      return window._sbShared.from('user_goals').select('story_audio').eq('user_id',window._sbUid).maybeSingle();
+    }).then(function(r){
+      var remote=r&&r.data&&r.data.story_audio;
+      var local=jread('clv_story_audio',{});
+      if(remote&&remote.has_audio&&!local.has_audio){jwrite('clv_story_audio',remote);barRender();}
+    }).catch(function(){});
+  }
+  function itemTitle(id){return id===STORY?'New Story':((find(id)||{}).title||'');}
+
+  /* ── IndexedDB: this device's copy of audio + the story tile picture ── */
   var _dbP=null;
   function db(){
     if(_dbP)return _dbP;
@@ -25083,7 +25121,6 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       var t=d.transaction('blobs','readwrite');t.objectStore('blobs').delete(key);
       t.oncomplete=function(){res();};t.onerror=function(){rej(t.error);};});});
   }
-  /* object-URL cache so each blob is turned into a URL once */
   var _urls={};
   function blobUrl(key){
     if(_urls[key])return Promise.resolve(_urls[key]);
@@ -25092,14 +25129,12 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     }).catch(function(){return null;});
   }
   function blobReset(key){if(_urls[key]){URL.revokeObjectURL(_urls[key]);delete _urls[key];}}
-  /* read picked files as data URLs (5 MB cap, same as the Goal Items module) */
   function readAll(files){
     return Promise.all(files.map(function(f){return new Promise(function(res){
       if(f.size>5*1024*1024){alert(f.name+' is too large (max 5MB).');return res(null);}
       var r=new FileReader();r.onload=function(e){res(e.target.result);};r.readAsDataURL(f);});}))
       .then(function(a){return a.filter(Boolean);});
   }
-  /* opens a native file picker without leaving a visible input behind */
   function pickFiles(multiple,cb){
     var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=!!multiple;
     inp.onchange=function(){cb(Array.from(inp.files||[]));};inp.click();
@@ -25111,11 +25146,9 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       if(window._sbShared&&window._sbUid)return res();
       if(++n>60)return rej(new Error('not ready'));setTimeout(p,150);})();});
   }
-  /* public URL of an account audio file (the bucket is public-read) */
   function audioPublicUrl(path){
     return window._sbShared.storage.from('goal-audio').getPublicUrl(path).data.publicUrl;
   }
-  /* uploads a recording to the account (own folder, one file per goal, overwritten on re-record) */
   function uploadAudio(id,blob){
     return waitReady().then(function(){
       var uid=window._sbUid;
@@ -25124,26 +25157,25 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       return window._sbShared.storage.from('goal-audio')
         .upload(path,blob,{upsert:true,contentType:blob.type||('audio/'+ext)})
         .then(function(res){
-          if(res.error){console.warn('[v266] audio upload:',res.error.message);return null;}
+          if(res.error){console.warn('[v268] audio upload:',res.error.message);return null;}
           return path;
         });
-    }).catch(function(e){console.warn('[v266] audio upload failed:',e&&e.message);return null;});
+    }).catch(function(e){console.warn('[v268] audio upload failed:',e&&e.message);return null;});
   }
   function removeAudioRemote(path){
     if(!path)return;
     waitReady().then(function(){window._sbShared.storage.from('goal-audio').remove([path]);}).catch(function(){});
   }
-  /* where to play a goal's audio from: this device's copy first, otherwise the account copy */
+  /* where to play an item's audio from: this device's copy first, otherwise the account copy */
   function audioSource(id){
-    var it=find(id);if(!it)return Promise.resolve(null);
     return blobUrl('audio:'+id).then(function(u){
       if(u)return u;
-      var p=dets(it).audio_path;
+      var p=metaGet(id).audio_path;
       return p?waitReady().then(function(){return audioPublicUrl(p);}):null;
     }).catch(function(){return null;});
   }
 
-  /* ── recording ── */
+  /* ── recording (from the audio bar) ── */
   var _rec=null,_chunks=[],_recStream=null;
   function recStart(id){
     if(!navigator.mediaDevices||!window.MediaRecorder){alert('Recording is not supported in this browser.');return;}
@@ -25156,23 +25188,26 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
         var blob=new Blob(_chunks,{type:mime});
         _recStream.getTracks().forEach(function(t){t.stop();});
         _rec=null;V.recording=false;
-        /* keep a copy on this device right away, then send it to the account */
         blobPut('audio:'+id,blob).then(function(){
           blobReset('audio:'+id);
-          window.GI.update(id,function(x){x.details=dets(x);x.details.has_audio=true;x.details.listens=0;});
-          renderAffirm();barRender();
+          metaSet(id,function(m){m.has_audio=true;m.listens=0;});
+          AU.id=id;
+          if(AU.el){AU.el.removeAttribute('src');}
+          barRender();
           return uploadAudio(id,blob).then(function(path){
-            if(path)window.GI.update(id,function(x){x.details=dets(x);x.details.audio_path=path;});
+            if(path)metaSet(id,function(m){m.audio_path=path;});
           });
         }).catch(function(){alert('Could not save the recording on this device.');});
       };
-      _rec.start();V.recording=true;renderAffirm();
+      _rec.start();V.recording=true;barRender();
     }).catch(function(){alert('Microphone permission is needed to record.');});
   }
   function recStop(){if(_rec&&_rec.state!=='inactive')_rec.stop();}
 
   /* the prepared script the user reads aloud; built from their own answers */
-  function defaultScript(it,d){
+  function defaultScript(id){
+    if(id===STORY)return 'This is my story, and I am living it now. '+excerpt(storyText())+' Every day I move closer to it. I am capable, I am ready, and I deserve this.';
+    var it=find(id);if(!it)return '';var d=dets(it);
     var p=['I am moving toward: '+it.title+'.'];
     if(d.why)p.push('I want this because '+String(d.why).trim()+'.');
     if(d.feel)p.push('I feel '+String(d.feel).trim()+' — and it is already becoming real.');
@@ -25195,7 +25230,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     a.onended=function(){if(!AU.counted)countListen(AU.id);barPlayIcon();};
     return a;
   }
-  /* loads a goal's audio into the bar (does not start it) */
+  /* loads an item's audio into the bar (does not start it) */
   function auSelect(id){
     var a=auEnsure();AU.id=id;AU.counted=false;a.pause();a.removeAttribute('src');
     barRender();
@@ -25204,7 +25239,6 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       a.src=src;a.load();barRender();
     });
   }
-  /* play / pause from the bar: starts the loaded source, or loads it first */
   function auToggle(){
     var a=auEnsure();if(!AU.id)return;
     if(!a.paused){a.pause();return;}
@@ -25213,14 +25247,14 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       if(!src)return;a.src=src;return a.play();
     }).catch(function(){});
   }
-  /* each counted listen adds XP, capped at MAX_LISTENS per goal */
   function countListen(id){
     AU.counted=true;
-    var it=id?find(id):null;if(!it)return;
-    if((dets(it).listens||0)>=MAX_LISTENS)return;
-    window.GI.update(id,function(x){x.details=dets(x);x.details.listens=(x.details.listens||0)+1;});
+    if(!id)return;
+    var m=metaGet(id);
+    if((m.listens||0)>=MAX_LISTENS)return;
+    metaSet(id,function(x){x.listens=(x.listens||0)+1;});
     if(window.xpAdd)window.xpAdd(XP_PER_LISTEN);
-    if(V.sheetKind==='aff'&&V.id===id)renderAffirm();
+    barRender();
   }
   function barPlayIcon(){
     var b=$('v266-bar-play'),a=AU.el;
@@ -25233,33 +25267,46 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     if(d)d.textContent=mmss(a.duration);
     if(r&&!AU.seeking&&a.duration&&isFinite(a.duration))r.value=String(Math.round(a.currentTime/a.duration*1000));
   }
-  function isGoalTabActive(){var a=document.querySelector('.bnav-tab.active');return !!a&&a.dataset.tab==='goal';}
-  /* the bar shows only on the Goal tab, and only when the selected goal has audio */
+  /* the bar lives only inside a goal or the story, and only for the item open right now */
+  function barScope(){return V.mode==='goal'||V.mode==='story';}
+  function currentAudioId(){return V.mode==='story'?STORY:(V.mode==='goal'?V.id:null);}
+  /* sits directly on the bottom nav, and the page gets matching bottom padding so nothing scrolls behind it */
   function barRender(){
     var bar=$('v266-bar');if(!bar)return;
-    var it=AU.id?find(AU.id):null;
-    var show=!!(it&&dets(it).has_audio&&isGoalTabActive());
+    var id=currentAudioId();
+    var show=!!(barScope()&&id&&isGoalTabActive());
     bar.classList.toggle('open',show);
-    if(!show)return;
-    $('v266-bar-name').textContent=it.title;
-    var a=AU.el;
-    var rep=$('v266-bar-rep');if(rep)rep.classList.toggle('on',!!(a&&a.loop));
+    if(!show){
+      if(V.root)V.root.style.paddingBottom='';
+      return;
+    }
+    if(AU.id!==id){AU.id=id;AU.counted=false;var a0=AU.el;if(a0){a0.pause();a0.removeAttribute('src');}auSelect(id);}
+    var nav=document.querySelector('.bnav');
+    var navH=nav?nav.offsetHeight:65;
+    bar.style.bottom=navH+'px';
+    $('v266-bar-name').textContent=itemTitle(id);
+    var m=metaGet(id),has=!!m.has_audio;
+    /* bar body: a play bar when there is audio, a record prompt when there is none */
+    $('v266-bar-play').style.display=has?'':'none';
+    $('v266-bar-seek').style.display=has?'':'none';
+    $('v266-bar-rep').style.display=has?'':'none';
+    $('v266-bar-rec').style.display=has?'none':'';
+    $('v266-bar-rec').textContent=V.recording?'■ Stop & save':'🎙 Record autosuggestion';
+    $('v266-bar-rec').setAttribute('data-act',V.recording?'stop':'rec-bar');
+    var rep=$('v266-bar-rep');if(rep)rep.classList.toggle('on',!!(AU.el&&AU.el.loop));
+    var lis=$('v266-bar-listens');if(lis)lis.textContent=has?('Listens '+(m.listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each'):'';
     barPlayIcon();barTick();
+    if(V.root)V.root.style.paddingBottom=(bar.offsetHeight+8)+'px';
   }
+  function isGoalTabActive(){var a=document.querySelector('.bnav-tab.active');return !!a&&a.dataset.tab==='goal';}
 
-  /* ── story and vision picture helpers ── */
-  /* hydrate [data-bk] nodes with their stored picture, and size textareas to their text */
+  /* ── hydrate picture nodes and size textareas ── */
   function hydrate(){
     if(!V.root)return;
     V.root.querySelectorAll('textarea').forEach(function(t){t.style.height='auto';t.style.height=t.scrollHeight+'px';});
-    V.root.querySelectorAll('[data-bk]').forEach(function(n){
-      blobUrl(n.getAttribute('data-bk')).then(function(u){
-        if(u){n.style.backgroundImage="url('"+u+"')";n.classList.add('has-img');}
-      });
-    });
   }
 
-  /* ── list: New Story, Vision folder, goal folders, achieved grid ── */
+  /* ── list: New Story (first photo as its picture), goal folders, achieved ── */
   function tileGoal(it){
     var d=dets(it),cover=(it.images||[])[0];
     var st=(cover&&cover.src)?"background-image:url('"+esc(cover.src)+"');"+grad(d.category):grad(d.category);
@@ -25271,18 +25318,12 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   }
   function renderList(){
     var all=items(),active=all.filter(function(x){return !x.achieved;}),ach=all.filter(function(x){return x.achieved;});
-    var visN=(typeof S!=='undefined'&&S.visImgs)||[];
+    var sp=storyPhotos();
+    var storyStyle=sp.length?"background-image:url('"+esc(sp[0].src)+"');--g1:"+STORY_G[0]+';--g2:'+STORY_G[1]:'--g1:'+STORY_G[0]+';--g2:'+STORY_G[1];
     var h='<div class="v266-grid">';
-    /* New Story: its picture (if any) and the start of the story text, so the story is visible here */
-    h+='<div class="v266-tile" data-act="story" data-bk="story_cover" style="--g1:'+STORY_G[0]+';--g2:'+STORY_G[1]+'">'
+    h+='<div class="v266-tile" data-act="story" style="'+storyStyle+'">'
       +'<div class="v266-scrim"></div><div class="v266-tile-big">New Story</div>'
-      +'<div class="v266-tile-sub">'+esc(excerpt(typeof S!=='undefined'?S.goal:'')||'✦ My life, in my words')+'</div></div>';
-    /* Vision folder: the existing vision images, cover = the first one */
-    if(visN.length){
-      h+='<div class="v266-tile" data-act="vision" style="background-image:url(\''+esc(visN[0].src)+'\');'+grad('Other')+'">'
-        +'<div class="v266-scrim"></div><div class="v266-tile-big">Vision</div>'
-        +'<div class="v266-tile-sub">'+visN.length+' photo'+(visN.length===1?'':'s')+'</div></div>';
-    }
+      +'<div class="v266-tile-sub">'+esc(excerpt(storyText())||'✦ My life, in my words')+'</div></div>';
     h+=active.map(tileGoal).join('');
     h+='<div class="v266-tile v266-add" data-act="new"><span>+</span><small>New goal</small></div>';
     h+='</div>';
@@ -25290,24 +25331,47 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     V.root.innerHTML=h;hydrate();barRender();
   }
 
-  /* ── story ── */
+  /* ── New Story: text, a triple grid of the story's own photos, the goals' photos read-only, audio script ── */
+  function photoTile(im,i,act,extra){
+    return '<button class="v266-p" data-act="'+act+'" data-i="'+i+'"'+(extra||'')+'><img src="'+esc(im.src)+'" loading="lazy" alt="">'
+      +(i===0&&act==='sview'?'<span class="v266-cov">Cover</span>':'')+'</button>';
+  }
   function renderStory(){
-    var story=(typeof S!=='undefined'&&S.goal)||'';
+    var sp=storyPhotos();
+    var goalPics=[];
+    items().forEach(function(it){(it.images||[]).forEach(function(im){if(im&&im.src)goalPics.push({im:im,goal:it});});});
+    var tiles=sp.map(function(im,i){return photoTile(im,i,'sview');}).join('');
+    tiles+='<button class="v266-p v266-plus" data-act="story-add"><span>+</span><small>Add photos</small></button>';
+    var goalTiles=goalPics.map(function(g){
+      return '<button class="v266-p" data-act="goal" data-id="'+esc(g.goal.id)+'"><img src="'+esc(g.im.src)+'" loading="lazy" alt="">'
+        +'<span class="v266-cov">'+esc(g.goal.title).slice(0,14)+'</span></button>';
+    }).join('');
     V.root.innerHTML=topbarPlain('New Story')
       +'<div class="v266-pad"><label class="v266-lbl">My story</label>'
-      +'<textarea class="v266-ta" data-field="story" placeholder="Write it as your dream life, in first person. Name the real things you want — clear words help Clar find the right videos.">'+esc(story)+'</textarea>'
-      +'<div class="v266-acts"><button class="v266-chip" data-act="story-cover">📷 Picture for the tile</button>'
-      +'<button class="v266-chip" data-act="manifest-story">✦ Manifest</button>'
-      +'<button class="v266-chip" data-act="fnd-story">✦ My Foundation</button></div></div>';
-    hydrate();
+      +'<textarea class="v266-ta" data-field="story" placeholder="Write it as your dream life, in first person. Name the real things you want — clear words help Clar find the right videos.">'+esc(storyText())+'</textarea>'
+      +'<div class="v266-acts"><button class="v266-chip" data-act="manifest-story">✦ Manifest</button>'
+      +'<button class="v266-chip" data-act="fnd-story">✦ My Foundation</button></div>'
+      +'<div class="v266-phead"><span class="v266-lbl" style="margin:0">My photos · '+sp.length+'</span></div></div>'
+      +'<div class="v266-pgrid v266-three" id="v266-pgrid">'+tiles+'</div>'
+      +(goalTiles?'<div class="v266-pad"><div class="v266-phead"><span class="v266-lbl" style="margin:0">From my goals</span></div></div><div class="v266-pgrid v266-three">'+goalTiles+'</div>':'')
+      +'<div class="v266-pad"><label class="v266-lbl">Autosuggestion script</label>'
+      +'<textarea class="v266-ta" data-aud="'+STORY+'">'+esc(metaGet(STORY).script||defaultScript(STORY))+'</textarea></div>';
+    hydrate();barRender();
+  }
+  function refreshStoryPhotos(){
+    if(V.mode!=='story')return;
+    renderStory();
   }
 
-  /* ── new goal: details first, category last (it is set once) ── */
+  /* ── new goal: details first, category last; photos can be added here too ── */
   function renderNew(){
-    V.newCat=null;
+    V.newCat=null;V.newPhotos=[];
     V.root.innerHTML=topbarPlain('New goal')
       +'<div class="v266-pad"><label class="v266-lbl">What do you want?</label>'
       +'<input class="v266-in" data-new="title" maxlength="140" placeholder="e.g. Build a 10-client coaching business">'
+      +'<label class="v266-lbl">Photos</label>'
+      +'<div class="v266-acts" style="margin-top:0"><button class="v266-chip" data-act="new-photos">📷 Add photos</button></div>'
+      +'<div class="v266-pgrid v266-three" id="v266-newphotos" style="margin-top:8px"></div>'
       +'<label class="v266-lbl">Target date</label><input class="v266-in" type="date" data-new="target">'
       +'<label class="v266-lbl">Why do I want this?</label>'
       +'<textarea class="v266-ta" data-new="why" placeholder="The real reason behind this goal"></textarea>'
@@ -25316,19 +25380,25 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       +'<label class="v266-lbl">Category <span style="font-weight:400;color:var(--sub)">· set once, can\'t be changed later</span></label>'
       +'<div class="v266-chips">'+catChips(null,'new-cat')+'</div>'
       +'<button class="v266-btn" data-act="create">Create goal</button></div>';
+    renderNewPhotos();
+  }
+  function renderNewPhotos(){
+    var g=$('v266-newphotos');if(!g)return;
+    g.innerHTML=V.newPhotos.map(function(s,i){return '<div class="v266-p"><img src="'+esc(s)+'" alt=""></div>';}).join('');
   }
   function createGoal(){
     function val(k){var el=V.root.querySelector('[data-new="'+k+'"]');return el?el.value.trim():'';}
     var title=val('title');
     if(!title){alert('Give this goal a short title first.');return;}
     var item={id:'g_'+Date.now()+'_'+Math.random().toString(36).slice(2),remoteId:null,title:title.slice(0,140),
-      images:[],date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private',
+      images:V.newPhotos.slice(0,MAX_PHOTOS).map(function(s){return {src:s};}),
+      date_set:new Date().toISOString(),achieved:false,date_achieved:null,visibility:'private',
       details:{category:V.newCat||'Other',target_date:val('target'),why:val('why'),feel:val('feel'),listens:0}};
     window.GI.add(item);
     V.mode='goal';V.id=item.id;renderGoal();
   }
 
-  /* ── goal: top bar with the goal name, then the photo grid ── */
+  /* ── goal: top bar with the name, photos, details below them, achieve at the end ── */
   function photosHtml(imgs){
     var tiles=imgs.map(function(im,i){
       return '<button class="v266-p" data-act="view" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
@@ -25343,20 +25413,30 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       +'<button class="v266-btn ghost" data-act="unachieve">Mark as not yet</button>';
     return '<button class="v266-btn gold" data-act="achieve">✓ Mark as achieved</button>';
   }
+  function detailsHtml(it,d){
+    return '<div class="v266-pad" style="padding-top:18px">'
+      +'<label class="v266-lbl">🎯 Target date</label><input class="v266-in" type="date" data-sf="target" value="'+esc(d.target_date||'')+'">'
+      +'<label class="v266-lbl">Why do I want this?</label><textarea class="v266-ta" data-sf="why">'+esc(d.why||'')+'</textarea>'
+      +'<label class="v266-lbl">How will I feel when I have it?</label><textarea class="v266-ta" data-sf="feel">'+esc(d.feel||'')+'</textarea>'
+      +'<label class="v266-lbl">Category</label><div class="v266-chips"><span class="v266-chip on ro">'+esc(d.category||'Other')+'</span></div>'
+      +'<p class="v266-hint" style="margin:6px 0 0">Set when the goal was created, so it stays the same.</p>'
+      +'<label class="v266-lbl">Autosuggestion script</label>'
+      +'<textarea class="v266-ta" data-aud="'+esc(it.id)+'">'+esc(d.script||defaultScript(it.id))+'</textarea>'
+      +'</div>';
+  }
   function renderGoal(){
     var it=find(V.id);
     if(!it){V.mode='list';renderList();return;}
     var d=dets(it),imgs=it.images||[];
     var h='<div class="v266-top"><button class="v266-back" data-act="back" aria-label="Back">←</button>'
       +'<input class="v266-top-t" data-field="title" value="'+esc(it.title)+'" maxlength="140" aria-label="Goal name">'
-      +'<button class="v266-ico" data-act="affirm" title="Autosuggestion">🎙</button>'
-      +'<button class="v266-ico" data-act="settings" title="Goal settings">⋯</button></div>';
+      +'<button class="v266-ico" data-act="settings" title="More">⋯</button></div>';
     h+='<div class="v266-count">'+imgs.length+' / '+MAX_PHOTOS+' photos'+(d.category?' · '+esc(d.category):'')+'</div>';
     h+='<div class="v266-pgrid" id="v266-pgrid">'+photosHtml(imgs)+'</div>';
-    h+='<div style="padding:0 16px">'+achieveHtml(it)+'</div>';
+    h+=detailsHtml(it,d);
+    h+='<div style="padding:0 16px 8px">'+achieveHtml(it)+'</div>';
     V.root.innerHTML=h;hydrate();barRender();
   }
-  /* refresh only the photo grid (used after photos are added or moved) */
   function refreshPhotos(){
     var it=find(V.id);if(!it)return;
     var g=$('v266-pgrid');if(g)g.innerHTML=photosHtml(it.images||[]);
@@ -25377,27 +25457,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     });
   }
 
-  /* ── vision folder ── */
-  function renderVision(){
-    var imgs=(typeof S!=='undefined'&&S.visImgs)||[];
-    var tiles=imgs.map(function(im,i){
-      return '<button class="v266-p" data-act="vview" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
-        +(i===0?'<span class="v266-cov">Cover</span>':'')+'</button>';
-    }).join('');
-    tiles+='<button class="v266-p v266-plus" data-act="vision-add"><span>+</span><small>Add photos</small></button>';
-    V.root.innerHTML=topbarPlain('Vision images')
-      +'<div class="v266-count">'+imgs.length+' photos · also shown in your Vibe Feed</div>'
-      +'<div class="v266-pgrid" id="v266-pgrid">'+tiles+'</div>';
-  }
-  /* the legacy upload and delete paths call renderVisGrid(); keep the vision folder in step with them */
-  var _rvgPrevV266=window.renderVisGrid;
-  window.renderVisGrid=function(){
-    var r=_rvgPrevV266?_rvgPrevV266.apply(this,arguments):undefined;
-    if(V.mode==='vision'&&V.root)renderVision();
-    return r;
-  };
-
-  /* ── sheets: settings, autosuggestion, audio picker ── */
+  /* ── sheets: goal ⋯ menu, audio picker ── */
   function sheetOpen(kind,html){
     var s=$('v266-sheet');if(!s)return;
     V.sheetKind=kind;
@@ -25410,71 +25470,30 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     p.innerHTML='<div class="v266-grab"></div>'+html;p.scrollTop=sc;
   }
   function sheetClose(){var s=$('v266-sheet');if(s)s.classList.remove('open');V.sheetKind=null;}
-
-  function openSettings(id){
-    var it=find(id);if(!it)return;var d=dets(it);
-    sheetOpen('settings',
-      '<div class="v266-sh-h">Goal settings</div>'
-      +'<label class="v266-lbl">Target date</label><input class="v266-in" type="date" data-sf="target" value="'+esc(d.target_date||'')+'">'
-      +'<label class="v266-lbl">Why do I want this?</label><textarea class="v266-ta" data-sf="why">'+esc(d.why||'')+'</textarea>'
-      +'<label class="v266-lbl">How will I feel when I have it?</label><textarea class="v266-ta" data-sf="feel">'+esc(d.feel||'')+'</textarea>'
-      +'<label class="v266-lbl">Category</label><div class="v266-chips"><span class="v266-chip on ro">'+esc(d.category||'Other')+'</span></div>'
-      +'<p class="v266-hint" style="margin:6px 0 0">Set when the goal was created, so it stays the same.</p>'
+  function openMore(id){
+    sheetOpen('more',
+      '<div class="v266-sh-h">'+esc(itemTitle(id))+'</div>'
       +'<div class="v266-acts"><button class="v266-chip" data-act="manifest-goal">✦ Manifest</button><button class="v266-chip" data-act="fnd-goal">✦ My Foundation</button></div>'
       +'<button class="v266-btn danger" data-act="delete-goal">Delete goal</button>'
       +'<button class="v266-btn ghost" data-act="sheet-done">Done</button>');
   }
-
-  /* the autosuggestion manager: the script to read, recording, play in the bar, delete */
-  function openAffirm(id){ V.id=id; sheetOpen('aff',''); renderAffirm(); }
-  function renderAffirm(){
-    if(V.sheetKind!=='aff')return;
-    var it=find(V.id);if(!it)return;var d=dets(it);
-    var mid;
-    if(V.recording){
-      mid='<p class="v266-hint">Recording… read the script slowly, in your own voice.</p>'
-        +'<button class="v266-btn" data-act="stop">■ Stop &amp; save</button>';
-    }else if(d.has_audio){
-      mid='<div class="v266-aff"><div>Saved for this goal · listens '+(d.listens||0)+'/'+MAX_LISTENS+' · +'+XP_PER_LISTEN+' XP each</div>'
-        +'<div class="v266-acts"><button class="v266-chip" data-act="aff-play">▶ Play in the bar</button>'
-        +'<button class="v266-chip" data-act="rec-again">● Re-record</button>'
-        +'<button class="v266-chip" data-act="aff-delete">🗑 Delete audio</button></div></div>';
-    }else{
-      mid='<button class="v266-btn" data-act="rec">● Record my voice</button>';
-    }
-    sheetSet('<div class="v266-sh-h">🎙 Autosuggestion</div>'
-      +'<p class="v266-hint" style="margin:0 0 6px">Read this out loud in your own voice. Play it whenever you need it, on any of your devices.</p>'
-      +'<textarea class="v266-ta" data-aff="script">'+esc(d.script||defaultScript(it,d))+'</textarea>'
-      +mid
-      +'<button class="v266-btn ghost" data-act="sheet-done">Done</button>');
-  }
   function deleteAudio(id){
     if(!confirm('Delete this autosuggestion audio? It is removed from your other devices too.'))return;
-    var it=find(id),path=it&&dets(it).audio_path;
+    var m=metaGet(id),path=m.audio_path;
     blobDel('audio:'+id).then(function(){blobReset('audio:'+id);}).catch(function(){});
     removeAudioRemote(path);
-    if(AU.id===id){
-      if(AU.el){AU.el.pause();AU.el.removeAttribute('src');}
-      AU.id=null;
-    }
-    window.GI.update(id,function(x){x.details=dets(x);x.details.has_audio=false;x.details.audio_path=null;x.details.listens=0;});
-    renderAffirm();barRender();
-  }
-  function openPicker(){
-    var withAudio=items().filter(function(x){return dets(x).has_audio;});
-    var body=withAudio.length
-      ?withAudio.map(function(x){return '<button class="v266-pick" data-act="pick-audio" data-id="'+esc(x.id)+'">🎙 <span>'+esc(x.title)+'</span><small>'+esc(dets(x).category||'')+'</small></button>';}).join('')
-      :'<p class="v266-hint" style="margin:6px 0">No autosuggestion audio yet. Open a goal, tap 🎙 and record one.</p>';
-    sheetOpen('picker','<div class="v266-sh-h">Autosuggestions</div>'+body+'<button class="v266-btn ghost" data-act="sheet-done">Done</button>');
+    if(AU.el){AU.el.pause();AU.el.removeAttribute('src');}
+    AU.id=null;
+    metaSet(id,function(x){x.has_audio=false;x.audio_path=null;x.listens=0;});
+    barRender();
   }
 
-  /* ── full-screen viewer: swipe down to close (no close button), pinch/pan zoom, infinite sideways swipe ── */
-  /* the photo list the viewer is showing: a goal's photos, or the vision folder */
+  /* ── full-screen viewer: swipe down to close, pinch/pan zoom, endless sideways swipe ── */
+  /* the photo list the viewer shows: the story's photos ('vision') or one goal's photos */
   function vwArr(id){
-    if(id==='vision')return (typeof S!=='undefined'&&S.visImgs)||[];
+    if(id==='vision')return storyPhotos();
     var it=find(id);return it?(it.images||[]):[];
   }
-  /* saves a change to the list the viewer is showing */
   function vwCommit(){
     if(V.vwId==='vision'){if(window.sv)window.sv('v');}
     else{window.GI.update(V.vwId,function(){});}
@@ -25496,12 +25515,10 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       e.preventDefault();V.scale=clamp(V.scale*(1-e.deltaY*0.0015),1,5);
       if(V.scale===1){V.tx=0;V.ty=0;}clampPan();vwApply(false);
     },{passive:false});
-    /* caption: goal photos only */
     V.note.addEventListener('change',function(){
       var arr=vwArr(V.vwId),v=V.note.value.slice(0,200);
       if(arr[V.vwI]){arr[V.vwI].note=v;vwCommit();}
     });
-    /* order: move one step left or right inside the list */
     function moveBy(delta){
       var arr=vwArr(V.vwId),i=V.vwI,j=i+delta;
       if(j<0||j>=arr.length)return;
@@ -25533,7 +25550,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     if(!imgs.length){vwClose(true);return;}
     V.vwI=clamp(V.vwI,0,imgs.length-1);
     var im=imgs[V.vwI],isV=V.vwId==='vision';
-    /* vision photos have no caption; the cover, move and delete controls work for both */
+    /* story photos have no caption; cover, move and delete work for both */
     V.note.style.display=isV?'none':'';
     V.img.style.opacity='0';
     V.img.onload=function(){V.img.style.opacity='1';};
@@ -25544,7 +25561,6 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     $('v266-vw-right').style.display=V.vwI<imgs.length-1?'':'none';
     vwApply(false);
   }
-  /* keeps the zoomed photo from being dragged past its own edges */
   function clampPan(){
     var vw=window.innerWidth,vh=window.innerHeight,img=V.img;
     var fw=img.naturalWidth||vw,fh=img.naturalHeight||vh;
@@ -25552,13 +25568,11 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     var mx=Math.max(0,(fw*k*V.scale-vw)/2),my=Math.max(0,(fh*k*V.scale-vh)/2);
     V.tx=clamp(V.tx,-mx,mx);V.ty=clamp(V.ty,-my,my);
   }
-  /* applies the current transform; anim=true eases it (snap-back and zoom) */
   function vwApply(anim){
     var s=V.scale;
     var x=s>1?V.tx:V.dx,y=s>1?V.ty:V.dy;
     V.img.style.transition=anim?'transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s':'opacity .2s';
     V.img.style.transform='translate3d('+x+'px,'+y+'px,0) scale('+s+')';
-    /* background fades as the photo is dragged down, so closing feels like it dissolves */
     var bg=s>1?1:clamp(1-Math.abs(V.dy)/380,0.25,1);
     V.vw.style.background='rgba(0,0,0,'+bg+')';
   }
@@ -25573,7 +25587,6 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     }
     if(ids.length===1){
       var now=Date.now();
-      /* two quick taps = zoom toggle */
       if(now-V.lastTap<300){V.lastTap=0;V.drag=null;vwDouble(e.clientX,e.clientY);return;}
       V.lastTap=now;
       V.drag={x0:e.clientX,y0:e.clientY,t:now,moved:false,tx0:V.tx,ty0:V.ty};
@@ -25613,16 +25626,13 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     if(V.scale<=1){
       var dy=V.dy,dx=V.dx;
       var fast=V.drag&&V.drag.moved&&(Date.now()-V.drag.t)<260;
-      /* swipe down closes (Instagram-style): a long pull, or a quick flick */
       if(dy>120||(dy>40&&fast)){V.drag=null;vwClose(false);return;}
-      /* sideways swipe changes photo; the list wraps, so it is endless in both directions */
       if(dx<-70){V.drag=null;vwStep(1);return;}
       if(dx>70){V.drag=null;vwStep(-1);return;}
       V.dx=0;V.dy=0;vwApply(true);
     }else{clampPan();vwApply(true);}
     V.drag=null;
   }
-  /* double-tap: zoom to 2.5x around the tap point, or back to 1x */
   function vwDouble(x,y){
     if(V.scale>1){V.scale=1;V.tx=0;V.ty=0;}
     else{var s=2.5;V.scale=s;V.tx=(window.innerWidth/2-x)*(s-1);V.ty=(window.innerHeight/2-y)*(s-1);clampPan();}
@@ -25645,13 +25655,12 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       });
     },220);
   }
-  /* closing: slide down and fade, hide, then repaint the view behind it */
   function vwClose(instant){
     var done=function(){
       V.vw.style.display='none';V.img.removeAttribute('src');
       V.scale=1;V.tx=0;V.ty=0;V.dx=0;V.dy=0;V.ptrs={};V.pinch=null;V.drag=null;
       if(V.mode==='goal')refreshPhotos();
-      else if(V.mode==='vision')renderVision();
+      else if(V.mode==='story')refreshStoryPhotos();
     };
     if(instant){done();return;}
     V.img.style.transition='transform .25s ease, opacity .25s ease';
@@ -25661,6 +25670,10 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   }
 
   /* ── events (document level, so the sheet and the bar work the same way) ── */
+  function goBack(){
+    if(V.recording)recStop();
+    sheetClose();V.mode='list';renderList();
+  }
   function onClick(e){
     var t=e.target.closest('[data-act]');if(!t)return;
     if(!t.closest('#v264-root,#v266-sheet,#v266-bar'))return;
@@ -25668,41 +25681,31 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     var a=t.getAttribute('data-act');
     switch(a){
       case 'story': V.mode='story';renderStory();return;
-      case 'vision': V.mode='vision';renderVision();return;
-      case 'vision-add': if(window.trigUpload)window.trigUpload('vision');return;
-      case 'vview': vwOpen('vision',+t.getAttribute('data-i')||0);return;
+      case 'sview': vwOpen('vision',+t.getAttribute('data-i')||0);return;
+      case 'story-add': if(window.trigUpload)window.trigUpload('vision');return;
       case 'goal': V.mode='goal';V.id=t.getAttribute('data-id');renderGoal();return;
       case 'new': V.mode='new';renderNew();return;
-      case 'back':
-        if(V.recording)recStop();
-        sheetClose();V.mode='list';renderList();return;
+      case 'back': goBack();return;
       case 'create': createGoal();return;
+      case 'new-photos':
+        pickFiles(true,function(files){
+          readAll(files.slice(0,MAX_PHOTOS-V.newPhotos.length)).then(function(srcs){
+            V.newPhotos=V.newPhotos.concat(srcs).slice(0,MAX_PHOTOS);renderNewPhotos();
+          });
+        });
+        return;
       case 'new-cat':
         V.newCat=t.getAttribute('data-cat');
         V.root.querySelectorAll('[data-act="new-cat"]').forEach(function(c){c.classList.toggle('on',c===t);});
         return;
-      case 'story-cover':
-        pickFiles(false,function(files){
-          var f=files[0];if(!f)return;
-          blobPut('story_cover',f).then(function(){blobReset('story_cover');}).catch(function(){alert('Could not save the picture on this device.');});
-        });
-        return;
       case 'view': vwOpen(V.id,+t.getAttribute('data-i')||0);return;
       case 'add-photos': addPhotos();return;
-      case 'settings': openSettings(V.id);return;
-      case 'affirm': openAffirm(V.id);return;
+      case 'settings': openMore(V.id);return;
       case 'sheet-done': sheetClose();return;
-      case 'manifest-story': if(window.manifestOpen)window.manifestOpen(S.goal||'My story',undefined,t);return;
+      case 'manifest-story': if(window.manifestOpen)window.manifestOpen(storyText()||'My story',undefined,t);return;
       case 'fnd-story': if(window.foundationOpen)window.foundationOpen('major_goal','New Story');return;
       case 'manifest-goal': var mi=find(V.id);if(mi&&window.manifestOpen)window.manifestOpen(mi.title,undefined,t);return;
       case 'fnd-goal': var fi=find(V.id);if(fi&&window.foundationOpen)window.foundationOpen('goal_'+V.id,fi.title);return;
-      case 'rec': recStart(V.id);return;
-      case 'stop': recStop();return;
-      case 'rec-again':
-        window.GI.update(V.id,function(x){x.details=dets(x);x.details.has_audio=false;x.details.listens=0;});
-        renderAffirm();barRender();return;
-      case 'aff-play': auSelect(V.id);sheetClose();setTimeout(auToggle,50);return;
-      case 'aff-delete': deleteAudio(V.id);return;
       case 'delete-goal':
         if(window.giDelete)window.giDelete(V.id);
         if(!find(V.id)){sheetClose();V.mode='list';renderList();}
@@ -25711,16 +25714,17 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
         if(window.giToggleAchieve)window.giToggleAchieve(V.id);
         renderGoal();return;
       case 'share': if(window.giShare)window.giShare(V.id);return;
+      /* audio bar */
       case 'bar-play': auToggle();return;
-      case 'bar-rep':
-        var ae=auEnsure();ae.loop=!ae.loop;barRender();return;
-      case 'bar-pick': openPicker();return;
-      case 'pick-audio': auSelect(t.getAttribute('data-id'));sheetClose();return;
+      case 'bar-rep': var ae=auEnsure();ae.loop=!ae.loop;barRender();return;
+      case 'rec-bar': recStart(currentAudioId());return;
+      case 'stop': recStop();return;
+      case 'bar-delete': deleteAudio(currentAudioId());return;
     }
   }
   function onChange(e){
     var t=e.target;
-    var f=t.getAttribute('data-field'),sf=t.getAttribute('data-sf'),af=t.getAttribute('data-aff');
+    var f=t.getAttribute('data-field'),sf=t.getAttribute('data-sf'),aud=t.getAttribute('data-aud');
     if(f==='story'){
       /* the story text goes through the existing saveGoal path, so the video engine sees it as before */
       S.goal=t.value;
@@ -25734,19 +25738,30 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       return;
     }
     if(sf&&V.id){
-      var sv2=t.value;
-      window.GI.update(V.id,function(x){x.details=dets(x);x.details[sf==='target'?'target_date':sf]=sv2;});
+      var key=sf==='target'?'target_date':sf,val=t.value;
+      window.GI.update(V.id,function(x){x.details=dets(x);x.details[key]=val;});
       return;
     }
-    if(af&&V.id){
-      var script=t.value;
-      window.GI.update(V.id,function(x){x.details=dets(x);x.details.script=script;});
+    if(aud){
+      var script=t.value,target=aud;
+      metaSet(target,function(m){m.script=script;});
     }
   }
-  /* textareas grow with their content (story, settings, autosuggestion script) */
   function onInput(e){
     var t=e.target;if(!t||t.tagName!=='TEXTAREA')return;
     t.style.height='auto';t.style.height=t.scrollHeight+'px';
+  }
+
+  /* right swipe on a goal or story page goes back (a text field or the viewer keeps its own gestures) */
+  function swipeStart(e){
+    if(!barScope()&&V.mode!=='new')return;
+    if(e.target.closest('input,textarea,#v266-bar,#v266-sheet'))return;
+    V.swipe={x:e.clientX,y:e.clientY,t:Date.now()};
+  }
+  function swipeEnd(e){
+    var s=V.swipe;V.swipe=null;if(!s)return;
+    var dx=e.clientX-s.x,dy=Math.abs(e.clientY-s.y);
+    if(dx>90&&dy<50&&Date.now()-s.t<600&&V.vw.style.display!=='block')goBack();
   }
 
   /* the Goal tab shows the list every time it is opened; leaving it pauses the audio */
@@ -25760,26 +25775,34 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
       return r;
     };
   }
-  /* repaint the list when Goal Items change while the list is on screen */
+  /* the Vision folder is gone; the story's photos repaint when the legacy upload or delete paths touch them */
+  var _rvgPrevV268=window.renderVisGrid;
+  window.renderVisGrid=function(){
+    var r=_rvgPrevV268?_rvgPrevV268.apply(this,arguments):undefined;
+    if(V.mode==='story'&&V.root)renderStory();
+    return r;
+  };
   document.addEventListener('gi:change',function(){
     if(V.mode==='list'&&V.root)renderList();
   });
 
-  /* ── build the sheet and the audio bar once ── */
+  /* ── build the sheet, the audio bar and the viewer once ── */
   function buildChrome(){
     var sh=document.createElement('div');sh.id='v266-sheet';sh.className='v266-sheet';
     sh.innerHTML='<div class="v266-panel"></div>';
     document.body.appendChild(sh);
     var bar=document.createElement('div');bar.id='v266-bar';bar.className='v266-bar';
     bar.innerHTML='<div class="v266-bar-row">'
-      +'<button class="v266-bar-btn" data-act="bar-pick" aria-label="Choose an autosuggestion">☰</button>'
+      +'<button class="v266-bar-btn" data-act="bar-rep" id="v266-bar-rep" aria-label="Repeat">🔁</button>'
       +'<div class="v266-bar-name" id="v266-bar-name"></div>'
-      +'<button class="v266-bar-btn" id="v266-bar-rep" data-act="bar-rep" aria-label="Repeat">🔁</button>'
       +'<button class="v266-bar-play" id="v266-bar-play" data-act="bar-play" aria-label="Play">▶</button>'
+      +'<button class="v266-bar-btn" data-act="bar-delete" aria-label="Delete audio">🗑</button>'
       +'</div>'
-      +'<div class="v266-seek"><span id="v266-bar-t">0:00</span>'
+      +'<div class="v266-seek" id="v266-bar-seek"><span id="v266-bar-t">0:00</span>'
       +'<input type="range" id="v266-bar-range" min="0" max="1000" value="0" aria-label="Seek">'
-      +'<span id="v266-bar-d">0:00</span></div>';
+      +'<span id="v266-bar-d">0:00</span></div>'
+      +'<div class="v266-bar-sub" id="v266-bar-listens"></div>'
+      +'<button class="v266-btn" id="v266-bar-rec" data-act="rec-bar" style="display:none;margin-top:6px">🎙 Record autosuggestion</button>';
     document.body.appendChild(bar);
     var range=$('v266-bar-range');
     range.addEventListener('pointerdown',function(){AU.seeking=true;});
@@ -25795,13 +25818,30 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     document.addEventListener('click',onClick);
     document.addEventListener('change',onChange);
     document.addEventListener('input',onInput);
+    document.addEventListener('pointerdown',swipeStart);
+    document.addEventListener('pointerup',swipeEnd);
     buildViewer();
     buildChrome();
+    storyAudioPull();
   }
   init();
 })();
 </script>
 
+<!-- ═══ v268: section heads, audio bar layout (name above, play centred, repeat and delete at the sides), gap-free bar ═══ -->
+<style id="v268-css">
+.v266-phead{display:flex;align-items:center;justify-content:space-between;margin:18px 16px 8px}
+.v266-pad .v266-phead{margin:18px 0 8px}
+.v266-bar{padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px))}
+.v266-bar-row{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px}
+.v266-bar-row .v266-bar-name{grid-column:1 / -1;grid-row:1;text-align:center;font-size:1rem;font-weight:800;padding-bottom:6px}
+.v266-bar-row #v266-bar-rep{grid-column:1;grid-row:2;justify-self:start}
+.v266-bar-row #v266-bar-play{grid-column:2;grid-row:2;justify-self:center;width:58px;height:58px;font-size:1.4rem;box-shadow:0 6px 18px color-mix(in srgb,var(--acc) 35%,transparent)}
+.v266-bar-row [data-act="bar-delete"]{grid-column:3;grid-row:2;justify-self:end}
+#v266-bar-rep.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.v266-seek{margin-top:10px}
+.v266-pgrid.v266-three{grid-template-columns:repeat(3,1fr)}
+</style>
 <!-- ═══ v250 REFERRALS + INVITE TEXT (T-044) ═══ -->
 <script id="ref-js">
 (function(){
