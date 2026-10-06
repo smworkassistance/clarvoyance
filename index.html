@@ -2722,7 +2722,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v268</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v269</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -25289,6 +25289,8 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     /* bar body: a play bar when there is audio, a record prompt when there is none */
     $('v266-bar-play').style.display=has?'':'none';
     $('v266-bar-seek').style.display=has?'':'none';
+    /* no audio yet: the delete control is not needed, so the bar stays a slim strip */
+    var delBtn=bar.querySelector('[data-act="bar-delete"]');if(delBtn)delBtn.style.display=has?'':'none';
     $('v266-bar-rep').style.display=has?'':'none';
     $('v266-bar-rec').style.display=has?'none':'';
     $('v266-bar-rec').textContent=V.recording?'■ Stop & save':'🎙 Record autosuggestion';
@@ -25841,6 +25843,17 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
 #v266-bar-rep.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 .v266-seek{margin-top:10px}
 .v266-pgrid.v266-three{grid-template-columns:repeat(3,1fr)}
+/* compact audio bar: a slim strip above the bottom nav, not a card */
+.v266-bar{padding:6px 10px 6px}
+.v266-bar-row{display:grid;grid-template-columns:30px 38px 1fr 30px;gap:6px;align-items:center}
+.v266-bar-row .v266-bar-name{grid-column:1 / -1;grid-row:1;text-align:left;font-size:.85rem;font-weight:700;padding:0 2px 2px;line-height:1.2}
+.v266-bar-row #v266-bar-rep{grid-column:1;grid-row:2;width:30px;height:30px;font-size:.85rem}
+.v266-bar-row #v266-bar-play{grid-column:2;grid-row:2;width:38px;height:38px;font-size:1rem;box-shadow:none}
+.v266-bar-row [data-act="bar-delete"]{grid-column:4;grid-row:2;width:30px;height:30px;font-size:.85rem;justify-self:end}
+.v266-bar-row .v266-seek,.v266-seek{grid-column:3;grid-row:2;margin:0;gap:6px}
+.v266-seek span{font-size:.7rem;min-width:28px}
+.v266-bar-sub{display:none}
+#v266-bar-rec{width:auto;display:inline-block;padding:6px 12px;font-size:.82rem;margin:4px 0 0}
 </style>
 <!-- ═══ v250 REFERRALS + INVITE TEXT (T-044) ═══ -->
 <script id="ref-js">
