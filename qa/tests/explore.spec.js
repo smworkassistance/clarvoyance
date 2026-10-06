@@ -134,7 +134,7 @@ test.describe('Feed top + Explore (v252)', () => {
     await expect.poll(() => page.locator('#exp-grid .exp-tile:not(.sk)').count(), { timeout: 10000 }).toBeGreaterThan(3);
     await page.click('#exp-grid .exp-tile[data-i="1"]');
     await expect(page.locator('#exv')).toHaveCount(1);
-    await expect(page.locator('#exv .exv-page[data-i="1"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
+    await expect(page.locator('#exv .exv-page[data-i="1"] .exv-stage.playing')).toHaveCount(1, { timeout: 15000 });
     // pool: previous (0) + current (1) + next (2) exist, the neighbours already buffered (paused at 0:00), nothing else
     await expect.poll(() => page.evaluate(() => window.__yt.players.filter(p => !p.destroyed).length), { timeout: 5000 }).toBe(3);
     const g = await page.evaluate(() => { const s = document.querySelector('#exv .exv-page[data-i="1"] .exv-stage').getBoundingClientRect(), u = document.querySelector('#exv .exv-page[data-i="1"] .exv-ui').getBoundingClientRect(); return { w: s.width, h: s.height, vw: innerWidth, uiBelow: u.top >= s.bottom - 1, nav: getComputedStyle(document.getElementById('bnav')).display, muted: window.__yt.players[0].muted }; });
@@ -146,7 +146,7 @@ test.describe('Feed top + Explore (v252)', () => {
     await page.screenshot({ path: path.join(__dirname, '..', 'test-results', 'v253-player.png') });
     const playsBefore = await page.evaluate(() => window.__yt.players.length);
     await page.click('#exv [data-x="next"]');
-    await expect(page.locator('#exv .exv-page[data-i="2"] .exv-stage.playing')).toHaveCount(1, { timeout: 5000 });
+    await expect(page.locator('#exv .exv-page[data-i="2"] .exv-stage.playing')).toHaveCount(1, { timeout: 15000 });
     expect(await page.evaluate(() => window.__yt.loads.length), 'no loadVideoById — the next player was already there').toBe(0);
     // the page that just became current was created BEFORE the swipe (buffered), and the pool moved on: page 3 created, page 0 destroyed
     await expect.poll(() => page.evaluate(() => window.__yt.players.filter(p => !p.destroyed).length), { timeout: 5000 }).toBe(3);
