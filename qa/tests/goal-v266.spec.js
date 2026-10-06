@@ -65,22 +65,25 @@ test.describe('v266 Goal tab', () => {
     expect(app.pageErrors).toEqual([]);
   });
 
-  test('settings: target, why, feel edit and save; category shown as set-once; no inline fields on the page', async ({ app }) => {
+  test('details: on the page below the photos (no inline fields in a sheet); edit saves; ⋯ sheet has delete', async ({ app }) => {
     await app.boot();
     await openGoalTab(app);
     const p = app.page;
     await p.locator('#v264-root .v266-tile[data-act="goal"]').first().click();
-    await p.waitForSelector('#v264-root [data-act="settings"]', { state: 'visible' });
-    expect(await p.locator('textarea[data-field="why"]').count()).toBe(0);
-    await p.locator('#v264-root [data-act="settings"]').click();
-    await p.waitForSelector('#v266-sheet.open textarea[data-sf="why"]', { state: 'visible' });
-    expect(await p.locator('#v266-sheet .v266-chip.ro').innerText()).toBe('Business');
-    await p.locator('#v266-sheet textarea[data-sf="why"]').fill('Freedom to choose my work and my time');
-    await p.locator('#v266-sheet textarea[data-sf="why"]').blur();
+    await p.waitForSelector('#v266-pgrid .v266-p', { state: 'visible' });
+    // the details live under the photo grid, on the page
+    const why = p.locator('#v264-root textarea[data-sf="why"]');
+    expect(await why.count()).toBe(1);
+    expect(await why.inputValue()).toBe('Freedom to choose my work');
+    await why.fill('Freedom to choose my work and my time');
+    await why.blur();
     await p.waitForTimeout(300);
     const d = await p.evaluate(() => JSON.parse(localStorage.getItem('clv_goal_items')).find(g => g.id === 'g_seed_1').details);
     expect(d.why).toBe('Freedom to choose my work and my time');
     expect(d.category).toBe('Business');
+    // the ⋯ menu holds the delete action
+    await p.locator('#v264-root [data-act="settings"]').click();
+    await p.waitForSelector('#v266-sheet.open [data-act="delete-goal"]', { state: 'visible' });
     await p.locator('#v266-sheet [data-act="sheet-done"]').click();
     await p.waitForTimeout(200);
     expect(await p.locator('#v266-sheet.open').count()).toBe(0);
@@ -134,14 +137,20 @@ test.describe('v266 Goal tab', () => {
     expect(app.pageErrors).toEqual([]);
   });
 
-  test('audio bar stays hidden when no goal has audio yet (no autoplay, no empty player on the page)', async ({ app }) => {
+  test('audio bar: inside a goal it shows the record prompt (no audio yet), no autoplay, no audio element on the page', async ({ app }) => {
     await app.boot();
     await openGoalTab(app);
     const p = app.page;
     await p.locator('#v264-root .v266-tile[data-act="goal"]').first().click();
     await p.waitForSelector('#v266-pgrid .v266-p', { state: 'visible' });
-    expect(await p.locator('#v266-bar.open').count()).toBe(0);
+    await p.waitForSelector('#v266-bar.open', { state: 'visible' });
+    expect(await p.locator('#v266-bar-rec').isVisible()).toBe(true);
+    expect(await p.locator('#v266-bar-play').isVisible()).toBe(false);
     expect(await p.evaluate(() => document.querySelectorAll('audio').length)).toBe(0);
+    // back to the list hides the bar again
+    await p.locator('#v264-root [data-act="back"]').click();
+    await p.waitForSelector('#v264-root .v266-tile', { state: 'visible' });
+    expect(await p.locator('#v266-bar.open').count()).toBe(0);
     expect(app.pageErrors).toEqual([]);
   });
 });
