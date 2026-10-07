@@ -2722,7 +2722,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v269</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v270</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -27254,6 +27254,263 @@ html[data-theme="dark"] .g-img{
   window.clvChatLimit=chatLimit;
   window.addEventListener('load',function(){setTimeout(function(){wrapProfile();refresh();},3500);});
   window.addEventListener('sheetsDataReady',function(){wrapProfile();});
+})();
+</script>
+
+<!-- ═══ v270 — scope audio: Listen bars across Self/Tools/Non-Negotiables/Goals/Chargers + app language picker ═══
+     Everything here is additive. It reads only FINALISED rows from audio_scopes/audio_languages (RLS enforces this
+     too). Nothing shows until the owner has finalised a text, so unfinished text never reaches a user.
+     Two bar colours, per the owner's design rule: instruction = calm teal, affirmation (chargers only) = warm gold.
+     Mount strategy (owner decision 2026-10-08: wire every scope now; a scope with no finalised text just shows nothing,
+     so there is no risk in wiring ahead of the text being written):
+       - Most sections (Self practices, Goals, Non-Negotiables, Tools' own overlay/header) are STATIC markup that is
+         never rebuilt by the app's own JS, even while hidden — so each gets ONE slot inserted once at boot, directly
+         into its container. No event hook is needed; the slot just sits there until its section is shown.
+       - Chargers (one audio per container/category) and the Tools "Mental Reset" panel ARE rebuilt by the app's own
+         JS (search, category open/close) — these get a small, narrowly-scoped MutationObserver each (only watching
+         #ch-main / #tl-main, not the whole page) that mounts a bar into a container the first time it appears and
+         never again (idempotent), so a re-render can never duplicate or lose the bar. -->
+<style id="cv-v270-audio">
+.aud-slot{margin:12px 0 4px}
+.aud-bar{border-radius:14px;padding:12px 14px;background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;display:flex;align-items:center;gap:12px;box-shadow:0 4px 14px rgba(20,184,166,.25)}
+.aud-bar.aud-aff{background:linear-gradient(135deg,#b8860b,#e8b93b);box-shadow:0 4px 14px rgba(184,134,11,.25)}
+.aud-btn{width:44px;height:44px;border-radius:50%;border:none;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex-shrink:0;padding:0}
+/* gentle breathing ring around the Listen button: draws the eye, never autoplays */
+.aud-btn::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(255,255,255,.45);animation:audBreathe 2.8s ease-in-out infinite;pointer-events:none}
+.aud-btn.playing::before{animation-play-state:paused;opacity:.2}
+@keyframes audBreathe{0%,100%{transform:scale(.92);opacity:.25}50%{transform:scale(1.08);opacity:.7}}
+.aud-txt{flex:1;min-width:0;font-size:.92rem;line-height:1.35;font-weight:600}
+.aud-txt small{display:block;opacity:.85;font-size:.76rem;font-weight:400;margin-top:2px}
+.aud-ico{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.aud-rep{background:none;border:none;cursor:pointer;padding:6px;opacity:.9;display:flex}
+.aud-lang{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.aud-lang-chip{padding:10px;border-radius:12px;border:1.5px solid var(--bo);background:var(--su);color:var(--tx);font-family:'Inter Tight',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;text-align:center}
+.aud-lang-chip.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--su))}
+</style>
+<script>
+/* ═══ v270 — scope audio ═══ */
+(function(){
+  'use strict';
+  /* public bucket where the Worker stores the mp3s (see workers/admin-relay-worker.js, audio.generate) */
+  var AUD_URL = 'https://unvwjuceuyruqdnmvxlc.supabase.co/storage/v1/object/public/charger-audio/';
+  /* owner decision (2026-10-06): instruction listens earn XP the same way affirmations do. 5 XP, max 5 listens per scope and language */
+  var AUD_XP = 5, AUD_CAP = 5, AUD_KEY = 'clv_audio_listens';
+  var ICON_PLAY  = '<svg class="aud-ico" viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>';
+  var ICON_PAUSE = '<svg class="aud-ico" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>';
+  var ICON_REPLAY= '<svg class="aud-ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>';
+
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  /* matches admin.html's auSlug() exactly — a real Supabase charger_categories id can carry odd characters
+     (this app hit a trailing-space category id before, see CLAUDE.md's "Monk mode" entry), so both sides slug it
+     the same way rather than trusting the raw id to be a safe scope_key. */
+  function audSlug(s){ return String(s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''); }
+  /* the app's Clar language (en / hi / hinglish). Hinglish uses the Hindi audio until its own voice is added. */
+  function appLang(){ try { return localStorage.getItem('clar_lang') || 'en'; } catch (e) { return 'en'; } }
+  function audLang(){ var l = appLang(); return l === 'hinglish' ? 'hi' : l; }
+  /* wait for the shared Supabase client (same retry pattern this file uses for window._sbShared) */
+  function sbReady(cb, tries){
+    tries = tries || 0;
+    if (window._sbShared) return cb(window._sbShared);
+    if (tries > 80) return cb(null);
+    setTimeout(function(){ sbReady(cb, tries + 1); }, 100);
+  }
+  /* fetch the FINALISED audio for one scope in the active language, falling back to English. Unfinalised gives null. */
+  function fetchScope(key, cb){
+    var L = audLang();
+    sbReady(function(sb){
+      if (!sb) return cb(null);
+      function q(code){
+        return sb.from('audio_scopes').select('audio_path,audio_hash,lang').eq('scope_key', key).eq('lang', code).eq('finalised', true).limit(1);
+      }
+      q(L).then(function(r){
+        if (r.data && r.data[0] && r.data[0].audio_path) return cb(r.data[0]);
+        if (L !== 'en') return q('en').then(function(r2){ cb(r2.data && r2.data[0] && r2.data[0].audio_path ? r2.data[0] : null); }, function(){ cb(null); });
+        cb(null);
+      }, function(){ cb(null); });
+    });
+  }
+  /* XP + cap: counted when a listen starts (press Listen or Replay) */
+  function countListen(key, lang){
+    var m = {};
+    try { m = JSON.parse(localStorage.getItem(AUD_KEY) || '{}') || {}; } catch (e) { m = {}; }
+    var id = key + '|' + lang, n = m[id] || 0;
+    if (n >= AUD_CAP) return;
+    m[id] = n + 1;
+    try { localStorage.setItem(AUD_KEY, JSON.stringify(m)); } catch (e) { /* storage full or blocked: still play */ }
+    if (window.xpAdd) window.xpAdd(AUD_XP);
+  }
+  /* build the Listen bar into a slot. No autoplay: the user taps Listen. kind 'affirmation' gets the gold variant. */
+  function mountBar(slot, key, title, kind){
+    slot.innerHTML = '';
+    slot.setAttribute('data-key', key);
+    slot.setAttribute('data-title', title);
+    fetchScope(key, function(row){
+      if (!row) return; /* nothing finalised yet: show nothing */
+      var audio = new Audio(AUD_URL + row.audio_path + '?v=' + encodeURIComponent(row.audio_hash || ''));
+      audio.preload = 'none';
+      var bar = document.createElement('div');
+      bar.className = 'aud-bar' + (kind === 'affirmation' ? ' aud-aff' : '');
+      bar.innerHTML = '<button class="aud-btn" type="button" aria-label="Listen">' + ICON_PLAY + '</button>'
+        + '<div class="aud-txt">' + esc(title) + '<small>Tap to listen</small></div>'
+        + '<button class="aud-rep" type="button" aria-label="Replay" style="display:none">' + ICON_REPLAY + '</button>';
+      var btn = bar.querySelector('.aud-btn'), rep = bar.querySelector('.aud-rep');
+      function setPlaying(p){ btn.innerHTML = p ? ICON_PAUSE : ICON_PLAY; btn.classList.toggle('playing', p); }
+      btn.onclick = function(){
+        if (audio.paused) { countListen(key, row.lang); audio.play().catch(function(){ /* browser blocked it: a second tap works */ }); }
+        else audio.pause();
+      };
+      rep.onclick = function(){ countListen(key, row.lang); audio.currentTime = 0; audio.play().catch(function(){}); };
+      audio.onplay = function(){ setPlaying(true); rep.style.display = ''; };
+      audio.onpause = function(){ setPlaying(false); };
+      audio.onended = function(){ setPlaying(false); };
+      slot.appendChild(bar);
+    });
+  }
+  /* insert ONE slot as the first child of `container`, once. Safe to call repeatedly (idempotent) and safe if
+     `container` doesn't exist in this build (future markup changes don't need to touch this file). */
+  function mountFirstChild(container, key, title, kind){
+    if (!container || container.querySelector(':scope > .aud-slot')) return;
+    var slot = document.createElement('div'); slot.className = 'aud-slot';
+    container.insertBefore(slot, container.firstChild);
+    mountBar(slot, key, title, kind);
+  }
+  /* insert ONE slot right after `afterEl`, once. */
+  function mountAfter(afterEl, key, title, kind){
+    if (!afterEl) return;
+    var next = afterEl.nextElementSibling;
+    if (next && next.classList && next.classList.contains('aud-slot') && next.getAttribute('data-key') === key) return;
+    var slot = document.createElement('div'); slot.className = 'aud-slot';
+    afterEl.insertAdjacentElement('afterend', slot);
+    mountBar(slot, key, title, kind);
+  }
+
+  /* ── static mounts: every container below is in the DOM from first load (even while hidden), and its own
+     content is never rebuilt by the app's JS — so one mount at boot is enough for all of them. ── */
+  function mountStaticAll(){
+    var one = document.querySelector.bind(document);
+    mountFirstChild(one('#self-section .self-acc'), 'self.overall', 'Self tab: how this works', 'instruction');
+    mountAfter(one('#self-section [onclick="_goRevise()"]'), 'self.revise_shortcut', 'Revise & Repeat: why this shortcut', 'instruction');
+    mountFirstChild(one('#self-body-myspace'), 'self.my_personal_space', 'My Personal Space: how to use it', 'instruction');
+    mountFirstChild(one('#self-body-pkstate'), 'self.peak_state', 'Peak State: how to practise', 'instruction');
+    mountFirstChild(one('#self-body-ssw'), 'self.ssw', 'Slow, Soft & Swift: how to practise', 'instruction');
+    mountFirstChild(one('#self-body-ndt'), 'self.ndt', 'Non-Doing Timer: how to practise', 'instruction');
+    mountFirstChild(one('#self-body-walktalk'), 'self.walktalk', 'Walk & Talk: how to practise', 'instruction');
+    mountFirstChild(one('#self-body-pys'), 'self.pys', 'Protect Yourself: how to practise', 'instruction');
+    mountFirstChild(one('#self-body-nn'), 'nn.overall', 'Non-Negotiables: how this works', 'instruction');
+    var fndHdr = one('#foundation-ov .fnd-hdr'); if (fndHdr) mountAfter(fndHdr, 'self.foundation', 'My Foundation: how to use it', 'instruction');
+    var tvHdr = one('#trueview-overlay .pureab-hdr'); if (tvHdr) mountAfter(tvHdr, 'self.true_view', 'True View Chart: how to use it', 'instruction');
+    var paHdr = one('#pureab-overlay .pureab-hdr'); if (paHdr) mountAfter(paHdr, 'self.pure_abundance', 'Pure Abundance: how to use it', 'instruction');
+    /* v264 redesigned the Goal tab: #v264-root starts empty in the HTML and is filled by the
+       app's own JS (its innerHTML gets replaced), so a one-time mount at boot gets wiped the
+       moment that render happens -- goals.overall is mounted via the watch() below instead,
+       the same technique already used for chargers/tools' Mental Reset panel. The dead
+       #goal-body-major this version used to target is permanently hidden by
+       "#goal-row.v264 > :not(#v264-root){display:none}" and is left alone. */
+    var physHdr = one('#phys-card-ov .phys-hdr'); if (physHdr) mountAfter(physHdr, 'tools.physical', 'Physical Reset: how to practise', 'instruction');
+    var tlMain = one('#tl-main');
+    if (tlMain && tlMain.parentNode && !(tlMain.previousElementSibling && tlMain.previousElementSibling.classList && tlMain.previousElementSibling.classList.contains('aud-slot'))) {
+      var slot = document.createElement('div'); slot.className = 'aud-slot';
+      tlMain.parentNode.insertBefore(slot, tlMain);
+      mountBar(slot, 'tools.overall', 'Tools: how this works', 'instruction');
+    }
+    /* "Chargers: overall section" — same slot-before-the-list technique as Tools' own overall bar above */
+    var chMain = one('#ch-main');
+    if (chMain && chMain.parentNode && !(chMain.previousElementSibling && chMain.previousElementSibling.classList && chMain.previousElementSibling.classList.contains('aud-slot'))) {
+      var chSlot = document.createElement('div'); chSlot.className = 'aud-slot';
+      chMain.parentNode.insertBefore(chSlot, chMain);
+      mountBar(chSlot, 'charger.overall', 'Chargers: how this works', 'instruction');
+    }
+  }
+
+  /* ── dynamic mounts: chargers (one per container/category) and the Tools "Mental Reset" panel are rebuilt by
+     the app's own JS (search, category open/close), so each gets a small observer scoped to its own container
+     only — never the whole page, to avoid doing work on every unrelated DOM change (chat, timers, Vibe Feed). ── */
+  function scanChargers(){
+    document.querySelectorAll('#ch-main .cha-cat-body[id^="cha-catbody-"]').forEach(function(body){
+      if (body.querySelector(':scope > .aud-slot')) return;
+      var catId = body.id.replace(/^cha-catbody-/, '');
+      var row = body.previousElementSibling;
+      var nameEl = row && row.querySelector && row.querySelector('.cha-cat-name');
+      var title = (nameEl ? nameEl.textContent.trim() : 'Charger') + ': affirmation';
+      mountFirstChild(body, 'charger.' + audSlug(catId), title, 'affirmation');
+    });
+  }
+  function scanToolsMental(){
+    document.querySelectorAll('#tl-main .cat-fs-hdr').forEach(function(hdr){
+      var lbl = hdr.querySelector('.cat-fs-lbl');
+      if (!lbl || lbl.textContent.trim() !== 'Mental Reset') return;
+      mountAfter(hdr, 'tools.mental_reset', 'Mental Reset: how to practise', 'instruction');
+    });
+  }
+  function watch(containerId, fn){
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    fn();
+    var scheduled = false;
+    new MutationObserver(function(){
+      if (scheduled) return;
+      scheduled = true;
+      (window.requestAnimationFrame || setTimeout)(function(){ scheduled = false; fn(); });
+    }).observe(el, { childList: true, subtree: true });
+  }
+
+  /* Profile → Clar AI: language picker. Choices come from the admin language list (active rows only). */
+  function renderLangCard(){
+    var pane = document.getElementById('pane-clar');
+    if (!pane || document.getElementById('aud-lang-card')) return;
+    var card = document.createElement('div');
+    card.className = 'prof-card';
+    card.id = 'aud-lang-card';
+    card.innerHTML = '<div class="prof-section-hdr">Language</div>'
+      + '<p style="font-size:.89rem;color:var(--sub);line-height:1.5;margin:0">Clar\'s guidance audio plays in this language.</p>'
+      + '<div class="aud-lang" id="aud-lang-chips"></div>';
+    pane.insertBefore(card, pane.firstChild);
+    var box = document.getElementById('aud-lang-chips');
+    /* fallback list if the table is not there yet (owner has not run the migration): English and Hindi */
+    var fallback = [{code:'en', name:'English'}, {code:'hi', name:'हिन्दी'}];
+    function paint(list){
+      box.innerHTML = '';
+      list.forEach(function(l){
+        var c = document.createElement('button');
+        c.type = 'button';
+        c.setAttribute('data-code', l.code);
+        c.className = 'aud-lang-chip' + (audLang() === l.code ? ' on' : '');
+        c.textContent = l.name;
+        c.onclick = function(){ chooseLang(l.code); };
+        box.appendChild(c);
+      });
+    }
+    sbReady(function(sb){
+      if (!sb) return paint(fallback);
+      sb.from('audio_languages').select('code,name').eq('active', true).order('sort', {ascending: true}).then(function(r){
+        paint(r.data && r.data.length ? r.data : fallback);
+      }, function(){ paint(fallback); });
+    });
+  }
+  /* save the choice on the device and the account, then refresh every mounted Listen bar (including the dynamic ones) */
+  function chooseLang(code){
+    try { localStorage.setItem('clar_lang', code); } catch (e) { /* blocked storage: the choice lasts this session only */ }
+    if (window._syncPushProfile) window._syncPushProfile();
+    document.querySelectorAll('#aud-lang-chips .aud-lang-chip').forEach(function(c){
+      c.classList.toggle('on', c.getAttribute('data-code') === code);
+    });
+    document.querySelectorAll('.aud-slot[data-key]').forEach(function(s){
+      mountBar(s, s.getAttribute('data-key'), s.getAttribute('data-title'), s.querySelector('.aud-bar.aud-aff') ? 'affirmation' : 'instruction');
+    });
+  }
+
+  function boot(){
+    mountStaticAll();
+    watch('ch-main', scanChargers);
+    watch('tl-main', scanToolsMental);
+    /* goals.overall: #v264-root's content is replaced by the app's own goal-tab render, so the
+       slot is (re-)inserted every time that happens rather than once at boot (see the comment
+       in mountStaticAll above). */
+    watch('v264-root', function(){ mountFirstChild(document.getElementById('v264-root'), 'goals.overall', 'Goal: how this works', 'instruction'); });
+    renderLangCard();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
 
