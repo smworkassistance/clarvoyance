@@ -2911,7 +2911,8 @@ const AU_SCOPES = [
   { key: 'tools.mental_reset',   title: 'Tools: mental reset',              kind: 'instruction' },
   { key: 'tools.overall',        title: 'Tools: overall section',           kind: 'instruction' },
   { key: 'nn.overall',           title: 'Non-Negotiables',                  kind: 'instruction' },
-  { key: 'goals.overall',        title: 'Goals tab',                        kind: 'instruction' }
+  { key: 'goals.overall',        title: 'Goals tab',                        kind: 'instruction' },
+  { key: 'charger.overall',      title: 'Chargers: overall section',        kind: 'instruction' }
 ];
 
 let _au = { langs: [], rows: [], voices: {} };
@@ -2921,6 +2922,15 @@ const _auOpen = {};      /* which scope panels are open, so a refresh keeps them
 const auId = (k, l) => (k + '_' + l).replace(/[^a-zA-Z0-9]/g, '_');
 const auEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const auRow = (k, l) => _au.rows.find(r => r.scope_key === k && r.lang === l) || null;
+/* a charger CONTAINER (category) is its own scope, one per real Supabase charger_categories row — built from
+   SD.charger_categories (already loaded by loadData() for the Chargers tab, no extra fetch needed here). The key
+   is slugged (not the raw id) because a real category id can carry odd characters (this app has hit a trailing-
+   space category id before — see CLAUDE.md's "Monk mode" entry — slugging avoids that breaking the scope_key rule). */
+const auSlug = s => String(s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+function auAllScopes() {
+  const dyn = ((SD && SD.charger_categories) || []).map(c => ({ key: 'charger.' + auSlug(c.id), title: 'Charger: ' + (c.name || c.id), kind: 'affirmation' }));
+  return AU_SCOPES.concat(dyn);
+}
 
 /* load languages + scope rows, then draw both lists */
 async function loadAudio() {
@@ -3013,7 +3023,7 @@ function renderAudioScopes() {
   /* keep anything typed but not yet saved: a refresh after Finalise/Save must not wipe the owner's current edit */
   const typed = {};
   box.querySelectorAll('textarea[id], input[id]').forEach(el => { typed[el.id] = el.value; });
-  box.innerHTML = AU_SCOPES.map(s => {
+  box.innerHTML = auAllScopes().map(s => {
     /* one small status chip per language, shown in the summary line */
     const chips = _au.langs.map(l => {
       const st = auStatus(auRow(s.key, l.code));
@@ -3069,7 +3079,7 @@ async function auDraft(k, l) {
 /* save text, prompt and speed. Changing the text un-finalises it (the Worker enforces this). */
 async function auSave(k, l) {
   const id = auId(k, l);
-  const scope = AU_SCOPES.find(s => s.key === k);
+  const scope = auAllScopes().find(s => s.key === k);
   const text = document.getElementById('au-' + id + '-text').value;
   const prompt = document.getElementById('au-' + id + '-prompt').value;
   const rate = parseFloat(document.getElementById('au-' + id + '-rate').value) || 0.95;

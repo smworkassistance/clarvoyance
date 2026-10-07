@@ -15,10 +15,12 @@ async function mockAudio(context, { finalisedLangs = ['en'] } = {}) {
   await context.route(/supabase\.co\/rest\/v1\/audio_languages/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(LANGS) }));
   await context.route(/supabase\.co\/rest\/v1\/audio_scopes/, r => {
     const url = r.request().url();
-    const m = /lang=eq\.([a-z]+)/.exec(url);
-    const lang = m ? m[1] : null;
+    const lm = /lang=eq\.([a-z]+)/.exec(url);
+    const km = /scope_key=eq\.([^&]+)/.exec(url);
+    const lang = lm ? lm[1] : null;
+    const scopeKey = km ? decodeURIComponent(km[1]) : 'self.peak_state';
     const rows = finalisedLangs.includes(lang)
-      ? [{ audio_path: 'self.peak_state/' + lang + '.mp3', audio_hash: 'h1', lang }]
+      ? [{ audio_path: scopeKey + '/' + lang + '.mp3', audio_hash: 'h1', lang }]
       : [];
     r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rows) });
   });
@@ -96,6 +98,49 @@ test.describe('scope audio (v270)', () => {
     const saved = await page.evaluate(() => localStorage.getItem('clar_lang'));
     expect(saved).toBe('hi');
     await expect(chips.nth(1)).toHaveClass(/on/);
+    expect(app.pageErrors).toEqual([]);
+  });
+
+  test('Goal tab: the overall instruction bar appears at the top of the Major Goal box', async ({ app, page, context }) => {
+    await mockAudio(context, { finalisedLangs: ['en'] });
+    await app.boot();
+    await page.evaluate(() => localStorage.setItem('clar_lang', 'en'));
+    await app.gotoTab({ nav: '.bnav-tab[data-tab="goal"]' });
+    const bar = page.locator('#goal-body-major .aud-bar');
+    await expect(bar).toBeVisible({ timeout: 8000 });
+    // sits first, above the Manifest/Foundation/Edit button row
+    const first = await page.evaluate(() => document.getElementById('goal-body-major').firstElementChild.classList.contains('aud-slot'));
+    expect(first).toBe(true);
+    expect(app.pageErrors).toEqual([]);
+  });
+
+  test('Non-Negotiables (on Home) shows its instruction bar when opened', async ({ app, page, context }) => {
+    await mockAudio(context, { finalisedLangs: ['en'] });
+    await app.boot();
+    await page.evaluate(() => localStorage.setItem('clar_lang', 'en'));
+    await app.gotoTab({ nav: '.bnav-tab[data-tab="home"]' });
+    await page.locator('[onclick="selfToggle(\x27nn\x27)"]').filter({ visible: true }).first().click();
+    await expect(page.locator('#self-body-nn .aud-bar')).toBeVisible({ timeout: 8000 });
+    expect(app.pageErrors).toEqual([]);
+  });
+
+  test('a charger container gets its own gold affirmation bar, keyed by a slugged category id', async ({ app, page, context }) => {
+    await mockAudio(context, { finalisedLangs: ['en'] });
+    await app.boot();
+    await page.evaluate(() => localStorage.setItem('clar_lang', 'en'));
+    // seed real-shaped charger data, including the exact "trailing space" id quirk this app has hit before (CLAUDE.md "Monk mode")
+    await page.evaluate(() => {
+      window.SHEETS_READY = true;
+      window.SHEETS_DATA = window.SHEETS_DATA || {};
+      window.SHEETS_DATA.charger_categories = [{ id: 'Monk ', name: 'Monk Mode', icon: '🧘', order: 1, active: 'TRUE' }];
+      window.SHEETS_DATA.chargers = [{ id: 'c1', category_id: 'Monk ', name: 'Death Awareness', content: 'text', xp: 5, active: 'TRUE' }];
+      bnavSwitch(document.querySelector('.bnav-tab[data-tab="chargers"]'));
+    });
+    const bar = page.locator('#ch-main .cha-cat-body[id^="cha-catbody-"] .aud-bar.aud-aff');
+    await expect(bar).toBeVisible({ timeout: 8000 });
+    const key = await page.evaluate(() => document.querySelector('#ch-main .aud-slot').getAttribute('data-key'));
+    expect(key).toBe('charger.monk'); // 'Monk ' slugged the same way admin.html's auSlug() does
+    await expect(bar).toContainText('Monk Mode');
     expect(app.pageErrors).toEqual([]);
   });
 });
