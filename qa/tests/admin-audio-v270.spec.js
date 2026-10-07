@@ -1,6 +1,10 @@
-// v270 — admin.html's new 🔊 Audio tab, run against admin_v270.html with the Worker mocked in memory.
+// v270 — admin.html's new 🔊 Audio tab, with the Worker mocked in memory.
 // Covers the owner's own path: choose voice, write text for Peak State (Hindi), save, generate, listen, finalise.
-// Run: cd qa && QA_TARGET=admin_v270.html npx playwright test tests/admin-audio-v270.spec.js
+// Navigates to the literal /admin.html path (not '/') so this test always exercises the real admin page
+// regardless of QA_TARGET -- ops/verify.js runs every spec in qa/tests against whatever candidate is being
+// verified, and '/' serves THAT candidate, not admin.html (a real bug this test shipped with: it used to
+// navigate to '/' and only ever passed because it had always been run standalone with QA_TARGET=admin.html).
+// Run standalone: cd qa && npx playwright test tests/admin-audio-v270.spec.js
 const { test, expect } = require('@playwright/test');
 const RELAY = 'https://clarvoyance-admin-relay.smworkassistance.workers.dev/';
 
@@ -62,7 +66,7 @@ test('admin Audio tab: voice, text, generate audio, listen, finalise (Worker moc
 
   // skip the token prompt
   await page.addInitScript(() => localStorage.setItem('clv_admin_token', 'test-token'));
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.goto('/admin.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1000);
 
   // open the tab the way the owner does
