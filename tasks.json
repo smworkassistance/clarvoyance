@@ -2185,12 +2185,12 @@
       "title": "Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must verify the user's Supabase JWT + plan + daily limit (today anyone with the URL can call it, and limits are client-side localStorage only)",
       "added": "2026-10-01T22:08:01.153Z",
       "done_when": "free-of-plan user gets rejected by the proxy, not just hidden in the UI; limits per plan editable in admin",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "batch": null,
       "depends_on": [],
       "verify": false,
-      "result": "Built in clarvoyance_v263.html + workers/gemini-proxy-worker.js (gem-v263-r1) + workers/admin-relay-worker.js (v263-r1) + db/schema_v263_ai_usage_gate.sql. Flag plans_enforced stays OFF. Tests: gemini-proxy-gate 23/23, ai-usage-gate SQL 16/16, ai-auth-v263 spec. Owner steps before flip: run schema_v263 SQL; set SUPABASE_SERVICE_KEY (+ optional ADMIN_TOKEN) on proxy; redeploy proxy; redeploy admin relay; then promote v263; then flip flag and test with a real free/pro account.",
-      "completed": null,
+      "result": "Built in clarvoyance_v263.html + workers/gemini-proxy-worker.js (gem-v263-r1) + workers/admin-relay-worker.js (v263-r1) + db/schema_v263_ai_usage_gate.sql. Flag plans_enforced stays OFF. Tests: gemini-proxy-gate 23/23, ai-usage-gate SQL 16/16, ai-auth-v263 spec. Owner steps before flip: run schema_v263 SQL; set SUPABASE_SERVICE_KEY (+ optional ADMIN_TOKEN) on proxy; redeploy proxy; redeploy admin relay; then promote v263; then flip flag and test with a real free/pro account.\nLive 2026-10-05: clar.co.in serves v263 (sw clv-v263, pre-v263 rollback tag). Flag plans_enforced ON. Gemini proxy gem-v263-r1: no token -> 401. In real Chrome (isolated context, anonymous session via app's own wrapper): free member chat 1-8 -> 200, 9th and 10th -> 429 limit_reached (counted in ai_usage_daily), Fortune AI reading -> 402 plan_locked. Full verify candidate 105/105. Pro path (60/day, Fortune allowed) not yet tested - needs a Pro test account.",
+      "completed": "2026-10-04T22:31:40.913Z",
       "history": [
         {
           "at": "2026-10-01T22:08:01.154Z",
@@ -2201,6 +2201,11 @@
           "at": "2026-10-04T13:31:26.632Z",
           "status": "IN_PROGRESS",
           "note": "Built in clarvoyance_v263.html + workers/gemini-proxy-worker.js (gem-v263-r1) + workers/admin-relay-worker.js (v263-r1) + db/schema_v263_ai_usage_gate.sql. Flag plans_enforced stays OFF. Tests: gemini-proxy-gate 23/23, ai-usage-gate SQL 16/16, ai-auth-v263 spec. Owner steps before flip: run schema_v263 SQL; set SUPABASE_SERVICE_KEY (+ optional ADMIN_TOKEN) on proxy; redeploy proxy; redeploy admin relay; then promote v263; then flip flag and test with a real free/pro account."
+        },
+        {
+          "at": "2026-10-04T22:31:40.927Z",
+          "status": "DONE",
+          "note": "Live 2026-10-05: clar.co.in serves v263 (sw clv-v263, pre-v263 rollback tag). Flag plans_enforced ON. Gemini proxy gem-v263-r1: no token -> 401. In real Chrome (isolated context, anonymous session via app's own wrapper): free member chat 1-8 -> 200, 9th and 10th -> 429 limit_reached (counted in ai_usage_daily), Fortune AI reading -> 402 plan_locked. Full verify candidate 105/105. Pro path (60/day, Fortune allowed) not yet tested - needs a Pro test account."
         }
       ]
     },
@@ -2426,6 +2431,179 @@
         }
       ],
       "blocked_reason": "Owner must: (1) redeploy workers/admin-relay-worker.js into the 'clarvoyance-admin-relay' Cloudflare Worker (same one T-076/T-109 already use), verify via curl -I https://clarvoyance-admin-relay.smworkassistance.workers.dev/ shows X-Worker-Version: v262-r2; (2) confirm RESEND_API_KEY + ADMIN_ALERT_EMAIL secrets are set on that same Worker (Settings -> Variables and Secrets) -- same 2 secrets T-076 needed, may already be set from then."
+    },
+    {
+      "id": "T-111",
+      "title": "CEO brain dashboard: test the Save buttons in a real browser (owner's vision/mission save), confirm a backup is created and the owner text is unchanged except the saved section",
+      "added": "2026-10-05T00:08:52.358Z",
+      "done_when": "Save works for one section in a real browser via brain\\Open CEO Brain.bat; history/ backup exists; other owner sections unchanged; test text reverted by owner",
+      "status": "QUEUED",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-05T00:08:52.371Z",
+          "status": "QUEUED",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-112",
+      "title": "CEO brain project kit: reusable folder (schema, dashboard, scheduled pass, intake questions) so a new project starts from one folder",
+      "added": "2026-10-05T00:08:52.490Z",
+      "done_when": "Owner approves the kit design; kit folder created from docs/personas/brain-schema.md; a dry run on a throwaway project folder produces a dashboard",
+      "status": "DISCUSS",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-05T00:08:52.491Z",
+          "status": "DISCUSS",
+          "note": "created"
+        }
+      ]
+    },
+    {
+      "id": "T-120",
+      "title": "Charger/tools/self audio: resolve open decisions (XP on instruction listens; confirm 10 Self-tab sections; confirm Google free-tier numbers on billing page)",
+      "added": "2026-10-06T14:06:34.397Z",
+      "done_when": "",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "Owner answered 2026-10-06: instruction listens earn XP same as affirmations; all 10 Self-tab sections get instruction audio. Recorded in docs/CHARGER-AUDIO-DESIGN.md. Still open (owner-only): Google free-tier numbers on billing page before first batch.\nOwner decided 2026-10-07: free tier WaveNet 4M/month (console); AI draft uses owner's own prompt, stored with each text; one voice per language; finalise-first flow; languages en+hi active, list in admin. Recorded in docs/CHARGER-AUDIO-DESIGN.md.\ndecisions complete",
+      "completed": "2026-10-06T21:34:00.578Z",
+      "history": [
+        {
+          "at": "2026-10-06T14:06:34.414Z",
+          "status": "DISCUSS",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-06T14:21:29.236Z",
+          "status": "DISCUSS",
+          "note": "Owner answered 2026-10-06: instruction listens earn XP same as affirmations; all 10 Self-tab sections get instruction audio. Recorded in docs/CHARGER-AUDIO-DESIGN.md. Still open (owner-only): Google free-tier numbers on billing page before first batch."
+        },
+        {
+          "at": "2026-10-06T21:34:00.591Z",
+          "status": "DONE",
+          "note": "decisions complete"
+        }
+      ]
+    },
+    {
+      "id": "T-121",
+      "title": "Google Cloud TTS key for the admin worker (owner: enable Cloud Text-to-Speech API, create key restricted to that API, add secret TTS_API_KEY on admin-relay-worker)",
+      "added": "2026-10-06T14:06:34.621Z",
+      "done_when": "",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "Owner ran voices.list (languageCode=hi-IN) with the restricted key from a local terminal; WaveNet hi-IN voice names returned. Key stored as TTS_API_KEY on clarvoyance-admin-relay, worker version v263-r1 reachable.\nkey verified by owner's own curl; no key value stored in repo or chat",
+      "completed": "2026-10-06T20:57:50.879Z",
+      "history": [
+        {
+          "at": "2026-10-06T14:06:34.622Z",
+          "status": "BLOCKED",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-06T20:57:50.891Z",
+          "status": "DONE",
+          "note": "key verified by owner's own curl; no key value stored in repo or chat"
+        }
+      ]
+    },
+    {
+      "id": "T-122",
+      "title": "Candidate v270 = charger audio area: admin voice screen (WaveNet hi-IN/en-IN samples), per-scope Generate, charger-audio bucket, player (teal instruction bar, gold affirmation bar, Listen button with subtle animation, line icons), language setting in profile",
+      "added": "2026-10-06T14:06:41.875Z",
+      "done_when": "owner can pick a voice, generate a charger affirmation in hi-IN/en-IN, and a user with language set to Hindi hears it; targeted specs pass; full verify passes before promote",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [
+        "T-120",
+        "T-121"
+      ],
+      "verify": false,
+      "result": "Rescoped 2026-10-07 to the finalise-first slice (en+hi, one text at a time, owner prompt stored, Listen in app). See docs/CHARGER-AUDIO-DESIGN.md 'Build order decided'.\nv270 candidate built: clarvoyance_v270.html (app: Peak State Listen bar, language picker), admin_v270.html (Audio tab), worker v270-r1 (audio.* actions), db/schema_v270_scope_audio.sql. Targeted specs: qa/worker/audio-v270.test.js 25/25; qa/tests/audio-v270.spec.js 4/4 (chromium-android). Not run: full ops/verify, real Google TTS generate end-to-end, owner SQL + worker deploy. index.html/sw.js untouched.\nv270 live (clv-v270, commit 5dd02db, rollback pre-v270). Admin Audio tab live (commits 72b29d6/f754d3d). Full verify 122/0/1 (1 flaky, unrelated). Charger scope-audio (overall + per-container gold bars) wired and confirmed live in a real browser.",
+      "completed": "2026-10-07T23:47:14.072Z",
+      "history": [
+        {
+          "at": "2026-10-06T14:06:41.886Z",
+          "status": "QUEUED",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-06T21:34:00.855Z",
+          "status": "QUEUED",
+          "note": "Rescoped 2026-10-07 to the finalise-first slice (en+hi, one text at a time, owner prompt stored, Listen in app). See docs/CHARGER-AUDIO-DESIGN.md 'Build order decided'."
+        },
+        {
+          "at": "2026-10-06T22:02:28.676Z",
+          "status": "IN_PROGRESS",
+          "note": "v270 candidate built: clarvoyance_v270.html (app: Peak State Listen bar, language picker), admin_v270.html (Audio tab), worker v270-r1 (audio.* actions), db/schema_v270_scope_audio.sql. Targeted specs: qa/worker/audio-v270.test.js 25/25; qa/tests/audio-v270.spec.js 4/4 (chromium-android). Not run: full ops/verify, real Google TTS generate end-to-end, owner SQL + worker deploy. index.html/sw.js untouched."
+        },
+        {
+          "at": "2026-10-07T23:47:14.085Z",
+          "status": "DONE",
+          "note": "v270 live (clv-v270, commit 5dd02db, rollback pre-v270). Admin Audio tab live (commits 72b29d6/f754d3d). Full verify 122/0/1 (1 flaky, unrelated). Charger scope-audio (overall + per-container gold bars) wired and confirmed live in a real browser."
+        }
+      ]
+    },
+    {
+      "id": "T-123",
+      "title": "Candidate v271 = instruction audio for tools (physical, mental reset, overall), Non-Negotiables, Self (overall + 10 sections), Goals tab; same player as v270",
+      "added": "2026-10-06T14:06:42.073Z",
+      "done_when": "every listed scope plays its instruction in the chosen language; targeted specs pass; full verify passes before promote",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [
+        "T-122"
+      ],
+      "verify": false,
+      "result": "Owner decided 2026-10-08 to wire all 18 scopes in one pass instead of splitting v270/v271 ('1 yes' to wiring everything now). Self (overall+10 sections), Non-Negotiables, Goals, Tools (overall+physical+mental reset) all shipped in v270 (commit 5dd02db), live, full verify 122/0/1.",
+      "completed": "2026-10-07T23:47:14.492Z",
+      "history": [
+        {
+          "at": "2026-10-06T14:06:42.074Z",
+          "status": "QUEUED",
+          "note": "created"
+        },
+        {
+          "at": "2026-10-07T23:47:14.499Z",
+          "status": "DONE",
+          "note": "Owner decided 2026-10-08 to wire all 18 scopes in one pass instead of splitting v270/v271 ('1 yes' to wiring everything now). Self (overall+10 sections), Non-Negotiables, Goals, Tools (overall+physical+mental reset) all shipped in v270 (commit 5dd02db), live, full verify 122/0/1."
+        }
+      ]
+    },
+    {
+      "id": "T-124",
+      "title": "Goal tab redesign + New Story + story audio + audio bar shipped (v264-v269)",
+      "added": "2026-10-06T14:06:42.171Z",
+      "done_when": "",
+      "status": "DONE",
+      "batch": null,
+      "depends_on": [],
+      "verify": false,
+      "result": "",
+      "completed": null,
+      "history": [
+        {
+          "at": "2026-10-06T14:06:42.171Z",
+          "status": "DONE",
+          "note": "created"
+        }
+      ]
     }
   ]
 }

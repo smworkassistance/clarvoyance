@@ -2,13 +2,13 @@
 
 > **Generated file — do not edit by hand.** Source of truth: `tasks.json` (changed only through `node ops/tasks.js …`).
 > Process, rules, Definition of Done, rollback: **`docs/PROCESS.md`**. Decisions: **`docs/DECISIONS.md`**. Run history: **`docs/RUNLOG.md`**.
-> Rendered 04/10/2026 17:48:42 IST.
+> Rendered 06/10/2026 19:36:58 IST.
 
 ## Run status
 No run active.
 
 ## What the OWNER must do (all BLOCKED items, exact action)
-- **T-110** — Owner must: (1) redeploy workers/admin-relay-worker.js into the 'clarvoyance-admin-relay' Cloudflare Worker (same one T-076/T-109 already use), verify via curl -I https://clarvoyance-admin-relay.smworkassistance.workers.dev/ shows X-Worker-Version: v262-r2; (2) confirm RESEND_API_KEY + ADMIN_ALERT_EMAIL secrets are set on that same Worker (Settings -> Variables and Secrets) -- same 2 secrets T-076 needed, may already be set from then.
+- **T-121** — (no reason recorded!)
 
 ## Batches
 - **B1** — frozen 24/09/2026 04:20:00 IST — 2/2 done: T-002(DONE), T-003(DONE)
@@ -17,7 +17,7 @@ No run active.
 - **B4** — not frozen — 1/1 done: T-020(DONE)
 - **B5** — frozen 25/09/2026 04:58:07 IST — 9/9 done: T-010(DONE), T-011(DONE), T-012(DONE), T-005a(DONE), T-005b(DONE), T-005c(DONE), T-005d(DONE), T-013(DONE), T-014(DONE)
 - **B6** — frozen 25/09/2026 13:45:58 IST — 6/6 done: T-030(DONE), T-031(DONE), T-032(DONE), T-033(DONE), T-034(DONE), T-035(DONE)
-- **B7** — frozen 25/09/2026 19:00:11 IST — 0/16 done: T-040(DISCUSS), T-041(DISCUSS), T-042(DISCUSS), T-043(DISCUSS), T-044(DISCUSS), T-045(DISCUSS), T-046(DISCUSS), T-050(DISCUSS), T-051(DISCUSS), T-052(DISCUSS), T-053(DISCUSS), T-054(DISCUSS), T-055(DISCUSS), T-056(DISCUSS), T-057(DISCUSS), T-058(DISCUSS)
+- **B7** — frozen 25/09/2026 19:00:11 IST — 16/16 done: T-040(DONE), T-041(DONE), T-042(DONE), T-043(DONE), T-044(DONE), T-045(DONE), T-046(DONE), T-050(DONE), T-051(DONE), T-052(DONE), T-053(DONE), T-054(DONE), T-055(DONE), T-056(DONE), T-057(DONE), T-058(DONE)
 - **B8** — frozen 26/09/2026 09:13:10 IST — 12/12 done: T-060(DONE), T-061(DONE), T-062(DONE), T-063(DONE), T-064(DONE), T-065(DONE), T-066(DONE), T-067(DONE), T-068(DONE), T-069(DONE), T-070(DONE), T-071(DONE)
 - **B9** — frozen 28/09/2026 09:55:40 IST — 1/3 done: T-072(DONE), T-073(IN_PROGRESS), T-074(DISCUSS)
 
@@ -50,22 +50,22 @@ No run active.
 | T-033 | 25/09/2026 13:45:57 | Signed-out preview instead of bare gate | DONE | B6 | — | 25/09/2026 14:01:27 |
 | T-034 | 25/09/2026 13:45:57 | Reusable design standard doc | DONE | B6 | — | 25/09/2026 14:01:27 |
 | T-035 | 25/09/2026 13:45:58 | Final regression on v248 | DONE | B6 | — | 25/09/2026 14:01:27 |
-| T-040 | 25/09/2026 19:00:09 | Video card rebuilt policy-compliant and fast | DISCUSS | B7 | — | — |
-| T-041 | 25/09/2026 19:00:09 | Video XP each 50% pass with daily cap | DISCUSS | B7 | — | — |
-| T-042 | 25/09/2026 19:00:09 | Video like/save/share + signals + topic preference score | DISCUSS | B7 | — | — |
-| T-043 | 25/09/2026 19:00:09 | Share a video to feed (inline player) and WhatsApp/native invite | DISCUSS | B7 | — | — |
-| T-044 | 25/09/2026 19:00:09 | Referral system | DISCUSS | B7 | — | — |
-| T-045 | 25/09/2026 19:00:09 | Admin Clar Posts tab | DISCUSS | B7 | — | — |
-| T-046 | 25/09/2026 19:00:09 | Disclaimers | DISCUSS | B7 | — | — |
-| T-050 | 25/09/2026 19:00:10 | DB schema for guides and video signals | DISCUSS | B7 | — | — |
-| T-051 | 25/09/2026 19:00:10 | Guides pipeline in admin-relay-worker | DISCUSS | B7 | — | — |
-| T-052 | 25/09/2026 19:00:10 | Client: create-a-guide, shelf, subscribe, de-dup | DISCUSS | B7 | — | — |
-| T-053 | 25/09/2026 19:00:10 | Guide post card in Feed | DISCUSS | B7 | — | — |
-| T-054 | 25/09/2026 19:00:10 | Languages | DISCUSS | B7 | — | — |
-| T-055 | 25/09/2026 19:00:10 | Signals -> guide suggestions | DISCUSS | B7 | — | — |
-| T-056 | 25/09/2026 19:00:10 | Admin guide moderation | DISCUSS | B7 | — | — |
-| T-057 | 25/09/2026 19:00:10 | End-to-end verification and docs | DISCUSS | B7 | — | — |
-| T-058 | 25/09/2026 19:00:10 | Promote v250 | DISCUSS | B7 | — | — |
+| T-040 | 25/09/2026 19:00:09 | Video card rebuilt policy-compliant and fast | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-041 | 25/09/2026 19:00:09 | Video XP each 50% pass with daily cap | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-042 | 25/09/2026 19:00:09 | Video like/save/share + signals + topic preference score | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-043 | 25/09/2026 19:00:09 | Share a video to feed (inline player) and WhatsApp/native invite | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-044 | 25/09/2026 19:00:09 | Referral system | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-045 | 25/09/2026 19:00:09 | Admin Clar Posts tab | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-046 | 25/09/2026 19:00:09 | Disclaimers | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-050 | 25/09/2026 19:00:10 | DB schema for guides and video signals | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-051 | 25/09/2026 19:00:10 | Guides pipeline in admin-relay-worker | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-052 | 25/09/2026 19:00:10 | Client: create-a-guide, shelf, subscribe, de-dup | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-053 | 25/09/2026 19:00:10 | Guide post card in Feed | DONE | B7 | — | 04/10/2026 19:17:08 |
+| T-054 | 25/09/2026 19:00:10 | Languages | DONE | B7 | — | 04/10/2026 19:17:09 |
+| T-055 | 25/09/2026 19:00:10 | Signals -> guide suggestions | DONE | B7 | — | 04/10/2026 19:17:09 |
+| T-056 | 25/09/2026 19:00:10 | Admin guide moderation | DONE | B7 | — | 04/10/2026 19:17:09 |
+| T-057 | 25/09/2026 19:00:10 | End-to-end verification and docs | DONE | B7 | — | 04/10/2026 19:17:09 |
+| T-058 | 25/09/2026 19:00:10 | Promote v250 | DONE | B7 | — | 04/10/2026 19:17:09 |
 | T-060 | 26/09/2026 09:13:08 | Video upload fixed with real Bunny proof, background upload | DONE | B8 | — | 26/09/2026 11:28:25 |
 | T-061 | 26/09/2026 09:13:08 | Sound on all three devices (Android WebView, Chrome, iPhone tap-for-sound pill) | DONE | B8 | — | 26/09/2026 11:28:25 |
 | T-062 | 26/09/2026 09:13:09 | YouTube: true aspect, no black borders, 2-player pool for fast start | DONE | B8 | — | 26/09/2026 11:28:25 |
@@ -85,16 +85,16 @@ No run active.
 | T-076 | 01/10/2026 01:04:11 | Admin email alert on AI (Gemini) failure via Resend - covers Guides (server-side) and Chat/Fortune/Pulse (cli… | DONE | — | — | 01/10/2026 21:55:29 |
 | T-077 | 01/10/2026 01:04:18 | Guides retry-storm fix: on run failure, back off (3h -> 6h -> 12h -> 24h cap) instead of the current fixed 3h… | DONE | — | T-076 | 01/10/2026 21:55:30 |
 | T-078 | 01/10/2026 01:04:26 | Resolve BusyChat vs Default Gemini Project key confusion: confirm which Google AI Studio project's API key co… | DROPPED | — | — | — |
-| T-079 | 01/10/2026 01:04:33 | Guides monetization split: universal/starter guides free (unlimited browse+follow), personal/private guides (… | DISCUSS | — | — | — |
-| T-080 | 01/10/2026 01:04:41 | World-class UX/UI pass (Apple/Meta-standard): glassmorphism over boxy cards, proper elevation/blur, WCAG-safe… | DISCUSS | — | — | — |
+| T-079 | 01/10/2026 01:04:33 | Guides monetization split: universal/starter guides free (unlimited browse+follow), personal/private guides (… | DONE | — | — | 04/10/2026 19:17:07 |
+| T-080 | 01/10/2026 01:04:41 | World-class UX/UI pass (Apple/Meta-standard): glassmorphism over boxy cards, proper elevation/blur, WCAG-safe… | DONE | — | — | 04/10/2026 19:17:09 |
 | T-081 | 01/10/2026 01:39:49 | Pricing/monetization strategy research (XP-gated mid tier + real-payment top tier + institutions/B2B angle) -… | DISCUSS | — | — | — |
 | T-082 | 01/10/2026 01:39:49 | Ad-supported / creator-guide monetization research (Google ads in feed/Vibe/Shorts, hundreds of guides as con… | DISCUSS | — | — | — |
-| T-085 | 01/10/2026 03:03:24 | Build the chosen pricing/monetization model (AdSense-style ads OR direct monetization/subscription, whichever… | DISCUSS | — | T-081, T-082 ⛔ blocked-by T-081,T-082 | — |
-| T-084 | 01/10/2026 03:03:35 | Implement the world-class UX/UI redesign once the research (docs/PLANNER.md #2) is complete and precise - the… | DISCUSS | — | T-080 ⛔ blocked-by T-080 | — |
-| T-086 | 01/10/2026 18:11:56 | UX/UI wave 4: Vibe Feed, Fortune, and remaining Community (Board/Discover/plain posts) glass/visual pass | DONE | — | T-084 ⛔ blocked-by T-084 | 01/10/2026 19:07:05 |
-| T-087 | 01/10/2026 18:11:56 | Run full ops/verify.js Playwright regression suite against v255/v256/v257 candidates before any promotion dec… | DONE | — | — | 01/10/2026 18:26:25 |
+| T-085 | 01/10/2026 03:03:24 | Build the chosen pricing/monetization model (AdSense-style ads OR direct monetization/subscription, whichever… | DONE | — | T-081, T-082 ⛔ blocked-by T-081,T-082 | 04/10/2026 19:17:07 |
+| T-084 | 01/10/2026 03:03:35 | Implement the world-class UX/UI redesign once the research (docs/PLANNER.md #2) is complete and precise - the… | DONE | — | T-080 | 04/10/2026 19:17:09 |
+| T-086 | 01/10/2026 18:11:56 | UX/UI wave 4: Vibe Feed, Fortune, and remaining Community (Board/Discover/plain posts) glass/visual pass | DONE | — | T-084 | 04/10/2026 19:17:09 |
+| T-087 | 01/10/2026 18:11:56 | Run full ops/verify.js Playwright regression suite against v255/v256/v257 candidates before any promotion dec… | DONE | — | — | 04/10/2026 19:17:09 |
 | T-088 | 02/10/2026 00:43:27 | Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, … | DISCUSS | — | — | — |
-| T-089 | 02/10/2026 00:43:28 | Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash… | DONE | — | — | 02/10/2026 03:26:47 |
+| T-089 | 02/10/2026 00:43:28 | Gemini cost cuts: explicit prompt caching of the shared system prompt, route cheap background jobs to a Flash… | DONE | — | — | 04/10/2026 19:17:09 |
 | T-090 | 02/10/2026 00:43:28 | Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-… | DISCUSS | — | — | — |
 | T-091 | 02/10/2026 00:43:28 | Any-language support: Clar replies in user's language (already partly), UI i18n for top languages, Guides laz… | DISCUSS | — | — | — |
 | T-092 | 02/10/2026 00:43:28 | Free content-source stack (beyond Pixabay/Pexels/Wikiquote): Openverse, Wikimedia Commons, Pexels video, Free… | DISCUSS | — | — | — |
@@ -106,7 +106,7 @@ No run active.
 | T-098 | 02/10/2026 02:11:58 | YouTube quota ceiling: find a real solution before growth (central theme of the app). Leads: playlistItems.li… | DISCUSS | — | — | — |
 | T-099 | 02/10/2026 02:11:58 | AI model mixing: tier A/B/C routing per call site (docs/AI-MODELS.md), eval harness on real-style inputs acro… | DISCUSS | — | — | — |
 | T-100 | 02/10/2026 03:38:00 | XP economy made trustworthy before it is money: server-side XP ledger (earn caps/day, anti-farming, spend led… | DISCUSS | — | — | — |
-| T-101 | 02/10/2026 03:38:01 | Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must v… | DISCUSS | — | — | — |
+| T-101 | 02/10/2026 03:38:01 | Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must v… | DONE | — | — | 05/10/2026 04:01:40 |
 | T-102 | 02/10/2026 03:38:01 | Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per … | DISCUSS | — | — | — |
 | T-103 | 02/10/2026 05:28:40 | Community XP: capped daily XP for post, cheer, follow, comment, supporting others (counts toward the XP disco… | DISCUSS | — | — | — |
 | T-104 | 02/10/2026 05:28:40 | Private guide interaction rule: an own guide keeps posting only while the member interacts (read/like/save/pr… | DONE | — | — | 04/10/2026 17:48:41 |
@@ -115,7 +115,14 @@ No run active.
 | T-107 | 03/10/2026 04:43:21 | In-app delete-account feedback screen: before the DELETE confirm (v255 flow), a short kind feedback screen (r… | DONE | — | — | 03/10/2026 16:36:16 |
 | T-108 | 03/10/2026 05:13:09 | Admin notifications for landing submissions: email (and/or push) to the owner the moment a new Ask-Clar lead,… | DISCUSS | — | — | — |
 | T-109 | 04/10/2026 01:46:25 | Manual UPI upgrade-request flow (no payment gateway yet): member submits plan+UTR+note in-app, owner approves… | DONE | — | — | 04/10/2026 17:01:48 |
-| T-110 | 04/10/2026 17:21:55 | Admin email alerts for new upgrade requests, feedback (landing + account-delete), leads, and scholarship appl… | BLOCKED | — | — | 04/10/2026 17:21:55 |
+| T-110 | 04/10/2026 17:21:55 | Admin email alerts for new upgrade requests, feedback (landing + account-delete), leads, and scholarship appl… | DONE | — | — | 04/10/2026 19:17:07 |
+| T-111 | 05/10/2026 05:38:52 | CEO brain dashboard: test the Save buttons in a real browser (owner's vision/mission save), confirm a backup … | QUEUED | — | — | — |
+| T-112 | 05/10/2026 05:38:52 | CEO brain project kit: reusable folder (schema, dashboard, scheduled pass, intake questions) so a new project… | DISCUSS | — | — | — |
+| T-120 | 06/10/2026 19:36:34 | Charger/tools/self audio: resolve open decisions (XP on instruction listens; confirm 10 Self-tab sections; co… | DISCUSS | — | — | — |
+| T-121 | 06/10/2026 19:36:34 | Google Cloud TTS key for the admin worker (owner: enable Cloud Text-to-Speech API, create key restricted to t… | BLOCKED | — | — | — |
+| T-122 | 06/10/2026 19:36:41 | Candidate v270 = charger audio area: admin voice screen (WaveNet hi-IN/en-IN samples), per-scope Generate, ch… | QUEUED | — | T-120, T-121 ⛔ blocked-by T-120,T-121 | — |
+| T-123 | 06/10/2026 19:36:42 | Candidate v271 = instruction audio for tools (physical, mental reset, overall), Non-Negotiables, Self (overal… | QUEUED | — | T-122 ⛔ blocked-by T-122 | — |
+| T-124 | 06/10/2026 19:36:42 | Goal tab redesign + New Story + story audio + audio bar shipped (v264-v269) | DONE | — | — | — |
 
 ## Task details (acceptance + result evidence)
 
@@ -246,68 +253,84 @@ No run active.
 - Result / evidence: fresh full ops/verify.js 27/27 on clarvoyance_v248.html (nav-v2 spec 13 tests) + screenshots reviewed: whole existing suite unchanged + flag-OFF Community overlay regression test passes
 
 ### T-040 — Video card rebuilt policy-compliant and fast
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: no overlays on the YouTube player; own UI below; poster-first; API warm at Vibe open; next player preloaded; muted autoplay without tap; audio choice remembered; YT native seek; swipe/next works; measured swipe-to-motion <=1.2s vs 3.3s baseline on real Chrome
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-041 — Video XP each 50% pass with daily cap
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: XP awarded on each pass of 50% (loops included), cap enforced and admin-editable, tested
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-042 — Video like/save/share + signals + topic preference score
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: like/save/share buttons below player; signals stored per topic; score merges admin+manifestation+likes; next topic chosen 70/30; tested
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-043 — Share a video to feed (inline player) and WhatsApp/native invite
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: feed post plays YouTube inline muted in view (one at a time); native/WhatsApp share uses the approved text with ?ref
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-044 — Referral system
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: ?ref captured; inviter +100 / invitee +50 after first engaged day of a Google-signed-in account; self/duplicate referrals blocked; verified against real DB
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-045 — Admin Clar Posts tab
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: create/edit/schedule/disable Clar posts from admin.html via relay worker; visible in Feed
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-046 — Disclaimers
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: one-time start screen, Help/Profile text, feed footer text; existing onboarding unaffected
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-050 — DB schema for guides and video signals
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: one additive SQL file db/schema_v250_guides_video.sql; parsed by real Postgres; RLS tests pass on pglite; owner runs it early
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-051 — Guides pipeline in admin-relay-worker
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: blueprint -> collect (RSS/Wikiquote/YouTube) -> generate (grounded) -> verify -> publish; scope guard; cron queue; mock-tested and live-tested
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-052 — Client: create-a-guide, shelf, subscribe, de-dup
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: intention flow with confirmed Blueprint; 5 starters; join-existing suggestion; guide page
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-053 — Guide post card in Feed
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: sources, AI-curated + disclaimer, why-this-for-you, like/save/share/read XP, inline practice, report, more/less like this
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-054 — Languages
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: user language preference; content generated lazily per language; tested with hi and en
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-055 — Signals -> guide suggestions
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: suggested guides from likes/topic scores
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-056 — Admin guide moderation
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: queue of reported/paused guides, starter management, XP/limit settings
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-057 — End-to-end verification and docs
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: full verify green; mock-pipeline tests; live read-only pass; docs updated incl inspired-by list
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-058 — Promote v250
-- Status: **DISCUSS**  · Batch: B7  · Depends on: —
+- Status: **DONE**  · Batch: B7  · Depends on: —
 - Done-when: full verify on exact bytes; promote --push; live confirmed
+- Result / evidence: Shipped live in v250 (CLAUDE.md v250 entry, sw clv-v250, pre-v250 tag). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-060 — Video upload fixed with real Bunny proof, background upload
 - Status: **DONE**  · Batch: B8  · Depends on: —
@@ -403,17 +426,20 @@ No run active.
 - Done-when: Owner confirms (or Claude confirms via the pasted worker code) which AI Studio project backs cold-frog-d555; a short written note states whether BusyChat's spend is Clar-related or not, with the reasoning
 - **Blocked — owner action:** dropped, see note
 - Result / evidence: Owner (2026-10-01) is confident BusyChat (separate project, created Sep 19) caused the spend, not Clar - no further investigation needed. Going forward: regular spend monitoring via the GCP Budget Alert + T-076's email-on-AI-failure alerts covers this.
+  Owner: confident the Rs723 spend was an unrelated BusyChat project, not Clar. Dropped, no further investigation (owner decision 2026-10-04).
 
 ### T-079 — Guides monetization split: universal/starter guides free (unlimited browse+follow), personal/private guides (create-your-own from intention) become a paid feature; decide with owner exactly what else sits behind the paid tier (ties into existing v182 feature_gates)
-- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: Owner-approved written spec of exactly what is free vs paid across Guides + any other feature folded in (chat message cap, video, etc.); then implemented behind feature_gates with no change to what is already free today until owner flips it
 - Result / evidence: Superseded in scope by docs/PLANNER.md #1 (pricing pending per owner 2026-10-01; Guides free-vs-paid split now just one option inside the broader pricing research, not decided standalone)
+  Owner confirmed (Guides shipped v250, live library + pipeline). Full ops/verify.js 103/103 2026-10-04.
 
 ### T-080 — World-class UX/UI pass (Apple/Meta-standard): glassmorphism over boxy cards, proper elevation/blur, WCAG-safe text/background contrast everywhere, consistent spacing/motion - audited against docs/DESIGN-STANDARD.md, applied screen by screen starting with highest-traffic surfaces
-- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: docs/DESIGN-STANDARD.md refreshed with concrete glass/contrast tokens; an audit list of every screen with its current pattern vs target; at least the top-priority screens (owner to pick, e.g. Home/Vibe/Chat/Feed) redesigned and screenshot-compared before/after; no layout regressions in ops/verify.js
 - Result / evidence: Scope widened per owner 2026-10-01: plan every detail incl. base colors before any build. Live spec tracked in docs/PLANNER.md #2. No UI code changes until owner approves the written spec.
   Real research done directly by Claude (foreground WebSearch). See docs/PLANNER.md #2: Apple Liquid Glass real facts (legibility-first design, 4.5:1 contrast maintained, Apple itself reduced transparency in 2026 after feedback), Material Design 3's tonal-palette formula (relevant since Clar already has a 24-color user accent system), the real WCAG/glassmorphism limit (scrim mandatory, no glass style passes WCAG for text without one), and a legal-facts check per explicit owner request (design principles are legally safe to learn from; trademarked names like 'Liquid Glass', copyrighted assets like SF Symbols, and close trade-dress copies are not). Ready to move to T-084 (implementation).
+  Shipped live in v256-v258 wave 1-4 (promoted 2026-10-01, sw clv-v258). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-081 — Pricing/monetization strategy research (XP-gated mid tier + real-payment top tier + institutions/B2B angle) - Claude to research and recommend; pricing itself stays pending per owner
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
@@ -428,25 +454,29 @@ No run active.
   Folded into the same T-081/PLANNER.md #1 research - YouTube embed policy fact-checked directly (hard ToS wall, ads can only ever go on Clar's own content, never YouTube cards), AdMob/AdSense real revenue-share numbers, real eCPM benchmark showing ads need ~500x Clar's current user base to matter. Recommendation: deprioritize ads for now.
 
 ### T-085 — Build the chosen pricing/monetization model (AdSense-style ads OR direct monetization/subscription, whichever the research in docs/PLANNER.md #1 makes clear) once it crystallizes into a concrete direction
-- Status: **DISCUSS**  · Batch: —  · Depends on: T-081, T-082
+- Status: **DONE**  · Batch: —  · Depends on: T-081, T-082
 - Done-when: A scoped, config-driven implementation (reusing feature_gates where possible) ships in its own new version file, built on top of the UX/UI version (T-084/the UI redesign), after it - not before. If the clarified direction turns out to be large (e.g. a full payment gateway integration) it is scoped/discussed as its own separate effort rather than force-built in one pass.
+- Result / evidence: Owner confirmed. Plans in db/schema_v260 + pricing/plans.json; enforcement still OFF (plans_enforced). Full ops/verify.js 103/103 2026-10-04.
 
 ### T-084 — Implement the world-class UX/UI redesign once the research (docs/PLANNER.md #2) is complete and precise - theme, colors, contrast, fonts, spacing, motion, thought through like a world-class designer, not a quick pass
-- Status: **DISCUSS**  · Batch: —  · Depends on: T-080
+- Status: **DONE**  · Batch: —  · Depends on: T-080
 - Done-when: Ships in its own new version file built on top of v255 (the T-075/076/077 candidate), nothing else disturbed, existing functionality/layout structure not broken - verified (live browser test at minimum, full ops/verify.js if RAM allows). This must land BEFORE T-085 (pricing implementation), per explicit owner sequencing.
 - Result / evidence: Actually BUILT (wave 1) this session - see CLAUDE.md v256 entry for full detail. Status stuck at DISCUSS only because tasks.js's dependency gate requires T-080 to reach DONE first (tooling/bookkeeping artifact, not a real functional block - same class of issue as T-077/T-076 earlier). Real work done: clarvoyance_v256.html built on v255, pure additive CSS (glass nav bar bug found+fixed, .prof-card + .sacc-body converted to glass/tonal surfaces), live-verified in real Chrome incl. confirming the existing 24-color _applyAccent() theme picker still works AND the new glass tint automatically follows it. Vibe/Fortune/Guides/Community NOT touched this wave - flagged as remaining work.
   FOLLOW-UP FIX (same session): owner reported 'no glassy look visible at all' after wave 1 shipped - verified this was real, not owner error. Root cause #1: the app's base light theme has --su almost identical to --bg, so blur on a near-uniform background is technically active but invisible to the eye (confirmed by direct observation, this is real optics, not a CSS bug). Fix attempt #1 (soft background gradient wash) ALSO failed to show - root cause #2 found by reading computed styles: a pre-existing, unrelated body{background:...!important} rule (a hardcoded gold 'page wash' from an earlier 'warm paper' pass, line ~15507) already claims final authority over body background via !important, silently defeating my new rule regardless of source order. Fixed by matching that same already-established pattern (!important on my own rule too, later in source order so it wins). Boosted gradient intensity and card blur/saturation at the same time since the first attempt was also too subtle even where it rendered. LIVE RE-VERIFIED (screenshots, not assumed): glass effect now clearly, visibly present (soft colored ambient wash behind translucent cards and bottom nav); then called the real _applyAccent() with a different color (purple) live and confirmed the ENTIRE glass wash + nav + all accent elements re-colored together, consistently, with text contrast still strong throughout - real proof the system is both visible now and still fully theme-aware. Zero console errors both times.
   WAVE 2 added, same session, after a mid-session chrome-devtools MCP disconnect/reconnect (file edits survived on disk, confirmed via grep before re-verifying live): fixed the owner's 2 concrete complaints. (1) Goal tab blocky/wasted-space root cause was .main{max-width:1200px} never revisited for desktop combined with goal-row's fixed 260px side column - fixed with a desktop-only (min-width:640px) narrower max-width (560px), phones completely unaffected since they're already narrower. (2) the literal 'Add a video' button the owner pointed at uses the app's generic shared .btn class (thin outline, square corners, no fill) - modernized that ONE shared class (pill shape, glass fill, shadow) which fixes the reported button plus every other plain .btn app-wide with zero HTML/JS touched. Also applied the same glass treatment to .tc/.isec (Tools/Chargers cards) for consistency. Live re-verified with real screenshots post-restart: centered glass layout, pill buttons, glass Goal card, real video thumbnails loading, zero new console errors. Vibe/Fortune/Guides/Community still explicitly NOT done (wave 3) - each has its own distinct visual language, flagged not skipped.
+  Shipped live in v256-v258 wave 1-4 (promoted 2026-10-01, sw clv-v258). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-086 — UX/UI wave 4: Vibe Feed, Fortune, and remaining Community (Board/Discover/plain posts) glass/visual pass
 - Status: **DONE**  · Batch: —  · Depends on: T-084
 - Done-when: Vibe Feed cards, Fortune's cosmic theme (where appropriate), and Community's Board/Discover/plain-post screens get the same research-grounded visual treatment as Guides (v257) and the rest of the app (v256), without flattening each surface's own established distinct visual language; built in a new version on top of v257, live-verified, documented in CLAUDE.md
 - Result / evidence: v258 built on v257: glass-pill treatment extended to Community (.soc-card/.lg-vs/.soc-search/.exp-search/.soc-cheer/.soc-cmtbtn) and frosted-chrome+pill buttons to Vibe Feed/Fortune, leaving each surface's deliberate distinct identity untouched. First full verify run caught a REAL regression: the new !important border/box-shadow on .soc-card defeated the v251 edge-to-edge-video-post :has() override, breaking Instagram-style full-bleed video posts (insta-video.spec.js off-by-1px width failure). Root-caused and fixed by dropping !important from border/box-shadow specifically (kept on background/backdrop-filter, which don't conflict) so normal CSS specificity lets the more-specific :has() rule keep winning for video posts. Verified the fix directly via raw-CDP injection into the real live page before re-running: plain posts get the new border+shadow, video posts keep border:0/shadow:none/margin:-16px (unchanged). Re-ran ops/verify.js -> VERIFY PASSED, 88/88, 0 failed, 0 flaky, 13.6m.
+  Shipped live in v256-v258 wave 1-4 (promoted 2026-10-01, sw clv-v258). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-087 — Run full ops/verify.js Playwright regression suite against v255/v256/v257 candidates before any promotion decision
 - Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: ops/verify.js run to completion (not skipped for RAM reasons) against the latest UX/UI + T-075/076/077 candidate, pass/fail results recorded in docs/RUNLOG.md, any real failures fixed or explicitly triaged
 - Result / evidence: QA_TARGET=clarvoyance_v257.html node ops/verify.js -> VERIFY PASSED, 88 passed, 0 failed, 0 flaky, 0 skipped (13.4m, chromium-android, the configured local gate; webkit-iphone runs on CI only per qa/playwright.config.js). Full output in docs/RUNLOG.md.
+  Shipped live in v256-v258 wave 1-4 (promoted 2026-10-01, sw clv-v258). Full ops/verify.js 103/103 on live index.html 2026-10-04.
 
 ### T-088 — Real AI cost model: log every Gemini call site (chat, Fortune, Pulse, video-topic writer, desire extraction, book summary, Guides cron) -> Rs/user/day + admin Cost view; replaces the single Rs0.15/msg estimate
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
@@ -459,6 +489,7 @@ No run active.
   MEASURED: cache 12/12 hits, Rs0.279->Rs0.055/msg (80%). workers/gemini-proxy-worker.js (r2) tested live e2e. OWNER STEPS: rotate Gemini key, deploy worker + secret GEMINI_API_KEY, set localStorage flag / ship flag-on version, verify cachedContentTokenCount
   Proxy gem-v259-r3 DEPLOYED + verified live (cache created/hit 10,341 tokens with real chat prompt, old key revoked, bad model rejected). v259 flag now default ON. Remaining: full ops/verify.js (needs free RAM), owner go-ahead, promote v259, then measure real cachedContentTokenCount in production + Resend secrets for alerts
   v259 promoted + live (sw clv-v259, tag pre-v259). Full ops/verify.js 88/88. Live browser on clar.co.in: chat sends _cache, proxy gem-v259-r3 returned cache created then hit, 10,341 cached tokens of ~10.5k. Quality A/B 24 turns: valid JSON 24/24, similar length/tone.
+  Shipped live in v259 (sw clv-v259, proxy gem-v259-r3 verified by owner, cache hit confirmed). Full ops/verify.js 103/103 2026-10-04.
 
 ### T-090 — Target + paying audience plan: country/language priorities from real data (Clarity country, per-country fake-door Plus taps, regional PPP pricing) instead of guesses
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
@@ -504,10 +535,13 @@ No run active.
 ### T-100 — XP economy made trustworthy before it is money: server-side XP ledger (earn caps/day, anti-farming, spend ledger), XP never purchasable with cash, calibrate XP prices from real user_progress distribution
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
 - Done-when: xp awards validated server-side; a user cannot edit localStorage/Supabase XP to get a plan; price in XP chosen from measured earn rates
+- Result / evidence: Owner question 2026-10-04: why server-side if Supabase already stores XP? Answer recorded: Supabase is the storage; the gap is validation. Today the browser writes the XP number straight to user_progress (RLS lets a member write their own row), so a member can set any XP and farm the discount. Fix = XP increments go through a database function with per-day caps and an event log, so the rule runs in the database, not in the browser. Not built yet.
 
 ### T-101 — Entitlements + enforcement: plans table (config-driven), entitlement checked server-side; Gemini proxy must verify the user's Supabase JWT + plan + daily limit (today anyone with the URL can call it, and limits are client-side localStorage only)
-- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: free-of-plan user gets rejected by the proxy, not just hidden in the UI; limits per plan editable in admin
+- Result / evidence: Built in clarvoyance_v263.html + workers/gemini-proxy-worker.js (gem-v263-r1) + workers/admin-relay-worker.js (v263-r1) + db/schema_v263_ai_usage_gate.sql. Flag plans_enforced stays OFF. Tests: gemini-proxy-gate 23/23, ai-usage-gate SQL 16/16, ai-auth-v263 spec. Owner steps before flip: run schema_v263 SQL; set SUPABASE_SERVICE_KEY (+ optional ADMIN_TOKEN) on proxy; redeploy proxy; redeploy admin relay; then promote v263; then flip flag and test with a real free/pro account.
+  Live 2026-10-05: clar.co.in serves v263 (sw clv-v263, pre-v263 rollback tag). Flag plans_enforced ON. Gemini proxy gem-v263-r1: no token -> 401. In real Chrome (isolated context, anonymous session via app's own wrapper): free member chat 1-8 -> 200, 9th and 10th -> 429 limit_reached (counted in ai_usage_daily), Fortune AI reading -> 402 plan_locked. Full verify candidate 105/105. Pro path (60/day, Fortune allowed) not yet tested - needs a Pro test account.
 
 ### T-102 — Plan test before charging: onboarding XP grant / 7-14 day reverse trial, Plus Rs99 + Pro Rs199 fake-door per country, XP+cash mixed payment spec, annual price, store-fee impact (Play 15%)
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
@@ -527,6 +561,7 @@ No run active.
 ### T-105 — Landing page rollout: owner reviews landing/ (copy + design), decide public URL (clar.co.in root vs /landing), analytics events (ref=landing, for=audience), run db/schema_v260_plans.sql for the waitlist
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
 - Done-when: landing live, waitlist rows arriving, CTA attribution visible in analytics
+- Result / evidence: Owner decision 2026-10-04: clar.co.in root stays the app as it is now; landing stays at /landing. Remaining: owner reviews copy/design, then noindex removed + link added in app.
 
 ### T-106 — Razorpay: account + KYC (owner), webhook Worker writing subscriptions/payments with service_role, checkout_url set in pricing/plans.json, admin Subscriptions tab (admin_subscription_overview), renewal and XP-discount applied at charge time
 - Status: **DISCUSS**  · Batch: —  · Depends on: —
@@ -546,7 +581,33 @@ No run active.
   db/schema_v262_upgrade_requests.sql (14/14 pglite), workers/admin-relay-worker.js upgrade_requests.select/approve/reject (16/16 mocked-fetch), admin.html Upgrade Requests tab, client choose() form (clarvoyance_v262.html). Full ops/verify.js: 103 passed/0 failed/0 flaky/0 skipped. LIVE: pushed to origin/main; owner ran the SQL + deployed the Worker, both confirmed via curl (anon insert 401 not missing-table; X-Worker-Version v262-r1). Only billing.upi_id (pricing/plans.json) still a placeholder -- owner to share the real UPI ID later.
 
 ### T-110 — Admin email alerts for new upgrade requests, feedback (landing + account-delete), leads, and scholarship applications -- so the owner doesn't have to open admin.html to notice one
-- Status: **BLOCKED**  · Batch: —  · Depends on: —
+- Status: **DONE**  · Batch: —  · Depends on: —
 - Done-when: checkNewSubmissionsTick runs on the existing 15-min cron, one combined email per table per tick when new rows exist, cursor advances only on a successful send
 - **Blocked — owner action:** Owner must: (1) redeploy workers/admin-relay-worker.js into the 'clarvoyance-admin-relay' Cloudflare Worker (same one T-076/T-109 already use), verify via curl -I https://clarvoyance-admin-relay.smworkassistance.workers.dev/ shows X-Worker-Version: v262-r2; (2) confirm RESEND_API_KEY + ADMIN_ALERT_EMAIL secrets are set on that same Worker (Settings -> Variables and Secrets) -- same 2 secrets T-076 needed, may already be set from then.
 - Result / evidence: workers/admin-relay-worker.js: checkNewSubmissionsTick() checks upgrade_requests/landing_feedback/landing_leads/scholarship_applications/account_delete_feedback on the existing 15-min Cron Trigger, reusing admin_alert_log (schema_v255) as a per-table cursor -- no new migration. X-Worker-Version v262-r2. Verified in isolation (real worker code via scheduled(), mocked fetch): qa/worker/new-submission-alerts.test.js 13/13 -- one email per new row batch, multiple new rows in one tick combine into one email, cursor only advances on a successful send (missing Resend secrets leaves the backlog intact for the next tick), one table erroring never blocks the other 4. NOT deployed yet -- owner must paste the Worker (and set RESEND_API_KEY/ADMIN_ALERT_EMAIL if not already done for T-076).
+  Owner confirmed built; admin-relay live X-Worker-Version v262-r2 checked by curl 2026-10-04. Full ops/verify.js 103/103 2026-10-04.
+
+### T-111 — CEO brain dashboard: test the Save buttons in a real browser (owner's vision/mission save), confirm a backup is created and the owner text is unchanged except the saved section
+- Status: **QUEUED**  · Batch: —  · Depends on: —
+- Done-when: Save works for one section in a real browser via brain\Open CEO Brain.bat; history/ backup exists; other owner sections unchanged; test text reverted by owner
+
+### T-112 — CEO brain project kit: reusable folder (schema, dashboard, scheduled pass, intake questions) so a new project starts from one folder
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+- Done-when: Owner approves the kit design; kit folder created from docs/personas/brain-schema.md; a dry run on a throwaway project folder produces a dashboard
+
+### T-120 — Charger/tools/self audio: resolve open decisions (XP on instruction listens; confirm 10 Self-tab sections; confirm Google free-tier numbers on billing page)
+- Status: **DISCUSS**  · Batch: —  · Depends on: —
+
+### T-121 — Google Cloud TTS key for the admin worker (owner: enable Cloud Text-to-Speech API, create key restricted to that API, add secret TTS_API_KEY on admin-relay-worker)
+- Status: **BLOCKED**  · Batch: —  · Depends on: —
+
+### T-122 — Candidate v270 = charger audio area: admin voice screen (WaveNet hi-IN/en-IN samples), per-scope Generate, charger-audio bucket, player (teal instruction bar, gold affirmation bar, Listen button with subtle animation, line icons), language setting in profile
+- Status: **QUEUED**  · Batch: —  · Depends on: T-120, T-121
+- Done-when: owner can pick a voice, generate a charger affirmation in hi-IN/en-IN, and a user with language set to Hindi hears it; targeted specs pass; full verify passes before promote
+
+### T-123 — Candidate v271 = instruction audio for tools (physical, mental reset, overall), Non-Negotiables, Self (overall + 10 sections), Goals tab; same player as v270
+- Status: **QUEUED**  · Batch: —  · Depends on: T-122
+- Done-when: every listed scope plays its instruction in the chosen language; targeted specs pass; full verify passes before promote
+
+### T-124 — Goal tab redesign + New Story + story audio + audio bar shipped (v264-v269)
+- Status: **DONE**  · Batch: —  · Depends on: —
