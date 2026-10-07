@@ -101,15 +101,18 @@ test.describe('scope audio (v270)', () => {
     expect(app.pageErrors).toEqual([]);
   });
 
-  test('Goal tab: the overall instruction bar appears at the top of the Major Goal box', async ({ app, page, context }) => {
+  test('Goal tab: the overall instruction bar appears at the top of the real (v264) Goal UI', async ({ app, page, context }) => {
+    // #v264-root starts empty in the HTML and the app replaces its content with the real goal
+    // tiles (New Story / goals) -- the bar must survive that, not just a one-time boot mount
+    // (the old #goal-body-major this used to target is permanently hidden by a v264 CSS rule).
     await mockAudio(context, { finalisedLangs: ['en'] });
     await app.boot();
     await page.evaluate(() => localStorage.setItem('clar_lang', 'en'));
     await app.gotoTab({ nav: '.bnav-tab[data-tab="goal"]' });
-    const bar = page.locator('#goal-body-major .aud-bar');
+    const bar = page.locator('#v264-root .aud-bar');
     await expect(bar).toBeVisible({ timeout: 8000 });
-    // sits first, above the Manifest/Foundation/Edit button row
-    const first = await page.evaluate(() => document.getElementById('goal-body-major').firstElementChild.classList.contains('aud-slot'));
+    // sits first, above the New Story / goal tiles
+    const first = await page.evaluate(() => document.getElementById('v264-root').firstElementChild.classList.contains('aud-slot'));
     expect(first).toBe(true);
     expect(app.pageErrors).toEqual([]);
   });
@@ -136,6 +139,9 @@ test.describe('scope audio (v270)', () => {
       window.SHEETS_DATA.chargers = [{ id: 'c1', category_id: 'Monk ', name: 'Death Awareness', content: 'text', xp: 5, active: 'TRUE' }];
       bnavSwitch(document.querySelector('.bnav-tab[data-tab="chargers"]'));
     });
+    // the category body is created (so the bar is already in the DOM), but like every other
+    // accordion in this app it starts collapsed -- open it before asserting visible
+    await page.locator('.cha-cat-row').first().click();
     const bar = page.locator('#ch-main .cha-cat-body[id^="cha-catbody-"] .aud-bar.aud-aff');
     await expect(bar).toBeVisible({ timeout: 8000 });
     const key = await page.evaluate(() => document.querySelector('#ch-main .aud-slot').getAttribute('data-key'));
