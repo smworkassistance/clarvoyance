@@ -82,18 +82,33 @@ self.addEventListener('fetch', e => {
 });
 
 /* ── v184: Web Push — display the notification the admin-relay-worker's
-   Cron-triggered rule engine sent. Payload shape: {title, body, target_tab}. ── */
+   Cron-triggered rule engine sent. Payload shape: {title, body, target_tab}. ──
+   v271: tell every currently-open tab about the push via postMessage; a page
+   that's actually focused shows its own in-app toast (#clv-push-toast)
+   instead of (not in addition to) the OS notification — owner's own ask,
+   "in app bhi to notify hona chahiye na user ko" — a backgrounded/closed tab
+   still gets the normal OS notification as before. */
 self.addEventListener('push', e => {
   var data = {};
   try { data = e.data ? e.data.json() : {}; } catch (err) {}
   var title = data.title || 'Clarvoyance';
-  var options = {
-    body: data.body || '',
-    icon: '/clarvoyance/clar-logo.jpg.jpg',
-    badge: '/clarvoyance/clar-logo.jpg.jpg',
-    data: { target_tab: data.target_tab || null },
-  };
-  e.waitUntil(self.registration.showNotification(title, options));
+  var body = data.body || '';
+  var targetTab = data.target_tab || null;
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+      var focused = clientList.find(function (c) { return c.focused; });
+      clientList.forEach(function (c) {
+        c.postMessage({ type: 'clv_push', title: title, body: body, target_tab: targetTab });
+      });
+      if (focused) return; /* already shown in-app via the message above — no OS notification on top of it */
+      return self.registration.showNotification(title, {
+        body: body,
+        icon: '/clarvoyance/clar-logo.jpg.jpg',
+        badge: '/clarvoyance/clar-logo.jpg.jpg',
+        data: { target_tab: targetTab },
+      });
+    })
+  );
 });
 
 /* Tapping the notification focuses an already-open tab (deep-linked via
