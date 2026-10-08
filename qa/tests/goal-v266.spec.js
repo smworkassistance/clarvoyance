@@ -35,7 +35,7 @@ test.describe('v266 Goal tab', () => {
     await page.route(/goal-item-images|vision-images/, r => r.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from(PNG.split(',')[1], 'base64') }));
   });
 
-  test('list: no "Goals" heading; New Story shows its story text; goal folders in 2 columns with zero gaps', async ({ app }) => {
+  test('list: no "Goals" heading; New Story shows its story text; goal folders in 2 columns with a theme-colored hairline gap', async ({ app }) => {
     await app.boot();
     await openGoalTab(app);
     const p = app.page;
@@ -44,7 +44,11 @@ test.describe('v266 Goal tab', () => {
     expect(sub).toMatch(/I drive my white Range Rover/);
     const grid = p.locator('#v264-root .v266-grid').first();
     expect(await grid.evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
-    expect(await grid.evaluate(el => getComputedStyle(el).rowGap + ' ' + getComputedStyle(el).columnGap)).toBe('0px 0px');
+    /* v271: owner's explicit ask — "Discover jaisi fine line separator Goal
+       section ki images/categories mein bhi" — the folder/photo grids now
+       use the same 2px theme-colored hairline the Discover grid already
+       has, instead of a literal zero gap. */
+    expect(await grid.evaluate(el => getComputedStyle(el).rowGap + ' ' + getComputedStyle(el).columnGap)).toBe('2px 2px');
     await p.screenshot({ path: 'test-results/v266-list.png', fullPage: true });
     expect(app.pageErrors).toEqual([]);
   });

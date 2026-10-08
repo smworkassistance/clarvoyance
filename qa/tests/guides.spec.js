@@ -56,7 +56,13 @@ test.describe('guides (v250)', () => {
     await page.locator('.g-card [data-act="g-menu"]').click();
     await page.locator('.g-card [data-act="g-report"]').click();
     await page.locator('[data-act="g-rep-send"][data-r="false_info"]').click();
-    await expect(page.locator('.g-card')).toBeHidden();
+    /* v271: .g-card is no longer unique on this page — the "Guides you
+       might like" discovery row (and, elsewhere, the main Guides-tab list)
+       also carry it now (same per-guide multicolor avatar ring class). The
+       app's own g-rep-send handler already scopes its hide by data-gid
+       (the reported POST's id, despite the attribute's name), so the test
+       should match that instead of a bare, now-ambiguous .g-card. */
+    await expect(page.locator('.g-card[data-gid="' + POST.id + '"]')).toBeHidden();
     await page.waitForTimeout(300);
     const ev = writes.filter(w => w.t === 'guide_signals').map(w => w.body && w.body.event);
     expect(ev).toEqual(expect.arrayContaining(['like', 'save', 'more']));

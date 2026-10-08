@@ -182,7 +182,12 @@ test.describe('nav_v2 — flag ON', () => {
     await bootYou(app);
     const { page } = app;
     expect(await activeNew(page)).toBe('you');
-    await expect(page.locator('#soc-top .soc-title')).toHaveText('You');
+    /* v271: the bare "You" title bar (dead blank space) was deliberately
+       removed — same soc-top-off/soc-notop technique the Feed tab's own top
+       bar already used — so the real signal of being on the You view is the
+       blanked top bar + the dashboard content below it, not literal title
+       text that no longer exists. */
+    expect(await page.evaluate(() => document.body.classList.contains('soc-notop'))).toBe(true);
     await expect(page.locator('.soc-stats')).toBeVisible();
     await expect(page.locator('.soc-metrics')).toBeVisible();
     await expect(page.locator('.v2-fortune')).toBeVisible();
@@ -238,7 +243,9 @@ test.describe('nav_v2 — flag ON', () => {
     await expect(page.locator('.soc-seg')).toBeVisible();
     await page.locator('#soc-top [data-act="v2-back"]').click();
     await page.waitForTimeout(900);
-    await expect(page.locator('#soc-top .soc-title')).toHaveText('You');
+    /* v271: You's top bar is deliberately blanked (see the other test's
+       comment above) — confirm via the real mechanism instead of title text. */
+    expect(await page.evaluate(() => document.body.classList.contains('soc-notop'))).toBe(true);
     await expect(page.locator('.v2-fortune')).toBeVisible();
   });
 
