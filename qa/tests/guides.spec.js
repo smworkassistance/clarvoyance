@@ -157,9 +157,16 @@ test.describe('guides (v250)', () => {
     await page.route(/i\.ytimg\.com|youtube\.com/, r => r.fulfill({ status: 200, contentType: 'image/png', body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') }));
     await app.boot();
     await app.page.evaluate(() => document.querySelector('.nv2-tab[data-nv2="feed"]').click());
-    await expect(page.locator('.g-card')).toHaveCount(2, { timeout: 8000 });
-    const video = page.locator('.g-card', { has: page.locator('.soc-yt') });
-    const text = page.locator('.g-card', { hasNot: page.locator('.soc-yt') });
+    /* v271: .g-card alone is no longer unique to real feed posts — the
+       "Guides you might like" discovery row (and the Guides-tab list)
+       share the same per-guide avatar-ring class, and whether that row
+       renders at all in this mock is a background-timing race, not
+       something this test cares about. Real feed posts are specifically
+       .soc-card.g-card (the discovery row is .g-row.g-card) — scope to
+       that so this test is deterministic either way. */
+    await expect(page.locator('.soc-card.g-card')).toHaveCount(2, { timeout: 8000 });
+    const video = page.locator('.soc-card.g-card', { has: page.locator('.soc-yt') });
+    const text = page.locator('.soc-card.g-card', { hasNot: page.locator('.soc-yt') });
     await expect(video).toHaveCount(1);
     await expect(video).toContainText('invitation to watch');
     await expect(video.locator('.g-pr')).toHaveCount(0);
