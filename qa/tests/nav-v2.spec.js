@@ -202,7 +202,11 @@ test.describe('nav_v2 — flag ON', () => {
     // back to You; the gear opens the ordinary App Profile
     await clickNew(page, 'you');
     await expect(page.locator('#soc-screen')).toBeVisible();
-    await page.locator('#soc-top [data-act="v2-settings"]').click();
+    /* v271: Share + Settings moved out of the (now-blanked, see above)
+       #soc-top bar into renderProfile()'s own .soc-actions row, next to
+       Edit profile/Privacy board — the old #soc-top-scoped locator waits
+       forever for an element that no longer exists there. */
+    await page.locator('.soc-actions [data-act="v2-settings"]').click();
     await page.waitForTimeout(1500);
     expect(await sectionShown(page, MAP.profileSection)).toBe(true);
     expect(await page.evaluate(() => document.getElementById('soc-screen').classList.contains('hidden'))).toBe(true);
