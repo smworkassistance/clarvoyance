@@ -2067,7 +2067,66 @@ html[data-theme="dark"] .chat-msgs{
 <!-- Offline indicator (shown when using cached Sheets data without network) -->
 <div id="offline-bar">✦ Offline</div>
 
-<!-- SPLASH -->
+<!-- SPLASH (v274) — covers the real ~2-3s gap while Supabase/auth/the
+     hosted Feed resolve on boot, instead of a blank/loading-skeleton first
+     impression. First element with real visible content in <body> so it
+     paints as early as the browser possibly can; hidden by its own tiny
+     script once the window 'load' event fires (or a 4s safety cap, so it
+     can never get stuck on screen if some resource hangs), with a 900ms
+     floor so the animation isn't a flash on a fast/cached load. Pure CSS/
+     inline-SVG — zero dependency on the app's own JS/theme boot having run
+     yet, and zero new network requests (same guarantee this screen needs
+     to always render correctly from byte one). Reuses this file's own
+     established visual language (the header's moonGlow pulse animation,
+     the "oy" gradient-highlight convention, the small-caps tagline style)
+     rather than inventing a new one. */ -->
+<div id="clv-splash" aria-hidden="true">
+  <style>
+    #clv-splash{position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg,#F5F5F7);transition:opacity .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1);}
+    #clv-splash.clv-splash-out{opacity:0;transform:scale(1.03);pointer-events:none;}
+    @media (prefers-color-scheme:dark){#clv-splash{background:#161511;}}
+    #clv-splash .clv-s-moon{width:58px;height:58px;animation:clvSplashFloat 3.2s ease-in-out infinite,clvSplashIn .7s cubic-bezier(.2,.8,.2,1) both;}
+    #clv-splash .clv-s-moon svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 10px rgba(177,132,84,.45)) drop-shadow(0 0 22px rgba(177,132,84,.22));animation:clvSplashGlow 2.6s ease-in-out infinite;}
+    #clv-splash .clv-s-word{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter','DM Sans',sans-serif;font-weight:500;font-size:1.9rem;letter-spacing:-.015em;color:var(--tx,#1C1C1E);animation:clvSplashIn .7s .08s cubic-bezier(.2,.8,.2,1) both;}
+    #clv-splash .clv-s-word em{font-style:normal;font-weight:500;background:linear-gradient(90deg,var(--acc,#b18454),#e8c79e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+    #clv-splash .clv-s-tag{font-family:'Inter Tight',-apple-system,sans-serif;font-size:.62rem;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:var(--lt,#6E6E73);animation:clvSplashIn .7s .16s cubic-bezier(.2,.8,.2,1) both;}
+    #clv-splash .clv-s-dots{display:flex;gap:5px;margin-top:6px;animation:clvSplashIn .7s .24s cubic-bezier(.2,.8,.2,1) both;}
+    #clv-splash .clv-s-dots i{width:5px;height:5px;border-radius:50%;background:var(--acc,#b18454);opacity:.3;animation:clvSplashDot 1.3s ease-in-out infinite;}
+    #clv-splash .clv-s-dots i:nth-child(2){animation-delay:.18s}
+    #clv-splash .clv-s-dots i:nth-child(3){animation-delay:.36s}
+    @keyframes clvSplashIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes clvSplashFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+    @keyframes clvSplashGlow{0%,100%{filter:drop-shadow(0 0 10px rgba(177,132,84,.45)) drop-shadow(0 0 22px rgba(177,132,84,.22))}50%{filter:drop-shadow(0 0 15px rgba(177,132,84,.8)) drop-shadow(0 0 30px rgba(177,132,84,.4))}}
+    @keyframes clvSplashDot{0%,80%,100%{opacity:.3;transform:scale(1)}40%{opacity:1;transform:scale(1.35)}}
+    @media (prefers-reduced-motion:reduce){#clv-splash *{animation:none!important}}
+  </style>
+  <div class="clv-s-moon">
+    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M31.5 6.2C23.9 8.9 18.5 16.1 18.5 24.5c0 10.8 8.8 19.5 19.5 19.5 3.1 0 6-.7 8.6-2-4.1 4.9-10.3 8-17.1 8C16.5 50 6 39.5 6 26.5S16.5 3 29.5 3c.7 0 1.3 0 2 .1-.1.1-.1.1 0 3.1z" fill="url(#clvSplashGrad)"/>
+      <defs><linearGradient id="clvSplashGrad" x1="6" y1="3" x2="46" y2="44" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="var(--acc,#b18454)"/><stop offset="1" stop-color="#e8c79e"/></linearGradient></defs>
+    </svg>
+  </div>
+  <div class="clv-s-word">Clarv<em>oy</em>ance</div>
+  <div class="clv-s-tag">Clarity for the becoming</div>
+  <div class="clv-s-dots"><i></i><i></i><i></i></div>
+</div>
+<script>
+(function(){
+  var _t0=Date.now(),_done=false,MIN=900,MAX=4000;
+  function hide(){
+    if(_done)return;_done=true;
+    var el=document.getElementById('clv-splash');if(!el)return;
+    var wait=Math.max(0,MIN-(Date.now()-_t0));
+    setTimeout(function(){
+      el.classList.add('clv-splash-out');
+      setTimeout(function(){el.style.display='none';},600);
+    },wait);
+  }
+  window.addEventListener('load',hide);
+  setTimeout(hide,MAX);
+})();
+</script>
+
 <!-- MOOD OVERLAY -->
 <div class="ovwrap hidden" id="mood-ov">
   <div class="ovbox">
@@ -5284,9 +5343,10 @@ function vfInit(){
 
 function vfPickCard(){
   const nick=localStorage.getItem('clv_nick')||'Guest'; /* v227: 'Friend' was the pre-v217 placeholder, no longer current */
-  const visImgs=(S.visImgs||[]).filter(function(img){return img&&img.src;})
+  var _vfDead=window._vfDeadImgUrls||{}; /* v274: URLs confirmed dead this session — see _vfLoadCardBg */
+  const visImgs=(S.visImgs||[]).filter(function(img){return img&&img.src&&!_vfDead[img.src];})
     .concat(window._goalItemVFImages?window._goalItemVFImages():[]); /* v243: Goal Items' photos also feed the Vibe Feed's GOAL_VISION pool */
-  const rrImgs=get(K.rr,[]).filter(function(img){return img&&img.src;});
+  const rrImgs=get(K.rr,[]).filter(function(img){return img&&img.src&&!_vfDead[img.src];});
 
   /* Build list of available types this pick */
   const avail=[];
@@ -5468,7 +5528,24 @@ function _vfLoadCardBg(card,seq){
     return;
   }
   if(card.type==='VIDEO'){_vfClearBgPhoto();return;} /* VIDEO (v202/v251) already fills the whole screen with its own player */
-  if((card.type==='GOAL_VISION'||card.type==='REVISE_REPEAT')&&card.src){_vfApplyBgPhoto(card.src);return;}
+  if((card.type==='GOAL_VISION'||card.type==='REVISE_REPEAT')&&card.src){
+    _vfApplyBgPhoto(card.src);
+    /* v274 fix: owner-reported images not showing — some of a real
+       account's own uploaded vision/revise photos were found genuinely
+       gone from Supabase Storage (confirmed live: 400 on the object GET,
+       not a loading-speed issue — the file itself no longer exists there).
+       Never auto-deletes anything (a single failed fetch could be a real
+       transient network blip, not proof the file is actually gone — wiping
+       a real photo reference on that evidence alone would be a worse bug
+       than the one being fixed) — only remembers the URL failed THIS
+       session, same spirit as QPHOTO's existing _photoFailStreak gradient
+       fallback, so vfPickCard (below) stops re-offering a confirmed-dead
+       image for the rest of the session instead of showing the same blank
+       card again and again. */
+    var _bg=document.getElementById('vf-bg-photo'),_prevErr=_bg&&_bg.onerror;
+    if(_bg){var _src=card.src;_bg.onerror=function(){if(_prevErr)_prevErr();window._vfDeadImgUrls=window._vfDeadImgUrls||{};window._vfDeadImgUrls[_src]=1;};}
+    return;
+  }
   var theme=_vfBgTheme(card),key=String(card.title||card.name||card.content||theme);
   var fromPool=_vfPickFromPool(theme,key);
   if(fromPool){
@@ -18126,7 +18203,7 @@ body.home-tab #nn-tab-section{order:2;}
     var img = document.createElement('img');
     img.src = it.src; img.alt = ''; img.loading = 'lazy';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:9px;pointer-events:none';
-    img.onerror = function(){ thumb.style.opacity = '.4'; };
+    img.onerror = function(){ thumb.remove(); }; /* v274: a faded ghost tile still reads as "broken" — same graceful-skip pattern already used for video thumbnails elsewhere in this file */
     thumb.appendChild(img);
     if(reflected){
       /* v244: read-only reflection from a Goal Item — a small badge instead of
@@ -25938,7 +26015,15 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
 
   /* ── New Story: text, a triple grid of the story's own photos, the goals' photos read-only, audio script ── */
   function photoTile(im,i,act,extra){
-    return '<button class="v266-p" data-act="'+act+'" data-i="'+i+'"'+(extra||'')+'><img src="'+esc(im.src)+'" loading="lazy" alt="">'
+    /* v274 fix: owner-reported images not showing — confirmed live that a
+       small number of a real account's own uploaded photos no longer exist
+       in Supabase Storage (genuine 400s, not a slow-loading issue); this
+       grid had zero onerror handling at all, so each one rendered as a
+       plain broken-image icon. onerror here only ever hides the rendering
+       — never touches the real data/array, so nothing is ever deleted on
+       the strength of one failed fetch (could be a transient network blip,
+       not proof the file is really gone). */
+    return '<button class="v266-p" data-act="'+act+'" data-i="'+i+'"'+(extra||'')+'><img src="'+esc(im.src)+'" loading="lazy" alt="" onerror="this.closest(\'.v266-p\').remove()">'
       +(i===0&&act==='sview'?'<span class="v266-cov">Cover</span>':'')+'</button>';
   }
   function renderStory(){
@@ -25948,7 +26033,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
     var tiles=sp.map(function(im,i){return photoTile(im,i,'sview');}).join('');
     tiles+='<button class="v266-p v266-plus" data-act="story-add"><span>+</span><small>Add photos</small></button>';
     var goalTiles=goalPics.map(function(g){
-      return '<button class="v266-p" data-act="goal" data-id="'+esc(g.goal.id)+'"><img src="'+esc(g.im.src)+'" loading="lazy" alt="">'
+      return '<button class="v266-p" data-act="goal" data-id="'+esc(g.goal.id)+'"><img src="'+esc(g.im.src)+'" loading="lazy" alt="" onerror="this.closest(\'.v266-p\').remove()">'
         +'<span class="v266-cov">'+esc(g.goal.title).slice(0,14)+'</span></button>';
     }).join('');
     V.root.innerHTML=topbarPlain('New Story')
@@ -25989,7 +26074,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   }
   function renderNewPhotos(){
     var g=$('v266-newphotos');if(!g)return;
-    g.innerHTML=V.newPhotos.map(function(s,i){return '<div class="v266-p"><img src="'+esc(s)+'" alt=""></div>';}).join('');
+    g.innerHTML=V.newPhotos.map(function(s,i){return '<div class="v266-p"><img src="'+esc(s)+'" alt="" onerror="this.closest(\'.v266-p\').remove()"></div>';}).join('');
   }
   function createGoal(){
     function val(k){var el=V.root.querySelector('[data-new="'+k+'"]');return el?el.value.trim():'';}
@@ -26006,7 +26091,7 @@ input.v266-top-t:focus{border-bottom-color:var(--bo)}
   /* ── goal: top bar with the name, photos, details below them, achieve at the end ── */
   function photosHtml(imgs){
     var tiles=imgs.map(function(im,i){
-      return '<button class="v266-p" data-act="view" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="">'
+      return '<button class="v266-p" data-act="view" data-i="'+i+'"><img src="'+esc(im.src)+'" loading="lazy" alt="" onerror="this.closest(\'.v266-p\').remove()">'
         +(i===0?'<span class="v266-cov">Cover</span>':'')+'</button>';
     }).join('');
     if(imgs.length<MAX_PHOTOS)tiles+='<button class="v266-p v266-plus" data-act="add-photos"><span>+</span><small>Add photos</small></button>';
