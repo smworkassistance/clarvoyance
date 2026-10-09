@@ -2757,7 +2757,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v272</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v273</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -23338,8 +23338,20 @@ textarea.soc-in{resize:none;min-height:74px}
     if(!pick.length)return '';
     lsSet('clv_topvid_seen',JSON.stringify(seenV.concat(pick.map(function(r){return r.video_id;})).slice(-120)));
     S._topVids=pick.map(function(v){return {id:v.video_id,title:v.title||'',channel:v.channel_title||'',topic:v.topic||'explore',aspect:v.aspect};});
+    /* v273 fix: these 6 tiles are the very first thing a real returning user
+       sees (confirmed live, on the owner's own real account, narrow mobile
+       viewport: all 6 sat as plain empty grey placeholders for 10-25 real
+       seconds on first paint — not broken, just unprioritized against every
+       other request firing at boot: Supabase content/auth calls, chat
+       history, the rest of the feed's own parallel fetches. loading="lazy"
+       plus no priority hint meant the browser's own scheduler had no reason
+       to treat 6 small (~15KB each) always-above-the-fold thumbnails as
+       more urgent than anything else in flight). eager+fetchpriority=high
+       tells the browser these matter now — nothing below the fold (Discover
+       grid, the second "suggested videos" row further down) was touched,
+       those are correctly still lazy. */
     return pick.map(function(v,i){
-      return '<button class="exp-tile" data-act="top-vid-open" data-i="'+i+'" aria-label="Play video"><img loading="lazy" alt="" src="https://i.ytimg.com/vi/'+esc(v.video_id)+'/hqdefault.jpg" onerror="this.parentNode.remove()"><span class="exp-reel">'+EXP_REEL+'</span></button>';
+      return '<button class="exp-tile" data-act="top-vid-open" data-i="'+i+'" aria-label="Play video"><img loading="eager" fetchpriority="high" alt="" src="https://i.ytimg.com/vi/'+esc(v.video_id)+'/hqdefault.jpg" onerror="this.parentNode.remove()"><span class="exp-reel">'+EXP_REEL+'</span></button>';
     }).join('');
   }
   async function loadTopVideos(){
