@@ -2757,7 +2757,7 @@ html[data-theme="dark"] .chat-msgs{
         <!-- Version + update check -->
         <div class="prof-app-row" style="padding-bottom:12px;border-bottom:1px solid var(--bo,rgba(45,30,12,.08))">
           <div style="flex:1">
-            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v271</span></div>
+            <div style="font-family:'Inter Tight',sans-serif;font-weight:600;font-size:1.05rem;color:var(--tx)">Clarvoyance <span id="prof-app-ver">v272</span></div>
             <div style="font-size:.75rem;color:var(--sub);margin-top:3px;line-height:1.4" id="prof-app-status">—</div>
           </div>
           <button class="pwa-check-btn" id="prof-check-btn" onclick="pwaCheckForUpdate()">Check</button>
@@ -4474,7 +4474,20 @@ document.addEventListener('DOMContentLoaded',async ()=>{
         });
         if(blocked){ if(_ffTries<30)setTimeout(_v271FeedFirst,500); return; } /* up to 15s headroom — live-tested: a returning device that still has an onboarding screen mid-chain (e.g. never finished registration) can legitimately take a few seconds to settle */
         if(window._userNavigated)return; /* a real tap happened while we were waiting — don't yank it away */
-        if(typeof window.socOpen==='function')window.socOpen();
+        /* v272 fix: this used to call window.socOpen() directly — the RAW
+           Community overlay opener (its own full-screen "ClarZone" header
+           with an X close button, its own separate Feed/Board/Discover/You
+           tab bar) — which never sets body.nv2-feed, so it opened OUTSIDE
+           the app's own nav_v2 bottom bar instead of hosted inside it. Since
+           nav_v2 has been the default for every user since v249, that made
+           the app look like it was booting into a totally different,
+           nav-bar-less screen; closing the X was the only way back to the
+           real app with its real bottom nav. window._navV2Feed() is the
+           nav_v2-aware wrapper the bottom nav's own Feed button already
+           uses — it sets body.nv2-feed before opening, so this now opens
+           the SAME hosted Feed a real tap on the Feed tab would. */
+        if(document.body.classList.contains('nav-v2')&&typeof window._navV2Feed==='function')window._navV2Feed();
+        else if(typeof window.socOpen==='function')window.socOpen();
       })();
     }
   }catch(e){}
@@ -23335,28 +23348,23 @@ textarea.soc-in{resize:none;min-height:74px}
       var html=await topVideos();
       if(!html){var wrap=box.closest('.soc-topvids-wrap');if(wrap)wrap.remove();return;}
       box.innerHTML=html;
-      /* v271 (round 2): one tile autoplays inline — owner's own Instagram
-         Discover-grid reference ("2-3 locations pe autoplay ho jaate he,
-         isse engagement badhta he... at least ek video wahi play hota hua
-         dikhe, voice nahi chahiye, sirf visual"). Scoped to the FIRST tile
-         only (not several, unlike Instagram) — a deliberate, bounded cost:
-         one live embed, not up to six, still gives the row real motion.
-         pointer-events:none on the iframe (CSS) lets a real tap pass
-         straight through to the tile's own button underneath, so tapping
-         the autoplaying tile still opens the real player exactly like any
-         other tile — confirmed this works by design, not just hoped. */
-      var first=box.querySelector('.exp-tile');
-      if(first&&S._topVids&&S._topVids[0]){
-        var vid=S._topVids[0].id;
-        var ifr=document.createElement('iframe');
-        ifr.className='soc-tv-auto';
-        ifr.src='https://www.youtube.com/embed/'+encodeURIComponent(vid)+'?autoplay=1&mute=1&controls=0&loop=1&playlist='+encodeURIComponent(vid)+'&playsinline=1&modestbranding=1&rel=0';
-        ifr.setAttribute('allow','autoplay; encrypted-media');
-        ifr.setAttribute('frameborder','0');
-        ifr.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
-        ifr.setAttribute('aria-hidden','true');
-        first.appendChild(ifr);
-      }
+      /* v272 fix: v271 (round 2) added a single-tile autoplay iframe here
+         (position:absolute;inset:0, see .soc-tv-auto in CSS) sitting
+         directly on top of the first tile's own real thumbnail <img>. Found
+         live, reproduced exactly: the thumbnail loads correctly every time
+         (confirmed naturalWidth>0, complete:true, a real loaded JPEG) but
+         the iframe on top of it often renders solid black instead of
+         actually playing — a YouTube embed with controls=0 shows nothing at
+         all, not even the poster frame, whenever autoplay doesn't actually
+         start (blocked/slow/restricted), which reliably reproduced in
+         testing. That made a perfectly-loaded image look broken ("feed
+         images not loading") while every other tile in the same row
+         displayed fine. Removed the iframe entirely rather than add a
+         confirm-then-reveal check, since the plain thumbnail (identical to
+         every other tile here and in Discover) is what's actually proven
+         reliable. Discover grid's own, separate autoplay
+         (_expAutoplayInitial) is untouched — not reported as broken and out
+         of scope for this fix. */
     }catch(e){var wrap=box.closest('.soc-topvids-wrap');if(wrap)wrap.remove();}
   }
   async function suggestGuides(){
