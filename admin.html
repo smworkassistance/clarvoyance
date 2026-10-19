@@ -34,10 +34,22 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
 .hbtn:active{background:rgba(255,255,255,.3)}
 
 /* ══ TAB BAR ════════════════════════════════════════ */
-.tabs{background:#fff;display:flex;overflow-x:auto;border-bottom:1px solid #E5E7EB;position:sticky;top:53px;z-index:199;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
+/* flex-wrap (not overflow-x:auto) — 22 tabs is more than fits one row on any screen; wrapping
+   onto further rows keeps every tab visible and tappable instead of some running off-screen
+   behind a horizontal scroll a user has to discover first. */
+.tabs{background:#fff;display:flex;flex-wrap:wrap;border-bottom:1px solid #E5E7EB;z-index:199}
 .tab{flex-shrink:0;padding:13px 16px;font-size:13px;font-weight:600;color:#9CA3AF;border:none;background:none;cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s}
 .tab.on{color:#4338CA;border-bottom-color:#4338CA}
+
+/* ══ LIVE TEST BAR ══════════════════════════════════ */
+.livetest-bar{background:#111827;color:#fff;padding:9px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px}
+.livetest-bar .lt-lbl{font-weight:800;white-space:nowrap}
+.livetest-bar select{background:#1F2937;color:#fff;border:1px solid #374151;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:600;max-width:60vw;flex:1 1 auto;min-width:0}
+.livetest-bar button{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.livetest-bar button:active{opacity:.85}
+.lt-status{color:#9CA3AF;font-size:11px;white-space:nowrap}
+.lt-status.ok{color:#34D399}
+.lt-status.err{color:#F87171}
 
 /* ══ PANES ══════════════════════════════════════════ */
 .pane{display:none;padding:16px;padding-bottom:80px}
@@ -223,6 +235,14 @@ header{background:linear-gradient(135deg,#4338CA,#7C3AED);color:#fff;padding:14p
       <button class="hbtn" onclick="logout()">Exit</button>
     </div>
   </header>
+
+  <!-- ════ LIVE TEST BAR — visible the instant the page opens, above every tab ════ -->
+  <div class="livetest-bar" id="livetest-bar">
+    <span class="lt-lbl">🧪 Local Test</span>
+    <select id="lt-ver"><option>…</option></select>
+    <button onclick="ltOpen()">Open ↗</button>
+    <span class="lt-status" id="lt-status">checking local server…</span>
+  </div>
 
   <div class="tabs">
     <button class="tab on" data-p="tools"    onclick="switchTab(this)">🛠 Tools</button>
@@ -675,6 +695,40 @@ let SD = null;        // sheets data cache
 let _saveFn    = null;
 let _confirmFn = null;
 let _epTarget  = null; // id prefix of current emoji field
+
+/* ══════════════════════════════════════════════════════
+   LOCAL TEST — opens a candidate clarvoyance_vNNN.html against the
+   local-only server from ops/dev-serve.js (localhost:8787), never
+   clar.co.in. The dropdown is populated live from that server's own
+   /__versions endpoint (CORS-open, bound to 127.0.0.1) so it always
+   reflects whatever candidate files actually exist — nothing here is
+   a hardcoded list, so a brand-new vNNN file just shows up next refresh,
+   no code change needed.
+   ══════════════════════════════════════════════════════ */
+const LT_PORT = 8787;
+function ltRefresh() {
+  const sel = document.getElementById('lt-ver');
+  const st  = document.getElementById('lt-status');
+  fetch('http://localhost:' + LT_PORT + '/__versions')
+    .then(r => r.json())
+    .then(list => {
+      if (!list.length) { st.textContent = 'no candidate files found'; st.className = 'lt-status err'; return; }
+      sel.innerHTML = list.map((v, i) => '<option value="' + v.file + '">' + v.file + (i === 0 ? ' (latest)' : '') + '</option>').join('');
+      st.textContent = 'local server running · ' + list.length + ' versions';
+      st.className = 'lt-status ok';
+    })
+    .catch(() => {
+      sel.innerHTML = '<option value="">—</option>';
+      st.textContent = 'local server not running — run: node ops/dev-serve.js';
+      st.className = 'lt-status err';
+    });
+}
+function ltOpen() {
+  const file = document.getElementById('lt-ver').value;
+  if (!file) { ltRefresh(); return; }
+  window.open('http://localhost:' + LT_PORT + '/' + file, '_blank');
+}
+ltRefresh();
 
 /* ══════════════════════════════════════════════════════
    AUTH
@@ -2885,7 +2939,17 @@ async function gsDel(id){ if(!confirm('Remove this source?'))return; try{await a
 /* lazy-load the two new tabs the first time they open */
 (function(){const o=switchTab;switchTab=function(b){o(b);if(b.dataset.p==='clarposts')loadClarPosts();if(b.dataset.p==='guides')loadGuidesAdmin();};})();
 
-loadData();
+/* 2026-10-19: removed a stray unconditional `loadData();` that used to sit right here —
+   it ran at script-parse time on EVERY page load, before the password screen and before
+   any real login, which (via loadData -> loadCommands -> adminApi -> _adminToken) fired
+   a native blocking `prompt('Admin token:')` dialog the instant the page opened, and also
+   left `SD` non-null so the visibilitychange handler kept re-triggering loadData() on every
+   tab refocus even while still logged out. doLogin() already calls loadData() correctly
+   once the password is accepted (see doLogin() below) — this duplicate call was never
+   needed. Found while live-testing via CDP: the dialog blocks ALL JS execution on the page
+   (confirmed via Page.javascriptDialogOpening — not just loadData()'s own fetch), which is
+   also why, before this fix, a fresh browser/device with no cached clv_admin_token would
+   stall completely on open until that invisible-to-a-remote-driver dialog was answered. */
 
 
 /* ═══ v270 — Guidance audio admin ═══
