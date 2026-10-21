@@ -2820,9 +2820,23 @@ function toast(msg, type) {
   _tt = setTimeout(()=>{ el.className=''; }, 3200);
 }
 
-/* Password gate temporarily bypassed — real auth to be added later */
+/* Password gate temporarily bypassed — real auth to be added later.
+   2026-10-21: this bypass (v160) shows #app directly but was never the thing
+   that actually loaded data — doLogin() is what calls loadData(), and
+   doLogin() never runs when the gate is skipped like this. The ONLY reason
+   Tools/Chargers/etc. ever populated before today was a separate, stray
+   unconditional loadData() call elsewhere in this file — which the
+   2026-10-19 fix (killing a blocking native prompt() it caused on every
+   page load) correctly removed, but that silently took automatic loading
+   down with it: every tab was left stuck on "Loading..." forever. Calling
+   loadData() right here, once, restores it properly without reintroducing
+   the blocking-prompt bug — on a browser that already has clv_admin_token
+   saved (true for the owner's own browser), _adminToken() resolves
+   instantly with zero prompt; only a genuinely new device/browser still
+   sees the one-time token prompt, which is correct, existing behavior. */
 document.getElementById('login').style.display = 'none';
 document.getElementById('app').style.cssText = 'display:flex;flex-direction:column';
+loadData();
 /* ══════ v250: Clar Posts, app settings, Guides moderation — pure CRUD over admin-relay-worker.js ══════ */
 const CP_TABS=['','chat','vibe','goal','self','home','fortune'];
 let CP_ROWS=[],GD_ROWS=[];
